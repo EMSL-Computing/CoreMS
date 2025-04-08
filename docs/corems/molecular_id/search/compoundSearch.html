@@ -72,16 +72,16 @@
 
                         <label class="view-source-button" for="mod-compoundSearch-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">exp</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">threading</span><span class="w"> </span><span class="kn">import</span> <span class="n">Thread</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">exp</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">power</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">power</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.molecular_id.calc.SpectralSimilarity</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpectralSimilarity</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.molecular_id.factory.EI_SQL</span><span class="w"> </span><span class="kn">import</span> <span class="n">EI_LowRes_SQLite</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">corems.molecular_id.calc.SpectralSimilarity</span> <span class="kn">import</span> <span class="n">SpectralSimilarity</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">corems.molecular_id.factory.EI_SQL</span> <span class="kn">import</span> <span class="n">EI_LowRes_SQLite</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LowResMassSpectralMatch</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="k">class</span> <span class="nc">LowResMassSpectralMatch</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class representing a low-resolution mass spectral match.</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="sd">    Parameters</span>
@@ -111,7 +111,7 @@
 </span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>
 </span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gcms_obj</span><span class="p">,</span> <span class="n">sql_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calibration</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gcms_obj</span><span class="p">,</span> <span class="n">sql_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calibration</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 </span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>
 </span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">gcms_obj</span> <span class="o">=</span> <span class="n">gcms_obj</span>
@@ -127,7 +127,7 @@
 </span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">sql_obj</span> <span class="o">=</span> <span class="n">sql_obj</span>
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metabolite_detector_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gc_peak</span><span class="p">,</span> <span class="n">ref_obj</span><span class="p">,</span> <span class="n">spectral_simi</span><span class="p">):</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>    <span class="k">def</span> <span class="nf">metabolite_detector_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gc_peak</span><span class="p">,</span> <span class="n">ref_obj</span><span class="p">,</span> <span class="n">spectral_simi</span><span class="p">):</span>
 </span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">        Calculates the spectral similarity scores and the similarity score for a given GC peak and reference object.</span>
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>
@@ -201,10 +201,10 @@
 </span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>
 </span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>        <span class="k">return</span> <span class="n">spectral_similarity_scores</span><span class="p">,</span> <span class="n">ri_score</span><span class="p">,</span> <span class="n">similarity_score</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the low-resolution mass spectral match.&quot;&quot;&quot;</span>
 </span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>        <span class="c1"># TODO select the best gcms peak</span>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">tqdm</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>        <span class="kn">import</span> <span class="nn">tqdm</span>
 </span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>
 </span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>        <span class="n">original_use_deconvolution</span> <span class="o">=</span> <span class="p">(</span>
 </span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">gcms_obj</span><span class="o">.</span><span class="n">chromatogram_settings</span><span class="o">.</span><span class="n">use_deconvolution</span>
@@ -301,7 +301,7 @@
 
     </div>
     <a class="headerlink" href="#LowResMassSpectralMatch"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LowResMassSpectralMatch-11"><a href="#LowResMassSpectralMatch-11"><span class="linenos"> 11</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LowResMassSpectralMatch</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LowResMassSpectralMatch-11"><a href="#LowResMassSpectralMatch-11"><span class="linenos"> 11</span></a><span class="k">class</span> <span class="nc">LowResMassSpectralMatch</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 </span><span id="LowResMassSpectralMatch-12"><a href="#LowResMassSpectralMatch-12"><span class="linenos"> 12</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class representing a low-resolution mass spectral match.</span>
 </span><span id="LowResMassSpectralMatch-13"><a href="#LowResMassSpectralMatch-13"><span class="linenos"> 13</span></a>
 </span><span id="LowResMassSpectralMatch-14"><a href="#LowResMassSpectralMatch-14"><span class="linenos"> 14</span></a><span class="sd">    Parameters</span>
@@ -331,7 +331,7 @@
 </span><span id="LowResMassSpectralMatch-38"><a href="#LowResMassSpectralMatch-38"><span class="linenos"> 38</span></a>
 </span><span id="LowResMassSpectralMatch-39"><a href="#LowResMassSpectralMatch-39"><span class="linenos"> 39</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="LowResMassSpectralMatch-40"><a href="#LowResMassSpectralMatch-40"><span class="linenos"> 40</span></a>
-</span><span id="LowResMassSpectralMatch-41"><a href="#LowResMassSpectralMatch-41"><span class="linenos"> 41</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gcms_obj</span><span class="p">,</span> <span class="n">sql_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calibration</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="LowResMassSpectralMatch-41"><a href="#LowResMassSpectralMatch-41"><span class="linenos"> 41</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gcms_obj</span><span class="p">,</span> <span class="n">sql_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calibration</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="LowResMassSpectralMatch-42"><a href="#LowResMassSpectralMatch-42"><span class="linenos"> 42</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 </span><span id="LowResMassSpectralMatch-43"><a href="#LowResMassSpectralMatch-43"><span class="linenos"> 43</span></a>
 </span><span id="LowResMassSpectralMatch-44"><a href="#LowResMassSpectralMatch-44"><span class="linenos"> 44</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">gcms_obj</span> <span class="o">=</span> <span class="n">gcms_obj</span>
@@ -347,7 +347,7 @@
 </span><span id="LowResMassSpectralMatch-54"><a href="#LowResMassSpectralMatch-54"><span class="linenos"> 54</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="LowResMassSpectralMatch-55"><a href="#LowResMassSpectralMatch-55"><span class="linenos"> 55</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">sql_obj</span> <span class="o">=</span> <span class="n">sql_obj</span>
 </span><span id="LowResMassSpectralMatch-56"><a href="#LowResMassSpectralMatch-56"><span class="linenos"> 56</span></a>
-</span><span id="LowResMassSpectralMatch-57"><a href="#LowResMassSpectralMatch-57"><span class="linenos"> 57</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metabolite_detector_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gc_peak</span><span class="p">,</span> <span class="n">ref_obj</span><span class="p">,</span> <span class="n">spectral_simi</span><span class="p">):</span>
+</span><span id="LowResMassSpectralMatch-57"><a href="#LowResMassSpectralMatch-57"><span class="linenos"> 57</span></a>    <span class="k">def</span> <span class="nf">metabolite_detector_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gc_peak</span><span class="p">,</span> <span class="n">ref_obj</span><span class="p">,</span> <span class="n">spectral_simi</span><span class="p">):</span>
 </span><span id="LowResMassSpectralMatch-58"><a href="#LowResMassSpectralMatch-58"><span class="linenos"> 58</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LowResMassSpectralMatch-59"><a href="#LowResMassSpectralMatch-59"><span class="linenos"> 59</span></a><span class="sd">        Calculates the spectral similarity scores and the similarity score for a given GC peak and reference object.</span>
 </span><span id="LowResMassSpectralMatch-60"><a href="#LowResMassSpectralMatch-60"><span class="linenos"> 60</span></a>
@@ -421,10 +421,10 @@
 </span><span id="LowResMassSpectralMatch-128"><a href="#LowResMassSpectralMatch-128"><span class="linenos">128</span></a>
 </span><span id="LowResMassSpectralMatch-129"><a href="#LowResMassSpectralMatch-129"><span class="linenos">129</span></a>        <span class="k">return</span> <span class="n">spectral_similarity_scores</span><span class="p">,</span> <span class="n">ri_score</span><span class="p">,</span> <span class="n">similarity_score</span>
 </span><span id="LowResMassSpectralMatch-130"><a href="#LowResMassSpectralMatch-130"><span class="linenos">130</span></a>
-</span><span id="LowResMassSpectralMatch-131"><a href="#LowResMassSpectralMatch-131"><span class="linenos">131</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LowResMassSpectralMatch-131"><a href="#LowResMassSpectralMatch-131"><span class="linenos">131</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LowResMassSpectralMatch-132"><a href="#LowResMassSpectralMatch-132"><span class="linenos">132</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the low-resolution mass spectral match.&quot;&quot;&quot;</span>
 </span><span id="LowResMassSpectralMatch-133"><a href="#LowResMassSpectralMatch-133"><span class="linenos">133</span></a>        <span class="c1"># TODO select the best gcms peak</span>
-</span><span id="LowResMassSpectralMatch-134"><a href="#LowResMassSpectralMatch-134"><span class="linenos">134</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">tqdm</span>
+</span><span id="LowResMassSpectralMatch-134"><a href="#LowResMassSpectralMatch-134"><span class="linenos">134</span></a>        <span class="kn">import</span> <span class="nn">tqdm</span>
 </span><span id="LowResMassSpectralMatch-135"><a href="#LowResMassSpectralMatch-135"><span class="linenos">135</span></a>
 </span><span id="LowResMassSpectralMatch-136"><a href="#LowResMassSpectralMatch-136"><span class="linenos">136</span></a>        <span class="n">original_use_deconvolution</span> <span class="o">=</span> <span class="p">(</span>
 </span><span id="LowResMassSpectralMatch-137"><a href="#LowResMassSpectralMatch-137"><span class="linenos">137</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">gcms_obj</span><span class="o">.</span><span class="n">chromatogram_settings</span><span class="o">.</span><span class="n">use_deconvolution</span>
@@ -554,7 +554,7 @@ Runs the low-resolution mass spectral match.</li>
 
     </div>
     <a class="headerlink" href="#LowResMassSpectralMatch.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LowResMassSpectralMatch.__init__-41"><a href="#LowResMassSpectralMatch.__init__-41"><span class="linenos">41</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gcms_obj</span><span class="p">,</span> <span class="n">sql_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calibration</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LowResMassSpectralMatch.__init__-41"><a href="#LowResMassSpectralMatch.__init__-41"><span class="linenos">41</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gcms_obj</span><span class="p">,</span> <span class="n">sql_obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calibration</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="LowResMassSpectralMatch.__init__-42"><a href="#LowResMassSpectralMatch.__init__-42"><span class="linenos">42</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 </span><span id="LowResMassSpectralMatch.__init__-43"><a href="#LowResMassSpectralMatch.__init__-43"><span class="linenos">43</span></a>
 </span><span id="LowResMassSpectralMatch.__init__-44"><a href="#LowResMassSpectralMatch.__init__-44"><span class="linenos">44</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">gcms_obj</span> <span class="o">=</span> <span class="n">gcms_obj</span>
@@ -628,7 +628,7 @@ else to the thread.</p>
 
     </div>
     <a class="headerlink" href="#LowResMassSpectralMatch.metabolite_detector_score"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LowResMassSpectralMatch.metabolite_detector_score-57"><a href="#LowResMassSpectralMatch.metabolite_detector_score-57"><span class="linenos"> 57</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metabolite_detector_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gc_peak</span><span class="p">,</span> <span class="n">ref_obj</span><span class="p">,</span> <span class="n">spectral_simi</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LowResMassSpectralMatch.metabolite_detector_score-57"><a href="#LowResMassSpectralMatch.metabolite_detector_score-57"><span class="linenos"> 57</span></a>    <span class="k">def</span> <span class="nf">metabolite_detector_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gc_peak</span><span class="p">,</span> <span class="n">ref_obj</span><span class="p">,</span> <span class="n">spectral_simi</span><span class="p">):</span>
 </span><span id="LowResMassSpectralMatch.metabolite_detector_score-58"><a href="#LowResMassSpectralMatch.metabolite_detector_score-58"><span class="linenos"> 58</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LowResMassSpectralMatch.metabolite_detector_score-59"><a href="#LowResMassSpectralMatch.metabolite_detector_score-59"><span class="linenos"> 59</span></a><span class="sd">        Calculates the spectral similarity scores and the similarity score for a given GC peak and reference object.</span>
 </span><span id="LowResMassSpectralMatch.metabolite_detector_score-60"><a href="#LowResMassSpectralMatch.metabolite_detector_score-60"><span class="linenos"> 60</span></a>
@@ -737,10 +737,10 @@ The spectral similarity object.</li>
 
     </div>
     <a class="headerlink" href="#LowResMassSpectralMatch.run"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LowResMassSpectralMatch.run-131"><a href="#LowResMassSpectralMatch.run-131"><span class="linenos">131</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LowResMassSpectralMatch.run-131"><a href="#LowResMassSpectralMatch.run-131"><span class="linenos">131</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LowResMassSpectralMatch.run-132"><a href="#LowResMassSpectralMatch.run-132"><span class="linenos">132</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the low-resolution mass spectral match.&quot;&quot;&quot;</span>
 </span><span id="LowResMassSpectralMatch.run-133"><a href="#LowResMassSpectralMatch.run-133"><span class="linenos">133</span></a>        <span class="c1"># TODO select the best gcms peak</span>
-</span><span id="LowResMassSpectralMatch.run-134"><a href="#LowResMassSpectralMatch.run-134"><span class="linenos">134</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">tqdm</span>
+</span><span id="LowResMassSpectralMatch.run-134"><a href="#LowResMassSpectralMatch.run-134"><span class="linenos">134</span></a>        <span class="kn">import</span> <span class="nn">tqdm</span>
 </span><span id="LowResMassSpectralMatch.run-135"><a href="#LowResMassSpectralMatch.run-135"><span class="linenos">135</span></a>
 </span><span id="LowResMassSpectralMatch.run-136"><a href="#LowResMassSpectralMatch.run-136"><span class="linenos">136</span></a>        <span class="n">original_use_deconvolution</span> <span class="o">=</span> <span class="p">(</span>
 </span><span id="LowResMassSpectralMatch.run-137"><a href="#LowResMassSpectralMatch.run-137"><span class="linenos">137</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">gcms_obj</span><span class="o">.</span><span class="n">chromatogram_settings</span><span class="o">.</span><span class="n">use_deconvolution</span>

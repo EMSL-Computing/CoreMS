@@ -117,19 +117,19 @@
 
                         <label class="view-source-button" for="mod-lc_calc-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">   1</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">   2</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">   3</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">ripser</span><span class="w"> </span><span class="kn">import</span> <span class="n">ripser</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">   4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">sparse</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">   5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">KDTree</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">   1</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">   2</span></a><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">   3</span></a><span class="kn">from</span> <span class="nn">ripser</span> <span class="kn">import</span> <span class="n">ripser</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">   4</span></a><span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">sparse</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">   5</span></a><span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">KDTree</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">   6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">   7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.chroma_peak.factory.chroma_peak_classes</span><span class="w"> </span><span class="kn">import</span> <span class="n">LCMSMassFeature</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">   8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectra.calc</span><span class="w"> </span><span class="kn">import</span> <span class="n">SignalProcessing</span> <span class="k">as</span> <span class="n">sp</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">   9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectra.factory.chromat_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">EIC_Data</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">  10</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectrum.input.numpyArray</span><span class="w"> </span><span class="kn">import</span> <span class="n">ms_from_array_profile</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">   7</span></a><span class="kn">from</span> <span class="nn">corems.chroma_peak.factory.chroma_peak_classes</span> <span class="kn">import</span> <span class="n">LCMSMassFeature</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">   8</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectra.calc</span> <span class="kn">import</span> <span class="n">SignalProcessing</span> <span class="k">as</span> <span class="n">sp</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">   9</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectra.factory.chromat_data</span> <span class="kn">import</span> <span class="n">EIC_Data</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">  10</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectrum.input.numpyArray</span> <span class="kn">import</span> <span class="n">ms_from_array_profile</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos">  11</span></a>
 </span><span id="L-12"><a href="#L-12"><span class="linenos">  12</span></a>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">  13</span></a><span class="k">def</span><span class="w"> </span><span class="nf">find_closest</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">  13</span></a><span class="k">def</span> <span class="nf">find_closest</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos">  14</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Find the index of closest value in A to each value in target.</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos">  15</span></a>
 </span><span id="L-16"><a href="#L-16"><span class="linenos">  16</span></a><span class="sd">    Parameters</span>
@@ -152,7 +152,7 @@
 </span><span id="L-33"><a href="#L-33"><span class="linenos">  33</span></a>    <span class="k">return</span> <span class="n">idx</span>
 </span><span id="L-34"><a href="#L-34"><span class="linenos">  34</span></a>
 </span><span id="L-35"><a href="#L-35"><span class="linenos">  35</span></a>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">  36</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LCCalculations</span><span class="p">:</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">  36</span></a><span class="k">class</span> <span class="nc">LCCalculations</span><span class="p">:</span>
 </span><span id="L-37"><a href="#L-37"><span class="linenos">  37</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Methods for performing LC calculations on mass spectra data.</span>
 </span><span id="L-38"><a href="#L-38"><span class="linenos">  38</span></a>
 </span><span id="L-39"><a href="#L-39"><span class="linenos">  39</span></a><span class="sd">    Notes</span>
@@ -182,7 +182,7 @@
 </span><span id="L-63"><a href="#L-63"><span class="linenos">  63</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-64"><a href="#L-64"><span class="linenos">  64</span></a>
 </span><span id="L-65"><a href="#L-65"><span class="linenos">  65</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos">  66</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_max_eic</span><span class="p">(</span><span class="n">eic_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos">  66</span></a>    <span class="k">def</span> <span class="nf">get_max_eic</span><span class="p">(</span><span class="n">eic_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 </span><span id="L-67"><a href="#L-67"><span class="linenos">  67</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the maximum EIC value from the given EIC data.</span>
 </span><span id="L-68"><a href="#L-68"><span class="linenos">  68</span></a>
 </span><span id="L-69"><a href="#L-69"><span class="linenos">  69</span></a><span class="sd">        Notes</span>
@@ -206,7 +206,7 @@
 </span><span id="L-87"><a href="#L-87"><span class="linenos">  87</span></a>
 </span><span id="L-88"><a href="#L-88"><span class="linenos">  88</span></a>        <span class="k">return</span> <span class="n">max_eic</span>
 </span><span id="L-89"><a href="#L-89"><span class="linenos">  89</span></a>
-</span><span id="L-90"><a href="#L-90"><span class="linenos">  90</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">smooth_tic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tic</span><span class="p">):</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos">  90</span></a>    <span class="k">def</span> <span class="nf">smooth_tic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tic</span><span class="p">):</span>
 </span><span id="L-91"><a href="#L-91"><span class="linenos">  91</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Smooths the TIC or EIC data using the specified smoothing method and settings.</span>
 </span><span id="L-92"><a href="#L-92"><span class="linenos">  92</span></a>
 </span><span id="L-93"><a href="#L-93"><span class="linenos">  93</span></a><span class="sd">        Parameters</span>
@@ -231,7 +231,7 @@
 </span><span id="L-112"><a href="#L-112"><span class="linenos"> 112</span></a>            <span class="n">tic</span><span class="p">,</span> <span class="n">window_len</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="n">pol_order</span><span class="p">,</span> <span class="n">implemented_smooth_method</span>
 </span><span id="L-113"><a href="#L-113"><span class="linenos"> 113</span></a>        <span class="p">)</span>
 </span><span id="L-114"><a href="#L-114"><span class="linenos"> 114</span></a>
-</span><span id="L-115"><a href="#L-115"><span class="linenos"> 115</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">eic_centroid_detector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt</span><span class="p">,</span> <span class="n">eic</span><span class="p">,</span> <span class="n">max_eic</span><span class="p">,</span> <span class="n">apex_indexes</span><span class="o">=</span><span class="p">[]):</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos"> 115</span></a>    <span class="k">def</span> <span class="nf">eic_centroid_detector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt</span><span class="p">,</span> <span class="n">eic</span><span class="p">,</span> <span class="n">max_eic</span><span class="p">,</span> <span class="n">apex_indexes</span><span class="o">=</span><span class="p">[]):</span>
 </span><span id="L-116"><a href="#L-116"><span class="linenos"> 116</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs EIC centroid detection on the given EIC data.</span>
 </span><span id="L-117"><a href="#L-117"><span class="linenos"> 117</span></a>
 </span><span id="L-118"><a href="#L-118"><span class="linenos"> 118</span></a><span class="sd">        Parameters</span>
@@ -277,7 +277,7 @@
 </span><span id="L-158"><a href="#L-158"><span class="linenos"> 158</span></a>
 </span><span id="L-159"><a href="#L-159"><span class="linenos"> 159</span></a>        <span class="k">return</span> <span class="n">include_indexes</span>
 </span><span id="L-160"><a href="#L-160"><span class="linenos"> 160</span></a>
-</span><span id="L-161"><a href="#L-161"><span class="linenos"> 161</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_nearest_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt</span><span class="p">):</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos"> 161</span></a>    <span class="k">def</span> <span class="nf">find_nearest_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt</span><span class="p">):</span>
 </span><span id="L-162"><a href="#L-162"><span class="linenos"> 162</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Finds the nearest scan to the given retention time.</span>
 </span><span id="L-163"><a href="#L-163"><span class="linenos"> 163</span></a>
 </span><span id="L-164"><a href="#L-164"><span class="linenos"> 164</span></a><span class="sd">        Parameters</span>
@@ -298,7 +298,7 @@
 </span><span id="L-179"><a href="#L-179"><span class="linenos"> 179</span></a>
 </span><span id="L-180"><a href="#L-180"><span class="linenos"> 180</span></a>        <span class="k">return</span> <span class="n">real_scan</span>
 </span><span id="L-181"><a href="#L-181"><span class="linenos"> 181</span></a>
-</span><span id="L-182"><a href="#L-182"><span class="linenos"> 182</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_peak_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-182"><a href="#L-182"><span class="linenos"> 182</span></a>    <span class="k">def</span> <span class="nf">add_peak_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-183"><a href="#L-183"><span class="linenos"> 183</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add peak metrics to the mass features.</span>
 </span><span id="L-184"><a href="#L-184"><span class="linenos"> 184</span></a>
 </span><span id="L-185"><a href="#L-185"><span class="linenos"> 185</span></a><span class="sd">        This function calculates the peak metrics for each mass feature and adds them to the mass feature objects.</span>
@@ -317,7 +317,7 @@
 </span><span id="L-198"><a href="#L-198"><span class="linenos"> 198</span></a>                <span class="n">mass_feature</span><span class="o">.</span><span class="n">calc_tailing_factor</span><span class="p">()</span>
 </span><span id="L-199"><a href="#L-199"><span class="linenos"> 199</span></a>                <span class="n">mass_feature</span><span class="o">.</span><span class="n">calc_dispersity_index</span><span class="p">()</span>
 </span><span id="L-200"><a href="#L-200"><span class="linenos"> 200</span></a>
-</span><span id="L-201"><a href="#L-201"><span class="linenos"> 201</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_average_mass_spectrum</span><span class="p">(</span>
+</span><span id="L-201"><a href="#L-201"><span class="linenos"> 201</span></a>    <span class="k">def</span> <span class="nf">get_average_mass_spectrum</span><span class="p">(</span>
 </span><span id="L-202"><a href="#L-202"><span class="linenos"> 202</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-203"><a href="#L-203"><span class="linenos"> 203</span></a>        <span class="n">scan_list</span><span class="p">,</span>
 </span><span id="L-204"><a href="#L-204"><span class="linenos"> 204</span></a>        <span class="n">apex_scan</span><span class="p">,</span>
@@ -442,7 +442,7 @@
 </span><span id="L-323"><a href="#L-323"><span class="linenos"> 323</span></a>                <span class="n">ms</span><span class="o">.</span><span class="n">process_mass_spec</span><span class="p">()</span>
 </span><span id="L-324"><a href="#L-324"><span class="linenos"> 324</span></a>        <span class="k">return</span> <span class="n">ms</span>
 </span><span id="L-325"><a href="#L-325"><span class="linenos"> 325</span></a>
-</span><span id="L-326"><a href="#L-326"><span class="linenos"> 326</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-326"><a href="#L-326"><span class="linenos"> 326</span></a>    <span class="k">def</span> <span class="nf">find_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="L-327"><a href="#L-327"><span class="linenos"> 327</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find mass features within an LCMSBase object</span>
 </span><span id="L-328"><a href="#L-328"><span class="linenos"> 328</span></a>
 </span><span id="L-329"><a href="#L-329"><span class="linenos"> 329</span></a><span class="sd">        Note that this is a wrapper function that calls the find_mass_features_ph function, but can be extended to support other peak picking methods in the future.</span>
@@ -483,7 +483,7 @@
 </span><span id="L-364"><a href="#L-364"><span class="linenos"> 364</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-365"><a href="#L-365"><span class="linenos"> 365</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Peak picking method not implemented&quot;</span><span class="p">)</span>
 </span><span id="L-366"><a href="#L-366"><span class="linenos"> 366</span></a>
-</span><span id="L-367"><a href="#L-367"><span class="linenos"> 367</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">integrate_mass_features</span><span class="p">(</span>
+</span><span id="L-367"><a href="#L-367"><span class="linenos"> 367</span></a>    <span class="k">def</span> <span class="nf">integrate_mass_features</span><span class="p">(</span>
 </span><span id="L-368"><a href="#L-368"><span class="linenos"> 368</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">drop_if_fail</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">drop_duplicates</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span>
 </span><span id="L-369"><a href="#L-369"><span class="linenos"> 369</span></a>    <span class="p">):</span>
 </span><span id="L-370"><a href="#L-370"><span class="linenos"> 370</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Integrate mass features and extract EICs.</span>
@@ -639,7 +639,7 @@
 </span><span id="L-520"><a href="#L-520"><span class="linenos"> 520</span></a>                            <span class="k">if</span> <span class="n">idx2</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_features</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
 </span><span id="L-521"><a href="#L-521"><span class="linenos"> 521</span></a>                                <span class="bp">self</span><span class="o">.</span><span class="n">mass_features</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">idx2</span><span class="p">)</span>
 </span><span id="L-522"><a href="#L-522"><span class="linenos"> 522</span></a>
-</span><span id="L-523"><a href="#L-523"><span class="linenos"> 523</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_c13_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-523"><a href="#L-523"><span class="linenos"> 523</span></a>    <span class="k">def</span> <span class="nf">find_c13_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-524"><a href="#L-524"><span class="linenos"> 524</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Mark likely C13 isotopes and connect to monoisoitopic mass features.</span>
 </span><span id="L-525"><a href="#L-525"><span class="linenos"> 525</span></a>
 </span><span id="L-526"><a href="#L-526"><span class="linenos"> 526</span></a><span class="sd">        Returns</span>
@@ -785,7 +785,7 @@
 </span><span id="L-666"><a href="#L-666"><span class="linenos"> 666</span></a>                <span class="o">+</span> <span class="s2">&quot; of mass features have or are C13 isotopes&quot;</span>
 </span><span id="L-667"><a href="#L-667"><span class="linenos"> 667</span></a>            <span class="p">)</span>
 </span><span id="L-668"><a href="#L-668"><span class="linenos"> 668</span></a>
-</span><span id="L-669"><a href="#L-669"><span class="linenos"> 669</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">deconvolute_ms1_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-669"><a href="#L-669"><span class="linenos"> 669</span></a>    <span class="k">def</span> <span class="nf">deconvolute_ms1_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-670"><a href="#L-670"><span class="linenos"> 670</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deconvolute MS1 mass features</span>
 </span><span id="L-671"><a href="#L-671"><span class="linenos"> 671</span></a>
 </span><span id="L-672"><a href="#L-672"><span class="linenos"> 672</span></a><span class="sd">        Deconvolute mass features ms1 spectrum based on the correlation of all masses within a spectrum over the EIC of the mass features</span>
@@ -920,7 +920,7 @@
 </span><span id="L-801"><a href="#L-801"><span class="linenos"> 801</span></a>            <span class="n">mass_feature</span><span class="o">.</span><span class="n">associated_mass_features_deconvoluted</span> <span class="o">=</span> <span class="n">mfs_associated_decon</span>
 </span><span id="L-802"><a href="#L-802"><span class="linenos"> 802</span></a>
 </span><span id="L-803"><a href="#L-803"><span class="linenos"> 803</span></a>
-</span><span id="L-804"><a href="#L-804"><span class="linenos"> 804</span></a><span class="k">class</span><span class="w"> </span><span class="nc">PHCalculations</span><span class="p">:</span>
+</span><span id="L-804"><a href="#L-804"><span class="linenos"> 804</span></a><span class="k">class</span> <span class="nc">PHCalculations</span><span class="p">:</span>
 </span><span id="L-805"><a href="#L-805"><span class="linenos"> 805</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Methods for performing calculations related to 2D peak picking via persistent homology on LCMS data.</span>
 </span><span id="L-806"><a href="#L-806"><span class="linenos"> 806</span></a>
 </span><span id="L-807"><a href="#L-807"><span class="linenos"> 807</span></a><span class="sd">    Notes</span>
@@ -946,7 +946,7 @@
 </span><span id="L-827"><a href="#L-827"><span class="linenos"> 827</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-828"><a href="#L-828"><span class="linenos"> 828</span></a>
 </span><span id="L-829"><a href="#L-829"><span class="linenos"> 829</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-830"><a href="#L-830"><span class="linenos"> 830</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sparse_mean_filter</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]):</span>
+</span><span id="L-830"><a href="#L-830"><span class="linenos"> 830</span></a>    <span class="k">def</span> <span class="nf">sparse_mean_filter</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]):</span>
 </span><span id="L-831"><a href="#L-831"><span class="linenos"> 831</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sparse implementation of a mean filter.</span>
 </span><span id="L-832"><a href="#L-832"><span class="linenos"> 832</span></a>
 </span><span id="L-833"><a href="#L-833"><span class="linenos"> 833</span></a><span class="sd">        Parameters</span>
@@ -1012,7 +1012,7 @@
 </span><span id="L-893"><a href="#L-893"><span class="linenos"> 893</span></a>        <span class="k">return</span> <span class="n">V_sum</span> <span class="o">/</span> <span class="n">V_count</span>
 </span><span id="L-894"><a href="#L-894"><span class="linenos"> 894</span></a>
 </span><span id="L-895"><a href="#L-895"><span class="linenos"> 895</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-896"><a href="#L-896"><span class="linenos"> 896</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">embed_unique_indices</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+</span><span id="L-896"><a href="#L-896"><span class="linenos"> 896</span></a>    <span class="k">def</span> <span class="nf">embed_unique_indices</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
 </span><span id="L-897"><a href="#L-897"><span class="linenos"> 897</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates an array of indices, sorted by unique element.</span>
 </span><span id="L-898"><a href="#L-898"><span class="linenos"> 898</span></a>
 </span><span id="L-899"><a href="#L-899"><span class="linenos"> 899</span></a><span class="sd">        Parameters</span>
@@ -1031,7 +1031,7 @@
 </span><span id="L-912"><a href="#L-912"><span class="linenos"> 912</span></a><span class="sd">        This is a static method.</span>
 </span><span id="L-913"><a href="#L-913"><span class="linenos"> 913</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-914"><a href="#L-914"><span class="linenos"> 914</span></a>
-</span><span id="L-915"><a href="#L-915"><span class="linenos"> 915</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">count_tens</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+</span><span id="L-915"><a href="#L-915"><span class="linenos"> 915</span></a>        <span class="k">def</span> <span class="nf">count_tens</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
 </span><span id="L-916"><a href="#L-916"><span class="linenos"> 916</span></a>            <span class="c1"># Count tens</span>
 </span><span id="L-917"><a href="#L-917"><span class="linenos"> 917</span></a>            <span class="n">ntens</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">10</span>
 </span><span id="L-918"><a href="#L-918"><span class="linenos"> 918</span></a>
@@ -1043,7 +1043,7 @@
 </span><span id="L-924"><a href="#L-924"><span class="linenos"> 924</span></a>                <span class="k">else</span><span class="p">:</span>
 </span><span id="L-925"><a href="#L-925"><span class="linenos"> 925</span></a>                    <span class="n">ntens</span> <span class="o">=</span> <span class="n">ntens_test</span>
 </span><span id="L-926"><a href="#L-926"><span class="linenos"> 926</span></a>
-</span><span id="L-927"><a href="#L-927"><span class="linenos"> 927</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">arange_exclude_10s</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+</span><span id="L-927"><a href="#L-927"><span class="linenos"> 927</span></a>        <span class="k">def</span> <span class="nf">arange_exclude_10s</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
 </span><span id="L-928"><a href="#L-928"><span class="linenos"> 928</span></a>            <span class="c1"># How many 10s will there be?</span>
 </span><span id="L-929"><a href="#L-929"><span class="linenos"> 929</span></a>            <span class="n">ntens</span> <span class="o">=</span> <span class="n">count_tens</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 </span><span id="L-930"><a href="#L-930"><span class="linenos"> 930</span></a>
@@ -1086,7 +1086,7 @@
 </span><span id="L-967"><a href="#L-967"><span class="linenos"> 967</span></a>        <span class="c1"># Result</span>
 </span><span id="L-968"><a href="#L-968"><span class="linenos"> 968</span></a>        <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">idx_unq</span> <span class="o">/</span> <span class="n">idx_unq_mag</span>
 </span><span id="L-969"><a href="#L-969"><span class="linenos"> 969</span></a>
-</span><span id="L-970"><a href="#L-970"><span class="linenos"> 970</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sparse_upper_star</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">V</span><span class="p">):</span>
+</span><span id="L-970"><a href="#L-970"><span class="linenos"> 970</span></a>    <span class="k">def</span> <span class="nf">sparse_upper_star</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">V</span><span class="p">):</span>
 </span><span id="L-971"><a href="#L-971"><span class="linenos"> 971</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sparse implementation of an upper star filtration.</span>
 </span><span id="L-972"><a href="#L-972"><span class="linenos"> 972</span></a>
 </span><span id="L-973"><a href="#L-973"><span class="linenos"> 973</span></a><span class="sd">        Parameters</span>
@@ -1147,7 +1147,7 @@
 </span><span id="L-1028"><a href="#L-1028"><span class="linenos">1028</span></a>
 </span><span id="L-1029"><a href="#L-1029"><span class="linenos">1029</span></a>        <span class="k">return</span> <span class="n">nn</span><span class="p">,</span> <span class="o">-</span><span class="p">(</span><span class="n">ph</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ph</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">1</span><span class="p">)</span>
 </span><span id="L-1030"><a href="#L-1030"><span class="linenos">1030</span></a>
-</span><span id="L-1031"><a href="#L-1031"><span class="linenos">1031</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_if_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+</span><span id="L-1031"><a href="#L-1031"><span class="linenos">1031</span></a>    <span class="k">def</span> <span class="nf">check_if_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 </span><span id="L-1032"><a href="#L-1032"><span class="linenos">1032</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the data are gridded in mz space.</span>
 </span><span id="L-1033"><a href="#L-1033"><span class="linenos">1033</span></a>
 </span><span id="L-1034"><a href="#L-1034"><span class="linenos">1034</span></a><span class="sd">        Parameters</span>
@@ -1185,7 +1185,7 @@
 </span><span id="L-1066"><a href="#L-1066"><span class="linenos">1066</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-1067"><a href="#L-1067"><span class="linenos">1067</span></a>            <span class="k">return</span> <span class="kc">True</span>
 </span><span id="L-1068"><a href="#L-1068"><span class="linenos">1068</span></a>
-</span><span id="L-1069"><a href="#L-1069"><span class="linenos">1069</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">grid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+</span><span id="L-1069"><a href="#L-1069"><span class="linenos">1069</span></a>    <span class="k">def</span> <span class="nf">grid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 </span><span id="L-1070"><a href="#L-1070"><span class="linenos">1070</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Grid the data in the mz dimension.</span>
 </span><span id="L-1071"><a href="#L-1071"><span class="linenos">1071</span></a>
 </span><span id="L-1072"><a href="#L-1072"><span class="linenos">1072</span></a><span class="sd">        Data must be gridded prior to persistent homology calculations.</span>
@@ -1269,7 +1269,7 @@
 </span><span id="L-1150"><a href="#L-1150"><span class="linenos">1150</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-1151"><a href="#L-1151"><span class="linenos">1151</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Gridding failed&quot;</span><span class="p">)</span>
 </span><span id="L-1152"><a href="#L-1152"><span class="linenos">1152</span></a>
-</span><span id="L-1153"><a href="#L-1153"><span class="linenos">1153</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_mass_features_ph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-1153"><a href="#L-1153"><span class="linenos">1153</span></a>    <span class="k">def</span> <span class="nf">find_mass_features_ph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="L-1154"><a href="#L-1154"><span class="linenos">1154</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find mass features within an LCMSBase object using persistent homology.</span>
 </span><span id="L-1155"><a href="#L-1155"><span class="linenos">1155</span></a>
 </span><span id="L-1156"><a href="#L-1156"><span class="linenos">1156</span></a><span class="sd">        Assigns the mass_features attribute to the object (a dictionary of LCMSMassFeature objects, keyed by mass feature id)</span>
@@ -1405,7 +1405,7 @@
 </span><span id="L-1286"><a href="#L-1286"><span class="linenos">1286</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">lc_ms</span><span class="o">.</span><span class="n">verbose_processing</span><span class="p">:</span>
 </span><span id="L-1287"><a href="#L-1287"><span class="linenos">1287</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Found &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mass_features</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; initial mass features&quot;</span><span class="p">)</span>
 </span><span id="L-1288"><a href="#L-1288"><span class="linenos">1288</span></a>
-</span><span id="L-1289"><a href="#L-1289"><span class="linenos">1289</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cluster_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">drop_children</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort_by</span><span class="o">=</span><span class="s2">&quot;persistence&quot;</span><span class="p">):</span>
+</span><span id="L-1289"><a href="#L-1289"><span class="linenos">1289</span></a>    <span class="k">def</span> <span class="nf">cluster_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">drop_children</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort_by</span><span class="o">=</span><span class="s2">&quot;persistence&quot;</span><span class="p">):</span>
 </span><span id="L-1290"><a href="#L-1290"><span class="linenos">1290</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Cluster mass features</span>
 </span><span id="L-1291"><a href="#L-1291"><span class="linenos">1291</span></a>
 </span><span id="L-1292"><a href="#L-1292"><span class="linenos">1292</span></a><span class="sd">        Based on their proximity in the mz and scan_time dimensions, priorizies the mass features with the highest persistence.</span>
@@ -1553,7 +1553,7 @@
 
     </div>
     <a class="headerlink" href="#find_closest"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="find_closest-14"><a href="#find_closest-14"><span class="linenos">14</span></a><span class="k">def</span><span class="w"> </span><span class="nf">find_closest</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="find_closest-14"><a href="#find_closest-14"><span class="linenos">14</span></a><span class="k">def</span> <span class="nf">find_closest</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
 </span><span id="find_closest-15"><a href="#find_closest-15"><span class="linenos">15</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Find the index of closest value in A to each value in target.</span>
 </span><span id="find_closest-16"><a href="#find_closest-16"><span class="linenos">16</span></a>
 </span><span id="find_closest-17"><a href="#find_closest-17"><span class="linenos">17</span></a><span class="sd">    Parameters</span>
@@ -1608,7 +1608,7 @@ The array of values to search for. target must be sorted.</li>
 
     </div>
     <a class="headerlink" href="#LCCalculations"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations-37"><a href="#LCCalculations-37"><span class="linenos"> 37</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LCCalculations</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations-37"><a href="#LCCalculations-37"><span class="linenos"> 37</span></a><span class="k">class</span> <span class="nc">LCCalculations</span><span class="p">:</span>
 </span><span id="LCCalculations-38"><a href="#LCCalculations-38"><span class="linenos"> 38</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Methods for performing LC calculations on mass spectra data.</span>
 </span><span id="LCCalculations-39"><a href="#LCCalculations-39"><span class="linenos"> 39</span></a>
 </span><span id="LCCalculations-40"><a href="#LCCalculations-40"><span class="linenos"> 40</span></a><span class="sd">    Notes</span>
@@ -1638,7 +1638,7 @@ The array of values to search for. target must be sorted.</li>
 </span><span id="LCCalculations-64"><a href="#LCCalculations-64"><span class="linenos"> 64</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="LCCalculations-65"><a href="#LCCalculations-65"><span class="linenos"> 65</span></a>
 </span><span id="LCCalculations-66"><a href="#LCCalculations-66"><span class="linenos"> 66</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="LCCalculations-67"><a href="#LCCalculations-67"><span class="linenos"> 67</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_max_eic</span><span class="p">(</span><span class="n">eic_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span id="LCCalculations-67"><a href="#LCCalculations-67"><span class="linenos"> 67</span></a>    <span class="k">def</span> <span class="nf">get_max_eic</span><span class="p">(</span><span class="n">eic_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 </span><span id="LCCalculations-68"><a href="#LCCalculations-68"><span class="linenos"> 68</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the maximum EIC value from the given EIC data.</span>
 </span><span id="LCCalculations-69"><a href="#LCCalculations-69"><span class="linenos"> 69</span></a>
 </span><span id="LCCalculations-70"><a href="#LCCalculations-70"><span class="linenos"> 70</span></a><span class="sd">        Notes</span>
@@ -1662,7 +1662,7 @@ The array of values to search for. target must be sorted.</li>
 </span><span id="LCCalculations-88"><a href="#LCCalculations-88"><span class="linenos"> 88</span></a>
 </span><span id="LCCalculations-89"><a href="#LCCalculations-89"><span class="linenos"> 89</span></a>        <span class="k">return</span> <span class="n">max_eic</span>
 </span><span id="LCCalculations-90"><a href="#LCCalculations-90"><span class="linenos"> 90</span></a>
-</span><span id="LCCalculations-91"><a href="#LCCalculations-91"><span class="linenos"> 91</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">smooth_tic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tic</span><span class="p">):</span>
+</span><span id="LCCalculations-91"><a href="#LCCalculations-91"><span class="linenos"> 91</span></a>    <span class="k">def</span> <span class="nf">smooth_tic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tic</span><span class="p">):</span>
 </span><span id="LCCalculations-92"><a href="#LCCalculations-92"><span class="linenos"> 92</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Smooths the TIC or EIC data using the specified smoothing method and settings.</span>
 </span><span id="LCCalculations-93"><a href="#LCCalculations-93"><span class="linenos"> 93</span></a>
 </span><span id="LCCalculations-94"><a href="#LCCalculations-94"><span class="linenos"> 94</span></a><span class="sd">        Parameters</span>
@@ -1687,7 +1687,7 @@ The array of values to search for. target must be sorted.</li>
 </span><span id="LCCalculations-113"><a href="#LCCalculations-113"><span class="linenos">113</span></a>            <span class="n">tic</span><span class="p">,</span> <span class="n">window_len</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="n">pol_order</span><span class="p">,</span> <span class="n">implemented_smooth_method</span>
 </span><span id="LCCalculations-114"><a href="#LCCalculations-114"><span class="linenos">114</span></a>        <span class="p">)</span>
 </span><span id="LCCalculations-115"><a href="#LCCalculations-115"><span class="linenos">115</span></a>
-</span><span id="LCCalculations-116"><a href="#LCCalculations-116"><span class="linenos">116</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">eic_centroid_detector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt</span><span class="p">,</span> <span class="n">eic</span><span class="p">,</span> <span class="n">max_eic</span><span class="p">,</span> <span class="n">apex_indexes</span><span class="o">=</span><span class="p">[]):</span>
+</span><span id="LCCalculations-116"><a href="#LCCalculations-116"><span class="linenos">116</span></a>    <span class="k">def</span> <span class="nf">eic_centroid_detector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt</span><span class="p">,</span> <span class="n">eic</span><span class="p">,</span> <span class="n">max_eic</span><span class="p">,</span> <span class="n">apex_indexes</span><span class="o">=</span><span class="p">[]):</span>
 </span><span id="LCCalculations-117"><a href="#LCCalculations-117"><span class="linenos">117</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs EIC centroid detection on the given EIC data.</span>
 </span><span id="LCCalculations-118"><a href="#LCCalculations-118"><span class="linenos">118</span></a>
 </span><span id="LCCalculations-119"><a href="#LCCalculations-119"><span class="linenos">119</span></a><span class="sd">        Parameters</span>
@@ -1733,7 +1733,7 @@ The array of values to search for. target must be sorted.</li>
 </span><span id="LCCalculations-159"><a href="#LCCalculations-159"><span class="linenos">159</span></a>
 </span><span id="LCCalculations-160"><a href="#LCCalculations-160"><span class="linenos">160</span></a>        <span class="k">return</span> <span class="n">include_indexes</span>
 </span><span id="LCCalculations-161"><a href="#LCCalculations-161"><span class="linenos">161</span></a>
-</span><span id="LCCalculations-162"><a href="#LCCalculations-162"><span class="linenos">162</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_nearest_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt</span><span class="p">):</span>
+</span><span id="LCCalculations-162"><a href="#LCCalculations-162"><span class="linenos">162</span></a>    <span class="k">def</span> <span class="nf">find_nearest_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt</span><span class="p">):</span>
 </span><span id="LCCalculations-163"><a href="#LCCalculations-163"><span class="linenos">163</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Finds the nearest scan to the given retention time.</span>
 </span><span id="LCCalculations-164"><a href="#LCCalculations-164"><span class="linenos">164</span></a>
 </span><span id="LCCalculations-165"><a href="#LCCalculations-165"><span class="linenos">165</span></a><span class="sd">        Parameters</span>
@@ -1754,7 +1754,7 @@ The array of values to search for. target must be sorted.</li>
 </span><span id="LCCalculations-180"><a href="#LCCalculations-180"><span class="linenos">180</span></a>
 </span><span id="LCCalculations-181"><a href="#LCCalculations-181"><span class="linenos">181</span></a>        <span class="k">return</span> <span class="n">real_scan</span>
 </span><span id="LCCalculations-182"><a href="#LCCalculations-182"><span class="linenos">182</span></a>
-</span><span id="LCCalculations-183"><a href="#LCCalculations-183"><span class="linenos">183</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_peak_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCCalculations-183"><a href="#LCCalculations-183"><span class="linenos">183</span></a>    <span class="k">def</span> <span class="nf">add_peak_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCCalculations-184"><a href="#LCCalculations-184"><span class="linenos">184</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add peak metrics to the mass features.</span>
 </span><span id="LCCalculations-185"><a href="#LCCalculations-185"><span class="linenos">185</span></a>
 </span><span id="LCCalculations-186"><a href="#LCCalculations-186"><span class="linenos">186</span></a><span class="sd">        This function calculates the peak metrics for each mass feature and adds them to the mass feature objects.</span>
@@ -1773,7 +1773,7 @@ The array of values to search for. target must be sorted.</li>
 </span><span id="LCCalculations-199"><a href="#LCCalculations-199"><span class="linenos">199</span></a>                <span class="n">mass_feature</span><span class="o">.</span><span class="n">calc_tailing_factor</span><span class="p">()</span>
 </span><span id="LCCalculations-200"><a href="#LCCalculations-200"><span class="linenos">200</span></a>                <span class="n">mass_feature</span><span class="o">.</span><span class="n">calc_dispersity_index</span><span class="p">()</span>
 </span><span id="LCCalculations-201"><a href="#LCCalculations-201"><span class="linenos">201</span></a>
-</span><span id="LCCalculations-202"><a href="#LCCalculations-202"><span class="linenos">202</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_average_mass_spectrum</span><span class="p">(</span>
+</span><span id="LCCalculations-202"><a href="#LCCalculations-202"><span class="linenos">202</span></a>    <span class="k">def</span> <span class="nf">get_average_mass_spectrum</span><span class="p">(</span>
 </span><span id="LCCalculations-203"><a href="#LCCalculations-203"><span class="linenos">203</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="LCCalculations-204"><a href="#LCCalculations-204"><span class="linenos">204</span></a>        <span class="n">scan_list</span><span class="p">,</span>
 </span><span id="LCCalculations-205"><a href="#LCCalculations-205"><span class="linenos">205</span></a>        <span class="n">apex_scan</span><span class="p">,</span>
@@ -1898,7 +1898,7 @@ The array of values to search for. target must be sorted.</li>
 </span><span id="LCCalculations-324"><a href="#LCCalculations-324"><span class="linenos">324</span></a>                <span class="n">ms</span><span class="o">.</span><span class="n">process_mass_spec</span><span class="p">()</span>
 </span><span id="LCCalculations-325"><a href="#LCCalculations-325"><span class="linenos">325</span></a>        <span class="k">return</span> <span class="n">ms</span>
 </span><span id="LCCalculations-326"><a href="#LCCalculations-326"><span class="linenos">326</span></a>
-</span><span id="LCCalculations-327"><a href="#LCCalculations-327"><span class="linenos">327</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="LCCalculations-327"><a href="#LCCalculations-327"><span class="linenos">327</span></a>    <span class="k">def</span> <span class="nf">find_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="LCCalculations-328"><a href="#LCCalculations-328"><span class="linenos">328</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find mass features within an LCMSBase object</span>
 </span><span id="LCCalculations-329"><a href="#LCCalculations-329"><span class="linenos">329</span></a>
 </span><span id="LCCalculations-330"><a href="#LCCalculations-330"><span class="linenos">330</span></a><span class="sd">        Note that this is a wrapper function that calls the find_mass_features_ph function, but can be extended to support other peak picking methods in the future.</span>
@@ -1939,7 +1939,7 @@ The array of values to search for. target must be sorted.</li>
 </span><span id="LCCalculations-365"><a href="#LCCalculations-365"><span class="linenos">365</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="LCCalculations-366"><a href="#LCCalculations-366"><span class="linenos">366</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Peak picking method not implemented&quot;</span><span class="p">)</span>
 </span><span id="LCCalculations-367"><a href="#LCCalculations-367"><span class="linenos">367</span></a>
-</span><span id="LCCalculations-368"><a href="#LCCalculations-368"><span class="linenos">368</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">integrate_mass_features</span><span class="p">(</span>
+</span><span id="LCCalculations-368"><a href="#LCCalculations-368"><span class="linenos">368</span></a>    <span class="k">def</span> <span class="nf">integrate_mass_features</span><span class="p">(</span>
 </span><span id="LCCalculations-369"><a href="#LCCalculations-369"><span class="linenos">369</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">drop_if_fail</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">drop_duplicates</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span>
 </span><span id="LCCalculations-370"><a href="#LCCalculations-370"><span class="linenos">370</span></a>    <span class="p">):</span>
 </span><span id="LCCalculations-371"><a href="#LCCalculations-371"><span class="linenos">371</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Integrate mass features and extract EICs.</span>
@@ -2095,7 +2095,7 @@ The array of values to search for. target must be sorted.</li>
 </span><span id="LCCalculations-521"><a href="#LCCalculations-521"><span class="linenos">521</span></a>                            <span class="k">if</span> <span class="n">idx2</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_features</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
 </span><span id="LCCalculations-522"><a href="#LCCalculations-522"><span class="linenos">522</span></a>                                <span class="bp">self</span><span class="o">.</span><span class="n">mass_features</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">idx2</span><span class="p">)</span>
 </span><span id="LCCalculations-523"><a href="#LCCalculations-523"><span class="linenos">523</span></a>
-</span><span id="LCCalculations-524"><a href="#LCCalculations-524"><span class="linenos">524</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_c13_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCCalculations-524"><a href="#LCCalculations-524"><span class="linenos">524</span></a>    <span class="k">def</span> <span class="nf">find_c13_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCCalculations-525"><a href="#LCCalculations-525"><span class="linenos">525</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Mark likely C13 isotopes and connect to monoisoitopic mass features.</span>
 </span><span id="LCCalculations-526"><a href="#LCCalculations-526"><span class="linenos">526</span></a>
 </span><span id="LCCalculations-527"><a href="#LCCalculations-527"><span class="linenos">527</span></a><span class="sd">        Returns</span>
@@ -2241,7 +2241,7 @@ The array of values to search for. target must be sorted.</li>
 </span><span id="LCCalculations-667"><a href="#LCCalculations-667"><span class="linenos">667</span></a>                <span class="o">+</span> <span class="s2">&quot; of mass features have or are C13 isotopes&quot;</span>
 </span><span id="LCCalculations-668"><a href="#LCCalculations-668"><span class="linenos">668</span></a>            <span class="p">)</span>
 </span><span id="LCCalculations-669"><a href="#LCCalculations-669"><span class="linenos">669</span></a>
-</span><span id="LCCalculations-670"><a href="#LCCalculations-670"><span class="linenos">670</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">deconvolute_ms1_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCCalculations-670"><a href="#LCCalculations-670"><span class="linenos">670</span></a>    <span class="k">def</span> <span class="nf">deconvolute_ms1_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCCalculations-671"><a href="#LCCalculations-671"><span class="linenos">671</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deconvolute MS1 mass features</span>
 </span><span id="LCCalculations-672"><a href="#LCCalculations-672"><span class="linenos">672</span></a>
 </span><span id="LCCalculations-673"><a href="#LCCalculations-673"><span class="linenos">673</span></a><span class="sd">        Deconvolute mass features ms1 spectrum based on the correlation of all masses within a spectrum over the EIC of the mass features</span>
@@ -2421,7 +2421,7 @@ Deconvolute mass features' ms1 mass spectra.</li>
     </div>
     <a class="headerlink" href="#LCCalculations.get_max_eic"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.get_max_eic-66"><a href="#LCCalculations.get_max_eic-66"><span class="linenos">66</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="LCCalculations.get_max_eic-67"><a href="#LCCalculations.get_max_eic-67"><span class="linenos">67</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_max_eic</span><span class="p">(</span><span class="n">eic_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span id="LCCalculations.get_max_eic-67"><a href="#LCCalculations.get_max_eic-67"><span class="linenos">67</span></a>    <span class="k">def</span> <span class="nf">get_max_eic</span><span class="p">(</span><span class="n">eic_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 </span><span id="LCCalculations.get_max_eic-68"><a href="#LCCalculations.get_max_eic-68"><span class="linenos">68</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the maximum EIC value from the given EIC data.</span>
 </span><span id="LCCalculations.get_max_eic-69"><a href="#LCCalculations.get_max_eic-69"><span class="linenos">69</span></a>
 </span><span id="LCCalculations.get_max_eic-70"><a href="#LCCalculations.get_max_eic-70"><span class="linenos">70</span></a><span class="sd">        Notes</span>
@@ -2480,7 +2480,7 @@ A dictionary containing EIC data.</li>
 
     </div>
     <a class="headerlink" href="#LCCalculations.smooth_tic"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.smooth_tic-91"><a href="#LCCalculations.smooth_tic-91"><span class="linenos"> 91</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">smooth_tic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tic</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.smooth_tic-91"><a href="#LCCalculations.smooth_tic-91"><span class="linenos"> 91</span></a>    <span class="k">def</span> <span class="nf">smooth_tic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tic</span><span class="p">):</span>
 </span><span id="LCCalculations.smooth_tic-92"><a href="#LCCalculations.smooth_tic-92"><span class="linenos"> 92</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Smooths the TIC or EIC data using the specified smoothing method and settings.</span>
 </span><span id="LCCalculations.smooth_tic-93"><a href="#LCCalculations.smooth_tic-93"><span class="linenos"> 93</span></a>
 </span><span id="LCCalculations.smooth_tic-94"><a href="#LCCalculations.smooth_tic-94"><span class="linenos"> 94</span></a><span class="sd">        Parameters</span>
@@ -2536,7 +2536,7 @@ The TIC (or EIC) data to be smoothed.</li>
 
     </div>
     <a class="headerlink" href="#LCCalculations.eic_centroid_detector"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.eic_centroid_detector-116"><a href="#LCCalculations.eic_centroid_detector-116"><span class="linenos">116</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">eic_centroid_detector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt</span><span class="p">,</span> <span class="n">eic</span><span class="p">,</span> <span class="n">max_eic</span><span class="p">,</span> <span class="n">apex_indexes</span><span class="o">=</span><span class="p">[]):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.eic_centroid_detector-116"><a href="#LCCalculations.eic_centroid_detector-116"><span class="linenos">116</span></a>    <span class="k">def</span> <span class="nf">eic_centroid_detector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt</span><span class="p">,</span> <span class="n">eic</span><span class="p">,</span> <span class="n">max_eic</span><span class="p">,</span> <span class="n">apex_indexes</span><span class="o">=</span><span class="p">[]):</span>
 </span><span id="LCCalculations.eic_centroid_detector-117"><a href="#LCCalculations.eic_centroid_detector-117"><span class="linenos">117</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs EIC centroid detection on the given EIC data.</span>
 </span><span id="LCCalculations.eic_centroid_detector-118"><a href="#LCCalculations.eic_centroid_detector-118"><span class="linenos">118</span></a>
 </span><span id="LCCalculations.eic_centroid_detector-119"><a href="#LCCalculations.eic_centroid_detector-119"><span class="linenos">119</span></a><span class="sd">        Parameters</span>
@@ -2619,7 +2619,7 @@ The apexes of the EIC peaks. Defaults to [], which means that the apexes will be
 
     </div>
     <a class="headerlink" href="#LCCalculations.find_nearest_scan"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.find_nearest_scan-162"><a href="#LCCalculations.find_nearest_scan-162"><span class="linenos">162</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_nearest_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.find_nearest_scan-162"><a href="#LCCalculations.find_nearest_scan-162"><span class="linenos">162</span></a>    <span class="k">def</span> <span class="nf">find_nearest_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt</span><span class="p">):</span>
 </span><span id="LCCalculations.find_nearest_scan-163"><a href="#LCCalculations.find_nearest_scan-163"><span class="linenos">163</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Finds the nearest scan to the given retention time.</span>
 </span><span id="LCCalculations.find_nearest_scan-164"><a href="#LCCalculations.find_nearest_scan-164"><span class="linenos">164</span></a>
 </span><span id="LCCalculations.find_nearest_scan-165"><a href="#LCCalculations.find_nearest_scan-165"><span class="linenos">165</span></a><span class="sd">        Parameters</span>
@@ -2671,7 +2671,7 @@ The retention time (in minutes) to find the nearest scan for.</li>
 
     </div>
     <a class="headerlink" href="#LCCalculations.add_peak_metrics"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.add_peak_metrics-183"><a href="#LCCalculations.add_peak_metrics-183"><span class="linenos">183</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_peak_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.add_peak_metrics-183"><a href="#LCCalculations.add_peak_metrics-183"><span class="linenos">183</span></a>    <span class="k">def</span> <span class="nf">add_peak_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCCalculations.add_peak_metrics-184"><a href="#LCCalculations.add_peak_metrics-184"><span class="linenos">184</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add peak metrics to the mass features.</span>
 </span><span id="LCCalculations.add_peak_metrics-185"><a href="#LCCalculations.add_peak_metrics-185"><span class="linenos">185</span></a>
 </span><span id="LCCalculations.add_peak_metrics-186"><a href="#LCCalculations.add_peak_metrics-186"><span class="linenos">186</span></a><span class="sd">        This function calculates the peak metrics for each mass feature and adds them to the mass feature objects.</span>
@@ -2710,7 +2710,7 @@ The retention time (in minutes) to find the nearest scan for.</li>
 
     </div>
     <a class="headerlink" href="#LCCalculations.get_average_mass_spectrum"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.get_average_mass_spectrum-202"><a href="#LCCalculations.get_average_mass_spectrum-202"><span class="linenos">202</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_average_mass_spectrum</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.get_average_mass_spectrum-202"><a href="#LCCalculations.get_average_mass_spectrum-202"><span class="linenos">202</span></a>    <span class="k">def</span> <span class="nf">get_average_mass_spectrum</span><span class="p">(</span>
 </span><span id="LCCalculations.get_average_mass_spectrum-203"><a href="#LCCalculations.get_average_mass_spectrum-203"><span class="linenos">203</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="LCCalculations.get_average_mass_spectrum-204"><a href="#LCCalculations.get_average_mass_spectrum-204"><span class="linenos">204</span></a>        <span class="n">scan_list</span><span class="p">,</span>
 </span><span id="LCCalculations.get_average_mass_spectrum-205"><a href="#LCCalculations.get_average_mass_spectrum-205"><span class="linenos">205</span></a>        <span class="n">apex_scan</span><span class="p">,</span>
@@ -2890,7 +2890,7 @@ If not all scan numbers are found in the unprocessed mass spectra dictionary.</l
 
     </div>
     <a class="headerlink" href="#LCCalculations.find_mass_features"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.find_mass_features-327"><a href="#LCCalculations.find_mass_features-327"><span class="linenos">327</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.find_mass_features-327"><a href="#LCCalculations.find_mass_features-327"><span class="linenos">327</span></a>    <span class="k">def</span> <span class="nf">find_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="LCCalculations.find_mass_features-328"><a href="#LCCalculations.find_mass_features-328"><span class="linenos">328</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find mass features within an LCMSBase object</span>
 </span><span id="LCCalculations.find_mass_features-329"><a href="#LCCalculations.find_mass_features-329"><span class="linenos">329</span></a>
 </span><span id="LCCalculations.find_mass_features-330"><a href="#LCCalculations.find_mass_features-330"><span class="linenos">330</span></a><span class="sd">        Note that this is a wrapper function that calls the find_mass_features_ph function, but can be extended to support other peak picking methods in the future.</span>
@@ -2975,7 +2975,7 @@ If peak picking method is not implemented.</li>
 
     </div>
     <a class="headerlink" href="#LCCalculations.integrate_mass_features"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.integrate_mass_features-368"><a href="#LCCalculations.integrate_mass_features-368"><span class="linenos">368</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">integrate_mass_features</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.integrate_mass_features-368"><a href="#LCCalculations.integrate_mass_features-368"><span class="linenos">368</span></a>    <span class="k">def</span> <span class="nf">integrate_mass_features</span><span class="p">(</span>
 </span><span id="LCCalculations.integrate_mass_features-369"><a href="#LCCalculations.integrate_mass_features-369"><span class="linenos">369</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">drop_if_fail</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">drop_duplicates</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span>
 </span><span id="LCCalculations.integrate_mass_features-370"><a href="#LCCalculations.integrate_mass_features-370"><span class="linenos">370</span></a>    <span class="p">):</span>
 </span><span id="LCCalculations.integrate_mass_features-371"><a href="#LCCalculations.integrate_mass_features-371"><span class="linenos">371</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Integrate mass features and extract EICs.</span>
@@ -3182,7 +3182,7 @@ If no MS level data is found for the given MS level (either in data or in the sc
 
     </div>
     <a class="headerlink" href="#LCCalculations.find_c13_mass_features"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.find_c13_mass_features-524"><a href="#LCCalculations.find_c13_mass_features-524"><span class="linenos">524</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_c13_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.find_c13_mass_features-524"><a href="#LCCalculations.find_c13_mass_features-524"><span class="linenos">524</span></a>    <span class="k">def</span> <span class="nf">find_c13_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCCalculations.find_c13_mass_features-525"><a href="#LCCalculations.find_c13_mass_features-525"><span class="linenos">525</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Mark likely C13 isotopes and connect to monoisoitopic mass features.</span>
 </span><span id="LCCalculations.find_c13_mass_features-526"><a href="#LCCalculations.find_c13_mass_features-526"><span class="linenos">526</span></a>
 </span><span id="LCCalculations.find_c13_mass_features-527"><a href="#LCCalculations.find_c13_mass_features-527"><span class="linenos">527</span></a><span class="sd">        Returns</span>
@@ -3358,7 +3358,7 @@ If no MS level data is found for the given MS level (either in data or in the sc
 
     </div>
     <a class="headerlink" href="#LCCalculations.deconvolute_ms1_mass_features"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.deconvolute_ms1_mass_features-670"><a href="#LCCalculations.deconvolute_ms1_mass_features-670"><span class="linenos">670</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">deconvolute_ms1_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCCalculations.deconvolute_ms1_mass_features-670"><a href="#LCCalculations.deconvolute_ms1_mass_features-670"><span class="linenos">670</span></a>    <span class="k">def</span> <span class="nf">deconvolute_ms1_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCCalculations.deconvolute_ms1_mass_features-671"><a href="#LCCalculations.deconvolute_ms1_mass_features-671"><span class="linenos">671</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Deconvolute MS1 mass features</span>
 </span><span id="LCCalculations.deconvolute_ms1_mass_features-672"><a href="#LCCalculations.deconvolute_ms1_mass_features-672"><span class="linenos">672</span></a>
 </span><span id="LCCalculations.deconvolute_ms1_mass_features-673"><a href="#LCCalculations.deconvolute_ms1_mass_features-673"><span class="linenos">673</span></a><span class="sd">        Deconvolute mass features ms1 spectrum based on the correlation of all masses within a spectrum over the EIC of the mass features</span>
@@ -3534,7 +3534,7 @@ If no EICs are found, did you run integrate_mass_features() first?</li>
 
     </div>
     <a class="headerlink" href="#PHCalculations"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PHCalculations-805"><a href="#PHCalculations-805"><span class="linenos"> 805</span></a><span class="k">class</span><span class="w"> </span><span class="nc">PHCalculations</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PHCalculations-805"><a href="#PHCalculations-805"><span class="linenos"> 805</span></a><span class="k">class</span> <span class="nc">PHCalculations</span><span class="p">:</span>
 </span><span id="PHCalculations-806"><a href="#PHCalculations-806"><span class="linenos"> 806</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Methods for performing calculations related to 2D peak picking via persistent homology on LCMS data.</span>
 </span><span id="PHCalculations-807"><a href="#PHCalculations-807"><span class="linenos"> 807</span></a>
 </span><span id="PHCalculations-808"><a href="#PHCalculations-808"><span class="linenos"> 808</span></a><span class="sd">    Notes</span>
@@ -3560,7 +3560,7 @@ If no EICs are found, did you run integrate_mass_features() first?</li>
 </span><span id="PHCalculations-828"><a href="#PHCalculations-828"><span class="linenos"> 828</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="PHCalculations-829"><a href="#PHCalculations-829"><span class="linenos"> 829</span></a>
 </span><span id="PHCalculations-830"><a href="#PHCalculations-830"><span class="linenos"> 830</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="PHCalculations-831"><a href="#PHCalculations-831"><span class="linenos"> 831</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sparse_mean_filter</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]):</span>
+</span><span id="PHCalculations-831"><a href="#PHCalculations-831"><span class="linenos"> 831</span></a>    <span class="k">def</span> <span class="nf">sparse_mean_filter</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]):</span>
 </span><span id="PHCalculations-832"><a href="#PHCalculations-832"><span class="linenos"> 832</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sparse implementation of a mean filter.</span>
 </span><span id="PHCalculations-833"><a href="#PHCalculations-833"><span class="linenos"> 833</span></a>
 </span><span id="PHCalculations-834"><a href="#PHCalculations-834"><span class="linenos"> 834</span></a><span class="sd">        Parameters</span>
@@ -3626,7 +3626,7 @@ If no EICs are found, did you run integrate_mass_features() first?</li>
 </span><span id="PHCalculations-894"><a href="#PHCalculations-894"><span class="linenos"> 894</span></a>        <span class="k">return</span> <span class="n">V_sum</span> <span class="o">/</span> <span class="n">V_count</span>
 </span><span id="PHCalculations-895"><a href="#PHCalculations-895"><span class="linenos"> 895</span></a>
 </span><span id="PHCalculations-896"><a href="#PHCalculations-896"><span class="linenos"> 896</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="PHCalculations-897"><a href="#PHCalculations-897"><span class="linenos"> 897</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">embed_unique_indices</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+</span><span id="PHCalculations-897"><a href="#PHCalculations-897"><span class="linenos"> 897</span></a>    <span class="k">def</span> <span class="nf">embed_unique_indices</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
 </span><span id="PHCalculations-898"><a href="#PHCalculations-898"><span class="linenos"> 898</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates an array of indices, sorted by unique element.</span>
 </span><span id="PHCalculations-899"><a href="#PHCalculations-899"><span class="linenos"> 899</span></a>
 </span><span id="PHCalculations-900"><a href="#PHCalculations-900"><span class="linenos"> 900</span></a><span class="sd">        Parameters</span>
@@ -3645,7 +3645,7 @@ If no EICs are found, did you run integrate_mass_features() first?</li>
 </span><span id="PHCalculations-913"><a href="#PHCalculations-913"><span class="linenos"> 913</span></a><span class="sd">        This is a static method.</span>
 </span><span id="PHCalculations-914"><a href="#PHCalculations-914"><span class="linenos"> 914</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="PHCalculations-915"><a href="#PHCalculations-915"><span class="linenos"> 915</span></a>
-</span><span id="PHCalculations-916"><a href="#PHCalculations-916"><span class="linenos"> 916</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">count_tens</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+</span><span id="PHCalculations-916"><a href="#PHCalculations-916"><span class="linenos"> 916</span></a>        <span class="k">def</span> <span class="nf">count_tens</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
 </span><span id="PHCalculations-917"><a href="#PHCalculations-917"><span class="linenos"> 917</span></a>            <span class="c1"># Count tens</span>
 </span><span id="PHCalculations-918"><a href="#PHCalculations-918"><span class="linenos"> 918</span></a>            <span class="n">ntens</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">10</span>
 </span><span id="PHCalculations-919"><a href="#PHCalculations-919"><span class="linenos"> 919</span></a>
@@ -3657,7 +3657,7 @@ If no EICs are found, did you run integrate_mass_features() first?</li>
 </span><span id="PHCalculations-925"><a href="#PHCalculations-925"><span class="linenos"> 925</span></a>                <span class="k">else</span><span class="p">:</span>
 </span><span id="PHCalculations-926"><a href="#PHCalculations-926"><span class="linenos"> 926</span></a>                    <span class="n">ntens</span> <span class="o">=</span> <span class="n">ntens_test</span>
 </span><span id="PHCalculations-927"><a href="#PHCalculations-927"><span class="linenos"> 927</span></a>
-</span><span id="PHCalculations-928"><a href="#PHCalculations-928"><span class="linenos"> 928</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">arange_exclude_10s</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+</span><span id="PHCalculations-928"><a href="#PHCalculations-928"><span class="linenos"> 928</span></a>        <span class="k">def</span> <span class="nf">arange_exclude_10s</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
 </span><span id="PHCalculations-929"><a href="#PHCalculations-929"><span class="linenos"> 929</span></a>            <span class="c1"># How many 10s will there be?</span>
 </span><span id="PHCalculations-930"><a href="#PHCalculations-930"><span class="linenos"> 930</span></a>            <span class="n">ntens</span> <span class="o">=</span> <span class="n">count_tens</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 </span><span id="PHCalculations-931"><a href="#PHCalculations-931"><span class="linenos"> 931</span></a>
@@ -3700,7 +3700,7 @@ If no EICs are found, did you run integrate_mass_features() first?</li>
 </span><span id="PHCalculations-968"><a href="#PHCalculations-968"><span class="linenos"> 968</span></a>        <span class="c1"># Result</span>
 </span><span id="PHCalculations-969"><a href="#PHCalculations-969"><span class="linenos"> 969</span></a>        <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">idx_unq</span> <span class="o">/</span> <span class="n">idx_unq_mag</span>
 </span><span id="PHCalculations-970"><a href="#PHCalculations-970"><span class="linenos"> 970</span></a>
-</span><span id="PHCalculations-971"><a href="#PHCalculations-971"><span class="linenos"> 971</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sparse_upper_star</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">V</span><span class="p">):</span>
+</span><span id="PHCalculations-971"><a href="#PHCalculations-971"><span class="linenos"> 971</span></a>    <span class="k">def</span> <span class="nf">sparse_upper_star</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">V</span><span class="p">):</span>
 </span><span id="PHCalculations-972"><a href="#PHCalculations-972"><span class="linenos"> 972</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sparse implementation of an upper star filtration.</span>
 </span><span id="PHCalculations-973"><a href="#PHCalculations-973"><span class="linenos"> 973</span></a>
 </span><span id="PHCalculations-974"><a href="#PHCalculations-974"><span class="linenos"> 974</span></a><span class="sd">        Parameters</span>
@@ -3761,7 +3761,7 @@ If no EICs are found, did you run integrate_mass_features() first?</li>
 </span><span id="PHCalculations-1029"><a href="#PHCalculations-1029"><span class="linenos">1029</span></a>
 </span><span id="PHCalculations-1030"><a href="#PHCalculations-1030"><span class="linenos">1030</span></a>        <span class="k">return</span> <span class="n">nn</span><span class="p">,</span> <span class="o">-</span><span class="p">(</span><span class="n">ph</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ph</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">1</span><span class="p">)</span>
 </span><span id="PHCalculations-1031"><a href="#PHCalculations-1031"><span class="linenos">1031</span></a>
-</span><span id="PHCalculations-1032"><a href="#PHCalculations-1032"><span class="linenos">1032</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_if_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+</span><span id="PHCalculations-1032"><a href="#PHCalculations-1032"><span class="linenos">1032</span></a>    <span class="k">def</span> <span class="nf">check_if_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 </span><span id="PHCalculations-1033"><a href="#PHCalculations-1033"><span class="linenos">1033</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the data are gridded in mz space.</span>
 </span><span id="PHCalculations-1034"><a href="#PHCalculations-1034"><span class="linenos">1034</span></a>
 </span><span id="PHCalculations-1035"><a href="#PHCalculations-1035"><span class="linenos">1035</span></a><span class="sd">        Parameters</span>
@@ -3799,7 +3799,7 @@ If no EICs are found, did you run integrate_mass_features() first?</li>
 </span><span id="PHCalculations-1067"><a href="#PHCalculations-1067"><span class="linenos">1067</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="PHCalculations-1068"><a href="#PHCalculations-1068"><span class="linenos">1068</span></a>            <span class="k">return</span> <span class="kc">True</span>
 </span><span id="PHCalculations-1069"><a href="#PHCalculations-1069"><span class="linenos">1069</span></a>
-</span><span id="PHCalculations-1070"><a href="#PHCalculations-1070"><span class="linenos">1070</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">grid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+</span><span id="PHCalculations-1070"><a href="#PHCalculations-1070"><span class="linenos">1070</span></a>    <span class="k">def</span> <span class="nf">grid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 </span><span id="PHCalculations-1071"><a href="#PHCalculations-1071"><span class="linenos">1071</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Grid the data in the mz dimension.</span>
 </span><span id="PHCalculations-1072"><a href="#PHCalculations-1072"><span class="linenos">1072</span></a>
 </span><span id="PHCalculations-1073"><a href="#PHCalculations-1073"><span class="linenos">1073</span></a><span class="sd">        Data must be gridded prior to persistent homology calculations.</span>
@@ -3883,7 +3883,7 @@ If no EICs are found, did you run integrate_mass_features() first?</li>
 </span><span id="PHCalculations-1151"><a href="#PHCalculations-1151"><span class="linenos">1151</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="PHCalculations-1152"><a href="#PHCalculations-1152"><span class="linenos">1152</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Gridding failed&quot;</span><span class="p">)</span>
 </span><span id="PHCalculations-1153"><a href="#PHCalculations-1153"><span class="linenos">1153</span></a>
-</span><span id="PHCalculations-1154"><a href="#PHCalculations-1154"><span class="linenos">1154</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_mass_features_ph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="PHCalculations-1154"><a href="#PHCalculations-1154"><span class="linenos">1154</span></a>    <span class="k">def</span> <span class="nf">find_mass_features_ph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="PHCalculations-1155"><a href="#PHCalculations-1155"><span class="linenos">1155</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find mass features within an LCMSBase object using persistent homology.</span>
 </span><span id="PHCalculations-1156"><a href="#PHCalculations-1156"><span class="linenos">1156</span></a>
 </span><span id="PHCalculations-1157"><a href="#PHCalculations-1157"><span class="linenos">1157</span></a><span class="sd">        Assigns the mass_features attribute to the object (a dictionary of LCMSMassFeature objects, keyed by mass feature id)</span>
@@ -4019,7 +4019,7 @@ If no EICs are found, did you run integrate_mass_features() first?</li>
 </span><span id="PHCalculations-1287"><a href="#PHCalculations-1287"><span class="linenos">1287</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">lc_ms</span><span class="o">.</span><span class="n">verbose_processing</span><span class="p">:</span>
 </span><span id="PHCalculations-1288"><a href="#PHCalculations-1288"><span class="linenos">1288</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Found &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mass_features</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; initial mass features&quot;</span><span class="p">)</span>
 </span><span id="PHCalculations-1289"><a href="#PHCalculations-1289"><span class="linenos">1289</span></a>
-</span><span id="PHCalculations-1290"><a href="#PHCalculations-1290"><span class="linenos">1290</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cluster_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">drop_children</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort_by</span><span class="o">=</span><span class="s2">&quot;persistence&quot;</span><span class="p">):</span>
+</span><span id="PHCalculations-1290"><a href="#PHCalculations-1290"><span class="linenos">1290</span></a>    <span class="k">def</span> <span class="nf">cluster_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">drop_children</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort_by</span><span class="o">=</span><span class="s2">&quot;persistence&quot;</span><span class="p">):</span>
 </span><span id="PHCalculations-1291"><a href="#PHCalculations-1291"><span class="linenos">1291</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Cluster mass features</span>
 </span><span id="PHCalculations-1292"><a href="#PHCalculations-1292"><span class="linenos">1292</span></a>
 </span><span id="PHCalculations-1293"><a href="#PHCalculations-1293"><span class="linenos">1293</span></a><span class="sd">        Based on their proximity in the mz and scan_time dimensions, priorizies the mass features with the highest persistence.</span>
@@ -4195,7 +4195,7 @@ Cluster regions of interest.</li>
     </div>
     <a class="headerlink" href="#PHCalculations.sparse_mean_filter"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="PHCalculations.sparse_mean_filter-830"><a href="#PHCalculations.sparse_mean_filter-830"><span class="linenos">830</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="PHCalculations.sparse_mean_filter-831"><a href="#PHCalculations.sparse_mean_filter-831"><span class="linenos">831</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sparse_mean_filter</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]):</span>
+</span><span id="PHCalculations.sparse_mean_filter-831"><a href="#PHCalculations.sparse_mean_filter-831"><span class="linenos">831</span></a>    <span class="k">def</span> <span class="nf">sparse_mean_filter</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]):</span>
 </span><span id="PHCalculations.sparse_mean_filter-832"><a href="#PHCalculations.sparse_mean_filter-832"><span class="linenos">832</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sparse implementation of a mean filter.</span>
 </span><span id="PHCalculations.sparse_mean_filter-833"><a href="#PHCalculations.sparse_mean_filter-833"><span class="linenos">833</span></a>
 </span><span id="PHCalculations.sparse_mean_filter-834"><a href="#PHCalculations.sparse_mean_filter-834"><span class="linenos">834</span></a><span class="sd">        Parameters</span>
@@ -4303,7 +4303,7 @@ This is a static method.</p>
     </div>
     <a class="headerlink" href="#PHCalculations.embed_unique_indices"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="PHCalculations.embed_unique_indices-896"><a href="#PHCalculations.embed_unique_indices-896"><span class="linenos">896</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="PHCalculations.embed_unique_indices-897"><a href="#PHCalculations.embed_unique_indices-897"><span class="linenos">897</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">embed_unique_indices</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+</span><span id="PHCalculations.embed_unique_indices-897"><a href="#PHCalculations.embed_unique_indices-897"><span class="linenos">897</span></a>    <span class="k">def</span> <span class="nf">embed_unique_indices</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
 </span><span id="PHCalculations.embed_unique_indices-898"><a href="#PHCalculations.embed_unique_indices-898"><span class="linenos">898</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates an array of indices, sorted by unique element.</span>
 </span><span id="PHCalculations.embed_unique_indices-899"><a href="#PHCalculations.embed_unique_indices-899"><span class="linenos">899</span></a>
 </span><span id="PHCalculations.embed_unique_indices-900"><a href="#PHCalculations.embed_unique_indices-900"><span class="linenos">900</span></a><span class="sd">        Parameters</span>
@@ -4322,7 +4322,7 @@ This is a static method.</p>
 </span><span id="PHCalculations.embed_unique_indices-913"><a href="#PHCalculations.embed_unique_indices-913"><span class="linenos">913</span></a><span class="sd">        This is a static method.</span>
 </span><span id="PHCalculations.embed_unique_indices-914"><a href="#PHCalculations.embed_unique_indices-914"><span class="linenos">914</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="PHCalculations.embed_unique_indices-915"><a href="#PHCalculations.embed_unique_indices-915"><span class="linenos">915</span></a>
-</span><span id="PHCalculations.embed_unique_indices-916"><a href="#PHCalculations.embed_unique_indices-916"><span class="linenos">916</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">count_tens</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+</span><span id="PHCalculations.embed_unique_indices-916"><a href="#PHCalculations.embed_unique_indices-916"><span class="linenos">916</span></a>        <span class="k">def</span> <span class="nf">count_tens</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
 </span><span id="PHCalculations.embed_unique_indices-917"><a href="#PHCalculations.embed_unique_indices-917"><span class="linenos">917</span></a>            <span class="c1"># Count tens</span>
 </span><span id="PHCalculations.embed_unique_indices-918"><a href="#PHCalculations.embed_unique_indices-918"><span class="linenos">918</span></a>            <span class="n">ntens</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">10</span>
 </span><span id="PHCalculations.embed_unique_indices-919"><a href="#PHCalculations.embed_unique_indices-919"><span class="linenos">919</span></a>
@@ -4334,7 +4334,7 @@ This is a static method.</p>
 </span><span id="PHCalculations.embed_unique_indices-925"><a href="#PHCalculations.embed_unique_indices-925"><span class="linenos">925</span></a>                <span class="k">else</span><span class="p">:</span>
 </span><span id="PHCalculations.embed_unique_indices-926"><a href="#PHCalculations.embed_unique_indices-926"><span class="linenos">926</span></a>                    <span class="n">ntens</span> <span class="o">=</span> <span class="n">ntens_test</span>
 </span><span id="PHCalculations.embed_unique_indices-927"><a href="#PHCalculations.embed_unique_indices-927"><span class="linenos">927</span></a>
-</span><span id="PHCalculations.embed_unique_indices-928"><a href="#PHCalculations.embed_unique_indices-928"><span class="linenos">928</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">arange_exclude_10s</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+</span><span id="PHCalculations.embed_unique_indices-928"><a href="#PHCalculations.embed_unique_indices-928"><span class="linenos">928</span></a>        <span class="k">def</span> <span class="nf">arange_exclude_10s</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
 </span><span id="PHCalculations.embed_unique_indices-929"><a href="#PHCalculations.embed_unique_indices-929"><span class="linenos">929</span></a>            <span class="c1"># How many 10s will there be?</span>
 </span><span id="PHCalculations.embed_unique_indices-930"><a href="#PHCalculations.embed_unique_indices-930"><span class="linenos">930</span></a>            <span class="n">ntens</span> <span class="o">=</span> <span class="n">count_tens</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 </span><span id="PHCalculations.embed_unique_indices-931"><a href="#PHCalculations.embed_unique_indices-931"><span class="linenos">931</span></a>
@@ -4413,7 +4413,7 @@ This is a static method.</p>
 
     </div>
     <a class="headerlink" href="#PHCalculations.sparse_upper_star"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PHCalculations.sparse_upper_star-971"><a href="#PHCalculations.sparse_upper_star-971"><span class="linenos"> 971</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sparse_upper_star</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">V</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PHCalculations.sparse_upper_star-971"><a href="#PHCalculations.sparse_upper_star-971"><span class="linenos"> 971</span></a>    <span class="k">def</span> <span class="nf">sparse_upper_star</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">V</span><span class="p">):</span>
 </span><span id="PHCalculations.sparse_upper_star-972"><a href="#PHCalculations.sparse_upper_star-972"><span class="linenos"> 972</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sparse implementation of an upper star filtration.</span>
 </span><span id="PHCalculations.sparse_upper_star-973"><a href="#PHCalculations.sparse_upper_star-973"><span class="linenos"> 973</span></a>
 </span><span id="PHCalculations.sparse_upper_star-974"><a href="#PHCalculations.sparse_upper_star-974"><span class="linenos"> 974</span></a><span class="sd">        Parameters</span>
@@ -4514,7 +4514,7 @@ Persistence of each filtered point (Mx1).</li>
 
     </div>
     <a class="headerlink" href="#PHCalculations.check_if_grid"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PHCalculations.check_if_grid-1032"><a href="#PHCalculations.check_if_grid-1032"><span class="linenos">1032</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_if_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PHCalculations.check_if_grid-1032"><a href="#PHCalculations.check_if_grid-1032"><span class="linenos">1032</span></a>    <span class="k">def</span> <span class="nf">check_if_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 </span><span id="PHCalculations.check_if_grid-1033"><a href="#PHCalculations.check_if_grid-1033"><span class="linenos">1033</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the data are gridded in mz space.</span>
 </span><span id="PHCalculations.check_if_grid-1034"><a href="#PHCalculations.check_if_grid-1034"><span class="linenos">1034</span></a>
 </span><span id="PHCalculations.check_if_grid-1035"><a href="#PHCalculations.check_if_grid-1035"><span class="linenos">1035</span></a><span class="sd">        Parameters</span>
@@ -4587,7 +4587,7 @@ DataFrame containing the mass spectrometry data.  Needs to have mz and scan colu
 
     </div>
     <a class="headerlink" href="#PHCalculations.grid_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PHCalculations.grid_data-1070"><a href="#PHCalculations.grid_data-1070"><span class="linenos">1070</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">grid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PHCalculations.grid_data-1070"><a href="#PHCalculations.grid_data-1070"><span class="linenos">1070</span></a>    <span class="k">def</span> <span class="nf">grid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 </span><span id="PHCalculations.grid_data-1071"><a href="#PHCalculations.grid_data-1071"><span class="linenos">1071</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Grid the data in the mz dimension.</span>
 </span><span id="PHCalculations.grid_data-1072"><a href="#PHCalculations.grid_data-1072"><span class="linenos">1072</span></a>
 </span><span id="PHCalculations.grid_data-1073"><a href="#PHCalculations.grid_data-1073"><span class="linenos">1073</span></a><span class="sd">        Data must be gridded prior to persistent homology calculations.</span>
@@ -4710,7 +4710,7 @@ The input data containing mz, scan, scan_time, and intensity columns.</li>
 
     </div>
     <a class="headerlink" href="#PHCalculations.find_mass_features_ph"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PHCalculations.find_mass_features_ph-1154"><a href="#PHCalculations.find_mass_features_ph-1154"><span class="linenos">1154</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_mass_features_ph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PHCalculations.find_mass_features_ph-1154"><a href="#PHCalculations.find_mass_features_ph-1154"><span class="linenos">1154</span></a>    <span class="k">def</span> <span class="nf">find_mass_features_ph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="PHCalculations.find_mass_features_ph-1155"><a href="#PHCalculations.find_mass_features_ph-1155"><span class="linenos">1155</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find mass features within an LCMSBase object using persistent homology.</span>
 </span><span id="PHCalculations.find_mass_features_ph-1156"><a href="#PHCalculations.find_mass_features_ph-1156"><span class="linenos">1156</span></a>
 </span><span id="PHCalculations.find_mass_features_ph-1157"><a href="#PHCalculations.find_mass_features_ph-1157"><span class="linenos">1157</span></a><span class="sd">        Assigns the mass_features attribute to the object (a dictionary of LCMSMassFeature objects, keyed by mass feature id)</span>
@@ -4892,7 +4892,7 @@ If data is not gridded and grid is False.</li>
 
     </div>
     <a class="headerlink" href="#PHCalculations.cluster_mass_features"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PHCalculations.cluster_mass_features-1290"><a href="#PHCalculations.cluster_mass_features-1290"><span class="linenos">1290</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cluster_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">drop_children</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort_by</span><span class="o">=</span><span class="s2">&quot;persistence&quot;</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PHCalculations.cluster_mass_features-1290"><a href="#PHCalculations.cluster_mass_features-1290"><span class="linenos">1290</span></a>    <span class="k">def</span> <span class="nf">cluster_mass_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">drop_children</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort_by</span><span class="o">=</span><span class="s2">&quot;persistence&quot;</span><span class="p">):</span>
 </span><span id="PHCalculations.cluster_mass_features-1291"><a href="#PHCalculations.cluster_mass_features-1291"><span class="linenos">1291</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Cluster mass features</span>
 </span><span id="PHCalculations.cluster_mass_features-1292"><a href="#PHCalculations.cluster_mass_features-1292"><span class="linenos">1292</span></a>
 </span><span id="PHCalculations.cluster_mass_features-1293"><a href="#PHCalculations.cluster_mass_features-1293"><span class="linenos">1293</span></a><span class="sd">        Based on their proximity in the mz and scan_time dimensions, priorizies the mass features with the highest persistence.</span>

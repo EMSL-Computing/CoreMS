@@ -116,8 +116,8 @@
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="sd">@date: Jun 27, 2019</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">import</span> <span class="nn">warnings</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="p">(</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>    <span class="n">hstack</span><span class="p">,</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>    <span class="n">inf</span><span class="p">,</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>    <span class="n">isnan</span><span class="p">,</span>
@@ -129,11 +129,11 @@
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>    <span class="n">zeros</span><span class="p">,</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>    <span class="n">searchsorted</span><span class="p">,</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="p">)</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.constant</span><span class="w"> </span><span class="kn">import</span> <span class="n">Labels</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectra.calc</span><span class="w"> </span><span class="kn">import</span> <span class="n">SignalProcessing</span> <span class="k">as</span> <span class="n">sp</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.constant</span> <span class="kn">import</span> <span class="n">Labels</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectra.calc</span> <span class="kn">import</span> <span class="n">SignalProcessing</span> <span class="k">as</span> <span class="n">sp</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="k">class</span><span class="w"> </span><span class="nc">PeakPicking</span><span class="p">:</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="k">class</span> <span class="nc">PeakPicking</span><span class="p">:</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for peak picking.</span>
 </span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">    Parameters</span>
@@ -179,7 +179,7 @@
 </span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>
 </span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_peak_picking_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>    <span class="k">def</span> <span class="nf">prepare_peak_picking_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Prepare the data for peak picking.</span>
 </span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>
 </span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="sd">        This function will prepare the m/z, abundance, and frequency data for peak picking according to the settings.</span>
@@ -201,7 +201,7 @@
 </span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>            <span class="n">mz</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extrapolate_axes_for_pp</span><span class="p">(</span><span class="n">mz</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span>
 </span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>        <span class="k">return</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">freq</span>
 </span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cut_mz_domain_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>    <span class="k">def</span> <span class="nf">cut_mz_domain_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a><span class="sd">        Cut the m/z domain for peak picking.</span>
 </span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>
@@ -240,7 +240,7 @@
 </span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>                <span class="kc">None</span><span class="p">,</span>
 </span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>            <span class="p">)</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">legacy_cut_mz_domain_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>    <span class="k">def</span> <span class="nf">legacy_cut_mz_domain_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="sd">        Cut the m/z domain for peak picking.</span>
 </span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="sd">        DEPRECATED</span>
@@ -289,7 +289,7 @@
 </span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a>            <span class="p">)</span>
 </span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>
 </span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extrapolate_axis</span><span class="p">(</span><span class="n">initial_array</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
+</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>    <span class="k">def</span> <span class="nf">extrapolate_axis</span><span class="p">(</span><span class="n">initial_array</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
 </span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a><span class="sd">        This function will extrapolate an input array in both directions by N pts.</span>
 </span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>
@@ -335,7 +335,7 @@
 </span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a>
 </span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a>        <span class="k">return</span> <span class="n">pad_array</span>
 </span><span id="L-224"><a href="#L-224"><span class="linenos">224</span></a>
-</span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extrapolate_axes_for_pp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">abund</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a>    <span class="k">def</span> <span class="nf">extrapolate_axes_for_pp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">abund</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Extrapolate the m/z axis and fill the abundance axis with 0s.</span>
 </span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a>
 </span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a><span class="sd">        Parameters</span>
@@ -380,7 +380,7 @@
 </span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a>            <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extrapolate_axis</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">pts</span><span class="p">)</span>
 </span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a>        <span class="k">return</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span>
 </span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a>
-</span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">do_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a>    <span class="k">def</span> <span class="nf">do_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform peak picking.&quot;&quot;&quot;</span>
 </span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a>        <span class="n">mz</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare_peak_picking_data</span><span class="p">()</span>
 </span><span id="L-273"><a href="#L-273"><span class="linenos">273</span></a>
@@ -405,7 +405,7 @@
 </span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a>            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknow mass spectrum type&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
 </span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a>
-</span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_minima</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">apex_index</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a>    <span class="k">def</span> <span class="nf">find_minima</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">apex_index</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the minima of a peak.</span>
 </span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a>
 </span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a><span class="sd">        Parameters</span>
@@ -451,7 +451,7 @@
 </span><span id="L-338"><a href="#L-338"><span class="linenos">338</span></a>            <span class="k">return</span> <span class="n">j</span>
 </span><span id="L-339"><a href="#L-339"><span class="linenos">339</span></a>
 </span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-341"><a href="#L-341"><span class="linenos">341</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">linear_fit_calc</span><span class="p">(</span><span class="n">intes</span><span class="p">,</span> <span class="n">massa</span><span class="p">,</span> <span class="n">index_term</span><span class="p">,</span> <span class="n">index_sign</span><span class="p">):</span>
+</span><span id="L-341"><a href="#L-341"><span class="linenos">341</span></a>    <span class="k">def</span> <span class="nf">linear_fit_calc</span><span class="p">(</span><span class="n">intes</span><span class="p">,</span> <span class="n">massa</span><span class="p">,</span> <span class="n">index_term</span><span class="p">,</span> <span class="n">index_sign</span><span class="p">):</span>
 </span><span id="L-342"><a href="#L-342"><span class="linenos">342</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a><span class="sd">        Algebraic solution to a linear fit - roughly 25-50x faster than numpy polyfit when passing only two vals and doing a 1st order fit</span>
 </span><span id="L-344"><a href="#L-344"><span class="linenos">344</span></a>
@@ -494,7 +494,7 @@
 </span><span id="L-381"><a href="#L-381"><span class="linenos">381</span></a>        <span class="n">coefficients</span> <span class="o">=</span> <span class="n">array</span><span class="p">([</span><span class="n">slope</span><span class="p">,</span> <span class="n">intercept</span><span class="p">])</span>
 </span><span id="L-382"><a href="#L-382"><span class="linenos">382</span></a>        <span class="k">return</span> <span class="n">coefficients</span>
 </span><span id="L-383"><a href="#L-383"><span class="linenos">383</span></a>
-</span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intes</span><span class="p">,</span> <span class="n">massa</span><span class="p">,</span> <span class="n">current_index</span><span class="p">):</span>
+</span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a>    <span class="k">def</span> <span class="nf">calculate_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intes</span><span class="p">,</span> <span class="n">massa</span><span class="p">,</span> <span class="n">current_index</span><span class="p">):</span>
 </span><span id="L-385"><a href="#L-385"><span class="linenos">385</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the resolving power of a peak.</span>
 </span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a>
 </span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a><span class="sd">        Parameters</span>
@@ -618,7 +618,7 @@
 </span><span id="L-505"><a href="#L-505"><span class="linenos">505</span></a>
 </span><span id="L-506"><a href="#L-506"><span class="linenos">506</span></a>        <span class="k">return</span> <span class="n">resolvingpower</span>
 </span><span id="L-507"><a href="#L-507"><span class="linenos">507</span></a>
-</span><span id="L-508"><a href="#L-508"><span class="linenos">508</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cal_minima</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abun</span><span class="p">):</span>
+</span><span id="L-508"><a href="#L-508"><span class="linenos">508</span></a>    <span class="k">def</span> <span class="nf">cal_minima</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abun</span><span class="p">):</span>
 </span><span id="L-509"><a href="#L-509"><span class="linenos">509</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the minima of a peak.</span>
 </span><span id="L-510"><a href="#L-510"><span class="linenos">510</span></a>
 </span><span id="L-511"><a href="#L-511"><span class="linenos">511</span></a><span class="sd">        Parameters</span>
@@ -650,7 +650,7 @@
 </span><span id="L-537"><a href="#L-537"><span class="linenos">537</span></a>        <span class="k">if</span> <span class="n">indexes</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
 </span><span id="L-538"><a href="#L-538"><span class="linenos">538</span></a>            <span class="k">return</span> <span class="n">mass</span><span class="p">[</span><span class="n">indexes</span><span class="p">],</span> <span class="n">abun</span><span class="p">[</span><span class="n">indexes</span><span class="p">]</span>
 </span><span id="L-539"><a href="#L-539"><span class="linenos">539</span></a>
-</span><span id="L-540"><a href="#L-540"><span class="linenos">540</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+</span><span id="L-540"><a href="#L-540"><span class="linenos">540</span></a>    <span class="k">def</span> <span class="nf">calc_centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
 </span><span id="L-541"><a href="#L-541"><span class="linenos">541</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the centroid of a peak.</span>
 </span><span id="L-542"><a href="#L-542"><span class="linenos">542</span></a>
 </span><span id="L-543"><a href="#L-543"><span class="linenos">543</span></a><span class="sd">        Parameters</span>
@@ -728,7 +728,7 @@
 </span><span id="L-615"><a href="#L-615"><span class="linenos">615</span></a>                <span class="c1"># pyplot.plot(domain[start_index: final_index + 1], signal[start_index:final_index + 1], c=&#39;black&#39;)</span>
 </span><span id="L-616"><a href="#L-616"><span class="linenos">616</span></a>                <span class="c1"># pyplot.show()</span>
 </span><span id="L-617"><a href="#L-617"><span class="linenos">617</span></a>
-</span><span id="L-618"><a href="#L-618"><span class="linenos">618</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intes</span><span class="p">):</span>
+</span><span id="L-618"><a href="#L-618"><span class="linenos">618</span></a>    <span class="k">def</span> <span class="nf">get_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intes</span><span class="p">):</span>
 </span><span id="L-619"><a href="#L-619"><span class="linenos">619</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the intensity threshold for peak picking.</span>
 </span><span id="L-620"><a href="#L-620"><span class="linenos">620</span></a>
 </span><span id="L-621"><a href="#L-621"><span class="linenos">621</span></a><span class="sd">        Parameters</span>
@@ -792,7 +792,7 @@
 </span><span id="L-679"><a href="#L-679"><span class="linenos">679</span></a>        <span class="k">return</span> <span class="n">abundance_threshold</span><span class="p">,</span> <span class="n">factor</span>
 </span><span id="L-680"><a href="#L-680"><span class="linenos">680</span></a>
 </span><span id="L-681"><a href="#L-681"><span class="linenos">681</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-682"><a href="#L-682"><span class="linenos">682</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">algebraic_quadratic</span><span class="p">(</span><span class="n">list_mass</span><span class="p">,</span> <span class="n">list_y</span><span class="p">):</span>
+</span><span id="L-682"><a href="#L-682"><span class="linenos">682</span></a>    <span class="k">def</span> <span class="nf">algebraic_quadratic</span><span class="p">(</span><span class="n">list_mass</span><span class="p">,</span> <span class="n">list_y</span><span class="p">):</span>
 </span><span id="L-683"><a href="#L-683"><span class="linenos">683</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-684"><a href="#L-684"><span class="linenos">684</span></a><span class="sd">        Find the apex of a peak - algebraically.</span>
 </span><span id="L-685"><a href="#L-685"><span class="linenos">685</span></a><span class="sd">        Faster than using numpy polyfit by ~28x per fit.</span>
@@ -835,7 +835,7 @@
 </span><span id="L-722"><a href="#L-722"><span class="linenos">722</span></a>        <span class="p">)</span>
 </span><span id="L-723"><a href="#L-723"><span class="linenos">723</span></a>        <span class="k">return</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span>
 </span><span id="L-724"><a href="#L-724"><span class="linenos">724</span></a>
-</span><span id="L-725"><a href="#L-725"><span class="linenos">725</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_apex_fit_quadratic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">current_index</span><span class="p">):</span>
+</span><span id="L-725"><a href="#L-725"><span class="linenos">725</span></a>    <span class="k">def</span> <span class="nf">find_apex_fit_quadratic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">current_index</span><span class="p">):</span>
 </span><span id="L-726"><a href="#L-726"><span class="linenos">726</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-727"><a href="#L-727"><span class="linenos">727</span></a><span class="sd">        Find the apex of a peak.</span>
 </span><span id="L-728"><a href="#L-728"><span class="linenos">728</span></a>
@@ -932,7 +932,7 @@
 </span><span id="L-819"><a href="#L-819"><span class="linenos">819</span></a>
 </span><span id="L-820"><a href="#L-820"><span class="linenos">820</span></a>        <span class="k">return</span> <span class="n">mz_exp_centroid</span><span class="p">,</span> <span class="n">freq_centr</span><span class="p">,</span> <span class="n">abundance_centroid</span>
 </span><span id="L-821"><a href="#L-821"><span class="linenos">821</span></a>
-</span><span id="L-822"><a href="#L-822"><span class="linenos">822</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_prominence</span><span class="p">(</span>
+</span><span id="L-822"><a href="#L-822"><span class="linenos">822</span></a>    <span class="k">def</span> <span class="nf">check_prominence</span><span class="p">(</span>
 </span><span id="L-823"><a href="#L-823"><span class="linenos">823</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">abun</span><span class="p">,</span> <span class="n">current_index</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">peak_height_diff</span>
 </span><span id="L-824"><a href="#L-824"><span class="linenos">824</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span> <span class="ow">or</span> <span class="kc">False</span><span class="p">:</span>
 </span><span id="L-825"><a href="#L-825"><span class="linenos">825</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Check the prominence of a peak.</span>
@@ -974,7 +974,7 @@
 </span><span id="L-861"><a href="#L-861"><span class="linenos">861</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-862"><a href="#L-862"><span class="linenos">862</span></a>            <span class="k">return</span> <span class="kc">False</span>
 </span><span id="L-863"><a href="#L-863"><span class="linenos">863</span></a>
-</span><span id="L-864"><a href="#L-864"><span class="linenos">864</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">use_the_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">current_index</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">peak_height_diff</span><span class="p">):</span>
+</span><span id="L-864"><a href="#L-864"><span class="linenos">864</span></a>    <span class="k">def</span> <span class="nf">use_the_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">current_index</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">peak_height_diff</span><span class="p">):</span>
 </span><span id="L-865"><a href="#L-865"><span class="linenos">865</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Use the max peak height as the centroid</span>
 </span><span id="L-866"><a href="#L-866"><span class="linenos">866</span></a>
 </span><span id="L-867"><a href="#L-867"><span class="linenos">867</span></a><span class="sd">        Parameters</span>
@@ -1011,7 +1011,7 @@
 </span><span id="L-898"><a href="#L-898"><span class="linenos">898</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-899"><a href="#L-899"><span class="linenos">899</span></a>            <span class="k">return</span> <span class="n">mass</span><span class="p">[</span><span class="n">current_index</span><span class="p">],</span> <span class="n">abund</span><span class="p">[</span><span class="n">current_index</span><span class="p">],</span> <span class="n">peak_indexes</span>
 </span><span id="L-900"><a href="#L-900"><span class="linenos">900</span></a>
-</span><span id="L-901"><a href="#L-901"><span class="linenos">901</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_centroid_legacy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+</span><span id="L-901"><a href="#L-901"><span class="linenos">901</span></a>    <span class="k">def</span> <span class="nf">calc_centroid_legacy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
 </span><span id="L-902"><a href="#L-902"><span class="linenos">902</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Legacy centroid calculation</span>
 </span><span id="L-903"><a href="#L-903"><span class="linenos">903</span></a><span class="sd">        Deprecated - for deletion.</span>
 </span><span id="L-904"><a href="#L-904"><span class="linenos">904</span></a>
@@ -1120,7 +1120,7 @@
 
     </div>
     <a class="headerlink" href="#PeakPicking"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking-24"><a href="#PeakPicking-24"><span class="linenos"> 24</span></a><span class="k">class</span><span class="w"> </span><span class="nc">PeakPicking</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking-24"><a href="#PeakPicking-24"><span class="linenos"> 24</span></a><span class="k">class</span> <span class="nc">PeakPicking</span><span class="p">:</span>
 </span><span id="PeakPicking-25"><a href="#PeakPicking-25"><span class="linenos"> 25</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for peak picking.</span>
 </span><span id="PeakPicking-26"><a href="#PeakPicking-26"><span class="linenos"> 26</span></a>
 </span><span id="PeakPicking-27"><a href="#PeakPicking-27"><span class="linenos"> 27</span></a><span class="sd">    Parameters</span>
@@ -1166,7 +1166,7 @@
 </span><span id="PeakPicking-67"><a href="#PeakPicking-67"><span class="linenos"> 67</span></a>
 </span><span id="PeakPicking-68"><a href="#PeakPicking-68"><span class="linenos"> 68</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="PeakPicking-69"><a href="#PeakPicking-69"><span class="linenos"> 69</span></a>
-</span><span id="PeakPicking-70"><a href="#PeakPicking-70"><span class="linenos"> 70</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_peak_picking_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="PeakPicking-70"><a href="#PeakPicking-70"><span class="linenos"> 70</span></a>    <span class="k">def</span> <span class="nf">prepare_peak_picking_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="PeakPicking-71"><a href="#PeakPicking-71"><span class="linenos"> 71</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Prepare the data for peak picking.</span>
 </span><span id="PeakPicking-72"><a href="#PeakPicking-72"><span class="linenos"> 72</span></a>
 </span><span id="PeakPicking-73"><a href="#PeakPicking-73"><span class="linenos"> 73</span></a><span class="sd">        This function will prepare the m/z, abundance, and frequency data for peak picking according to the settings.</span>
@@ -1188,7 +1188,7 @@
 </span><span id="PeakPicking-89"><a href="#PeakPicking-89"><span class="linenos"> 89</span></a>            <span class="n">mz</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extrapolate_axes_for_pp</span><span class="p">(</span><span class="n">mz</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span>
 </span><span id="PeakPicking-90"><a href="#PeakPicking-90"><span class="linenos"> 90</span></a>        <span class="k">return</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">freq</span>
 </span><span id="PeakPicking-91"><a href="#PeakPicking-91"><span class="linenos"> 91</span></a>
-</span><span id="PeakPicking-92"><a href="#PeakPicking-92"><span class="linenos"> 92</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cut_mz_domain_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="PeakPicking-92"><a href="#PeakPicking-92"><span class="linenos"> 92</span></a>    <span class="k">def</span> <span class="nf">cut_mz_domain_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="PeakPicking-93"><a href="#PeakPicking-93"><span class="linenos"> 93</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PeakPicking-94"><a href="#PeakPicking-94"><span class="linenos"> 94</span></a><span class="sd">        Cut the m/z domain for peak picking.</span>
 </span><span id="PeakPicking-95"><a href="#PeakPicking-95"><span class="linenos"> 95</span></a>
@@ -1227,7 +1227,7 @@
 </span><span id="PeakPicking-128"><a href="#PeakPicking-128"><span class="linenos">128</span></a>                <span class="kc">None</span><span class="p">,</span>
 </span><span id="PeakPicking-129"><a href="#PeakPicking-129"><span class="linenos">129</span></a>            <span class="p">)</span>
 </span><span id="PeakPicking-130"><a href="#PeakPicking-130"><span class="linenos">130</span></a>
-</span><span id="PeakPicking-131"><a href="#PeakPicking-131"><span class="linenos">131</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">legacy_cut_mz_domain_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="PeakPicking-131"><a href="#PeakPicking-131"><span class="linenos">131</span></a>    <span class="k">def</span> <span class="nf">legacy_cut_mz_domain_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="PeakPicking-132"><a href="#PeakPicking-132"><span class="linenos">132</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PeakPicking-133"><a href="#PeakPicking-133"><span class="linenos">133</span></a><span class="sd">        Cut the m/z domain for peak picking.</span>
 </span><span id="PeakPicking-134"><a href="#PeakPicking-134"><span class="linenos">134</span></a><span class="sd">        DEPRECATED</span>
@@ -1276,7 +1276,7 @@
 </span><span id="PeakPicking-177"><a href="#PeakPicking-177"><span class="linenos">177</span></a>            <span class="p">)</span>
 </span><span id="PeakPicking-178"><a href="#PeakPicking-178"><span class="linenos">178</span></a>
 </span><span id="PeakPicking-179"><a href="#PeakPicking-179"><span class="linenos">179</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="PeakPicking-180"><a href="#PeakPicking-180"><span class="linenos">180</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extrapolate_axis</span><span class="p">(</span><span class="n">initial_array</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
+</span><span id="PeakPicking-180"><a href="#PeakPicking-180"><span class="linenos">180</span></a>    <span class="k">def</span> <span class="nf">extrapolate_axis</span><span class="p">(</span><span class="n">initial_array</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
 </span><span id="PeakPicking-181"><a href="#PeakPicking-181"><span class="linenos">181</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PeakPicking-182"><a href="#PeakPicking-182"><span class="linenos">182</span></a><span class="sd">        This function will extrapolate an input array in both directions by N pts.</span>
 </span><span id="PeakPicking-183"><a href="#PeakPicking-183"><span class="linenos">183</span></a>
@@ -1322,7 +1322,7 @@
 </span><span id="PeakPicking-223"><a href="#PeakPicking-223"><span class="linenos">223</span></a>
 </span><span id="PeakPicking-224"><a href="#PeakPicking-224"><span class="linenos">224</span></a>        <span class="k">return</span> <span class="n">pad_array</span>
 </span><span id="PeakPicking-225"><a href="#PeakPicking-225"><span class="linenos">225</span></a>
-</span><span id="PeakPicking-226"><a href="#PeakPicking-226"><span class="linenos">226</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extrapolate_axes_for_pp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">abund</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="PeakPicking-226"><a href="#PeakPicking-226"><span class="linenos">226</span></a>    <span class="k">def</span> <span class="nf">extrapolate_axes_for_pp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">abund</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="PeakPicking-227"><a href="#PeakPicking-227"><span class="linenos">227</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Extrapolate the m/z axis and fill the abundance axis with 0s.</span>
 </span><span id="PeakPicking-228"><a href="#PeakPicking-228"><span class="linenos">228</span></a>
 </span><span id="PeakPicking-229"><a href="#PeakPicking-229"><span class="linenos">229</span></a><span class="sd">        Parameters</span>
@@ -1367,7 +1367,7 @@
 </span><span id="PeakPicking-268"><a href="#PeakPicking-268"><span class="linenos">268</span></a>            <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extrapolate_axis</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">pts</span><span class="p">)</span>
 </span><span id="PeakPicking-269"><a href="#PeakPicking-269"><span class="linenos">269</span></a>        <span class="k">return</span> <span class="n">mz</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span>
 </span><span id="PeakPicking-270"><a href="#PeakPicking-270"><span class="linenos">270</span></a>
-</span><span id="PeakPicking-271"><a href="#PeakPicking-271"><span class="linenos">271</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">do_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="PeakPicking-271"><a href="#PeakPicking-271"><span class="linenos">271</span></a>    <span class="k">def</span> <span class="nf">do_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="PeakPicking-272"><a href="#PeakPicking-272"><span class="linenos">272</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform peak picking.&quot;&quot;&quot;</span>
 </span><span id="PeakPicking-273"><a href="#PeakPicking-273"><span class="linenos">273</span></a>        <span class="n">mz</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare_peak_picking_data</span><span class="p">()</span>
 </span><span id="PeakPicking-274"><a href="#PeakPicking-274"><span class="linenos">274</span></a>
@@ -1392,7 +1392,7 @@
 </span><span id="PeakPicking-293"><a href="#PeakPicking-293"><span class="linenos">293</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="PeakPicking-294"><a href="#PeakPicking-294"><span class="linenos">294</span></a>            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknow mass spectrum type&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
 </span><span id="PeakPicking-295"><a href="#PeakPicking-295"><span class="linenos">295</span></a>
-</span><span id="PeakPicking-296"><a href="#PeakPicking-296"><span class="linenos">296</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_minima</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">apex_index</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="PeakPicking-296"><a href="#PeakPicking-296"><span class="linenos">296</span></a>    <span class="k">def</span> <span class="nf">find_minima</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">apex_index</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="PeakPicking-297"><a href="#PeakPicking-297"><span class="linenos">297</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the minima of a peak.</span>
 </span><span id="PeakPicking-298"><a href="#PeakPicking-298"><span class="linenos">298</span></a>
 </span><span id="PeakPicking-299"><a href="#PeakPicking-299"><span class="linenos">299</span></a><span class="sd">        Parameters</span>
@@ -1438,7 +1438,7 @@
 </span><span id="PeakPicking-339"><a href="#PeakPicking-339"><span class="linenos">339</span></a>            <span class="k">return</span> <span class="n">j</span>
 </span><span id="PeakPicking-340"><a href="#PeakPicking-340"><span class="linenos">340</span></a>
 </span><span id="PeakPicking-341"><a href="#PeakPicking-341"><span class="linenos">341</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="PeakPicking-342"><a href="#PeakPicking-342"><span class="linenos">342</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">linear_fit_calc</span><span class="p">(</span><span class="n">intes</span><span class="p">,</span> <span class="n">massa</span><span class="p">,</span> <span class="n">index_term</span><span class="p">,</span> <span class="n">index_sign</span><span class="p">):</span>
+</span><span id="PeakPicking-342"><a href="#PeakPicking-342"><span class="linenos">342</span></a>    <span class="k">def</span> <span class="nf">linear_fit_calc</span><span class="p">(</span><span class="n">intes</span><span class="p">,</span> <span class="n">massa</span><span class="p">,</span> <span class="n">index_term</span><span class="p">,</span> <span class="n">index_sign</span><span class="p">):</span>
 </span><span id="PeakPicking-343"><a href="#PeakPicking-343"><span class="linenos">343</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PeakPicking-344"><a href="#PeakPicking-344"><span class="linenos">344</span></a><span class="sd">        Algebraic solution to a linear fit - roughly 25-50x faster than numpy polyfit when passing only two vals and doing a 1st order fit</span>
 </span><span id="PeakPicking-345"><a href="#PeakPicking-345"><span class="linenos">345</span></a>
@@ -1481,7 +1481,7 @@
 </span><span id="PeakPicking-382"><a href="#PeakPicking-382"><span class="linenos">382</span></a>        <span class="n">coefficients</span> <span class="o">=</span> <span class="n">array</span><span class="p">([</span><span class="n">slope</span><span class="p">,</span> <span class="n">intercept</span><span class="p">])</span>
 </span><span id="PeakPicking-383"><a href="#PeakPicking-383"><span class="linenos">383</span></a>        <span class="k">return</span> <span class="n">coefficients</span>
 </span><span id="PeakPicking-384"><a href="#PeakPicking-384"><span class="linenos">384</span></a>
-</span><span id="PeakPicking-385"><a href="#PeakPicking-385"><span class="linenos">385</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intes</span><span class="p">,</span> <span class="n">massa</span><span class="p">,</span> <span class="n">current_index</span><span class="p">):</span>
+</span><span id="PeakPicking-385"><a href="#PeakPicking-385"><span class="linenos">385</span></a>    <span class="k">def</span> <span class="nf">calculate_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intes</span><span class="p">,</span> <span class="n">massa</span><span class="p">,</span> <span class="n">current_index</span><span class="p">):</span>
 </span><span id="PeakPicking-386"><a href="#PeakPicking-386"><span class="linenos">386</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the resolving power of a peak.</span>
 </span><span id="PeakPicking-387"><a href="#PeakPicking-387"><span class="linenos">387</span></a>
 </span><span id="PeakPicking-388"><a href="#PeakPicking-388"><span class="linenos">388</span></a><span class="sd">        Parameters</span>
@@ -1605,7 +1605,7 @@
 </span><span id="PeakPicking-506"><a href="#PeakPicking-506"><span class="linenos">506</span></a>
 </span><span id="PeakPicking-507"><a href="#PeakPicking-507"><span class="linenos">507</span></a>        <span class="k">return</span> <span class="n">resolvingpower</span>
 </span><span id="PeakPicking-508"><a href="#PeakPicking-508"><span class="linenos">508</span></a>
-</span><span id="PeakPicking-509"><a href="#PeakPicking-509"><span class="linenos">509</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cal_minima</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abun</span><span class="p">):</span>
+</span><span id="PeakPicking-509"><a href="#PeakPicking-509"><span class="linenos">509</span></a>    <span class="k">def</span> <span class="nf">cal_minima</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abun</span><span class="p">):</span>
 </span><span id="PeakPicking-510"><a href="#PeakPicking-510"><span class="linenos">510</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the minima of a peak.</span>
 </span><span id="PeakPicking-511"><a href="#PeakPicking-511"><span class="linenos">511</span></a>
 </span><span id="PeakPicking-512"><a href="#PeakPicking-512"><span class="linenos">512</span></a><span class="sd">        Parameters</span>
@@ -1637,7 +1637,7 @@
 </span><span id="PeakPicking-538"><a href="#PeakPicking-538"><span class="linenos">538</span></a>        <span class="k">if</span> <span class="n">indexes</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
 </span><span id="PeakPicking-539"><a href="#PeakPicking-539"><span class="linenos">539</span></a>            <span class="k">return</span> <span class="n">mass</span><span class="p">[</span><span class="n">indexes</span><span class="p">],</span> <span class="n">abun</span><span class="p">[</span><span class="n">indexes</span><span class="p">]</span>
 </span><span id="PeakPicking-540"><a href="#PeakPicking-540"><span class="linenos">540</span></a>
-</span><span id="PeakPicking-541"><a href="#PeakPicking-541"><span class="linenos">541</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+</span><span id="PeakPicking-541"><a href="#PeakPicking-541"><span class="linenos">541</span></a>    <span class="k">def</span> <span class="nf">calc_centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
 </span><span id="PeakPicking-542"><a href="#PeakPicking-542"><span class="linenos">542</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the centroid of a peak.</span>
 </span><span id="PeakPicking-543"><a href="#PeakPicking-543"><span class="linenos">543</span></a>
 </span><span id="PeakPicking-544"><a href="#PeakPicking-544"><span class="linenos">544</span></a><span class="sd">        Parameters</span>
@@ -1715,7 +1715,7 @@
 </span><span id="PeakPicking-616"><a href="#PeakPicking-616"><span class="linenos">616</span></a>                <span class="c1"># pyplot.plot(domain[start_index: final_index + 1], signal[start_index:final_index + 1], c=&#39;black&#39;)</span>
 </span><span id="PeakPicking-617"><a href="#PeakPicking-617"><span class="linenos">617</span></a>                <span class="c1"># pyplot.show()</span>
 </span><span id="PeakPicking-618"><a href="#PeakPicking-618"><span class="linenos">618</span></a>
-</span><span id="PeakPicking-619"><a href="#PeakPicking-619"><span class="linenos">619</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intes</span><span class="p">):</span>
+</span><span id="PeakPicking-619"><a href="#PeakPicking-619"><span class="linenos">619</span></a>    <span class="k">def</span> <span class="nf">get_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intes</span><span class="p">):</span>
 </span><span id="PeakPicking-620"><a href="#PeakPicking-620"><span class="linenos">620</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the intensity threshold for peak picking.</span>
 </span><span id="PeakPicking-621"><a href="#PeakPicking-621"><span class="linenos">621</span></a>
 </span><span id="PeakPicking-622"><a href="#PeakPicking-622"><span class="linenos">622</span></a><span class="sd">        Parameters</span>
@@ -1779,7 +1779,7 @@
 </span><span id="PeakPicking-680"><a href="#PeakPicking-680"><span class="linenos">680</span></a>        <span class="k">return</span> <span class="n">abundance_threshold</span><span class="p">,</span> <span class="n">factor</span>
 </span><span id="PeakPicking-681"><a href="#PeakPicking-681"><span class="linenos">681</span></a>
 </span><span id="PeakPicking-682"><a href="#PeakPicking-682"><span class="linenos">682</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="PeakPicking-683"><a href="#PeakPicking-683"><span class="linenos">683</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">algebraic_quadratic</span><span class="p">(</span><span class="n">list_mass</span><span class="p">,</span> <span class="n">list_y</span><span class="p">):</span>
+</span><span id="PeakPicking-683"><a href="#PeakPicking-683"><span class="linenos">683</span></a>    <span class="k">def</span> <span class="nf">algebraic_quadratic</span><span class="p">(</span><span class="n">list_mass</span><span class="p">,</span> <span class="n">list_y</span><span class="p">):</span>
 </span><span id="PeakPicking-684"><a href="#PeakPicking-684"><span class="linenos">684</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PeakPicking-685"><a href="#PeakPicking-685"><span class="linenos">685</span></a><span class="sd">        Find the apex of a peak - algebraically.</span>
 </span><span id="PeakPicking-686"><a href="#PeakPicking-686"><span class="linenos">686</span></a><span class="sd">        Faster than using numpy polyfit by ~28x per fit.</span>
@@ -1822,7 +1822,7 @@
 </span><span id="PeakPicking-723"><a href="#PeakPicking-723"><span class="linenos">723</span></a>        <span class="p">)</span>
 </span><span id="PeakPicking-724"><a href="#PeakPicking-724"><span class="linenos">724</span></a>        <span class="k">return</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span>
 </span><span id="PeakPicking-725"><a href="#PeakPicking-725"><span class="linenos">725</span></a>
-</span><span id="PeakPicking-726"><a href="#PeakPicking-726"><span class="linenos">726</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_apex_fit_quadratic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">current_index</span><span class="p">):</span>
+</span><span id="PeakPicking-726"><a href="#PeakPicking-726"><span class="linenos">726</span></a>    <span class="k">def</span> <span class="nf">find_apex_fit_quadratic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">current_index</span><span class="p">):</span>
 </span><span id="PeakPicking-727"><a href="#PeakPicking-727"><span class="linenos">727</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PeakPicking-728"><a href="#PeakPicking-728"><span class="linenos">728</span></a><span class="sd">        Find the apex of a peak.</span>
 </span><span id="PeakPicking-729"><a href="#PeakPicking-729"><span class="linenos">729</span></a>
@@ -1919,7 +1919,7 @@
 </span><span id="PeakPicking-820"><a href="#PeakPicking-820"><span class="linenos">820</span></a>
 </span><span id="PeakPicking-821"><a href="#PeakPicking-821"><span class="linenos">821</span></a>        <span class="k">return</span> <span class="n">mz_exp_centroid</span><span class="p">,</span> <span class="n">freq_centr</span><span class="p">,</span> <span class="n">abundance_centroid</span>
 </span><span id="PeakPicking-822"><a href="#PeakPicking-822"><span class="linenos">822</span></a>
-</span><span id="PeakPicking-823"><a href="#PeakPicking-823"><span class="linenos">823</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_prominence</span><span class="p">(</span>
+</span><span id="PeakPicking-823"><a href="#PeakPicking-823"><span class="linenos">823</span></a>    <span class="k">def</span> <span class="nf">check_prominence</span><span class="p">(</span>
 </span><span id="PeakPicking-824"><a href="#PeakPicking-824"><span class="linenos">824</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">abun</span><span class="p">,</span> <span class="n">current_index</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">peak_height_diff</span>
 </span><span id="PeakPicking-825"><a href="#PeakPicking-825"><span class="linenos">825</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span> <span class="ow">or</span> <span class="kc">False</span><span class="p">:</span>
 </span><span id="PeakPicking-826"><a href="#PeakPicking-826"><span class="linenos">826</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Check the prominence of a peak.</span>
@@ -1961,7 +1961,7 @@
 </span><span id="PeakPicking-862"><a href="#PeakPicking-862"><span class="linenos">862</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="PeakPicking-863"><a href="#PeakPicking-863"><span class="linenos">863</span></a>            <span class="k">return</span> <span class="kc">False</span>
 </span><span id="PeakPicking-864"><a href="#PeakPicking-864"><span class="linenos">864</span></a>
-</span><span id="PeakPicking-865"><a href="#PeakPicking-865"><span class="linenos">865</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">use_the_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">current_index</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">peak_height_diff</span><span class="p">):</span>
+</span><span id="PeakPicking-865"><a href="#PeakPicking-865"><span class="linenos">865</span></a>    <span class="k">def</span> <span class="nf">use_the_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">current_index</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">peak_height_diff</span><span class="p">):</span>
 </span><span id="PeakPicking-866"><a href="#PeakPicking-866"><span class="linenos">866</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Use the max peak height as the centroid</span>
 </span><span id="PeakPicking-867"><a href="#PeakPicking-867"><span class="linenos">867</span></a>
 </span><span id="PeakPicking-868"><a href="#PeakPicking-868"><span class="linenos">868</span></a><span class="sd">        Parameters</span>
@@ -1998,7 +1998,7 @@
 </span><span id="PeakPicking-899"><a href="#PeakPicking-899"><span class="linenos">899</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="PeakPicking-900"><a href="#PeakPicking-900"><span class="linenos">900</span></a>            <span class="k">return</span> <span class="n">mass</span><span class="p">[</span><span class="n">current_index</span><span class="p">],</span> <span class="n">abund</span><span class="p">[</span><span class="n">current_index</span><span class="p">],</span> <span class="n">peak_indexes</span>
 </span><span id="PeakPicking-901"><a href="#PeakPicking-901"><span class="linenos">901</span></a>
-</span><span id="PeakPicking-902"><a href="#PeakPicking-902"><span class="linenos">902</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_centroid_legacy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+</span><span id="PeakPicking-902"><a href="#PeakPicking-902"><span class="linenos">902</span></a>    <span class="k">def</span> <span class="nf">calc_centroid_legacy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
 </span><span id="PeakPicking-903"><a href="#PeakPicking-903"><span class="linenos">903</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Legacy centroid calculation</span>
 </span><span id="PeakPicking-904"><a href="#PeakPicking-904"><span class="linenos">904</span></a><span class="sd">        Deprecated - for deletion.</span>
 </span><span id="PeakPicking-905"><a href="#PeakPicking-905"><span class="linenos">905</span></a>
@@ -2157,7 +2157,7 @@ Legacy centroid calculation. Deprecated - for deletion.</li>
 
     </div>
     <a class="headerlink" href="#PeakPicking.prepare_peak_picking_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.prepare_peak_picking_data-70"><a href="#PeakPicking.prepare_peak_picking_data-70"><span class="linenos">70</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_peak_picking_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.prepare_peak_picking_data-70"><a href="#PeakPicking.prepare_peak_picking_data-70"><span class="linenos">70</span></a>    <span class="k">def</span> <span class="nf">prepare_peak_picking_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="PeakPicking.prepare_peak_picking_data-71"><a href="#PeakPicking.prepare_peak_picking_data-71"><span class="linenos">71</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Prepare the data for peak picking.</span>
 </span><span id="PeakPicking.prepare_peak_picking_data-72"><a href="#PeakPicking.prepare_peak_picking_data-72"><span class="linenos">72</span></a>
 </span><span id="PeakPicking.prepare_peak_picking_data-73"><a href="#PeakPicking.prepare_peak_picking_data-73"><span class="linenos">73</span></a><span class="sd">        This function will prepare the m/z, abundance, and frequency data for peak picking according to the settings.</span>
@@ -2210,7 +2210,7 @@ The frequency axis, if available.</li>
 
     </div>
     <a class="headerlink" href="#PeakPicking.cut_mz_domain_peak_picking"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.cut_mz_domain_peak_picking-92"><a href="#PeakPicking.cut_mz_domain_peak_picking-92"><span class="linenos"> 92</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cut_mz_domain_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.cut_mz_domain_peak_picking-92"><a href="#PeakPicking.cut_mz_domain_peak_picking-92"><span class="linenos"> 92</span></a>    <span class="k">def</span> <span class="nf">cut_mz_domain_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="PeakPicking.cut_mz_domain_peak_picking-93"><a href="#PeakPicking.cut_mz_domain_peak_picking-93"><span class="linenos"> 93</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PeakPicking.cut_mz_domain_peak_picking-94"><a href="#PeakPicking.cut_mz_domain_peak_picking-94"><span class="linenos"> 94</span></a><span class="sd">        Cut the m/z domain for peak picking.</span>
 </span><span id="PeakPicking.cut_mz_domain_peak_picking-95"><a href="#PeakPicking.cut_mz_domain_peak_picking-95"><span class="linenos"> 95</span></a>
@@ -2280,7 +2280,7 @@ The frequency values within the specified range, if available.</li>
 
     </div>
     <a class="headerlink" href="#PeakPicking.legacy_cut_mz_domain_peak_picking"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.legacy_cut_mz_domain_peak_picking-131"><a href="#PeakPicking.legacy_cut_mz_domain_peak_picking-131"><span class="linenos">131</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">legacy_cut_mz_domain_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.legacy_cut_mz_domain_peak_picking-131"><a href="#PeakPicking.legacy_cut_mz_domain_peak_picking-131"><span class="linenos">131</span></a>    <span class="k">def</span> <span class="nf">legacy_cut_mz_domain_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="PeakPicking.legacy_cut_mz_domain_peak_picking-132"><a href="#PeakPicking.legacy_cut_mz_domain_peak_picking-132"><span class="linenos">132</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PeakPicking.legacy_cut_mz_domain_peak_picking-133"><a href="#PeakPicking.legacy_cut_mz_domain_peak_picking-133"><span class="linenos">133</span></a><span class="sd">        Cut the m/z domain for peak picking.</span>
 </span><span id="PeakPicking.legacy_cut_mz_domain_peak_picking-134"><a href="#PeakPicking.legacy_cut_mz_domain_peak_picking-134"><span class="linenos">134</span></a><span class="sd">        DEPRECATED</span>
@@ -2360,7 +2360,7 @@ The frequency values within the specified range, if available.</li>
     </div>
     <a class="headerlink" href="#PeakPicking.extrapolate_axis"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.extrapolate_axis-179"><a href="#PeakPicking.extrapolate_axis-179"><span class="linenos">179</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="PeakPicking.extrapolate_axis-180"><a href="#PeakPicking.extrapolate_axis-180"><span class="linenos">180</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extrapolate_axis</span><span class="p">(</span><span class="n">initial_array</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
+</span><span id="PeakPicking.extrapolate_axis-180"><a href="#PeakPicking.extrapolate_axis-180"><span class="linenos">180</span></a>    <span class="k">def</span> <span class="nf">extrapolate_axis</span><span class="p">(</span><span class="n">initial_array</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
 </span><span id="PeakPicking.extrapolate_axis-181"><a href="#PeakPicking.extrapolate_axis-181"><span class="linenos">181</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PeakPicking.extrapolate_axis-182"><a href="#PeakPicking.extrapolate_axis-182"><span class="linenos">182</span></a><span class="sd">        This function will extrapolate an input array in both directions by N pts.</span>
 </span><span id="PeakPicking.extrapolate_axis-183"><a href="#PeakPicking.extrapolate_axis-183"><span class="linenos">183</span></a>
@@ -2443,7 +2443,7 @@ The number of points to extrapolate.</li>
 
     </div>
     <a class="headerlink" href="#PeakPicking.extrapolate_axes_for_pp"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.extrapolate_axes_for_pp-226"><a href="#PeakPicking.extrapolate_axes_for_pp-226"><span class="linenos">226</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">extrapolate_axes_for_pp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">abund</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.extrapolate_axes_for_pp-226"><a href="#PeakPicking.extrapolate_axes_for_pp-226"><span class="linenos">226</span></a>    <span class="k">def</span> <span class="nf">extrapolate_axes_for_pp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">abund</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="PeakPicking.extrapolate_axes_for_pp-227"><a href="#PeakPicking.extrapolate_axes_for_pp-227"><span class="linenos">227</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Extrapolate the m/z axis and fill the abundance axis with 0s.</span>
 </span><span id="PeakPicking.extrapolate_axes_for_pp-228"><a href="#PeakPicking.extrapolate_axes_for_pp-228"><span class="linenos">228</span></a>
 </span><span id="PeakPicking.extrapolate_axes_for_pp-229"><a href="#PeakPicking.extrapolate_axes_for_pp-229"><span class="linenos">229</span></a><span class="sd">        Parameters</span>
@@ -2534,7 +2534,7 @@ This should prevent peak picking issues at the spectrum edge.</p>
 
     </div>
     <a class="headerlink" href="#PeakPicking.do_peak_picking"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.do_peak_picking-271"><a href="#PeakPicking.do_peak_picking-271"><span class="linenos">271</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">do_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.do_peak_picking-271"><a href="#PeakPicking.do_peak_picking-271"><span class="linenos">271</span></a>    <span class="k">def</span> <span class="nf">do_peak_picking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="PeakPicking.do_peak_picking-272"><a href="#PeakPicking.do_peak_picking-272"><span class="linenos">272</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform peak picking.&quot;&quot;&quot;</span>
 </span><span id="PeakPicking.do_peak_picking-273"><a href="#PeakPicking.do_peak_picking-273"><span class="linenos">273</span></a>        <span class="n">mz</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare_peak_picking_data</span><span class="p">()</span>
 </span><span id="PeakPicking.do_peak_picking-274"><a href="#PeakPicking.do_peak_picking-274"><span class="linenos">274</span></a>
@@ -2577,7 +2577,7 @@ This should prevent peak picking issues at the spectrum edge.</p>
 
     </div>
     <a class="headerlink" href="#PeakPicking.find_minima"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.find_minima-296"><a href="#PeakPicking.find_minima-296"><span class="linenos">296</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_minima</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">apex_index</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.find_minima-296"><a href="#PeakPicking.find_minima-296"><span class="linenos">296</span></a>    <span class="k">def</span> <span class="nf">find_minima</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">apex_index</span><span class="p">,</span> <span class="n">abundance</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="PeakPicking.find_minima-297"><a href="#PeakPicking.find_minima-297"><span class="linenos">297</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the minima of a peak.</span>
 </span><span id="PeakPicking.find_minima-298"><a href="#PeakPicking.find_minima-298"><span class="linenos">298</span></a>
 </span><span id="PeakPicking.find_minima-299"><a href="#PeakPicking.find_minima-299"><span class="linenos">299</span></a><span class="sd">        Parameters</span>
@@ -2661,7 +2661,7 @@ Flag indicating whether to search for minima to the right of the apex (default i
     </div>
     <a class="headerlink" href="#PeakPicking.linear_fit_calc"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.linear_fit_calc-341"><a href="#PeakPicking.linear_fit_calc-341"><span class="linenos">341</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="PeakPicking.linear_fit_calc-342"><a href="#PeakPicking.linear_fit_calc-342"><span class="linenos">342</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">linear_fit_calc</span><span class="p">(</span><span class="n">intes</span><span class="p">,</span> <span class="n">massa</span><span class="p">,</span> <span class="n">index_term</span><span class="p">,</span> <span class="n">index_sign</span><span class="p">):</span>
+</span><span id="PeakPicking.linear_fit_calc-342"><a href="#PeakPicking.linear_fit_calc-342"><span class="linenos">342</span></a>    <span class="k">def</span> <span class="nf">linear_fit_calc</span><span class="p">(</span><span class="n">intes</span><span class="p">,</span> <span class="n">massa</span><span class="p">,</span> <span class="n">index_term</span><span class="p">,</span> <span class="n">index_sign</span><span class="p">):</span>
 </span><span id="PeakPicking.linear_fit_calc-343"><a href="#PeakPicking.linear_fit_calc-343"><span class="linenos">343</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PeakPicking.linear_fit_calc-344"><a href="#PeakPicking.linear_fit_calc-344"><span class="linenos">344</span></a><span class="sd">        Algebraic solution to a linear fit - roughly 25-50x faster than numpy polyfit when passing only two vals and doing a 1st order fit</span>
 </span><span id="PeakPicking.linear_fit_calc-345"><a href="#PeakPicking.linear_fit_calc-345"><span class="linenos">345</span></a>
@@ -2745,7 +2745,7 @@ The index sign</li>
 
     </div>
     <a class="headerlink" href="#PeakPicking.calculate_resolving_power"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.calculate_resolving_power-385"><a href="#PeakPicking.calculate_resolving_power-385"><span class="linenos">385</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intes</span><span class="p">,</span> <span class="n">massa</span><span class="p">,</span> <span class="n">current_index</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.calculate_resolving_power-385"><a href="#PeakPicking.calculate_resolving_power-385"><span class="linenos">385</span></a>    <span class="k">def</span> <span class="nf">calculate_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intes</span><span class="p">,</span> <span class="n">massa</span><span class="p">,</span> <span class="n">current_index</span><span class="p">):</span>
 </span><span id="PeakPicking.calculate_resolving_power-386"><a href="#PeakPicking.calculate_resolving_power-386"><span class="linenos">386</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the resolving power of a peak.</span>
 </span><span id="PeakPicking.calculate_resolving_power-387"><a href="#PeakPicking.calculate_resolving_power-387"><span class="linenos">387</span></a>
 </span><span id="PeakPicking.calculate_resolving_power-388"><a href="#PeakPicking.calculate_resolving_power-388"><span class="linenos">388</span></a><span class="sd">        Parameters</span>
@@ -2910,7 +2910,7 @@ otherwise, the combined full width at half maximum is used to calculate resolvin
 
     </div>
     <a class="headerlink" href="#PeakPicking.cal_minima"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.cal_minima-509"><a href="#PeakPicking.cal_minima-509"><span class="linenos">509</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cal_minima</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abun</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.cal_minima-509"><a href="#PeakPicking.cal_minima-509"><span class="linenos">509</span></a>    <span class="k">def</span> <span class="nf">cal_minima</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abun</span><span class="p">):</span>
 </span><span id="PeakPicking.cal_minima-510"><a href="#PeakPicking.cal_minima-510"><span class="linenos">510</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the minima of a peak.</span>
 </span><span id="PeakPicking.cal_minima-511"><a href="#PeakPicking.cal_minima-511"><span class="linenos">511</span></a>
 </span><span id="PeakPicking.cal_minima-512"><a href="#PeakPicking.cal_minima-512"><span class="linenos">512</span></a><span class="sd">        Parameters</span>
@@ -2975,7 +2975,7 @@ The abundance values.</li>
 
     </div>
     <a class="headerlink" href="#PeakPicking.calc_centroid"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.calc_centroid-541"><a href="#PeakPicking.calc_centroid-541"><span class="linenos">541</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.calc_centroid-541"><a href="#PeakPicking.calc_centroid-541"><span class="linenos">541</span></a>    <span class="k">def</span> <span class="nf">calc_centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
 </span><span id="PeakPicking.calc_centroid-542"><a href="#PeakPicking.calc_centroid-542"><span class="linenos">542</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the centroid of a peak.</span>
 </span><span id="PeakPicking.calc_centroid-543"><a href="#PeakPicking.calc_centroid-543"><span class="linenos">543</span></a>
 </span><span id="PeakPicking.calc_centroid-544"><a href="#PeakPicking.calc_centroid-544"><span class="linenos">544</span></a><span class="sd">        Parameters</span>
@@ -3088,7 +3088,7 @@ The frequency values, if available.</li>
 
     </div>
     <a class="headerlink" href="#PeakPicking.get_threshold"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.get_threshold-619"><a href="#PeakPicking.get_threshold-619"><span class="linenos">619</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intes</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.get_threshold-619"><a href="#PeakPicking.get_threshold-619"><span class="linenos">619</span></a>    <span class="k">def</span> <span class="nf">get_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intes</span><span class="p">):</span>
 </span><span id="PeakPicking.get_threshold-620"><a href="#PeakPicking.get_threshold-620"><span class="linenos">620</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the intensity threshold for peak picking.</span>
 </span><span id="PeakPicking.get_threshold-621"><a href="#PeakPicking.get_threshold-621"><span class="linenos">621</span></a>
 </span><span id="PeakPicking.get_threshold-622"><a href="#PeakPicking.get_threshold-622"><span class="linenos">622</span></a><span class="sd">        Parameters</span>
@@ -3185,7 +3185,7 @@ The intensity values.</li>
     </div>
     <a class="headerlink" href="#PeakPicking.algebraic_quadratic"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.algebraic_quadratic-682"><a href="#PeakPicking.algebraic_quadratic-682"><span class="linenos">682</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="PeakPicking.algebraic_quadratic-683"><a href="#PeakPicking.algebraic_quadratic-683"><span class="linenos">683</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">algebraic_quadratic</span><span class="p">(</span><span class="n">list_mass</span><span class="p">,</span> <span class="n">list_y</span><span class="p">):</span>
+</span><span id="PeakPicking.algebraic_quadratic-683"><a href="#PeakPicking.algebraic_quadratic-683"><span class="linenos">683</span></a>    <span class="k">def</span> <span class="nf">algebraic_quadratic</span><span class="p">(</span><span class="n">list_mass</span><span class="p">,</span> <span class="n">list_y</span><span class="p">):</span>
 </span><span id="PeakPicking.algebraic_quadratic-684"><a href="#PeakPicking.algebraic_quadratic-684"><span class="linenos">684</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PeakPicking.algebraic_quadratic-685"><a href="#PeakPicking.algebraic_quadratic-685"><span class="linenos">685</span></a><span class="sd">        Find the apex of a peak - algebraically.</span>
 </span><span id="PeakPicking.algebraic_quadratic-686"><a href="#PeakPicking.algebraic_quadratic-686"><span class="linenos">686</span></a><span class="sd">        Faster than using numpy polyfit by ~28x per fit.</span>
@@ -3267,7 +3267,7 @@ coefficients of the quadratic equation.</li>
 
     </div>
     <a class="headerlink" href="#PeakPicking.find_apex_fit_quadratic"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.find_apex_fit_quadratic-726"><a href="#PeakPicking.find_apex_fit_quadratic-726"><span class="linenos">726</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">find_apex_fit_quadratic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">current_index</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.find_apex_fit_quadratic-726"><a href="#PeakPicking.find_apex_fit_quadratic-726"><span class="linenos">726</span></a>    <span class="k">def</span> <span class="nf">find_apex_fit_quadratic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">current_index</span><span class="p">):</span>
 </span><span id="PeakPicking.find_apex_fit_quadratic-727"><a href="#PeakPicking.find_apex_fit_quadratic-727"><span class="linenos">727</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PeakPicking.find_apex_fit_quadratic-728"><a href="#PeakPicking.find_apex_fit_quadratic-728"><span class="linenos">728</span></a><span class="sd">        Find the apex of a peak.</span>
 </span><span id="PeakPicking.find_apex_fit_quadratic-729"><a href="#PeakPicking.find_apex_fit_quadratic-729"><span class="linenos">729</span></a>
@@ -3403,7 +3403,7 @@ The index of the current peak.</li>
 
     </div>
     <a class="headerlink" href="#PeakPicking.check_prominence"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.check_prominence-823"><a href="#PeakPicking.check_prominence-823"><span class="linenos">823</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_prominence</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.check_prominence-823"><a href="#PeakPicking.check_prominence-823"><span class="linenos">823</span></a>    <span class="k">def</span> <span class="nf">check_prominence</span><span class="p">(</span>
 </span><span id="PeakPicking.check_prominence-824"><a href="#PeakPicking.check_prominence-824"><span class="linenos">824</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">abun</span><span class="p">,</span> <span class="n">current_index</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">peak_height_diff</span>
 </span><span id="PeakPicking.check_prominence-825"><a href="#PeakPicking.check_prominence-825"><span class="linenos">825</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span> <span class="ow">or</span> <span class="kc">False</span><span class="p">:</span>
 </span><span id="PeakPicking.check_prominence-826"><a href="#PeakPicking.check_prominence-826"><span class="linenos">826</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Check the prominence of a peak.</span>
@@ -3483,7 +3483,7 @@ Otherwise, False.</li>
 
     </div>
     <a class="headerlink" href="#PeakPicking.use_the_max"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.use_the_max-865"><a href="#PeakPicking.use_the_max-865"><span class="linenos">865</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">use_the_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">current_index</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">peak_height_diff</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.use_the_max-865"><a href="#PeakPicking.use_the_max-865"><span class="linenos">865</span></a>    <span class="k">def</span> <span class="nf">use_the_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">current_index</span><span class="p">,</span> <span class="n">len_abundance</span><span class="p">,</span> <span class="n">peak_height_diff</span><span class="p">):</span>
 </span><span id="PeakPicking.use_the_max-866"><a href="#PeakPicking.use_the_max-866"><span class="linenos">866</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Use the max peak height as the centroid</span>
 </span><span id="PeakPicking.use_the_max-867"><a href="#PeakPicking.use_the_max-867"><span class="linenos">867</span></a>
 </span><span id="PeakPicking.use_the_max-868"><a href="#PeakPicking.use_the_max-868"><span class="linenos">868</span></a><span class="sd">        Parameters</span>
@@ -3562,7 +3562,7 @@ Otherwise, None.</li>
 
     </div>
     <a class="headerlink" href="#PeakPicking.calc_centroid_legacy"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.calc_centroid_legacy-902"><a href="#PeakPicking.calc_centroid_legacy-902"><span class="linenos">902</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_centroid_legacy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PeakPicking.calc_centroid_legacy-902"><a href="#PeakPicking.calc_centroid_legacy-902"><span class="linenos">902</span></a>    <span class="k">def</span> <span class="nf">calc_centroid_legacy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">abund</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
 </span><span id="PeakPicking.calc_centroid_legacy-903"><a href="#PeakPicking.calc_centroid_legacy-903"><span class="linenos">903</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Legacy centroid calculation</span>
 </span><span id="PeakPicking.calc_centroid_legacy-904"><a href="#PeakPicking.calc_centroid_legacy-904"><span class="linenos">904</span></a><span class="sd">        Deprecated - for deletion.</span>
 </span><span id="PeakPicking.calc_centroid_legacy-905"><a href="#PeakPicking.calc_centroid_legacy-905"><span class="linenos">905</span></a>

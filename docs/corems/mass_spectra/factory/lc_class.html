@@ -153,21 +153,21 @@
 
                         <label class="view-source-button" for="mod-lc_class-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">   1</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">   1</span></a><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">   2</span></a>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">   3</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">   4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">   5</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">   6</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">   3</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">   4</span></a><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">   5</span></a><span class="kn">import</span> <span class="nn">warnings</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">   6</span></a><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">   7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">   8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.factory.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">LCMSParameters</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">   9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectra.calc.lc_calc</span><span class="w"> </span><span class="kn">import</span> <span class="n">LCCalculations</span><span class="p">,</span> <span class="n">PHCalculations</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">  10</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.molecular_id.search.lcms_spectral_search</span><span class="w"> </span><span class="kn">import</span> <span class="n">LCMSSpectralSearch</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">  11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectrum.input.numpyArray</span><span class="w"> </span><span class="kn">import</span> <span class="n">ms_from_array_profile</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">  12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.mass_spectra.calc.lc_calc</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_closest</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">   8</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.factory.parameters</span> <span class="kn">import</span> <span class="n">LCMSParameters</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">   9</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectra.calc.lc_calc</span> <span class="kn">import</span> <span class="n">LCCalculations</span><span class="p">,</span> <span class="n">PHCalculations</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">  10</span></a><span class="kn">from</span> <span class="nn">corems.molecular_id.search.lcms_spectral_search</span> <span class="kn">import</span> <span class="n">LCMSSpectralSearch</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">  11</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectrum.input.numpyArray</span> <span class="kn">import</span> <span class="n">ms_from_array_profile</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">  12</span></a><span class="kn">from</span> <span class="nn">corems.mass_spectra.calc.lc_calc</span> <span class="kn">import</span> <span class="n">find_closest</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos">  13</span></a>
 </span><span id="L-14"><a href="#L-14"><span class="linenos">  14</span></a>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">  15</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MassSpectraBase</span><span class="p">:</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">  15</span></a><span class="k">class</span> <span class="nc">MassSpectraBase</span><span class="p">:</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos">  16</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for mass spectra objects.</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos">  17</span></a>
 </span><span id="L-18"><a href="#L-18"><span class="linenos">  18</span></a><span class="sd">    Parameters</span>
@@ -213,7 +213,7 @@
 </span><span id="L-58"><a href="#L-58"><span class="linenos">  58</span></a><span class="sd">        Returns the scan time for the specified scan number.</span>
 </span><span id="L-59"><a href="#L-59"><span class="linenos">  59</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-60"><a href="#L-60"><span class="linenos">  60</span></a>
-</span><span id="L-61"><a href="#L-61"><span class="linenos">  61</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos">  61</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 </span><span id="L-62"><a href="#L-62"><span class="linenos">  62</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-63"><a href="#L-63"><span class="linenos">  63</span></a>        <span class="n">file_location</span><span class="p">,</span>
 </span><span id="L-64"><a href="#L-64"><span class="linenos">  64</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;Unknown&quot;</span><span class="p">,</span>
@@ -271,7 +271,7 @@
 </span><span id="L-116"><a href="#L-116"><span class="linenos"> 116</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_ms</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="L-117"><a href="#L-117"><span class="linenos"> 117</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_ms_unprocessed</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="L-118"><a href="#L-118"><span class="linenos"> 118</span></a>
-</span><span id="L-119"><a href="#L-119"><span class="linenos"> 119</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spec</span><span class="p">):</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos"> 119</span></a>    <span class="k">def</span> <span class="nf">add_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spec</span><span class="p">):</span>
 </span><span id="L-120"><a href="#L-120"><span class="linenos"> 120</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a mass spectrum to the dataset.</span>
 </span><span id="L-121"><a href="#L-121"><span class="linenos"> 121</span></a>
 </span><span id="L-122"><a href="#L-122"><span class="linenos"> 122</span></a><span class="sd">        Parameters</span>
@@ -290,7 +290,7 @@
 </span><span id="L-135"><a href="#L-135"><span class="linenos"> 135</span></a>            <span class="p">)</span>
 </span><span id="L-136"><a href="#L-136"><span class="linenos"> 136</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="p">[</span><span class="n">mass_spec</span><span class="o">.</span><span class="n">scan_number</span><span class="p">]</span> <span class="o">=</span> <span class="n">mass_spec</span>
 </span><span id="L-137"><a href="#L-137"><span class="linenos"> 137</span></a>
-</span><span id="L-138"><a href="#L-138"><span class="linenos"> 138</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_mass_spectra</span><span class="p">(</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos"> 138</span></a>    <span class="k">def</span> <span class="nf">add_mass_spectra</span><span class="p">(</span>
 </span><span id="L-139"><a href="#L-139"><span class="linenos"> 139</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-140"><a href="#L-140"><span class="linenos"> 140</span></a>        <span class="n">scan_list</span><span class="p">,</span>
 </span><span id="L-141"><a href="#L-141"><span class="linenos"> 141</span></a>        <span class="n">spectrum_mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -422,7 +422,7 @@
 </span><span id="L-267"><a href="#L-267"><span class="linenos"> 267</span></a>                    <span class="n">ms</span><span class="o">.</span><span class="n">process_mass_spec</span><span class="p">()</span>
 </span><span id="L-268"><a href="#L-268"><span class="linenos"> 268</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">add_mass_spectrum</span><span class="p">(</span><span class="n">ms</span><span class="p">)</span>
 </span><span id="L-269"><a href="#L-269"><span class="linenos"> 269</span></a>
-</span><span id="L-270"><a href="#L-270"><span class="linenos"> 270</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_time_of_scan_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">):</span>
+</span><span id="L-270"><a href="#L-270"><span class="linenos"> 270</span></a>    <span class="k">def</span> <span class="nf">get_time_of_scan_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">):</span>
 </span><span id="L-271"><a href="#L-271"><span class="linenos"> 271</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the scan time for the specified scan number.</span>
 </span><span id="L-272"><a href="#L-272"><span class="linenos"> 272</span></a>
 </span><span id="L-273"><a href="#L-273"><span class="linenos"> 273</span></a><span class="sd">        Parameters</span>
@@ -447,7 +447,7 @@
 </span><span id="L-292"><a href="#L-292"><span class="linenos"> 292</span></a>        <span class="k">return</span> <span class="n">rt</span>
 </span><span id="L-293"><a href="#L-293"><span class="linenos"> 293</span></a>
 </span><span id="L-294"><a href="#L-294"><span class="linenos"> 294</span></a>    <span class="nd">@property</span>
-</span><span id="L-295"><a href="#L-295"><span class="linenos"> 295</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">scan_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-295"><a href="#L-295"><span class="linenos"> 295</span></a>    <span class="k">def</span> <span class="nf">scan_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-296"><a href="#L-296"><span class="linenos"> 296</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-297"><a href="#L-297"><span class="linenos"> 297</span></a><span class="sd">        pandas.DataFrame : A pandas DataFrame containing the scan info data with columns for scan number, scan time, ms level, precursor m/z, scan text, and scan window (lower and upper).</span>
 </span><span id="L-298"><a href="#L-298"><span class="linenos"> 298</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -455,7 +455,7 @@
 </span><span id="L-300"><a href="#L-300"><span class="linenos"> 300</span></a>        <span class="k">return</span> <span class="n">scan_df</span>
 </span><span id="L-301"><a href="#L-301"><span class="linenos"> 301</span></a>        
 </span><span id="L-302"><a href="#L-302"><span class="linenos"> 302</span></a>    <span class="nd">@property</span>
-</span><span id="L-303"><a href="#L-303"><span class="linenos"> 303</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-303"><a href="#L-303"><span class="linenos"> 303</span></a>    <span class="k">def</span> <span class="nf">ms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-304"><a href="#L-304"><span class="linenos"> 304</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-305"><a href="#L-305"><span class="linenos"> 305</span></a><span class="sd">        dictionary : contains the key associated with mass spectra and values are the associated MassSpecProfiles</span>
 </span><span id="L-306"><a href="#L-306"><span class="linenos"> 306</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -463,7 +463,7 @@
 </span><span id="L-308"><a href="#L-308"><span class="linenos"> 308</span></a>
 </span><span id="L-309"><a href="#L-309"><span class="linenos"> 309</span></a>    
 </span><span id="L-310"><a href="#L-310"><span class="linenos"> 310</span></a>    <span class="nd">@scan_df</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-311"><a href="#L-311"><span class="linenos"> 311</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">scan_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+</span><span id="L-311"><a href="#L-311"><span class="linenos"> 311</span></a>    <span class="k">def</span> <span class="nf">scan_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
 </span><span id="L-312"><a href="#L-312"><span class="linenos"> 312</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-313"><a href="#L-313"><span class="linenos"> 313</span></a><span class="sd">        Sets the scan data for the dataset.</span>
 </span><span id="L-314"><a href="#L-314"><span class="linenos"> 314</span></a>
@@ -475,11 +475,11 @@
 </span><span id="L-320"><a href="#L-320"><span class="linenos"> 320</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-321"><a href="#L-321"><span class="linenos"> 321</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_scan_info</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
 </span><span id="L-322"><a href="#L-322"><span class="linenos"> 322</span></a>
-</span><span id="L-323"><a href="#L-323"><span class="linenos"> 323</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="p">):</span>
+</span><span id="L-323"><a href="#L-323"><span class="linenos"> 323</span></a>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="p">):</span>
 </span><span id="L-324"><a href="#L-324"><span class="linenos"> 324</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">scan_number</span><span class="p">)</span>
 </span><span id="L-325"><a href="#L-325"><span class="linenos"> 325</span></a>
 </span><span id="L-326"><a href="#L-326"><span class="linenos"> 326</span></a>
-</span><span id="L-327"><a href="#L-327"><span class="linenos"> 327</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LCMSBase</span><span class="p">(</span><span class="n">MassSpectraBase</span><span class="p">,</span> <span class="n">LCCalculations</span><span class="p">,</span> <span class="n">PHCalculations</span><span class="p">,</span> <span class="n">LCMSSpectralSearch</span><span class="p">):</span>
+</span><span id="L-327"><a href="#L-327"><span class="linenos"> 327</span></a><span class="k">class</span> <span class="nc">LCMSBase</span><span class="p">(</span><span class="n">MassSpectraBase</span><span class="p">,</span> <span class="n">LCCalculations</span><span class="p">,</span> <span class="n">PHCalculations</span><span class="p">,</span> <span class="n">LCMSSpectralSearch</span><span class="p">):</span>
 </span><span id="L-328"><a href="#L-328"><span class="linenos"> 328</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class representing a liquid chromatography-mass spectrometry (LC-MS) data object.</span>
 </span><span id="L-329"><a href="#L-329"><span class="linenos"> 329</span></a>
 </span><span id="L-330"><a href="#L-330"><span class="linenos"> 330</span></a><span class="sd">    This class is not intended to be instantiated directly, but rather to be instantiated by an appropriate mass spectra parser using the get_lcms_obj() method.</span>
@@ -541,7 +541,7 @@
 </span><span id="L-386"><a href="#L-386"><span class="linenos"> 386</span></a><span class="sd">        Generates plot of M/Z features comparing scan time vs M/Z value</span>
 </span><span id="L-387"><a href="#L-387"><span class="linenos"> 387</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-388"><a href="#L-388"><span class="linenos"> 388</span></a>
-</span><span id="L-389"><a href="#L-389"><span class="linenos"> 389</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="L-389"><a href="#L-389"><span class="linenos"> 389</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 </span><span id="L-390"><a href="#L-390"><span class="linenos"> 390</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-391"><a href="#L-391"><span class="linenos"> 391</span></a>        <span class="n">file_location</span><span class="p">,</span>
 </span><span id="L-392"><a href="#L-392"><span class="linenos"> 392</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;Unknown&quot;</span><span class="p">,</span>
@@ -561,7 +561,7 @@
 </span><span id="L-406"><a href="#L-406"><span class="linenos"> 406</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mass_features</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="L-407"><a href="#L-407"><span class="linenos"> 407</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">spectral_search_results</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="L-408"><a href="#L-408"><span class="linenos"> 408</span></a>
-</span><span id="L-409"><a href="#L-409"><span class="linenos"> 409</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameters_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-409"><a href="#L-409"><span class="linenos"> 409</span></a>    <span class="k">def</span> <span class="nf">get_parameters_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-410"><a href="#L-410"><span class="linenos"> 410</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the parameters stored for the LC-MS object in JSON format.</span>
 </span><span id="L-411"><a href="#L-411"><span class="linenos"> 411</span></a>
 </span><span id="L-412"><a href="#L-412"><span class="linenos"> 412</span></a><span class="sd">        Returns</span>
@@ -571,7 +571,7 @@
 </span><span id="L-416"><a href="#L-416"><span class="linenos"> 416</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-417"><a href="#L-417"><span class="linenos"> 417</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
 </span><span id="L-418"><a href="#L-418"><span class="linenos"> 418</span></a>
-</span><span id="L-419"><a href="#L-419"><span class="linenos"> 419</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">remove_unprocessed_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-419"><a href="#L-419"><span class="linenos"> 419</span></a>    <span class="k">def</span> <span class="nf">remove_unprocessed_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-420"><a href="#L-420"><span class="linenos"> 420</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Removes the unprocessed data from the LCMSBase object.</span>
 </span><span id="L-421"><a href="#L-421"><span class="linenos"> 421</span></a>
 </span><span id="L-422"><a href="#L-422"><span class="linenos"> 422</span></a><span class="sd">        Parameters</span>
@@ -595,7 +595,7 @@
 </span><span id="L-440"><a href="#L-440"><span class="linenos"> 440</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ms_level must be 1 or 2&quot;</span><span class="p">)</span>
 </span><span id="L-441"><a href="#L-441"><span class="linenos"> 441</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_ms_unprocessed</span><span class="p">[</span><span class="n">ms_level</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="L-442"><a href="#L-442"><span class="linenos"> 442</span></a>
-</span><span id="L-443"><a href="#L-443"><span class="linenos"> 443</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_associated_ms2_dda</span><span class="p">(</span>
+</span><span id="L-443"><a href="#L-443"><span class="linenos"> 443</span></a>    <span class="k">def</span> <span class="nf">add_associated_ms2_dda</span><span class="p">(</span>
 </span><span id="L-444"><a href="#L-444"><span class="linenos"> 444</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="L-445"><a href="#L-445"><span class="linenos"> 445</span></a>        <span class="n">auto_process</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 </span><span id="L-446"><a href="#L-446"><span class="linenos"> 446</span></a>        <span class="n">use_parser</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -690,7 +690,7 @@
 </span><span id="L-535"><a href="#L-535"><span class="linenos"> 535</span></a>                            <span class="n">dda_scan</span>
 </span><span id="L-536"><a href="#L-536"><span class="linenos"> 536</span></a>                        <span class="p">]</span>
 </span><span id="L-537"><a href="#L-537"><span class="linenos"> 537</span></a>
-</span><span id="L-538"><a href="#L-538"><span class="linenos"> 538</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_associated_ms1</span><span class="p">(</span>
+</span><span id="L-538"><a href="#L-538"><span class="linenos"> 538</span></a>    <span class="k">def</span> <span class="nf">add_associated_ms1</span><span class="p">(</span>
 </span><span id="L-539"><a href="#L-539"><span class="linenos"> 539</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">auto_process</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_parser</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spectrum_mode</span><span class="o">=</span><span class="kc">None</span>
 </span><span id="L-540"><a href="#L-540"><span class="linenos"> 540</span></a>    <span class="p">):</span>
 </span><span id="L-541"><a href="#L-541"><span class="linenos"> 541</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add MS1 spectra associated with mass features to the dataset.</span>
@@ -742,7 +742,7 @@
 </span><span id="L-587"><a href="#L-587"><span class="linenos"> 587</span></a>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All apex scans must be profile mode for averaging&quot;</span><span class="p">)</span>
 </span><span id="L-588"><a href="#L-588"><span class="linenos"> 588</span></a>
 </span><span id="L-589"><a href="#L-589"><span class="linenos"> 589</span></a>            <span class="c1"># First get sets of scans to average</span>
-</span><span id="L-590"><a href="#L-590"><span class="linenos"> 590</span></a>            <span class="k">def</span><span class="w"> </span><span class="nf">get_scans_from_apex</span><span class="p">(</span><span class="n">ms1_scans</span><span class="p">,</span> <span class="n">apex_scan</span><span class="p">,</span> <span class="n">scans_to_average</span><span class="p">):</span>
+</span><span id="L-590"><a href="#L-590"><span class="linenos"> 590</span></a>            <span class="k">def</span> <span class="nf">get_scans_from_apex</span><span class="p">(</span><span class="n">ms1_scans</span><span class="p">,</span> <span class="n">apex_scan</span><span class="p">,</span> <span class="n">scans_to_average</span><span class="p">):</span>
 </span><span id="L-591"><a href="#L-591"><span class="linenos"> 591</span></a>                <span class="n">ms1_idx_start</span> <span class="o">=</span> <span class="n">ms1_scans</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">apex_scan</span><span class="p">)</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span>
 </span><span id="L-592"><a href="#L-592"><span class="linenos"> 592</span></a>                    <span class="p">(</span><span class="n">scans_to_average</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
 </span><span id="L-593"><a href="#L-593"><span class="linenos"> 593</span></a>                <span class="p">)</span>
@@ -828,7 +828,7 @@
 </span><span id="L-673"><a href="#L-673"><span class="linenos"> 673</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">lc_ms</span><span class="o">.</span><span class="n">peak_picking_method</span> <span class="o">==</span> <span class="s2">&quot;persistent homology&quot;</span><span class="p">:</span>
 </span><span id="L-674"><a href="#L-674"><span class="linenos"> 674</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_mass_features</span><span class="p">(</span><span class="n">drop_children</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort_by</span><span class="o">=</span><span class="s2">&quot;persistence&quot;</span><span class="p">)</span>
 </span><span id="L-675"><a href="#L-675"><span class="linenos"> 675</span></a>
-</span><span id="L-676"><a href="#L-676"><span class="linenos"> 676</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mass_features_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-676"><a href="#L-676"><span class="linenos"> 676</span></a>    <span class="k">def</span> <span class="nf">mass_features_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-677"><a href="#L-677"><span class="linenos"> 677</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a pandas dataframe summarizing the mass features.</span>
 </span><span id="L-678"><a href="#L-678"><span class="linenos"> 678</span></a>
 </span><span id="L-679"><a href="#L-679"><span class="linenos"> 679</span></a><span class="sd">        The dataframe contains the following columns: mf_id, mz, apex_scan, scan_time, intensity,</span>
@@ -842,7 +842,7 @@
 </span><span id="L-687"><a href="#L-687"><span class="linenos"> 687</span></a><span class="sd">            mf_id, mz, apex_scan, scan_time, intensity, persistence, area.</span>
 </span><span id="L-688"><a href="#L-688"><span class="linenos"> 688</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-689"><a href="#L-689"><span class="linenos"> 689</span></a>
-</span><span id="L-690"><a href="#L-690"><span class="linenos"> 690</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">mass_spectrum_to_string</span><span class="p">(</span>
+</span><span id="L-690"><a href="#L-690"><span class="linenos"> 690</span></a>        <span class="k">def</span> <span class="nf">mass_spectrum_to_string</span><span class="p">(</span>
 </span><span id="L-691"><a href="#L-691"><span class="linenos"> 691</span></a>            <span class="n">mass_spec</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_normalized_abun</span><span class="o">=</span><span class="mf">0.01</span>
 </span><span id="L-692"><a href="#L-692"><span class="linenos"> 692</span></a>        <span class="p">):</span>
 </span><span id="L-693"><a href="#L-693"><span class="linenos"> 693</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;Converts a mass spectrum to a string of m/z:abundance pairs.</span>
@@ -963,7 +963,7 @@
 </span><span id="L-808"><a href="#L-808"><span class="linenos"> 808</span></a>
 </span><span id="L-809"><a href="#L-809"><span class="linenos"> 809</span></a>        <span class="k">return</span> <span class="n">df_mf</span>
 </span><span id="L-810"><a href="#L-810"><span class="linenos"> 810</span></a>
-</span><span id="L-811"><a href="#L-811"><span class="linenos"> 811</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mass_features_ms1_annot_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-811"><a href="#L-811"><span class="linenos"> 811</span></a>    <span class="k">def</span> <span class="nf">mass_features_ms1_annot_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-812"><a href="#L-812"><span class="linenos"> 812</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a pandas dataframe summarizing the MS1 annotations for the mass features in the dataset.</span>
 </span><span id="L-813"><a href="#L-813"><span class="linenos"> 813</span></a>
 </span><span id="L-814"><a href="#L-814"><span class="linenos"> 814</span></a><span class="sd">        Returns</span>
@@ -1019,7 +1019,7 @@
 </span><span id="L-864"><a href="#L-864"><span class="linenos"> 864</span></a>
 </span><span id="L-865"><a href="#L-865"><span class="linenos"> 865</span></a>        <span class="k">return</span> <span class="n">annot_ms1_df_full</span>
 </span><span id="L-866"><a href="#L-866"><span class="linenos"> 866</span></a>
-</span><span id="L-867"><a href="#L-867"><span class="linenos"> 867</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mass_features_ms2_annot_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecular_metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-867"><a href="#L-867"><span class="linenos"> 867</span></a>    <span class="k">def</span> <span class="nf">mass_features_ms2_annot_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecular_metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-868"><a href="#L-868"><span class="linenos"> 868</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a pandas dataframe summarizing the MS2 annotations for the mass features in the dataset.</span>
 </span><span id="L-869"><a href="#L-869"><span class="linenos"> 869</span></a>
 </span><span id="L-870"><a href="#L-870"><span class="linenos"> 870</span></a><span class="sd">        Parameters</span>
@@ -1078,7 +1078,7 @@
 </span><span id="L-923"><a href="#L-923"><span class="linenos"> 923</span></a>
 </span><span id="L-924"><a href="#L-924"><span class="linenos"> 924</span></a>        <span class="k">return</span> <span class="n">annot_ms2_df_full</span>
 </span><span id="L-925"><a href="#L-925"><span class="linenos"> 925</span></a>
-</span><span id="L-926"><a href="#L-926"><span class="linenos"> 926</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_composite_mz_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binsize</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="n">ph_int_min_thresh</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">mf_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">ms2_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">return_fig</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+</span><span id="L-926"><a href="#L-926"><span class="linenos"> 926</span></a>    <span class="k">def</span> <span class="nf">plot_composite_mz_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binsize</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="n">ph_int_min_thresh</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">mf_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">ms2_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">return_fig</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 </span><span id="L-927"><a href="#L-927"><span class="linenos"> 927</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a figure displaying </span>
 </span><span id="L-928"><a href="#L-928"><span class="linenos"> 928</span></a><span class="sd">            (1) thresholded, unprocessed data</span>
 </span><span id="L-929"><a href="#L-929"><span class="linenos"> 929</span></a><span class="sd">            (2) the m/z features</span>
@@ -1204,7 +1204,7 @@
 </span><span id="L-1049"><a href="#L-1049"><span class="linenos">1049</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-1050"><a href="#L-1050"><span class="linenos">1050</span></a>            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </span><span id="L-1051"><a href="#L-1051"><span class="linenos">1051</span></a>
-</span><span id="L-1052"><a href="#L-1052"><span class="linenos">1052</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-1052"><a href="#L-1052"><span class="linenos">1052</span></a>    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-1053"><a href="#L-1053"><span class="linenos">1053</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-1054"><a href="#L-1054"><span class="linenos">1054</span></a><span class="sd">        Returns the number of mass spectra in the dataset.</span>
 </span><span id="L-1055"><a href="#L-1055"><span class="linenos">1055</span></a>
@@ -1215,7 +1215,7 @@
 </span><span id="L-1060"><a href="#L-1060"><span class="linenos">1060</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-1061"><a href="#L-1061"><span class="linenos">1061</span></a>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="p">)</span>
 </span><span id="L-1062"><a href="#L-1062"><span class="linenos">1062</span></a>
-</span><span id="L-1063"><a href="#L-1063"><span class="linenos">1063</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="p">):</span>
+</span><span id="L-1063"><a href="#L-1063"><span class="linenos">1063</span></a>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="p">):</span>
 </span><span id="L-1064"><a href="#L-1064"><span class="linenos">1064</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-1065"><a href="#L-1065"><span class="linenos">1065</span></a><span class="sd">        Returns the mass spectrum corresponding to the specified scan number.</span>
 </span><span id="L-1066"><a href="#L-1066"><span class="linenos">1066</span></a>
@@ -1231,7 +1231,7 @@
 </span><span id="L-1076"><a href="#L-1076"><span class="linenos">1076</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-1077"><a href="#L-1077"><span class="linenos">1077</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">scan_number</span><span class="p">)</span>
 </span><span id="L-1078"><a href="#L-1078"><span class="linenos">1078</span></a>
-</span><span id="L-1079"><a href="#L-1079"><span class="linenos">1079</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-1079"><a href="#L-1079"><span class="linenos">1079</span></a>    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-1080"><a href="#L-1080"><span class="linenos">1080</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns an iterator over the mass spectra in the dataset.</span>
 </span><span id="L-1081"><a href="#L-1081"><span class="linenos">1081</span></a>
 </span><span id="L-1082"><a href="#L-1082"><span class="linenos">1082</span></a><span class="sd">        Returns</span>
@@ -1241,7 +1241,7 @@
 </span><span id="L-1086"><a href="#L-1086"><span class="linenos">1086</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-1087"><a href="#L-1087"><span class="linenos">1087</span></a>        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 </span><span id="L-1088"><a href="#L-1088"><span class="linenos">1088</span></a>
-</span><span id="L-1089"><a href="#L-1089"><span class="linenos">1089</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_tic_list_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="L-1089"><a href="#L-1089"><span class="linenos">1089</span></a>    <span class="k">def</span> <span class="nf">set_tic_list_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="L-1090"><a href="#L-1090"><span class="linenos">1090</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the TIC list from the mass spectrum objects within the _ms dictionary.</span>
 </span><span id="L-1091"><a href="#L-1091"><span class="linenos">1091</span></a>
 </span><span id="L-1092"><a href="#L-1092"><span class="linenos">1092</span></a><span class="sd">        Parameters</span>
@@ -1269,7 +1269,7 @@
 </span><span id="L-1114"><a href="#L-1114"><span class="linenos">1114</span></a>
 </span><span id="L-1115"><a href="#L-1115"><span class="linenos">1115</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">tic</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">tic</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scans_number</span><span class="p">]</span>
 </span><span id="L-1116"><a href="#L-1116"><span class="linenos">1116</span></a>
-</span><span id="L-1117"><a href="#L-1117"><span class="linenos">1117</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_retention_time_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="L-1117"><a href="#L-1117"><span class="linenos">1117</span></a>    <span class="k">def</span> <span class="nf">set_retention_time_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="L-1118"><a href="#L-1118"><span class="linenos">1118</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the retention time list from the data in the _ms dictionary.</span>
 </span><span id="L-1119"><a href="#L-1119"><span class="linenos">1119</span></a>
 </span><span id="L-1120"><a href="#L-1120"><span class="linenos">1120</span></a><span class="sd">        Parameters</span>
@@ -1302,7 +1302,7 @@
 </span><span id="L-1147"><a href="#L-1147"><span class="linenos">1147</span></a>            <span class="n">retention_time_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key_ms</span><span class="p">)</span><span class="o">.</span><span class="n">retention_time</span><span class="p">)</span>
 </span><span id="L-1148"><a href="#L-1148"><span class="linenos">1148</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">retention_time</span> <span class="o">=</span> <span class="n">retention_time_list</span>
 </span><span id="L-1149"><a href="#L-1149"><span class="linenos">1149</span></a>
-</span><span id="L-1150"><a href="#L-1150"><span class="linenos">1150</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_scans_number_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="L-1150"><a href="#L-1150"><span class="linenos">1150</span></a>    <span class="k">def</span> <span class="nf">set_scans_number_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="L-1151"><a href="#L-1151"><span class="linenos">1151</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the scan number list from the data in the _ms dictionary.</span>
 </span><span id="L-1152"><a href="#L-1152"><span class="linenos">1152</span></a>
 </span><span id="L-1153"><a href="#L-1153"><span class="linenos">1153</span></a><span class="sd">        Notes</span>
@@ -1328,21 +1328,21 @@
 </span><span id="L-1173"><a href="#L-1173"><span class="linenos">1173</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">scans_number</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 </span><span id="L-1174"><a href="#L-1174"><span class="linenos">1174</span></a>
 </span><span id="L-1175"><a href="#L-1175"><span class="linenos">1175</span></a>    <span class="nd">@property</span>
-</span><span id="L-1176"><a href="#L-1176"><span class="linenos">1176</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ms1_scans</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-1176"><a href="#L-1176"><span class="linenos">1176</span></a>    <span class="k">def</span> <span class="nf">ms1_scans</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-1177"><a href="#L-1177"><span class="linenos">1177</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-1178"><a href="#L-1178"><span class="linenos">1178</span></a><span class="sd">        list : A list of MS1 scan numbers for the dataset.</span>
 </span><span id="L-1179"><a href="#L-1179"><span class="linenos">1179</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-1180"><a href="#L-1180"><span class="linenos">1180</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_df</span><span class="o">.</span><span class="n">ms_level</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 </span><span id="L-1181"><a href="#L-1181"><span class="linenos">1181</span></a>
 </span><span id="L-1182"><a href="#L-1182"><span class="linenos">1182</span></a>    <span class="nd">@property</span>
-</span><span id="L-1183"><a href="#L-1183"><span class="linenos">1183</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-1183"><a href="#L-1183"><span class="linenos">1183</span></a>    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-1184"><a href="#L-1184"><span class="linenos">1184</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-1185"><a href="#L-1185"><span class="linenos">1185</span></a><span class="sd">        LCMSParameters : The parameters used for the LC-MS analysis.</span>
 </span><span id="L-1186"><a href="#L-1186"><span class="linenos">1186</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-1187"><a href="#L-1187"><span class="linenos">1187</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span>
 </span><span id="L-1188"><a href="#L-1188"><span class="linenos">1188</span></a>
 </span><span id="L-1189"><a href="#L-1189"><span class="linenos">1189</span></a>    <span class="nd">@parameters</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-1190"><a href="#L-1190"><span class="linenos">1190</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paramsinstance</span><span class="p">):</span>
+</span><span id="L-1190"><a href="#L-1190"><span class="linenos">1190</span></a>    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paramsinstance</span><span class="p">):</span>
 </span><span id="L-1191"><a href="#L-1191"><span class="linenos">1191</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-1192"><a href="#L-1192"><span class="linenos">1192</span></a><span class="sd">        Sets the parameters used for the LC-MS analysis.</span>
 </span><span id="L-1193"><a href="#L-1193"><span class="linenos">1193</span></a>
@@ -1354,14 +1354,14 @@
 </span><span id="L-1199"><a href="#L-1199"><span class="linenos">1199</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">paramsinstance</span>
 </span><span id="L-1200"><a href="#L-1200"><span class="linenos">1200</span></a>
 </span><span id="L-1201"><a href="#L-1201"><span class="linenos">1201</span></a>    <span class="nd">@property</span>
-</span><span id="L-1202"><a href="#L-1202"><span class="linenos">1202</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">scans_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-1202"><a href="#L-1202"><span class="linenos">1202</span></a>    <span class="k">def</span> <span class="nf">scans_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-1203"><a href="#L-1203"><span class="linenos">1203</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-1204"><a href="#L-1204"><span class="linenos">1204</span></a><span class="sd">        list : A list of scan numbers for the dataset.</span>
 </span><span id="L-1205"><a href="#L-1205"><span class="linenos">1205</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-1206"><a href="#L-1206"><span class="linenos">1206</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scans_number_list</span>
 </span><span id="L-1207"><a href="#L-1207"><span class="linenos">1207</span></a>
 </span><span id="L-1208"><a href="#L-1208"><span class="linenos">1208</span></a>    <span class="nd">@scans_number</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-1209"><a href="#L-1209"><span class="linenos">1209</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">scans_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_numbers_list</span><span class="p">):</span>
+</span><span id="L-1209"><a href="#L-1209"><span class="linenos">1209</span></a>    <span class="k">def</span> <span class="nf">scans_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_numbers_list</span><span class="p">):</span>
 </span><span id="L-1210"><a href="#L-1210"><span class="linenos">1210</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-1211"><a href="#L-1211"><span class="linenos">1211</span></a><span class="sd">        Sets the scan numbers for the dataset.</span>
 </span><span id="L-1212"><a href="#L-1212"><span class="linenos">1212</span></a>
@@ -1373,14 +1373,14 @@
 </span><span id="L-1218"><a href="#L-1218"><span class="linenos">1218</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_scans_number_list</span> <span class="o">=</span> <span class="n">scan_numbers_list</span>
 </span><span id="L-1219"><a href="#L-1219"><span class="linenos">1219</span></a>
 </span><span id="L-1220"><a href="#L-1220"><span class="linenos">1220</span></a>    <span class="nd">@property</span>
-</span><span id="L-1221"><a href="#L-1221"><span class="linenos">1221</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-1221"><a href="#L-1221"><span class="linenos">1221</span></a>    <span class="k">def</span> <span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-1222"><a href="#L-1222"><span class="linenos">1222</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-1223"><a href="#L-1223"><span class="linenos">1223</span></a><span class="sd">        numpy.ndarray : An array of retention times for the dataset.</span>
 </span><span id="L-1224"><a href="#L-1224"><span class="linenos">1224</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-1225"><a href="#L-1225"><span class="linenos">1225</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retention_time_list</span>
 </span><span id="L-1226"><a href="#L-1226"><span class="linenos">1226</span></a>
 </span><span id="L-1227"><a href="#L-1227"><span class="linenos">1227</span></a>    <span class="nd">@retention_time</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-1228"><a href="#L-1228"><span class="linenos">1228</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt_list</span><span class="p">):</span>
+</span><span id="L-1228"><a href="#L-1228"><span class="linenos">1228</span></a>    <span class="k">def</span> <span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt_list</span><span class="p">):</span>
 </span><span id="L-1229"><a href="#L-1229"><span class="linenos">1229</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-1230"><a href="#L-1230"><span class="linenos">1230</span></a><span class="sd">        Sets the retention times for the dataset.</span>
 </span><span id="L-1231"><a href="#L-1231"><span class="linenos">1231</span></a>
@@ -1392,14 +1392,14 @@
 </span><span id="L-1237"><a href="#L-1237"><span class="linenos">1237</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_retention_time_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rt_list</span><span class="p">)</span>
 </span><span id="L-1238"><a href="#L-1238"><span class="linenos">1238</span></a>
 </span><span id="L-1239"><a href="#L-1239"><span class="linenos">1239</span></a>    <span class="nd">@property</span>
-</span><span id="L-1240"><a href="#L-1240"><span class="linenos">1240</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-1240"><a href="#L-1240"><span class="linenos">1240</span></a>    <span class="k">def</span> <span class="nf">tic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-1241"><a href="#L-1241"><span class="linenos">1241</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-1242"><a href="#L-1242"><span class="linenos">1242</span></a><span class="sd">        numpy.ndarray : An array of TIC values for the dataset.</span>
 </span><span id="L-1243"><a href="#L-1243"><span class="linenos">1243</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-1244"><a href="#L-1244"><span class="linenos">1244</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tic_list</span>
 </span><span id="L-1245"><a href="#L-1245"><span class="linenos">1245</span></a>
 </span><span id="L-1246"><a href="#L-1246"><span class="linenos">1246</span></a>    <span class="nd">@tic</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="L-1247"><a href="#L-1247"><span class="linenos">1247</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tic_list</span><span class="p">):</span>
+</span><span id="L-1247"><a href="#L-1247"><span class="linenos">1247</span></a>    <span class="k">def</span> <span class="nf">tic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tic_list</span><span class="p">):</span>
 </span><span id="L-1248"><a href="#L-1248"><span class="linenos">1248</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-1249"><a href="#L-1249"><span class="linenos">1249</span></a><span class="sd">        Sets the TIC values for the dataset.</span>
 </span><span id="L-1250"><a href="#L-1250"><span class="linenos">1250</span></a>
@@ -1424,7 +1424,7 @@
 
     </div>
     <a class="headerlink" href="#MassSpectraBase"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MassSpectraBase-16"><a href="#MassSpectraBase-16"><span class="linenos"> 16</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MassSpectraBase</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MassSpectraBase-16"><a href="#MassSpectraBase-16"><span class="linenos"> 16</span></a><span class="k">class</span> <span class="nc">MassSpectraBase</span><span class="p">:</span>
 </span><span id="MassSpectraBase-17"><a href="#MassSpectraBase-17"><span class="linenos"> 17</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for mass spectra objects.</span>
 </span><span id="MassSpectraBase-18"><a href="#MassSpectraBase-18"><span class="linenos"> 18</span></a>
 </span><span id="MassSpectraBase-19"><a href="#MassSpectraBase-19"><span class="linenos"> 19</span></a><span class="sd">    Parameters</span>
@@ -1470,7 +1470,7 @@
 </span><span id="MassSpectraBase-59"><a href="#MassSpectraBase-59"><span class="linenos"> 59</span></a><span class="sd">        Returns the scan time for the specified scan number.</span>
 </span><span id="MassSpectraBase-60"><a href="#MassSpectraBase-60"><span class="linenos"> 60</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="MassSpectraBase-61"><a href="#MassSpectraBase-61"><span class="linenos"> 61</span></a>
-</span><span id="MassSpectraBase-62"><a href="#MassSpectraBase-62"><span class="linenos"> 62</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="MassSpectraBase-62"><a href="#MassSpectraBase-62"><span class="linenos"> 62</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 </span><span id="MassSpectraBase-63"><a href="#MassSpectraBase-63"><span class="linenos"> 63</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MassSpectraBase-64"><a href="#MassSpectraBase-64"><span class="linenos"> 64</span></a>        <span class="n">file_location</span><span class="p">,</span>
 </span><span id="MassSpectraBase-65"><a href="#MassSpectraBase-65"><span class="linenos"> 65</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;Unknown&quot;</span><span class="p">,</span>
@@ -1528,7 +1528,7 @@
 </span><span id="MassSpectraBase-117"><a href="#MassSpectraBase-117"><span class="linenos">117</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_ms</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="MassSpectraBase-118"><a href="#MassSpectraBase-118"><span class="linenos">118</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_ms_unprocessed</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="MassSpectraBase-119"><a href="#MassSpectraBase-119"><span class="linenos">119</span></a>
-</span><span id="MassSpectraBase-120"><a href="#MassSpectraBase-120"><span class="linenos">120</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spec</span><span class="p">):</span>
+</span><span id="MassSpectraBase-120"><a href="#MassSpectraBase-120"><span class="linenos">120</span></a>    <span class="k">def</span> <span class="nf">add_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spec</span><span class="p">):</span>
 </span><span id="MassSpectraBase-121"><a href="#MassSpectraBase-121"><span class="linenos">121</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a mass spectrum to the dataset.</span>
 </span><span id="MassSpectraBase-122"><a href="#MassSpectraBase-122"><span class="linenos">122</span></a>
 </span><span id="MassSpectraBase-123"><a href="#MassSpectraBase-123"><span class="linenos">123</span></a><span class="sd">        Parameters</span>
@@ -1547,7 +1547,7 @@
 </span><span id="MassSpectraBase-136"><a href="#MassSpectraBase-136"><span class="linenos">136</span></a>            <span class="p">)</span>
 </span><span id="MassSpectraBase-137"><a href="#MassSpectraBase-137"><span class="linenos">137</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="p">[</span><span class="n">mass_spec</span><span class="o">.</span><span class="n">scan_number</span><span class="p">]</span> <span class="o">=</span> <span class="n">mass_spec</span>
 </span><span id="MassSpectraBase-138"><a href="#MassSpectraBase-138"><span class="linenos">138</span></a>
-</span><span id="MassSpectraBase-139"><a href="#MassSpectraBase-139"><span class="linenos">139</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_mass_spectra</span><span class="p">(</span>
+</span><span id="MassSpectraBase-139"><a href="#MassSpectraBase-139"><span class="linenos">139</span></a>    <span class="k">def</span> <span class="nf">add_mass_spectra</span><span class="p">(</span>
 </span><span id="MassSpectraBase-140"><a href="#MassSpectraBase-140"><span class="linenos">140</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MassSpectraBase-141"><a href="#MassSpectraBase-141"><span class="linenos">141</span></a>        <span class="n">scan_list</span><span class="p">,</span>
 </span><span id="MassSpectraBase-142"><a href="#MassSpectraBase-142"><span class="linenos">142</span></a>        <span class="n">spectrum_mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1679,7 +1679,7 @@
 </span><span id="MassSpectraBase-268"><a href="#MassSpectraBase-268"><span class="linenos">268</span></a>                    <span class="n">ms</span><span class="o">.</span><span class="n">process_mass_spec</span><span class="p">()</span>
 </span><span id="MassSpectraBase-269"><a href="#MassSpectraBase-269"><span class="linenos">269</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">add_mass_spectrum</span><span class="p">(</span><span class="n">ms</span><span class="p">)</span>
 </span><span id="MassSpectraBase-270"><a href="#MassSpectraBase-270"><span class="linenos">270</span></a>
-</span><span id="MassSpectraBase-271"><a href="#MassSpectraBase-271"><span class="linenos">271</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_time_of_scan_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">):</span>
+</span><span id="MassSpectraBase-271"><a href="#MassSpectraBase-271"><span class="linenos">271</span></a>    <span class="k">def</span> <span class="nf">get_time_of_scan_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">):</span>
 </span><span id="MassSpectraBase-272"><a href="#MassSpectraBase-272"><span class="linenos">272</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the scan time for the specified scan number.</span>
 </span><span id="MassSpectraBase-273"><a href="#MassSpectraBase-273"><span class="linenos">273</span></a>
 </span><span id="MassSpectraBase-274"><a href="#MassSpectraBase-274"><span class="linenos">274</span></a><span class="sd">        Parameters</span>
@@ -1704,7 +1704,7 @@
 </span><span id="MassSpectraBase-293"><a href="#MassSpectraBase-293"><span class="linenos">293</span></a>        <span class="k">return</span> <span class="n">rt</span>
 </span><span id="MassSpectraBase-294"><a href="#MassSpectraBase-294"><span class="linenos">294</span></a>
 </span><span id="MassSpectraBase-295"><a href="#MassSpectraBase-295"><span class="linenos">295</span></a>    <span class="nd">@property</span>
-</span><span id="MassSpectraBase-296"><a href="#MassSpectraBase-296"><span class="linenos">296</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">scan_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MassSpectraBase-296"><a href="#MassSpectraBase-296"><span class="linenos">296</span></a>    <span class="k">def</span> <span class="nf">scan_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MassSpectraBase-297"><a href="#MassSpectraBase-297"><span class="linenos">297</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="MassSpectraBase-298"><a href="#MassSpectraBase-298"><span class="linenos">298</span></a><span class="sd">        pandas.DataFrame : A pandas DataFrame containing the scan info data with columns for scan number, scan time, ms level, precursor m/z, scan text, and scan window (lower and upper).</span>
 </span><span id="MassSpectraBase-299"><a href="#MassSpectraBase-299"><span class="linenos">299</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -1712,7 +1712,7 @@
 </span><span id="MassSpectraBase-301"><a href="#MassSpectraBase-301"><span class="linenos">301</span></a>        <span class="k">return</span> <span class="n">scan_df</span>
 </span><span id="MassSpectraBase-302"><a href="#MassSpectraBase-302"><span class="linenos">302</span></a>        
 </span><span id="MassSpectraBase-303"><a href="#MassSpectraBase-303"><span class="linenos">303</span></a>    <span class="nd">@property</span>
-</span><span id="MassSpectraBase-304"><a href="#MassSpectraBase-304"><span class="linenos">304</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MassSpectraBase-304"><a href="#MassSpectraBase-304"><span class="linenos">304</span></a>    <span class="k">def</span> <span class="nf">ms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MassSpectraBase-305"><a href="#MassSpectraBase-305"><span class="linenos">305</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="MassSpectraBase-306"><a href="#MassSpectraBase-306"><span class="linenos">306</span></a><span class="sd">        dictionary : contains the key associated with mass spectra and values are the associated MassSpecProfiles</span>
 </span><span id="MassSpectraBase-307"><a href="#MassSpectraBase-307"><span class="linenos">307</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -1720,7 +1720,7 @@
 </span><span id="MassSpectraBase-309"><a href="#MassSpectraBase-309"><span class="linenos">309</span></a>
 </span><span id="MassSpectraBase-310"><a href="#MassSpectraBase-310"><span class="linenos">310</span></a>    
 </span><span id="MassSpectraBase-311"><a href="#MassSpectraBase-311"><span class="linenos">311</span></a>    <span class="nd">@scan_df</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="MassSpectraBase-312"><a href="#MassSpectraBase-312"><span class="linenos">312</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">scan_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+</span><span id="MassSpectraBase-312"><a href="#MassSpectraBase-312"><span class="linenos">312</span></a>    <span class="k">def</span> <span class="nf">scan_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
 </span><span id="MassSpectraBase-313"><a href="#MassSpectraBase-313"><span class="linenos">313</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="MassSpectraBase-314"><a href="#MassSpectraBase-314"><span class="linenos">314</span></a><span class="sd">        Sets the scan data for the dataset.</span>
 </span><span id="MassSpectraBase-315"><a href="#MassSpectraBase-315"><span class="linenos">315</span></a>
@@ -1732,7 +1732,7 @@
 </span><span id="MassSpectraBase-321"><a href="#MassSpectraBase-321"><span class="linenos">321</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="MassSpectraBase-322"><a href="#MassSpectraBase-322"><span class="linenos">322</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_scan_info</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
 </span><span id="MassSpectraBase-323"><a href="#MassSpectraBase-323"><span class="linenos">323</span></a>
-</span><span id="MassSpectraBase-324"><a href="#MassSpectraBase-324"><span class="linenos">324</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="p">):</span>
+</span><span id="MassSpectraBase-324"><a href="#MassSpectraBase-324"><span class="linenos">324</span></a>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="p">):</span>
 </span><span id="MassSpectraBase-325"><a href="#MassSpectraBase-325"><span class="linenos">325</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">scan_number</span><span class="p">)</span>
 </span></pre></div>
 
@@ -1799,7 +1799,7 @@ Returns the scan time for the specified scan number.</li>
 
     </div>
     <a class="headerlink" href="#MassSpectraBase.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MassSpectraBase.__init__-62"><a href="#MassSpectraBase.__init__-62"><span class="linenos"> 62</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MassSpectraBase.__init__-62"><a href="#MassSpectraBase.__init__-62"><span class="linenos"> 62</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 </span><span id="MassSpectraBase.__init__-63"><a href="#MassSpectraBase.__init__-63"><span class="linenos"> 63</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MassSpectraBase.__init__-64"><a href="#MassSpectraBase.__init__-64"><span class="linenos"> 64</span></a>        <span class="n">file_location</span><span class="p">,</span>
 </span><span id="MassSpectraBase.__init__-65"><a href="#MassSpectraBase.__init__-65"><span class="linenos"> 65</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;Unknown&quot;</span><span class="p">,</span>
@@ -1906,7 +1906,7 @@ Returns the scan time for the specified scan number.</li>
 
     </div>
     <a class="headerlink" href="#MassSpectraBase.add_mass_spectrum"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MassSpectraBase.add_mass_spectrum-120"><a href="#MassSpectraBase.add_mass_spectrum-120"><span class="linenos">120</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spec</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MassSpectraBase.add_mass_spectrum-120"><a href="#MassSpectraBase.add_mass_spectrum-120"><span class="linenos">120</span></a>    <span class="k">def</span> <span class="nf">add_mass_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_spec</span><span class="p">):</span>
 </span><span id="MassSpectraBase.add_mass_spectrum-121"><a href="#MassSpectraBase.add_mass_spectrum-121"><span class="linenos">121</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a mass spectrum to the dataset.</span>
 </span><span id="MassSpectraBase.add_mass_spectrum-122"><a href="#MassSpectraBase.add_mass_spectrum-122"><span class="linenos">122</span></a>
 </span><span id="MassSpectraBase.add_mass_spectrum-123"><a href="#MassSpectraBase.add_mass_spectrum-123"><span class="linenos">123</span></a><span class="sd">        Parameters</span>
@@ -1954,7 +1954,7 @@ The corems MassSpectrum object to be added to the dataset.</li>
 
     </div>
     <a class="headerlink" href="#MassSpectraBase.add_mass_spectra"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MassSpectraBase.add_mass_spectra-139"><a href="#MassSpectraBase.add_mass_spectra-139"><span class="linenos">139</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_mass_spectra</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MassSpectraBase.add_mass_spectra-139"><a href="#MassSpectraBase.add_mass_spectra-139"><span class="linenos">139</span></a>    <span class="k">def</span> <span class="nf">add_mass_spectra</span><span class="p">(</span>
 </span><span id="MassSpectraBase.add_mass_spectra-140"><a href="#MassSpectraBase.add_mass_spectra-140"><span class="linenos">140</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="MassSpectraBase.add_mass_spectra-141"><a href="#MassSpectraBase.add_mass_spectra-141"><span class="linenos">141</span></a>        <span class="n">scan_list</span><span class="p">,</span>
 </span><span id="MassSpectraBase.add_mass_spectra-142"><a href="#MassSpectraBase.add_mass_spectra-142"><span class="linenos">142</span></a>        <span class="n">spectrum_mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -2137,7 +2137,7 @@ If ms_level is not 1 or 2</li>
 
     </div>
     <a class="headerlink" href="#MassSpectraBase.get_time_of_scan_id"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MassSpectraBase.get_time_of_scan_id-271"><a href="#MassSpectraBase.get_time_of_scan_id-271"><span class="linenos">271</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_time_of_scan_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MassSpectraBase.get_time_of_scan_id-271"><a href="#MassSpectraBase.get_time_of_scan_id-271"><span class="linenos">271</span></a>    <span class="k">def</span> <span class="nf">get_time_of_scan_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan</span><span class="p">):</span>
 </span><span id="MassSpectraBase.get_time_of_scan_id-272"><a href="#MassSpectraBase.get_time_of_scan_id-272"><span class="linenos">272</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the scan time for the specified scan number.</span>
 </span><span id="MassSpectraBase.get_time_of_scan_id-273"><a href="#MassSpectraBase.get_time_of_scan_id-273"><span class="linenos">273</span></a>
 </span><span id="MassSpectraBase.get_time_of_scan_id-274"><a href="#MassSpectraBase.get_time_of_scan_id-274"><span class="linenos">274</span></a><span class="sd">        Parameters</span>
@@ -2225,7 +2225,7 @@ The scan number of the desired scan time.</li>
 
     </div>
     <a class="headerlink" href="#LCMSBase"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase-328"><a href="#LCMSBase-328"><span class="linenos"> 328</span></a><span class="k">class</span><span class="w"> </span><span class="nc">LCMSBase</span><span class="p">(</span><span class="n">MassSpectraBase</span><span class="p">,</span> <span class="n">LCCalculations</span><span class="p">,</span> <span class="n">PHCalculations</span><span class="p">,</span> <span class="n">LCMSSpectralSearch</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase-328"><a href="#LCMSBase-328"><span class="linenos"> 328</span></a><span class="k">class</span> <span class="nc">LCMSBase</span><span class="p">(</span><span class="n">MassSpectraBase</span><span class="p">,</span> <span class="n">LCCalculations</span><span class="p">,</span> <span class="n">PHCalculations</span><span class="p">,</span> <span class="n">LCMSSpectralSearch</span><span class="p">):</span>
 </span><span id="LCMSBase-329"><a href="#LCMSBase-329"><span class="linenos"> 329</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class representing a liquid chromatography-mass spectrometry (LC-MS) data object.</span>
 </span><span id="LCMSBase-330"><a href="#LCMSBase-330"><span class="linenos"> 330</span></a>
 </span><span id="LCMSBase-331"><a href="#LCMSBase-331"><span class="linenos"> 331</span></a><span class="sd">    This class is not intended to be instantiated directly, but rather to be instantiated by an appropriate mass spectra parser using the get_lcms_obj() method.</span>
@@ -2287,7 +2287,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-387"><a href="#LCMSBase-387"><span class="linenos"> 387</span></a><span class="sd">        Generates plot of M/Z features comparing scan time vs M/Z value</span>
 </span><span id="LCMSBase-388"><a href="#LCMSBase-388"><span class="linenos"> 388</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="LCMSBase-389"><a href="#LCMSBase-389"><span class="linenos"> 389</span></a>
-</span><span id="LCMSBase-390"><a href="#LCMSBase-390"><span class="linenos"> 390</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="LCMSBase-390"><a href="#LCMSBase-390"><span class="linenos"> 390</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 </span><span id="LCMSBase-391"><a href="#LCMSBase-391"><span class="linenos"> 391</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="LCMSBase-392"><a href="#LCMSBase-392"><span class="linenos"> 392</span></a>        <span class="n">file_location</span><span class="p">,</span>
 </span><span id="LCMSBase-393"><a href="#LCMSBase-393"><span class="linenos"> 393</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;Unknown&quot;</span><span class="p">,</span>
@@ -2307,7 +2307,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-407"><a href="#LCMSBase-407"><span class="linenos"> 407</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mass_features</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="LCMSBase-408"><a href="#LCMSBase-408"><span class="linenos"> 408</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">spectral_search_results</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="LCMSBase-409"><a href="#LCMSBase-409"><span class="linenos"> 409</span></a>
-</span><span id="LCMSBase-410"><a href="#LCMSBase-410"><span class="linenos"> 410</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameters_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSBase-410"><a href="#LCMSBase-410"><span class="linenos"> 410</span></a>    <span class="k">def</span> <span class="nf">get_parameters_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSBase-411"><a href="#LCMSBase-411"><span class="linenos"> 411</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the parameters stored for the LC-MS object in JSON format.</span>
 </span><span id="LCMSBase-412"><a href="#LCMSBase-412"><span class="linenos"> 412</span></a>
 </span><span id="LCMSBase-413"><a href="#LCMSBase-413"><span class="linenos"> 413</span></a><span class="sd">        Returns</span>
@@ -2317,7 +2317,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-417"><a href="#LCMSBase-417"><span class="linenos"> 417</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="LCMSBase-418"><a href="#LCMSBase-418"><span class="linenos"> 418</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
 </span><span id="LCMSBase-419"><a href="#LCMSBase-419"><span class="linenos"> 419</span></a>
-</span><span id="LCMSBase-420"><a href="#LCMSBase-420"><span class="linenos"> 420</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">remove_unprocessed_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="LCMSBase-420"><a href="#LCMSBase-420"><span class="linenos"> 420</span></a>    <span class="k">def</span> <span class="nf">remove_unprocessed_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="LCMSBase-421"><a href="#LCMSBase-421"><span class="linenos"> 421</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Removes the unprocessed data from the LCMSBase object.</span>
 </span><span id="LCMSBase-422"><a href="#LCMSBase-422"><span class="linenos"> 422</span></a>
 </span><span id="LCMSBase-423"><a href="#LCMSBase-423"><span class="linenos"> 423</span></a><span class="sd">        Parameters</span>
@@ -2341,7 +2341,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-441"><a href="#LCMSBase-441"><span class="linenos"> 441</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ms_level must be 1 or 2&quot;</span><span class="p">)</span>
 </span><span id="LCMSBase-442"><a href="#LCMSBase-442"><span class="linenos"> 442</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_ms_unprocessed</span><span class="p">[</span><span class="n">ms_level</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="LCMSBase-443"><a href="#LCMSBase-443"><span class="linenos"> 443</span></a>
-</span><span id="LCMSBase-444"><a href="#LCMSBase-444"><span class="linenos"> 444</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_associated_ms2_dda</span><span class="p">(</span>
+</span><span id="LCMSBase-444"><a href="#LCMSBase-444"><span class="linenos"> 444</span></a>    <span class="k">def</span> <span class="nf">add_associated_ms2_dda</span><span class="p">(</span>
 </span><span id="LCMSBase-445"><a href="#LCMSBase-445"><span class="linenos"> 445</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="LCMSBase-446"><a href="#LCMSBase-446"><span class="linenos"> 446</span></a>        <span class="n">auto_process</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 </span><span id="LCMSBase-447"><a href="#LCMSBase-447"><span class="linenos"> 447</span></a>        <span class="n">use_parser</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -2436,7 +2436,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-536"><a href="#LCMSBase-536"><span class="linenos"> 536</span></a>                            <span class="n">dda_scan</span>
 </span><span id="LCMSBase-537"><a href="#LCMSBase-537"><span class="linenos"> 537</span></a>                        <span class="p">]</span>
 </span><span id="LCMSBase-538"><a href="#LCMSBase-538"><span class="linenos"> 538</span></a>
-</span><span id="LCMSBase-539"><a href="#LCMSBase-539"><span class="linenos"> 539</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_associated_ms1</span><span class="p">(</span>
+</span><span id="LCMSBase-539"><a href="#LCMSBase-539"><span class="linenos"> 539</span></a>    <span class="k">def</span> <span class="nf">add_associated_ms1</span><span class="p">(</span>
 </span><span id="LCMSBase-540"><a href="#LCMSBase-540"><span class="linenos"> 540</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">auto_process</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_parser</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spectrum_mode</span><span class="o">=</span><span class="kc">None</span>
 </span><span id="LCMSBase-541"><a href="#LCMSBase-541"><span class="linenos"> 541</span></a>    <span class="p">):</span>
 </span><span id="LCMSBase-542"><a href="#LCMSBase-542"><span class="linenos"> 542</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add MS1 spectra associated with mass features to the dataset.</span>
@@ -2488,7 +2488,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-588"><a href="#LCMSBase-588"><span class="linenos"> 588</span></a>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All apex scans must be profile mode for averaging&quot;</span><span class="p">)</span>
 </span><span id="LCMSBase-589"><a href="#LCMSBase-589"><span class="linenos"> 589</span></a>
 </span><span id="LCMSBase-590"><a href="#LCMSBase-590"><span class="linenos"> 590</span></a>            <span class="c1"># First get sets of scans to average</span>
-</span><span id="LCMSBase-591"><a href="#LCMSBase-591"><span class="linenos"> 591</span></a>            <span class="k">def</span><span class="w"> </span><span class="nf">get_scans_from_apex</span><span class="p">(</span><span class="n">ms1_scans</span><span class="p">,</span> <span class="n">apex_scan</span><span class="p">,</span> <span class="n">scans_to_average</span><span class="p">):</span>
+</span><span id="LCMSBase-591"><a href="#LCMSBase-591"><span class="linenos"> 591</span></a>            <span class="k">def</span> <span class="nf">get_scans_from_apex</span><span class="p">(</span><span class="n">ms1_scans</span><span class="p">,</span> <span class="n">apex_scan</span><span class="p">,</span> <span class="n">scans_to_average</span><span class="p">):</span>
 </span><span id="LCMSBase-592"><a href="#LCMSBase-592"><span class="linenos"> 592</span></a>                <span class="n">ms1_idx_start</span> <span class="o">=</span> <span class="n">ms1_scans</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">apex_scan</span><span class="p">)</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span>
 </span><span id="LCMSBase-593"><a href="#LCMSBase-593"><span class="linenos"> 593</span></a>                    <span class="p">(</span><span class="n">scans_to_average</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
 </span><span id="LCMSBase-594"><a href="#LCMSBase-594"><span class="linenos"> 594</span></a>                <span class="p">)</span>
@@ -2574,7 +2574,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-674"><a href="#LCMSBase-674"><span class="linenos"> 674</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">lc_ms</span><span class="o">.</span><span class="n">peak_picking_method</span> <span class="o">==</span> <span class="s2">&quot;persistent homology&quot;</span><span class="p">:</span>
 </span><span id="LCMSBase-675"><a href="#LCMSBase-675"><span class="linenos"> 675</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_mass_features</span><span class="p">(</span><span class="n">drop_children</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort_by</span><span class="o">=</span><span class="s2">&quot;persistence&quot;</span><span class="p">)</span>
 </span><span id="LCMSBase-676"><a href="#LCMSBase-676"><span class="linenos"> 676</span></a>
-</span><span id="LCMSBase-677"><a href="#LCMSBase-677"><span class="linenos"> 677</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mass_features_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSBase-677"><a href="#LCMSBase-677"><span class="linenos"> 677</span></a>    <span class="k">def</span> <span class="nf">mass_features_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSBase-678"><a href="#LCMSBase-678"><span class="linenos"> 678</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a pandas dataframe summarizing the mass features.</span>
 </span><span id="LCMSBase-679"><a href="#LCMSBase-679"><span class="linenos"> 679</span></a>
 </span><span id="LCMSBase-680"><a href="#LCMSBase-680"><span class="linenos"> 680</span></a><span class="sd">        The dataframe contains the following columns: mf_id, mz, apex_scan, scan_time, intensity,</span>
@@ -2588,7 +2588,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-688"><a href="#LCMSBase-688"><span class="linenos"> 688</span></a><span class="sd">            mf_id, mz, apex_scan, scan_time, intensity, persistence, area.</span>
 </span><span id="LCMSBase-689"><a href="#LCMSBase-689"><span class="linenos"> 689</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="LCMSBase-690"><a href="#LCMSBase-690"><span class="linenos"> 690</span></a>
-</span><span id="LCMSBase-691"><a href="#LCMSBase-691"><span class="linenos"> 691</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">mass_spectrum_to_string</span><span class="p">(</span>
+</span><span id="LCMSBase-691"><a href="#LCMSBase-691"><span class="linenos"> 691</span></a>        <span class="k">def</span> <span class="nf">mass_spectrum_to_string</span><span class="p">(</span>
 </span><span id="LCMSBase-692"><a href="#LCMSBase-692"><span class="linenos"> 692</span></a>            <span class="n">mass_spec</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_normalized_abun</span><span class="o">=</span><span class="mf">0.01</span>
 </span><span id="LCMSBase-693"><a href="#LCMSBase-693"><span class="linenos"> 693</span></a>        <span class="p">):</span>
 </span><span id="LCMSBase-694"><a href="#LCMSBase-694"><span class="linenos"> 694</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;Converts a mass spectrum to a string of m/z:abundance pairs.</span>
@@ -2709,7 +2709,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-809"><a href="#LCMSBase-809"><span class="linenos"> 809</span></a>
 </span><span id="LCMSBase-810"><a href="#LCMSBase-810"><span class="linenos"> 810</span></a>        <span class="k">return</span> <span class="n">df_mf</span>
 </span><span id="LCMSBase-811"><a href="#LCMSBase-811"><span class="linenos"> 811</span></a>
-</span><span id="LCMSBase-812"><a href="#LCMSBase-812"><span class="linenos"> 812</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mass_features_ms1_annot_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSBase-812"><a href="#LCMSBase-812"><span class="linenos"> 812</span></a>    <span class="k">def</span> <span class="nf">mass_features_ms1_annot_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSBase-813"><a href="#LCMSBase-813"><span class="linenos"> 813</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a pandas dataframe summarizing the MS1 annotations for the mass features in the dataset.</span>
 </span><span id="LCMSBase-814"><a href="#LCMSBase-814"><span class="linenos"> 814</span></a>
 </span><span id="LCMSBase-815"><a href="#LCMSBase-815"><span class="linenos"> 815</span></a><span class="sd">        Returns</span>
@@ -2765,7 +2765,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-865"><a href="#LCMSBase-865"><span class="linenos"> 865</span></a>
 </span><span id="LCMSBase-866"><a href="#LCMSBase-866"><span class="linenos"> 866</span></a>        <span class="k">return</span> <span class="n">annot_ms1_df_full</span>
 </span><span id="LCMSBase-867"><a href="#LCMSBase-867"><span class="linenos"> 867</span></a>
-</span><span id="LCMSBase-868"><a href="#LCMSBase-868"><span class="linenos"> 868</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mass_features_ms2_annot_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecular_metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="LCMSBase-868"><a href="#LCMSBase-868"><span class="linenos"> 868</span></a>    <span class="k">def</span> <span class="nf">mass_features_ms2_annot_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecular_metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="LCMSBase-869"><a href="#LCMSBase-869"><span class="linenos"> 869</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a pandas dataframe summarizing the MS2 annotations for the mass features in the dataset.</span>
 </span><span id="LCMSBase-870"><a href="#LCMSBase-870"><span class="linenos"> 870</span></a>
 </span><span id="LCMSBase-871"><a href="#LCMSBase-871"><span class="linenos"> 871</span></a><span class="sd">        Parameters</span>
@@ -2824,7 +2824,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-924"><a href="#LCMSBase-924"><span class="linenos"> 924</span></a>
 </span><span id="LCMSBase-925"><a href="#LCMSBase-925"><span class="linenos"> 925</span></a>        <span class="k">return</span> <span class="n">annot_ms2_df_full</span>
 </span><span id="LCMSBase-926"><a href="#LCMSBase-926"><span class="linenos"> 926</span></a>
-</span><span id="LCMSBase-927"><a href="#LCMSBase-927"><span class="linenos"> 927</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_composite_mz_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binsize</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="n">ph_int_min_thresh</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">mf_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">ms2_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">return_fig</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+</span><span id="LCMSBase-927"><a href="#LCMSBase-927"><span class="linenos"> 927</span></a>    <span class="k">def</span> <span class="nf">plot_composite_mz_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binsize</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="n">ph_int_min_thresh</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">mf_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">ms2_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">return_fig</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 </span><span id="LCMSBase-928"><a href="#LCMSBase-928"><span class="linenos"> 928</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a figure displaying </span>
 </span><span id="LCMSBase-929"><a href="#LCMSBase-929"><span class="linenos"> 929</span></a><span class="sd">            (1) thresholded, unprocessed data</span>
 </span><span id="LCMSBase-930"><a href="#LCMSBase-930"><span class="linenos"> 930</span></a><span class="sd">            (2) the m/z features</span>
@@ -2950,7 +2950,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-1050"><a href="#LCMSBase-1050"><span class="linenos">1050</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="LCMSBase-1051"><a href="#LCMSBase-1051"><span class="linenos">1051</span></a>            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </span><span id="LCMSBase-1052"><a href="#LCMSBase-1052"><span class="linenos">1052</span></a>
-</span><span id="LCMSBase-1053"><a href="#LCMSBase-1053"><span class="linenos">1053</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSBase-1053"><a href="#LCMSBase-1053"><span class="linenos">1053</span></a>    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSBase-1054"><a href="#LCMSBase-1054"><span class="linenos">1054</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1055"><a href="#LCMSBase-1055"><span class="linenos">1055</span></a><span class="sd">        Returns the number of mass spectra in the dataset.</span>
 </span><span id="LCMSBase-1056"><a href="#LCMSBase-1056"><span class="linenos">1056</span></a>
@@ -2961,7 +2961,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-1061"><a href="#LCMSBase-1061"><span class="linenos">1061</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1062"><a href="#LCMSBase-1062"><span class="linenos">1062</span></a>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="p">)</span>
 </span><span id="LCMSBase-1063"><a href="#LCMSBase-1063"><span class="linenos">1063</span></a>
-</span><span id="LCMSBase-1064"><a href="#LCMSBase-1064"><span class="linenos">1064</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="p">):</span>
+</span><span id="LCMSBase-1064"><a href="#LCMSBase-1064"><span class="linenos">1064</span></a>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_number</span><span class="p">):</span>
 </span><span id="LCMSBase-1065"><a href="#LCMSBase-1065"><span class="linenos">1065</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1066"><a href="#LCMSBase-1066"><span class="linenos">1066</span></a><span class="sd">        Returns the mass spectrum corresponding to the specified scan number.</span>
 </span><span id="LCMSBase-1067"><a href="#LCMSBase-1067"><span class="linenos">1067</span></a>
@@ -2977,7 +2977,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-1077"><a href="#LCMSBase-1077"><span class="linenos">1077</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1078"><a href="#LCMSBase-1078"><span class="linenos">1078</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">scan_number</span><span class="p">)</span>
 </span><span id="LCMSBase-1079"><a href="#LCMSBase-1079"><span class="linenos">1079</span></a>
-</span><span id="LCMSBase-1080"><a href="#LCMSBase-1080"><span class="linenos">1080</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSBase-1080"><a href="#LCMSBase-1080"><span class="linenos">1080</span></a>    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSBase-1081"><a href="#LCMSBase-1081"><span class="linenos">1081</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns an iterator over the mass spectra in the dataset.</span>
 </span><span id="LCMSBase-1082"><a href="#LCMSBase-1082"><span class="linenos">1082</span></a>
 </span><span id="LCMSBase-1083"><a href="#LCMSBase-1083"><span class="linenos">1083</span></a><span class="sd">        Returns</span>
@@ -2987,7 +2987,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-1087"><a href="#LCMSBase-1087"><span class="linenos">1087</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1088"><a href="#LCMSBase-1088"><span class="linenos">1088</span></a>        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 </span><span id="LCMSBase-1089"><a href="#LCMSBase-1089"><span class="linenos">1089</span></a>
-</span><span id="LCMSBase-1090"><a href="#LCMSBase-1090"><span class="linenos">1090</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_tic_list_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="LCMSBase-1090"><a href="#LCMSBase-1090"><span class="linenos">1090</span></a>    <span class="k">def</span> <span class="nf">set_tic_list_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="LCMSBase-1091"><a href="#LCMSBase-1091"><span class="linenos">1091</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the TIC list from the mass spectrum objects within the _ms dictionary.</span>
 </span><span id="LCMSBase-1092"><a href="#LCMSBase-1092"><span class="linenos">1092</span></a>
 </span><span id="LCMSBase-1093"><a href="#LCMSBase-1093"><span class="linenos">1093</span></a><span class="sd">        Parameters</span>
@@ -3015,7 +3015,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-1115"><a href="#LCMSBase-1115"><span class="linenos">1115</span></a>
 </span><span id="LCMSBase-1116"><a href="#LCMSBase-1116"><span class="linenos">1116</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">tic</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">tic</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scans_number</span><span class="p">]</span>
 </span><span id="LCMSBase-1117"><a href="#LCMSBase-1117"><span class="linenos">1117</span></a>
-</span><span id="LCMSBase-1118"><a href="#LCMSBase-1118"><span class="linenos">1118</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_retention_time_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="LCMSBase-1118"><a href="#LCMSBase-1118"><span class="linenos">1118</span></a>    <span class="k">def</span> <span class="nf">set_retention_time_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="LCMSBase-1119"><a href="#LCMSBase-1119"><span class="linenos">1119</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the retention time list from the data in the _ms dictionary.</span>
 </span><span id="LCMSBase-1120"><a href="#LCMSBase-1120"><span class="linenos">1120</span></a>
 </span><span id="LCMSBase-1121"><a href="#LCMSBase-1121"><span class="linenos">1121</span></a><span class="sd">        Parameters</span>
@@ -3048,7 +3048,7 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-1148"><a href="#LCMSBase-1148"><span class="linenos">1148</span></a>            <span class="n">retention_time_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key_ms</span><span class="p">)</span><span class="o">.</span><span class="n">retention_time</span><span class="p">)</span>
 </span><span id="LCMSBase-1149"><a href="#LCMSBase-1149"><span class="linenos">1149</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">retention_time</span> <span class="o">=</span> <span class="n">retention_time_list</span>
 </span><span id="LCMSBase-1150"><a href="#LCMSBase-1150"><span class="linenos">1150</span></a>
-</span><span id="LCMSBase-1151"><a href="#LCMSBase-1151"><span class="linenos">1151</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_scans_number_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="LCMSBase-1151"><a href="#LCMSBase-1151"><span class="linenos">1151</span></a>    <span class="k">def</span> <span class="nf">set_scans_number_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="LCMSBase-1152"><a href="#LCMSBase-1152"><span class="linenos">1152</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the scan number list from the data in the _ms dictionary.</span>
 </span><span id="LCMSBase-1153"><a href="#LCMSBase-1153"><span class="linenos">1153</span></a>
 </span><span id="LCMSBase-1154"><a href="#LCMSBase-1154"><span class="linenos">1154</span></a><span class="sd">        Notes</span>
@@ -3074,21 +3074,21 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-1174"><a href="#LCMSBase-1174"><span class="linenos">1174</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">scans_number</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ms</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 </span><span id="LCMSBase-1175"><a href="#LCMSBase-1175"><span class="linenos">1175</span></a>
 </span><span id="LCMSBase-1176"><a href="#LCMSBase-1176"><span class="linenos">1176</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSBase-1177"><a href="#LCMSBase-1177"><span class="linenos">1177</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ms1_scans</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSBase-1177"><a href="#LCMSBase-1177"><span class="linenos">1177</span></a>    <span class="k">def</span> <span class="nf">ms1_scans</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSBase-1178"><a href="#LCMSBase-1178"><span class="linenos">1178</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1179"><a href="#LCMSBase-1179"><span class="linenos">1179</span></a><span class="sd">        list : A list of MS1 scan numbers for the dataset.</span>
 </span><span id="LCMSBase-1180"><a href="#LCMSBase-1180"><span class="linenos">1180</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1181"><a href="#LCMSBase-1181"><span class="linenos">1181</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">scan_df</span><span class="o">.</span><span class="n">ms_level</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 </span><span id="LCMSBase-1182"><a href="#LCMSBase-1182"><span class="linenos">1182</span></a>
 </span><span id="LCMSBase-1183"><a href="#LCMSBase-1183"><span class="linenos">1183</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSBase-1184"><a href="#LCMSBase-1184"><span class="linenos">1184</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSBase-1184"><a href="#LCMSBase-1184"><span class="linenos">1184</span></a>    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSBase-1185"><a href="#LCMSBase-1185"><span class="linenos">1185</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1186"><a href="#LCMSBase-1186"><span class="linenos">1186</span></a><span class="sd">        LCMSParameters : The parameters used for the LC-MS analysis.</span>
 </span><span id="LCMSBase-1187"><a href="#LCMSBase-1187"><span class="linenos">1187</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1188"><a href="#LCMSBase-1188"><span class="linenos">1188</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span>
 </span><span id="LCMSBase-1189"><a href="#LCMSBase-1189"><span class="linenos">1189</span></a>
 </span><span id="LCMSBase-1190"><a href="#LCMSBase-1190"><span class="linenos">1190</span></a>    <span class="nd">@parameters</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="LCMSBase-1191"><a href="#LCMSBase-1191"><span class="linenos">1191</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paramsinstance</span><span class="p">):</span>
+</span><span id="LCMSBase-1191"><a href="#LCMSBase-1191"><span class="linenos">1191</span></a>    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paramsinstance</span><span class="p">):</span>
 </span><span id="LCMSBase-1192"><a href="#LCMSBase-1192"><span class="linenos">1192</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1193"><a href="#LCMSBase-1193"><span class="linenos">1193</span></a><span class="sd">        Sets the parameters used for the LC-MS analysis.</span>
 </span><span id="LCMSBase-1194"><a href="#LCMSBase-1194"><span class="linenos">1194</span></a>
@@ -3100,14 +3100,14 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-1200"><a href="#LCMSBase-1200"><span class="linenos">1200</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">paramsinstance</span>
 </span><span id="LCMSBase-1201"><a href="#LCMSBase-1201"><span class="linenos">1201</span></a>
 </span><span id="LCMSBase-1202"><a href="#LCMSBase-1202"><span class="linenos">1202</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSBase-1203"><a href="#LCMSBase-1203"><span class="linenos">1203</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">scans_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSBase-1203"><a href="#LCMSBase-1203"><span class="linenos">1203</span></a>    <span class="k">def</span> <span class="nf">scans_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSBase-1204"><a href="#LCMSBase-1204"><span class="linenos">1204</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1205"><a href="#LCMSBase-1205"><span class="linenos">1205</span></a><span class="sd">        list : A list of scan numbers for the dataset.</span>
 </span><span id="LCMSBase-1206"><a href="#LCMSBase-1206"><span class="linenos">1206</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1207"><a href="#LCMSBase-1207"><span class="linenos">1207</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scans_number_list</span>
 </span><span id="LCMSBase-1208"><a href="#LCMSBase-1208"><span class="linenos">1208</span></a>
 </span><span id="LCMSBase-1209"><a href="#LCMSBase-1209"><span class="linenos">1209</span></a>    <span class="nd">@scans_number</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="LCMSBase-1210"><a href="#LCMSBase-1210"><span class="linenos">1210</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">scans_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_numbers_list</span><span class="p">):</span>
+</span><span id="LCMSBase-1210"><a href="#LCMSBase-1210"><span class="linenos">1210</span></a>    <span class="k">def</span> <span class="nf">scans_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scan_numbers_list</span><span class="p">):</span>
 </span><span id="LCMSBase-1211"><a href="#LCMSBase-1211"><span class="linenos">1211</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1212"><a href="#LCMSBase-1212"><span class="linenos">1212</span></a><span class="sd">        Sets the scan numbers for the dataset.</span>
 </span><span id="LCMSBase-1213"><a href="#LCMSBase-1213"><span class="linenos">1213</span></a>
@@ -3119,14 +3119,14 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-1219"><a href="#LCMSBase-1219"><span class="linenos">1219</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_scans_number_list</span> <span class="o">=</span> <span class="n">scan_numbers_list</span>
 </span><span id="LCMSBase-1220"><a href="#LCMSBase-1220"><span class="linenos">1220</span></a>
 </span><span id="LCMSBase-1221"><a href="#LCMSBase-1221"><span class="linenos">1221</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSBase-1222"><a href="#LCMSBase-1222"><span class="linenos">1222</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSBase-1222"><a href="#LCMSBase-1222"><span class="linenos">1222</span></a>    <span class="k">def</span> <span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSBase-1223"><a href="#LCMSBase-1223"><span class="linenos">1223</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1224"><a href="#LCMSBase-1224"><span class="linenos">1224</span></a><span class="sd">        numpy.ndarray : An array of retention times for the dataset.</span>
 </span><span id="LCMSBase-1225"><a href="#LCMSBase-1225"><span class="linenos">1225</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1226"><a href="#LCMSBase-1226"><span class="linenos">1226</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retention_time_list</span>
 </span><span id="LCMSBase-1227"><a href="#LCMSBase-1227"><span class="linenos">1227</span></a>
 </span><span id="LCMSBase-1228"><a href="#LCMSBase-1228"><span class="linenos">1228</span></a>    <span class="nd">@retention_time</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="LCMSBase-1229"><a href="#LCMSBase-1229"><span class="linenos">1229</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt_list</span><span class="p">):</span>
+</span><span id="LCMSBase-1229"><a href="#LCMSBase-1229"><span class="linenos">1229</span></a>    <span class="k">def</span> <span class="nf">retention_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rt_list</span><span class="p">):</span>
 </span><span id="LCMSBase-1230"><a href="#LCMSBase-1230"><span class="linenos">1230</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1231"><a href="#LCMSBase-1231"><span class="linenos">1231</span></a><span class="sd">        Sets the retention times for the dataset.</span>
 </span><span id="LCMSBase-1232"><a href="#LCMSBase-1232"><span class="linenos">1232</span></a>
@@ -3138,14 +3138,14 @@ The scan number of the desired scan time.</li>
 </span><span id="LCMSBase-1238"><a href="#LCMSBase-1238"><span class="linenos">1238</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_retention_time_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rt_list</span><span class="p">)</span>
 </span><span id="LCMSBase-1239"><a href="#LCMSBase-1239"><span class="linenos">1239</span></a>
 </span><span id="LCMSBase-1240"><a href="#LCMSBase-1240"><span class="linenos">1240</span></a>    <span class="nd">@property</span>
-</span><span id="LCMSBase-1241"><a href="#LCMSBase-1241"><span class="linenos">1241</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LCMSBase-1241"><a href="#LCMSBase-1241"><span class="linenos">1241</span></a>    <span class="k">def</span> <span class="nf">tic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSBase-1242"><a href="#LCMSBase-1242"><span class="linenos">1242</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1243"><a href="#LCMSBase-1243"><span class="linenos">1243</span></a><span class="sd">        numpy.ndarray : An array of TIC values for the dataset.</span>
 </span><span id="LCMSBase-1244"><a href="#LCMSBase-1244"><span class="linenos">1244</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1245"><a href="#LCMSBase-1245"><span class="linenos">1245</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tic_list</span>
 </span><span id="LCMSBase-1246"><a href="#LCMSBase-1246"><span class="linenos">1246</span></a>
 </span><span id="LCMSBase-1247"><a href="#LCMSBase-1247"><span class="linenos">1247</span></a>    <span class="nd">@tic</span><span class="o">.</span><span class="n">setter</span>
-</span><span id="LCMSBase-1248"><a href="#LCMSBase-1248"><span class="linenos">1248</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tic_list</span><span class="p">):</span>
+</span><span id="LCMSBase-1248"><a href="#LCMSBase-1248"><span class="linenos">1248</span></a>    <span class="k">def</span> <span class="nf">tic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tic_list</span><span class="p">):</span>
 </span><span id="LCMSBase-1249"><a href="#LCMSBase-1249"><span class="linenos">1249</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LCMSBase-1250"><a href="#LCMSBase-1250"><span class="linenos">1250</span></a><span class="sd">        Sets the TIC values for the dataset.</span>
 </span><span id="LCMSBase-1251"><a href="#LCMSBase-1251"><span class="linenos">1251</span></a>
@@ -3236,7 +3236,7 @@ Generates plot of M/Z features comparing scan time vs M/Z value</li>
 
     </div>
     <a class="headerlink" href="#LCMSBase.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.__init__-390"><a href="#LCMSBase.__init__-390"><span class="linenos">390</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.__init__-390"><a href="#LCMSBase.__init__-390"><span class="linenos">390</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 </span><span id="LCMSBase.__init__-391"><a href="#LCMSBase.__init__-391"><span class="linenos">391</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="LCMSBase.__init__-392"><a href="#LCMSBase.__init__-392"><span class="linenos">392</span></a>        <span class="n">file_location</span><span class="p">,</span>
 </span><span id="LCMSBase.__init__-393"><a href="#LCMSBase.__init__-393"><span class="linenos">393</span></a>        <span class="n">analyzer</span><span class="o">=</span><span class="s2">&quot;Unknown&quot;</span><span class="p">,</span>
@@ -3316,7 +3316,7 @@ Generates plot of M/Z features comparing scan time vs M/Z value</li>
 
     </div>
     <a class="headerlink" href="#LCMSBase.get_parameters_json"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.get_parameters_json-410"><a href="#LCMSBase.get_parameters_json-410"><span class="linenos">410</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameters_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.get_parameters_json-410"><a href="#LCMSBase.get_parameters_json-410"><span class="linenos">410</span></a>    <span class="k">def</span> <span class="nf">get_parameters_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSBase.get_parameters_json-411"><a href="#LCMSBase.get_parameters_json-411"><span class="linenos">411</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the parameters stored for the LC-MS object in JSON format.</span>
 </span><span id="LCMSBase.get_parameters_json-412"><a href="#LCMSBase.get_parameters_json-412"><span class="linenos">412</span></a>
 </span><span id="LCMSBase.get_parameters_json-413"><a href="#LCMSBase.get_parameters_json-413"><span class="linenos">413</span></a><span class="sd">        Returns</span>
@@ -3350,7 +3350,7 @@ Generates plot of M/Z features comparing scan time vs M/Z value</li>
 
     </div>
     <a class="headerlink" href="#LCMSBase.remove_unprocessed_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.remove_unprocessed_data-420"><a href="#LCMSBase.remove_unprocessed_data-420"><span class="linenos">420</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">remove_unprocessed_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.remove_unprocessed_data-420"><a href="#LCMSBase.remove_unprocessed_data-420"><span class="linenos">420</span></a>    <span class="k">def</span> <span class="nf">remove_unprocessed_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ms_level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="LCMSBase.remove_unprocessed_data-421"><a href="#LCMSBase.remove_unprocessed_data-421"><span class="linenos">421</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Removes the unprocessed data from the LCMSBase object.</span>
 </span><span id="LCMSBase.remove_unprocessed_data-422"><a href="#LCMSBase.remove_unprocessed_data-422"><span class="linenos">422</span></a>
 </span><span id="LCMSBase.remove_unprocessed_data-423"><a href="#LCMSBase.remove_unprocessed_data-423"><span class="linenos">423</span></a><span class="sd">        Parameters</span>
@@ -3409,7 +3409,7 @@ The MS level to remove the unprocessed data for. If None, removes unprocessed da
 
     </div>
     <a class="headerlink" href="#LCMSBase.add_associated_ms2_dda"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.add_associated_ms2_dda-444"><a href="#LCMSBase.add_associated_ms2_dda-444"><span class="linenos">444</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_associated_ms2_dda</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.add_associated_ms2_dda-444"><a href="#LCMSBase.add_associated_ms2_dda-444"><span class="linenos">444</span></a>    <span class="k">def</span> <span class="nf">add_associated_ms2_dda</span><span class="p">(</span>
 </span><span id="LCMSBase.add_associated_ms2_dda-445"><a href="#LCMSBase.add_associated_ms2_dda-445"><span class="linenos">445</span></a>        <span class="bp">self</span><span class="p">,</span>
 </span><span id="LCMSBase.add_associated_ms2_dda-446"><a href="#LCMSBase.add_associated_ms2_dda-446"><span class="linenos">446</span></a>        <span class="n">auto_process</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 </span><span id="LCMSBase.add_associated_ms2_dda-447"><a href="#LCMSBase.add_associated_ms2_dda-447"><span class="linenos">447</span></a>        <span class="n">use_parser</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -3551,7 +3551,7 @@ If no precursor m/z values are found in MS2 scans, not a DDA dataset.</li>
 
     </div>
     <a class="headerlink" href="#LCMSBase.add_associated_ms1"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.add_associated_ms1-539"><a href="#LCMSBase.add_associated_ms1-539"><span class="linenos">539</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_associated_ms1</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.add_associated_ms1-539"><a href="#LCMSBase.add_associated_ms1-539"><span class="linenos">539</span></a>    <span class="k">def</span> <span class="nf">add_associated_ms1</span><span class="p">(</span>
 </span><span id="LCMSBase.add_associated_ms1-540"><a href="#LCMSBase.add_associated_ms1-540"><span class="linenos">540</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">auto_process</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_parser</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spectrum_mode</span><span class="o">=</span><span class="kc">None</span>
 </span><span id="LCMSBase.add_associated_ms1-541"><a href="#LCMSBase.add_associated_ms1-541"><span class="linenos">541</span></a>    <span class="p">):</span>
 </span><span id="LCMSBase.add_associated_ms1-542"><a href="#LCMSBase.add_associated_ms1-542"><span class="linenos">542</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Add MS1 spectra associated with mass features to the dataset.</span>
@@ -3603,7 +3603,7 @@ If no precursor m/z values are found in MS2 scans, not a DDA dataset.</li>
 </span><span id="LCMSBase.add_associated_ms1-588"><a href="#LCMSBase.add_associated_ms1-588"><span class="linenos">588</span></a>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All apex scans must be profile mode for averaging&quot;</span><span class="p">)</span>
 </span><span id="LCMSBase.add_associated_ms1-589"><a href="#LCMSBase.add_associated_ms1-589"><span class="linenos">589</span></a>
 </span><span id="LCMSBase.add_associated_ms1-590"><a href="#LCMSBase.add_associated_ms1-590"><span class="linenos">590</span></a>            <span class="c1"># First get sets of scans to average</span>
-</span><span id="LCMSBase.add_associated_ms1-591"><a href="#LCMSBase.add_associated_ms1-591"><span class="linenos">591</span></a>            <span class="k">def</span><span class="w"> </span><span class="nf">get_scans_from_apex</span><span class="p">(</span><span class="n">ms1_scans</span><span class="p">,</span> <span class="n">apex_scan</span><span class="p">,</span> <span class="n">scans_to_average</span><span class="p">):</span>
+</span><span id="LCMSBase.add_associated_ms1-591"><a href="#LCMSBase.add_associated_ms1-591"><span class="linenos">591</span></a>            <span class="k">def</span> <span class="nf">get_scans_from_apex</span><span class="p">(</span><span class="n">ms1_scans</span><span class="p">,</span> <span class="n">apex_scan</span><span class="p">,</span> <span class="n">scans_to_average</span><span class="p">):</span>
 </span><span id="LCMSBase.add_associated_ms1-592"><a href="#LCMSBase.add_associated_ms1-592"><span class="linenos">592</span></a>                <span class="n">ms1_idx_start</span> <span class="o">=</span> <span class="n">ms1_scans</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">apex_scan</span><span class="p">)</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span>
 </span><span id="LCMSBase.add_associated_ms1-593"><a href="#LCMSBase.add_associated_ms1-593"><span class="linenos">593</span></a>                    <span class="p">(</span><span class="n">scans_to_average</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
 </span><span id="LCMSBase.add_associated_ms1-594"><a href="#LCMSBase.add_associated_ms1-594"><span class="linenos">594</span></a>                <span class="p">)</span>
@@ -3729,7 +3729,7 @@ If deconvolute is True and no EICs are found, did you run integrate_mass_feature
 
     </div>
     <a class="headerlink" href="#LCMSBase.mass_features_to_df"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.mass_features_to_df-677"><a href="#LCMSBase.mass_features_to_df-677"><span class="linenos">677</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mass_features_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.mass_features_to_df-677"><a href="#LCMSBase.mass_features_to_df-677"><span class="linenos">677</span></a>    <span class="k">def</span> <span class="nf">mass_features_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSBase.mass_features_to_df-678"><a href="#LCMSBase.mass_features_to_df-678"><span class="linenos">678</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a pandas dataframe summarizing the mass features.</span>
 </span><span id="LCMSBase.mass_features_to_df-679"><a href="#LCMSBase.mass_features_to_df-679"><span class="linenos">679</span></a>
 </span><span id="LCMSBase.mass_features_to_df-680"><a href="#LCMSBase.mass_features_to_df-680"><span class="linenos">680</span></a><span class="sd">        The dataframe contains the following columns: mf_id, mz, apex_scan, scan_time, intensity,</span>
@@ -3743,7 +3743,7 @@ If deconvolute is True and no EICs are found, did you run integrate_mass_feature
 </span><span id="LCMSBase.mass_features_to_df-688"><a href="#LCMSBase.mass_features_to_df-688"><span class="linenos">688</span></a><span class="sd">            mf_id, mz, apex_scan, scan_time, intensity, persistence, area.</span>
 </span><span id="LCMSBase.mass_features_to_df-689"><a href="#LCMSBase.mass_features_to_df-689"><span class="linenos">689</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="LCMSBase.mass_features_to_df-690"><a href="#LCMSBase.mass_features_to_df-690"><span class="linenos">690</span></a>
-</span><span id="LCMSBase.mass_features_to_df-691"><a href="#LCMSBase.mass_features_to_df-691"><span class="linenos">691</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">mass_spectrum_to_string</span><span class="p">(</span>
+</span><span id="LCMSBase.mass_features_to_df-691"><a href="#LCMSBase.mass_features_to_df-691"><span class="linenos">691</span></a>        <span class="k">def</span> <span class="nf">mass_spectrum_to_string</span><span class="p">(</span>
 </span><span id="LCMSBase.mass_features_to_df-692"><a href="#LCMSBase.mass_features_to_df-692"><span class="linenos">692</span></a>            <span class="n">mass_spec</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">min_normalized_abun</span><span class="o">=</span><span class="mf">0.01</span>
 </span><span id="LCMSBase.mass_features_to_df-693"><a href="#LCMSBase.mass_features_to_df-693"><span class="linenos">693</span></a>        <span class="p">):</span>
 </span><span id="LCMSBase.mass_features_to_df-694"><a href="#LCMSBase.mass_features_to_df-694"><span class="linenos">694</span></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;Converts a mass spectrum to a string of m/z:abundance pairs.</span>
@@ -3892,7 +3892,7 @@ mf_id, mz, apex_scan, scan_time, intensity, persistence, area.</li>
 
     </div>
     <a class="headerlink" href="#LCMSBase.mass_features_ms1_annot_to_df"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.mass_features_ms1_annot_to_df-812"><a href="#LCMSBase.mass_features_ms1_annot_to_df-812"><span class="linenos">812</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mass_features_ms1_annot_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.mass_features_ms1_annot_to_df-812"><a href="#LCMSBase.mass_features_ms1_annot_to_df-812"><span class="linenos">812</span></a>    <span class="k">def</span> <span class="nf">mass_features_ms1_annot_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="LCMSBase.mass_features_ms1_annot_to_df-813"><a href="#LCMSBase.mass_features_ms1_annot_to_df-813"><span class="linenos">813</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a pandas dataframe summarizing the MS1 annotations for the mass features in the dataset.</span>
 </span><span id="LCMSBase.mass_features_ms1_annot_to_df-814"><a href="#LCMSBase.mass_features_ms1_annot_to_df-814"><span class="linenos">814</span></a>
 </span><span id="LCMSBase.mass_features_ms1_annot_to_df-815"><a href="#LCMSBase.mass_features_ms1_annot_to_df-815"><span class="linenos">815</span></a><span class="sd">        Returns</span>
@@ -3979,7 +3979,7 @@ The index is set to mf_id (mass feature ID)</li>
 
     </div>
     <a class="headerlink" href="#LCMSBase.mass_features_ms2_annot_to_df"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.mass_features_ms2_annot_to_df-868"><a href="#LCMSBase.mass_features_ms2_annot_to_df-868"><span class="linenos">868</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mass_features_ms2_annot_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecular_metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.mass_features_ms2_annot_to_df-868"><a href="#LCMSBase.mass_features_ms2_annot_to_df-868"><span class="linenos">868</span></a>    <span class="k">def</span> <span class="nf">mass_features_ms2_annot_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecular_metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="LCMSBase.mass_features_ms2_annot_to_df-869"><a href="#LCMSBase.mass_features_ms2_annot_to_df-869"><span class="linenos">869</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a pandas dataframe summarizing the MS2 annotations for the mass features in the dataset.</span>
 </span><span id="LCMSBase.mass_features_ms2_annot_to_df-870"><a href="#LCMSBase.mass_features_ms2_annot_to_df-870"><span class="linenos">870</span></a>
 </span><span id="LCMSBase.mass_features_ms2_annot_to_df-871"><a href="#LCMSBase.mass_features_ms2_annot_to_df-871"><span class="linenos">871</span></a><span class="sd">        Parameters</span>
@@ -4076,7 +4076,7 @@ and optionally molecular metadata. The index is set to mf_id (mass feature ID)</
 
     </div>
     <a class="headerlink" href="#LCMSBase.plot_composite_mz_features"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.plot_composite_mz_features-927"><a href="#LCMSBase.plot_composite_mz_features-927"><span class="linenos"> 927</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot_composite_mz_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binsize</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="n">ph_int_min_thresh</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">mf_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">ms2_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">return_fig</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.plot_composite_mz_features-927"><a href="#LCMSBase.plot_composite_mz_features-927"><span class="linenos"> 927</span></a>    <span class="k">def</span> <span class="nf">plot_composite_mz_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binsize</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="n">ph_int_min_thresh</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">mf_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">ms2_plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">return_fig</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 </span><span id="LCMSBase.plot_composite_mz_features-928"><a href="#LCMSBase.plot_composite_mz_features-928"><span class="linenos"> 928</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a figure displaying </span>
 </span><span id="LCMSBase.plot_composite_mz_features-929"><a href="#LCMSBase.plot_composite_mz_features-929"><span class="linenos"> 929</span></a><span class="sd">            (1) thresholded, unprocessed data</span>
 </span><span id="LCMSBase.plot_composite_mz_features-930"><a href="#LCMSBase.plot_composite_mz_features-930"><span class="linenos"> 930</span></a><span class="sd">            (2) the m/z features</span>
@@ -4253,7 +4253,7 @@ were found for the m/z features in the dataset.</li>
 
     </div>
     <a class="headerlink" href="#LCMSBase.set_tic_list_from_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.set_tic_list_from_data-1090"><a href="#LCMSBase.set_tic_list_from_data-1090"><span class="linenos">1090</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_tic_list_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.set_tic_list_from_data-1090"><a href="#LCMSBase.set_tic_list_from_data-1090"><span class="linenos">1090</span></a>    <span class="k">def</span> <span class="nf">set_tic_list_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="LCMSBase.set_tic_list_from_data-1091"><a href="#LCMSBase.set_tic_list_from_data-1091"><span class="linenos">1091</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the TIC list from the mass spectrum objects within the _ms dictionary.</span>
 </span><span id="LCMSBase.set_tic_list_from_data-1092"><a href="#LCMSBase.set_tic_list_from_data-1092"><span class="linenos">1092</span></a>
 </span><span id="LCMSBase.set_tic_list_from_data-1093"><a href="#LCMSBase.set_tic_list_from_data-1093"><span class="linenos">1093</span></a><span class="sd">        Parameters</span>
@@ -4317,7 +4317,7 @@ If the TIC list is already set and overwrite is False.</li>
 
     </div>
     <a class="headerlink" href="#LCMSBase.set_retention_time_from_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.set_retention_time_from_data-1118"><a href="#LCMSBase.set_retention_time_from_data-1118"><span class="linenos">1118</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_retention_time_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.set_retention_time_from_data-1118"><a href="#LCMSBase.set_retention_time_from_data-1118"><span class="linenos">1118</span></a>    <span class="k">def</span> <span class="nf">set_retention_time_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="LCMSBase.set_retention_time_from_data-1119"><a href="#LCMSBase.set_retention_time_from_data-1119"><span class="linenos">1119</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the retention time list from the data in the _ms dictionary.</span>
 </span><span id="LCMSBase.set_retention_time_from_data-1120"><a href="#LCMSBase.set_retention_time_from_data-1120"><span class="linenos">1120</span></a>
 </span><span id="LCMSBase.set_retention_time_from_data-1121"><a href="#LCMSBase.set_retention_time_from_data-1121"><span class="linenos">1121</span></a><span class="sd">        Parameters</span>
@@ -4386,7 +4386,7 @@ If the retention time list is already set and overwrite is False.</li>
 
     </div>
     <a class="headerlink" href="#LCMSBase.set_scans_number_from_data"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.set_scans_number_from_data-1151"><a href="#LCMSBase.set_scans_number_from_data-1151"><span class="linenos">1151</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_scans_number_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LCMSBase.set_scans_number_from_data-1151"><a href="#LCMSBase.set_scans_number_from_data-1151"><span class="linenos">1151</span></a>    <span class="k">def</span> <span class="nf">set_scans_number_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="LCMSBase.set_scans_number_from_data-1152"><a href="#LCMSBase.set_scans_number_from_data-1152"><span class="linenos">1152</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the scan number list from the data in the _ms dictionary.</span>
 </span><span id="LCMSBase.set_scans_number_from_data-1153"><a href="#LCMSBase.set_scans_number_from_data-1153"><span class="linenos">1153</span></a>
 </span><span id="LCMSBase.set_scans_number_from_data-1154"><a href="#LCMSBase.set_scans_number_from_data-1154"><span class="linenos">1154</span></a><span class="sd">        Notes</span>

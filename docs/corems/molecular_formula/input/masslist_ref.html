@@ -117,22 +117,22 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Yuri E. Corilo&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;Oct 24, 2019&quot;</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">json</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span> <span class="nn">re</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">import</span> <span class="nn">sys</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.encapsulation.constant</span><span class="w"> </span><span class="kn">import</span> <span class="n">Atoms</span><span class="p">,</span> <span class="n">Labels</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">corems.molecular_formula.factory.MolecularFormulaFactory</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span> <span class="nn">corems.encapsulation.constant</span> <span class="kn">import</span> <span class="n">Atoms</span><span class="p">,</span> <span class="n">Labels</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span> <span class="nn">corems.molecular_formula.factory.MolecularFormulaFactory</span> <span class="kn">import</span> <span class="p">(</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>    <span class="n">LCMSLibRefMolecularFormula</span><span class="p">,</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>    <span class="n">MolecularFormula</span><span class="p">,</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="p">)</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MolecularFormulaLinkProxy</span><span class="p">:</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="k">class</span> <span class="nc">MolecularFormulaLinkProxy</span><span class="p">:</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Proxy class for MolecularFormulaLink to be used in the molecular formula ref file import</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">    Parameters</span>
@@ -166,7 +166,7 @@
 </span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>
 </span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecular_formula</span><span class="p">,</span> <span class="n">mz</span><span class="p">):</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecular_formula</span><span class="p">,</span> <span class="n">mz</span><span class="p">):</span>
 </span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">C</span> <span class="o">=</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">)</span>
 </span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">H_C</span> <span class="o">=</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
@@ -175,11 +175,11 @@
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">dbe</span> <span class="o">=</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">dbe</span>
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">formula_dict</span> <span class="o">=</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
 </span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula_dict</span>
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ImportMassListRef</span><span class="p">:</span>  <span class="c1"># Thread</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="k">class</span> <span class="nc">ImportMassListRef</span><span class="p">:</span>  <span class="c1"># Thread</span>
 </span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Import Mass List from Reference File</span>
 </span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>
 </span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">    Parameters</span>
@@ -208,7 +208,7 @@
 </span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="sd">        Converts a molecular formula string to a dict</span>
 </span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_file_location</span><span class="p">):</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_file_location</span><span class="p">):</span>
 </span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>        <span class="c1"># Thread.__init__(self)</span>
 </span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>
 </span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">ref_file_location</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">ref_file_location</span><span class="p">)</span>
@@ -217,7 +217,7 @@
 </span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>            <span class="n">tb</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="n">ref_file_location</span><span class="p">)</span><span class="o">.</span><span class="n">with_traceback</span><span class="p">(</span><span class="n">tb</span><span class="p">)</span>
 </span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">molecular_formula_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">molecular_formula</span><span class="p">):</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>    <span class="k">def</span> <span class="nf">molecular_formula_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">molecular_formula</span><span class="p">):</span>
 </span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Instantiate a MolecularFormulaLinkProxy object</span>
 </span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>
 </span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="sd">        Parameters</span>
@@ -234,7 +234,7 @@
 </span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>        <span class="k">return</span> <span class="n">MolecularFormulaLinkProxy</span><span class="p">(</span><span class="n">molecular_formula</span><span class="p">,</span> <span class="n">mz</span><span class="p">)</span>
 </span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_lcms_lib_file</span><span class="p">(</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>    <span class="k">def</span> <span class="nf">from_lcms_lib_file</span><span class="p">(</span>
 </span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ion_types</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 </span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">LCMSLibRefMolecularFormula</span><span class="p">]]]:</span>
 </span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a dictionary of LCMSLibRefMolecularFormula objects from LCMS library reference file</span>
@@ -296,7 +296,7 @@
 </span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>
 </span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>        <span class="k">return</span> <span class="n">data</span>
 </span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>
-</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_bruker_ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">MolecularFormula</span><span class="p">]:</span>
+</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>    <span class="k">def</span> <span class="nf">from_bruker_ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">MolecularFormula</span><span class="p">]:</span>
 </span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a list of MolecularFormula objects from Bruker reference file</span>
 </span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>
 </span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a><span class="sd">        Returns</span>
@@ -305,7 +305,7 @@
 </span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a><span class="sd">            List of MolecularFormula objects from Bruker reference file</span>
 </span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a>
-</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>        <span class="kn">import</span> <span class="nn">csv</span>
 </span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a>
 </span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>        <span class="n">list_mf_obj</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>
@@ -332,7 +332,7 @@
 </span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a>
 </span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a>        <span class="k">return</span> <span class="n">list_mf_obj</span>
 </span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a>
-</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_corems_ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a>    <span class="k">def</span> <span class="nf">from_corems_ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a list of MolecularFormula objects from CoreMS reference file</span>
 </span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a>
 </span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a><span class="sd">        Not being used</span>
@@ -348,7 +348,7 @@
 </span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a><span class="sd">            List of MolecularFormula objects from CoreMS reference file</span>
 </span><span id="L-233"><a href="#L-233"><span class="linenos">233</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-234"><a href="#L-234"><span class="linenos">234</span></a>        <span class="c1"># not being used</span>
-</span><span id="L-235"><a href="#L-235"><span class="linenos">235</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+</span><span id="L-235"><a href="#L-235"><span class="linenos">235</span></a>        <span class="kn">import</span> <span class="nn">csv</span>
 </span><span id="L-236"><a href="#L-236"><span class="linenos">236</span></a>
 </span><span id="L-237"><a href="#L-237"><span class="linenos">237</span></a>        <span class="n">list_mf_obj</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-238"><a href="#L-238"><span class="linenos">238</span></a>
@@ -371,7 +371,7 @@
 </span><span id="L-255"><a href="#L-255"><span class="linenos">255</span></a>
 </span><span id="L-256"><a href="#L-256"><span class="linenos">256</span></a>        <span class="k">return</span> <span class="n">list_mf_obj</span>
 </span><span id="L-257"><a href="#L-257"><span class="linenos">257</span></a>
-</span><span id="L-258"><a href="#L-258"><span class="linenos">258</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delimiters</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="L-258"><a href="#L-258"><span class="linenos">258</span></a>    <span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delimiters</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="L-259"><a href="#L-259"><span class="linenos">259</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Splits a string using a list of delimiters.</span>
 </span><span id="L-260"><a href="#L-260"><span class="linenos">260</span></a>
 </span><span id="L-261"><a href="#L-261"><span class="linenos">261</span></a><span class="sd">        Does not work when formula has atoms with same characters, i.e - C10H21NNa</span>
@@ -397,7 +397,7 @@
 </span><span id="L-281"><a href="#L-281"><span class="linenos">281</span></a>        <span class="n">counts</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">regexPattern</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">maxsplit</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>        <span class="k">return</span> <span class="n">isotopes</span><span class="p">,</span> <span class="n">counts</span>
 </span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a>
-</span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mformula_s_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s_mformulatring</span><span class="p">,</span> <span class="n">iontype</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">):</span>
+</span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a>    <span class="k">def</span> <span class="nf">mformula_s_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s_mformulatring</span><span class="p">,</span> <span class="n">iontype</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">):</span>
 </span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts a molecular formula string to a dict</span>
 </span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a>
 </span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a><span class="sd">        Parameters</span>
@@ -484,7 +484,7 @@
 
     </div>
     <a class="headerlink" href="#MolecularFormulaLinkProxy"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaLinkProxy-20"><a href="#MolecularFormulaLinkProxy-20"><span class="linenos">20</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MolecularFormulaLinkProxy</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaLinkProxy-20"><a href="#MolecularFormulaLinkProxy-20"><span class="linenos">20</span></a><span class="k">class</span> <span class="nc">MolecularFormulaLinkProxy</span><span class="p">:</span>
 </span><span id="MolecularFormulaLinkProxy-21"><a href="#MolecularFormulaLinkProxy-21"><span class="linenos">21</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Proxy class for MolecularFormulaLink to be used in the molecular formula ref file import</span>
 </span><span id="MolecularFormulaLinkProxy-22"><a href="#MolecularFormulaLinkProxy-22"><span class="linenos">22</span></a>
 </span><span id="MolecularFormulaLinkProxy-23"><a href="#MolecularFormulaLinkProxy-23"><span class="linenos">23</span></a><span class="sd">    Parameters</span>
@@ -518,7 +518,7 @@
 </span><span id="MolecularFormulaLinkProxy-51"><a href="#MolecularFormulaLinkProxy-51"><span class="linenos">51</span></a>
 </span><span id="MolecularFormulaLinkProxy-52"><a href="#MolecularFormulaLinkProxy-52"><span class="linenos">52</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="MolecularFormulaLinkProxy-53"><a href="#MolecularFormulaLinkProxy-53"><span class="linenos">53</span></a>
-</span><span id="MolecularFormulaLinkProxy-54"><a href="#MolecularFormulaLinkProxy-54"><span class="linenos">54</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecular_formula</span><span class="p">,</span> <span class="n">mz</span><span class="p">):</span>
+</span><span id="MolecularFormulaLinkProxy-54"><a href="#MolecularFormulaLinkProxy-54"><span class="linenos">54</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecular_formula</span><span class="p">,</span> <span class="n">mz</span><span class="p">):</span>
 </span><span id="MolecularFormulaLinkProxy-55"><a href="#MolecularFormulaLinkProxy-55"><span class="linenos">55</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">C</span> <span class="o">=</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
 </span><span id="MolecularFormulaLinkProxy-56"><a href="#MolecularFormulaLinkProxy-56"><span class="linenos">56</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">)</span>
 </span><span id="MolecularFormulaLinkProxy-57"><a href="#MolecularFormulaLinkProxy-57"><span class="linenos">57</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">H_C</span> <span class="o">=</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
@@ -527,7 +527,7 @@
 </span><span id="MolecularFormulaLinkProxy-60"><a href="#MolecularFormulaLinkProxy-60"><span class="linenos">60</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">dbe</span> <span class="o">=</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">dbe</span>
 </span><span id="MolecularFormulaLinkProxy-61"><a href="#MolecularFormulaLinkProxy-61"><span class="linenos">61</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">formula_dict</span> <span class="o">=</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
 </span><span id="MolecularFormulaLinkProxy-62"><a href="#MolecularFormulaLinkProxy-62"><span class="linenos">62</span></a>
-</span><span id="MolecularFormulaLinkProxy-63"><a href="#MolecularFormulaLinkProxy-63"><span class="linenos">63</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MolecularFormulaLinkProxy-63"><a href="#MolecularFormulaLinkProxy-63"><span class="linenos">63</span></a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaLinkProxy-64"><a href="#MolecularFormulaLinkProxy-64"><span class="linenos">64</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula_dict</span>
 </span></pre></div>
 
@@ -581,7 +581,7 @@ return molecular formula dictionary</li>
 
     </div>
     <a class="headerlink" href="#MolecularFormulaLinkProxy.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaLinkProxy.__init__-54"><a href="#MolecularFormulaLinkProxy.__init__-54"><span class="linenos">54</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecular_formula</span><span class="p">,</span> <span class="n">mz</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaLinkProxy.__init__-54"><a href="#MolecularFormulaLinkProxy.__init__-54"><span class="linenos">54</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecular_formula</span><span class="p">,</span> <span class="n">mz</span><span class="p">):</span>
 </span><span id="MolecularFormulaLinkProxy.__init__-55"><a href="#MolecularFormulaLinkProxy.__init__-55"><span class="linenos">55</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">C</span> <span class="o">=</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
 </span><span id="MolecularFormulaLinkProxy.__init__-56"><a href="#MolecularFormulaLinkProxy.__init__-56"><span class="linenos">56</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">)</span>
 </span><span id="MolecularFormulaLinkProxy.__init__-57"><a href="#MolecularFormulaLinkProxy.__init__-57"><span class="linenos">57</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">H_C</span> <span class="o">=</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">molecular_formula</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
@@ -683,7 +683,7 @@ return molecular formula dictionary</li>
 
     </div>
     <a class="headerlink" href="#MolecularFormulaLinkProxy.to_dict"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaLinkProxy.to_dict-63"><a href="#MolecularFormulaLinkProxy.to_dict-63"><span class="linenos">63</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MolecularFormulaLinkProxy.to_dict-63"><a href="#MolecularFormulaLinkProxy.to_dict-63"><span class="linenos">63</span></a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="MolecularFormulaLinkProxy.to_dict-64"><a href="#MolecularFormulaLinkProxy.to_dict-64"><span class="linenos">64</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula_dict</span>
 </span></pre></div>
 
@@ -703,7 +703,7 @@ return molecular formula dictionary</li>
 
     </div>
     <a class="headerlink" href="#ImportMassListRef"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef-67"><a href="#ImportMassListRef-67"><span class="linenos"> 67</span></a><span class="k">class</span><span class="w"> </span><span class="nc">ImportMassListRef</span><span class="p">:</span>  <span class="c1"># Thread</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef-67"><a href="#ImportMassListRef-67"><span class="linenos"> 67</span></a><span class="k">class</span> <span class="nc">ImportMassListRef</span><span class="p">:</span>  <span class="c1"># Thread</span>
 </span><span id="ImportMassListRef-68"><a href="#ImportMassListRef-68"><span class="linenos"> 68</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Import Mass List from Reference File</span>
 </span><span id="ImportMassListRef-69"><a href="#ImportMassListRef-69"><span class="linenos"> 69</span></a>
 </span><span id="ImportMassListRef-70"><a href="#ImportMassListRef-70"><span class="linenos"> 70</span></a><span class="sd">    Parameters</span>
@@ -732,7 +732,7 @@ return molecular formula dictionary</li>
 </span><span id="ImportMassListRef-93"><a href="#ImportMassListRef-93"><span class="linenos"> 93</span></a><span class="sd">        Converts a molecular formula string to a dict</span>
 </span><span id="ImportMassListRef-94"><a href="#ImportMassListRef-94"><span class="linenos"> 94</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="ImportMassListRef-95"><a href="#ImportMassListRef-95"><span class="linenos"> 95</span></a>
-</span><span id="ImportMassListRef-96"><a href="#ImportMassListRef-96"><span class="linenos"> 96</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_file_location</span><span class="p">):</span>
+</span><span id="ImportMassListRef-96"><a href="#ImportMassListRef-96"><span class="linenos"> 96</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_file_location</span><span class="p">):</span>
 </span><span id="ImportMassListRef-97"><a href="#ImportMassListRef-97"><span class="linenos"> 97</span></a>        <span class="c1"># Thread.__init__(self)</span>
 </span><span id="ImportMassListRef-98"><a href="#ImportMassListRef-98"><span class="linenos"> 98</span></a>
 </span><span id="ImportMassListRef-99"><a href="#ImportMassListRef-99"><span class="linenos"> 99</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">ref_file_location</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">ref_file_location</span><span class="p">)</span>
@@ -741,7 +741,7 @@ return molecular formula dictionary</li>
 </span><span id="ImportMassListRef-102"><a href="#ImportMassListRef-102"><span class="linenos">102</span></a>            <span class="n">tb</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
 </span><span id="ImportMassListRef-103"><a href="#ImportMassListRef-103"><span class="linenos">103</span></a>            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="n">ref_file_location</span><span class="p">)</span><span class="o">.</span><span class="n">with_traceback</span><span class="p">(</span><span class="n">tb</span><span class="p">)</span>
 </span><span id="ImportMassListRef-104"><a href="#ImportMassListRef-104"><span class="linenos">104</span></a>
-</span><span id="ImportMassListRef-105"><a href="#ImportMassListRef-105"><span class="linenos">105</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">molecular_formula_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">molecular_formula</span><span class="p">):</span>
+</span><span id="ImportMassListRef-105"><a href="#ImportMassListRef-105"><span class="linenos">105</span></a>    <span class="k">def</span> <span class="nf">molecular_formula_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">molecular_formula</span><span class="p">):</span>
 </span><span id="ImportMassListRef-106"><a href="#ImportMassListRef-106"><span class="linenos">106</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Instantiate a MolecularFormulaLinkProxy object</span>
 </span><span id="ImportMassListRef-107"><a href="#ImportMassListRef-107"><span class="linenos">107</span></a>
 </span><span id="ImportMassListRef-108"><a href="#ImportMassListRef-108"><span class="linenos">108</span></a><span class="sd">        Parameters</span>
@@ -758,7 +758,7 @@ return molecular formula dictionary</li>
 </span><span id="ImportMassListRef-119"><a href="#ImportMassListRef-119"><span class="linenos">119</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ImportMassListRef-120"><a href="#ImportMassListRef-120"><span class="linenos">120</span></a>        <span class="k">return</span> <span class="n">MolecularFormulaLinkProxy</span><span class="p">(</span><span class="n">molecular_formula</span><span class="p">,</span> <span class="n">mz</span><span class="p">)</span>
 </span><span id="ImportMassListRef-121"><a href="#ImportMassListRef-121"><span class="linenos">121</span></a>
-</span><span id="ImportMassListRef-122"><a href="#ImportMassListRef-122"><span class="linenos">122</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_lcms_lib_file</span><span class="p">(</span>
+</span><span id="ImportMassListRef-122"><a href="#ImportMassListRef-122"><span class="linenos">122</span></a>    <span class="k">def</span> <span class="nf">from_lcms_lib_file</span><span class="p">(</span>
 </span><span id="ImportMassListRef-123"><a href="#ImportMassListRef-123"><span class="linenos">123</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ion_types</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 </span><span id="ImportMassListRef-124"><a href="#ImportMassListRef-124"><span class="linenos">124</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">LCMSLibRefMolecularFormula</span><span class="p">]]]:</span>
 </span><span id="ImportMassListRef-125"><a href="#ImportMassListRef-125"><span class="linenos">125</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a dictionary of LCMSLibRefMolecularFormula objects from LCMS library reference file</span>
@@ -820,7 +820,7 @@ return molecular formula dictionary</li>
 </span><span id="ImportMassListRef-181"><a href="#ImportMassListRef-181"><span class="linenos">181</span></a>
 </span><span id="ImportMassListRef-182"><a href="#ImportMassListRef-182"><span class="linenos">182</span></a>        <span class="k">return</span> <span class="n">data</span>
 </span><span id="ImportMassListRef-183"><a href="#ImportMassListRef-183"><span class="linenos">183</span></a>
-</span><span id="ImportMassListRef-184"><a href="#ImportMassListRef-184"><span class="linenos">184</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_bruker_ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">MolecularFormula</span><span class="p">]:</span>
+</span><span id="ImportMassListRef-184"><a href="#ImportMassListRef-184"><span class="linenos">184</span></a>    <span class="k">def</span> <span class="nf">from_bruker_ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">MolecularFormula</span><span class="p">]:</span>
 </span><span id="ImportMassListRef-185"><a href="#ImportMassListRef-185"><span class="linenos">185</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a list of MolecularFormula objects from Bruker reference file</span>
 </span><span id="ImportMassListRef-186"><a href="#ImportMassListRef-186"><span class="linenos">186</span></a>
 </span><span id="ImportMassListRef-187"><a href="#ImportMassListRef-187"><span class="linenos">187</span></a><span class="sd">        Returns</span>
@@ -829,7 +829,7 @@ return molecular formula dictionary</li>
 </span><span id="ImportMassListRef-190"><a href="#ImportMassListRef-190"><span class="linenos">190</span></a><span class="sd">            List of MolecularFormula objects from Bruker reference file</span>
 </span><span id="ImportMassListRef-191"><a href="#ImportMassListRef-191"><span class="linenos">191</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ImportMassListRef-192"><a href="#ImportMassListRef-192"><span class="linenos">192</span></a>
-</span><span id="ImportMassListRef-193"><a href="#ImportMassListRef-193"><span class="linenos">193</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+</span><span id="ImportMassListRef-193"><a href="#ImportMassListRef-193"><span class="linenos">193</span></a>        <span class="kn">import</span> <span class="nn">csv</span>
 </span><span id="ImportMassListRef-194"><a href="#ImportMassListRef-194"><span class="linenos">194</span></a>
 </span><span id="ImportMassListRef-195"><a href="#ImportMassListRef-195"><span class="linenos">195</span></a>        <span class="n">list_mf_obj</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="ImportMassListRef-196"><a href="#ImportMassListRef-196"><span class="linenos">196</span></a>
@@ -856,7 +856,7 @@ return molecular formula dictionary</li>
 </span><span id="ImportMassListRef-217"><a href="#ImportMassListRef-217"><span class="linenos">217</span></a>
 </span><span id="ImportMassListRef-218"><a href="#ImportMassListRef-218"><span class="linenos">218</span></a>        <span class="k">return</span> <span class="n">list_mf_obj</span>
 </span><span id="ImportMassListRef-219"><a href="#ImportMassListRef-219"><span class="linenos">219</span></a>
-</span><span id="ImportMassListRef-220"><a href="#ImportMassListRef-220"><span class="linenos">220</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_corems_ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="ImportMassListRef-220"><a href="#ImportMassListRef-220"><span class="linenos">220</span></a>    <span class="k">def</span> <span class="nf">from_corems_ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="ImportMassListRef-221"><a href="#ImportMassListRef-221"><span class="linenos">221</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a list of MolecularFormula objects from CoreMS reference file</span>
 </span><span id="ImportMassListRef-222"><a href="#ImportMassListRef-222"><span class="linenos">222</span></a>
 </span><span id="ImportMassListRef-223"><a href="#ImportMassListRef-223"><span class="linenos">223</span></a><span class="sd">        Not being used</span>
@@ -872,7 +872,7 @@ return molecular formula dictionary</li>
 </span><span id="ImportMassListRef-233"><a href="#ImportMassListRef-233"><span class="linenos">233</span></a><span class="sd">            List of MolecularFormula objects from CoreMS reference file</span>
 </span><span id="ImportMassListRef-234"><a href="#ImportMassListRef-234"><span class="linenos">234</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ImportMassListRef-235"><a href="#ImportMassListRef-235"><span class="linenos">235</span></a>        <span class="c1"># not being used</span>
-</span><span id="ImportMassListRef-236"><a href="#ImportMassListRef-236"><span class="linenos">236</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+</span><span id="ImportMassListRef-236"><a href="#ImportMassListRef-236"><span class="linenos">236</span></a>        <span class="kn">import</span> <span class="nn">csv</span>
 </span><span id="ImportMassListRef-237"><a href="#ImportMassListRef-237"><span class="linenos">237</span></a>
 </span><span id="ImportMassListRef-238"><a href="#ImportMassListRef-238"><span class="linenos">238</span></a>        <span class="n">list_mf_obj</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="ImportMassListRef-239"><a href="#ImportMassListRef-239"><span class="linenos">239</span></a>
@@ -895,7 +895,7 @@ return molecular formula dictionary</li>
 </span><span id="ImportMassListRef-256"><a href="#ImportMassListRef-256"><span class="linenos">256</span></a>
 </span><span id="ImportMassListRef-257"><a href="#ImportMassListRef-257"><span class="linenos">257</span></a>        <span class="k">return</span> <span class="n">list_mf_obj</span>
 </span><span id="ImportMassListRef-258"><a href="#ImportMassListRef-258"><span class="linenos">258</span></a>
-</span><span id="ImportMassListRef-259"><a href="#ImportMassListRef-259"><span class="linenos">259</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delimiters</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+</span><span id="ImportMassListRef-259"><a href="#ImportMassListRef-259"><span class="linenos">259</span></a>    <span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delimiters</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="ImportMassListRef-260"><a href="#ImportMassListRef-260"><span class="linenos">260</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Splits a string using a list of delimiters.</span>
 </span><span id="ImportMassListRef-261"><a href="#ImportMassListRef-261"><span class="linenos">261</span></a>
 </span><span id="ImportMassListRef-262"><a href="#ImportMassListRef-262"><span class="linenos">262</span></a><span class="sd">        Does not work when formula has atoms with same characters, i.e - C10H21NNa</span>
@@ -921,7 +921,7 @@ return molecular formula dictionary</li>
 </span><span id="ImportMassListRef-282"><a href="#ImportMassListRef-282"><span class="linenos">282</span></a>        <span class="n">counts</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">regexPattern</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">maxsplit</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="ImportMassListRef-283"><a href="#ImportMassListRef-283"><span class="linenos">283</span></a>        <span class="k">return</span> <span class="n">isotopes</span><span class="p">,</span> <span class="n">counts</span>
 </span><span id="ImportMassListRef-284"><a href="#ImportMassListRef-284"><span class="linenos">284</span></a>
-</span><span id="ImportMassListRef-285"><a href="#ImportMassListRef-285"><span class="linenos">285</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mformula_s_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s_mformulatring</span><span class="p">,</span> <span class="n">iontype</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">):</span>
+</span><span id="ImportMassListRef-285"><a href="#ImportMassListRef-285"><span class="linenos">285</span></a>    <span class="k">def</span> <span class="nf">mformula_s_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s_mformulatring</span><span class="p">,</span> <span class="n">iontype</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">):</span>
 </span><span id="ImportMassListRef-286"><a href="#ImportMassListRef-286"><span class="linenos">286</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts a molecular formula string to a dict</span>
 </span><span id="ImportMassListRef-287"><a href="#ImportMassListRef-287"><span class="linenos">287</span></a>
 </span><span id="ImportMassListRef-288"><a href="#ImportMassListRef-288"><span class="linenos">288</span></a><span class="sd">        Parameters</span>
@@ -1041,7 +1041,7 @@ Converts a molecular formula string to a dict</li>
 
     </div>
     <a class="headerlink" href="#ImportMassListRef.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef.__init__-96"><a href="#ImportMassListRef.__init__-96"><span class="linenos"> 96</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_file_location</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef.__init__-96"><a href="#ImportMassListRef.__init__-96"><span class="linenos"> 96</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_file_location</span><span class="p">):</span>
 </span><span id="ImportMassListRef.__init__-97"><a href="#ImportMassListRef.__init__-97"><span class="linenos"> 97</span></a>        <span class="c1"># Thread.__init__(self)</span>
 </span><span id="ImportMassListRef.__init__-98"><a href="#ImportMassListRef.__init__-98"><span class="linenos"> 98</span></a>
 </span><span id="ImportMassListRef.__init__-99"><a href="#ImportMassListRef.__init__-99"><span class="linenos"> 99</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">ref_file_location</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">ref_file_location</span><span class="p">)</span>
@@ -1077,7 +1077,7 @@ Converts a molecular formula string to a dict</li>
 
     </div>
     <a class="headerlink" href="#ImportMassListRef.molecular_formula_ref"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef.molecular_formula_ref-105"><a href="#ImportMassListRef.molecular_formula_ref-105"><span class="linenos">105</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">molecular_formula_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">molecular_formula</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef.molecular_formula_ref-105"><a href="#ImportMassListRef.molecular_formula_ref-105"><span class="linenos">105</span></a>    <span class="k">def</span> <span class="nf">molecular_formula_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">molecular_formula</span><span class="p">):</span>
 </span><span id="ImportMassListRef.molecular_formula_ref-106"><a href="#ImportMassListRef.molecular_formula_ref-106"><span class="linenos">106</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Instantiate a MolecularFormulaLinkProxy object</span>
 </span><span id="ImportMassListRef.molecular_formula_ref-107"><a href="#ImportMassListRef.molecular_formula_ref-107"><span class="linenos">107</span></a>
 </span><span id="ImportMassListRef.molecular_formula_ref-108"><a href="#ImportMassListRef.molecular_formula_ref-108"><span class="linenos">108</span></a><span class="sd">        Parameters</span>
@@ -1127,7 +1127,7 @@ corems MolecularFormula or LCMSLibRefMolecularFormula object</li>
 
     </div>
     <a class="headerlink" href="#ImportMassListRef.from_lcms_lib_file"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef.from_lcms_lib_file-122"><a href="#ImportMassListRef.from_lcms_lib_file-122"><span class="linenos">122</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_lcms_lib_file</span><span class="p">(</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef.from_lcms_lib_file-122"><a href="#ImportMassListRef.from_lcms_lib_file-122"><span class="linenos">122</span></a>    <span class="k">def</span> <span class="nf">from_lcms_lib_file</span><span class="p">(</span>
 </span><span id="ImportMassListRef.from_lcms_lib_file-123"><a href="#ImportMassListRef.from_lcms_lib_file-123"><span class="linenos">123</span></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">ion_charge</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ion_types</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 </span><span id="ImportMassListRef.from_lcms_lib_file-124"><a href="#ImportMassListRef.from_lcms_lib_file-124"><span class="linenos">124</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">LCMSLibRefMolecularFormula</span><span class="p">]]]:</span>
 </span><span id="ImportMassListRef.from_lcms_lib_file-125"><a href="#ImportMassListRef.from_lcms_lib_file-125"><span class="linenos">125</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a dictionary of LCMSLibRefMolecularFormula objects from LCMS library reference file</span>
@@ -1222,7 +1222,7 @@ list of ion types</li>
 
     </div>
     <a class="headerlink" href="#ImportMassListRef.from_bruker_ref_file"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef.from_bruker_ref_file-184"><a href="#ImportMassListRef.from_bruker_ref_file-184"><span class="linenos">184</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_bruker_ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">MolecularFormula</span><span class="p">]:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef.from_bruker_ref_file-184"><a href="#ImportMassListRef.from_bruker_ref_file-184"><span class="linenos">184</span></a>    <span class="k">def</span> <span class="nf">from_bruker_ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">MolecularFormula</span><span class="p">]:</span>
 </span><span id="ImportMassListRef.from_bruker_ref_file-185"><a href="#ImportMassListRef.from_bruker_ref_file-185"><span class="linenos">185</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a list of MolecularFormula objects from Bruker reference file</span>
 </span><span id="ImportMassListRef.from_bruker_ref_file-186"><a href="#ImportMassListRef.from_bruker_ref_file-186"><span class="linenos">186</span></a>
 </span><span id="ImportMassListRef.from_bruker_ref_file-187"><a href="#ImportMassListRef.from_bruker_ref_file-187"><span class="linenos">187</span></a><span class="sd">        Returns</span>
@@ -1231,7 +1231,7 @@ list of ion types</li>
 </span><span id="ImportMassListRef.from_bruker_ref_file-190"><a href="#ImportMassListRef.from_bruker_ref_file-190"><span class="linenos">190</span></a><span class="sd">            List of MolecularFormula objects from Bruker reference file</span>
 </span><span id="ImportMassListRef.from_bruker_ref_file-191"><a href="#ImportMassListRef.from_bruker_ref_file-191"><span class="linenos">191</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ImportMassListRef.from_bruker_ref_file-192"><a href="#ImportMassListRef.from_bruker_ref_file-192"><span class="linenos">192</span></a>
-</span><span id="ImportMassListRef.from_bruker_ref_file-193"><a href="#ImportMassListRef.from_bruker_ref_file-193"><span class="linenos">193</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+</span><span id="ImportMassListRef.from_bruker_ref_file-193"><a href="#ImportMassListRef.from_bruker_ref_file-193"><span class="linenos">193</span></a>        <span class="kn">import</span> <span class="nn">csv</span>
 </span><span id="ImportMassListRef.from_bruker_ref_file-194"><a href="#ImportMassListRef.from_bruker_ref_file-194"><span class="linenos">194</span></a>
 </span><span id="ImportMassListRef.from_bruker_ref_file-195"><a href="#ImportMassListRef.from_bruker_ref_file-195"><span class="linenos">195</span></a>        <span class="n">list_mf_obj</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="ImportMassListRef.from_bruker_ref_file-196"><a href="#ImportMassListRef.from_bruker_ref_file-196"><span class="linenos">196</span></a>
@@ -1282,7 +1282,7 @@ list of ion types</li>
 
     </div>
     <a class="headerlink" href="#ImportMassListRef.from_corems_ref_file"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef.from_corems_ref_file-220"><a href="#ImportMassListRef.from_corems_ref_file-220"><span class="linenos">220</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_corems_ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef.from_corems_ref_file-220"><a href="#ImportMassListRef.from_corems_ref_file-220"><span class="linenos">220</span></a>    <span class="k">def</span> <span class="nf">from_corems_ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="ImportMassListRef.from_corems_ref_file-221"><a href="#ImportMassListRef.from_corems_ref_file-221"><span class="linenos">221</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a list of MolecularFormula objects from CoreMS reference file</span>
 </span><span id="ImportMassListRef.from_corems_ref_file-222"><a href="#ImportMassListRef.from_corems_ref_file-222"><span class="linenos">222</span></a>
 </span><span id="ImportMassListRef.from_corems_ref_file-223"><a href="#ImportMassListRef.from_corems_ref_file-223"><span class="linenos">223</span></a><span class="sd">        Not being used</span>
@@ -1298,7 +1298,7 @@ list of ion types</li>
 </span><span id="ImportMassListRef.from_corems_ref_file-233"><a href="#ImportMassListRef.from_corems_ref_file-233"><span class="linenos">233</span></a><span class="sd">            List of MolecularFormula objects from CoreMS reference file</span>
 </span><span id="ImportMassListRef.from_corems_ref_file-234"><a href="#ImportMassListRef.from_corems_ref_file-234"><span class="linenos">234</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="ImportMassListRef.from_corems_ref_file-235"><a href="#ImportMassListRef.from_corems_ref_file-235"><span class="linenos">235</span></a>        <span class="c1"># not being used</span>
-</span><span id="ImportMassListRef.from_corems_ref_file-236"><a href="#ImportMassListRef.from_corems_ref_file-236"><span class="linenos">236</span></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+</span><span id="ImportMassListRef.from_corems_ref_file-236"><a href="#ImportMassListRef.from_corems_ref_file-236"><span class="linenos">236</span></a>        <span class="kn">import</span> <span class="nn">csv</span>
 </span><span id="ImportMassListRef.from_corems_ref_file-237"><a href="#ImportMassListRef.from_corems_ref_file-237"><span class="linenos">237</span></a>
 </span><span id="ImportMassListRef.from_corems_ref_file-238"><a href="#ImportMassListRef.from_corems_ref_file-238"><span class="linenos">238</span></a>        <span class="n">list_mf_obj</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="ImportMassListRef.from_corems_ref_file-239"><a href="#ImportMassListRef.from_corems_ref_file-239"><span class="linenos">239</span></a>
@@ -1354,7 +1354,7 @@ delimiter used in the reference file</li>
 
     </div>
     <a class="headerlink" href="#ImportMassListRef.split"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef.split-259"><a href="#ImportMassListRef.split-259"><span class="linenos">259</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delimiters</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef.split-259"><a href="#ImportMassListRef.split-259"><span class="linenos">259</span></a>    <span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delimiters</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 </span><span id="ImportMassListRef.split-260"><a href="#ImportMassListRef.split-260"><span class="linenos">260</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Splits a string using a list of delimiters.</span>
 </span><span id="ImportMassListRef.split-261"><a href="#ImportMassListRef.split-261"><span class="linenos">261</span></a>
 </span><span id="ImportMassListRef.split-262"><a href="#ImportMassListRef.split-262"><span class="linenos">262</span></a><span class="sd">        Does not work when formula has atoms with same characters, i.e - C10H21NNa</span>
@@ -1418,7 +1418,7 @@ maximum number of splits. Default is 0</li>
 
     </div>
     <a class="headerlink" href="#ImportMassListRef.mformula_s_to_dict"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef.mformula_s_to_dict-285"><a href="#ImportMassListRef.mformula_s_to_dict-285"><span class="linenos">285</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mformula_s_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s_mformulatring</span><span class="p">,</span> <span class="n">iontype</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ImportMassListRef.mformula_s_to_dict-285"><a href="#ImportMassListRef.mformula_s_to_dict-285"><span class="linenos">285</span></a>    <span class="k">def</span> <span class="nf">mformula_s_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s_mformulatring</span><span class="p">,</span> <span class="n">iontype</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">):</span>
 </span><span id="ImportMassListRef.mformula_s_to_dict-286"><a href="#ImportMassListRef.mformula_s_to_dict-286"><span class="linenos">286</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts a molecular formula string to a dict</span>
 </span><span id="ImportMassListRef.mformula_s_to_dict-287"><a href="#ImportMassListRef.mformula_s_to_dict-287"><span class="linenos">287</span></a>
 </span><span id="ImportMassListRef.mformula_s_to_dict-288"><a href="#ImportMassListRef.mformula_s_to_dict-288"><span class="linenos">288</span></a><span class="sd">        Parameters</span>
