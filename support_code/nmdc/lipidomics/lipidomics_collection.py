@@ -43,6 +43,11 @@ if __name__ == "__main__":
     # Make some plots 
     lcms_collection.plot_tics(type="both")
     lcms_collection.plot_alignments()
+    lcms_collection.plot_mass_features_across_samples()
+    lcms_collection.plot_mass_features_per_cluster()
+    lcms_collection.plot_consensus_mass_features() ## zoomed out
+    lcms_collection.plot_consensus_mass_features(xb = 10, xt = 15, yb = 500, yt = 600) ## zoomed in 
+    
     # TODO: Think about other plots that would be useful to have here for assessing the quality of the data and alignment
 
     # Make consensus mass features from the consolidated mass features

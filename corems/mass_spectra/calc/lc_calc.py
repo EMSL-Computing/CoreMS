@@ -2038,6 +2038,66 @@ class LCMSCollectionCalculations:
             return fig
         else:
             plt.show()
+
+    def plot_consensus_mass_features(self, xb = 'xb', xt = 'xt', yb = 'yb', yt = 'yt', show_raw = True, return_fig = False):
+        """
+        Generate Scan Time vs m/z plot of the consensus features scaled by size
+        with option ('show_raw') of leaving the raw data in the figure.
+        """
+        df = self.cluster_summary_dataframe.copy()
+
+        fig = plt.figure()
+        if show_raw:
+            plt.scatter(
+                df.scan_time_aligned,
+                df.mz,
+                c = 'tab:gray',
+                s = 1
+            )
+
+        m = plt.scatter(
+            df.scan_time_aligned_median,
+            df.mz_median, 
+            c = 'tab:orange',
+            alpha = 0.7, 
+            s = (df.sample_id_count**2)/5
+        )
+
+        plt.xlabel('Scan time')
+        plt.ylabel('m/z')
+        
+        if xt == 'xt':
+            xt = np.ceil(np.max(df.mz))
+        if yt == 'yt':
+            yt = np.ceil(np.max(df.scan_time))
+        if xb == 'xb':
+            xb = 0
+        if yb == 'yb':
+            yb = 0
+        plt.ylim(xb, xt)
+        plt.xlim(yb, yt)
+
+        kw = dict(
+            prop = 'sizes',
+            num = len(df.sample_id_count.unique())/3,
+            color = 'tab:orange',
+            alpha = 0.7,
+            func = lambda s: np.sqrt(s*5)
+        )
+
+        plt.legend(
+            *m.legend_elements(**kw), 
+            title = 'Features\nper cluster',
+            bbox_to_anchor = (1.01, 0.4, 0.225, 0.5)
+        )
+        plt.tight_layout()
+        plt.title('Consensus Features')
+
+        if return_fig:
+            plt.close(fig)
+            return fig
+        else:
+            plt.show()
         
     def add_sparse_distance_matrix(self, features):
         if features is None:
