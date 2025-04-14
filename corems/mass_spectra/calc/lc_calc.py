@@ -7,7 +7,7 @@ from scipy import sparse
 from scipy.spatial import KDTree
 from sklearn.svm import SVR
 from sklearn.cluster import AgglomerativeClustering
-
+import matplotlib.pyplot as plt
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 from corems.mass_spectra.calc import SignalProcessing as sp
@@ -1953,12 +1953,13 @@ class LCMSCollectionCalculations:
         mfs_with_clusters.set_index('coll_mf_id', inplace = True)
 
         self.mass_features_dataframe = mfs_with_clusters
+        self.summarize_clusters(mfs_with_clusters)
 
     def summarize_clusters(self, features):
         """
         Summarize the clusters of mass features by median attributes
         """
-        # First check if there are minimum columsn in the features dataframe
+        # First check if there are minimum columns in the features dataframe
         if len(features.columns) < 1:
             return None
 
@@ -1987,9 +1988,57 @@ class LCMSCollectionCalculations:
         ]
         summary_df = summary_df.rename(columns={"cluster_": "cluster"})
         summary_df = summary_df.reset_index(drop=True)
+        self.cluster_summary_dataframe = summary_df
 
-        return summary_df
+    def plot_mass_feature_per_cluster(self, return_fig = False):
+        """
+        Plot the number of mass features in a cluster against how many clusters
+        contain that number of mass features
+        """
+        if not hasattr(self, 'cluster_summary_dataframe'):
+            raise ValueError(
+                'cluster_summary_dataframe is not set, must run add_consensus_mass_features() first'
+            )
+        else:
+            sum_data = self.cluster_summary_dataframe
+            fig, ax = plt.subplots()
+            sum_data.sample_id_count.value_counts().sort_index().plot(ax = ax, kind = 'bar')
+            plt.xlabel('Number of mass features in a cluster')
+            plt.ylabel('Number of clusters with this many mass features')
+            if return_fig:
+                plt.close(fig)
+                return fig
+            else:
+                plt.show()
+        
+    def plot_mass_features_across_samples(self, alpha = 0.75, s = 0.005, return_fig = False):
+        """
+        Generate Scan Time vs m/z plot of all the mass features across all 
+        samples in collection where intensity of color on the plot indicates
+        density of mass features, NOT INTENSITY
+        """
+        df = self.mass_features_dataframe.copy()
+        fig = plt.figure()
+        plt.scatter(
+            df.scan_time_aligned,
+            df.mz,
+            c = 'tab:gray',
+            alpha = alpha,
+            s = s
+        )
 
+        plt.xlabel('Scan time')
+        plt.ylabel('m/z')
+        plt.ylim(0, np.ceil(np.max(df.mz)))
+        plt.xlim(0, np.ceil(np.max(df.scan_time)))
+        plt.title('All mass features, all samples')
+        
+        if return_fig:
+            plt.close(fig)
+            return fig
+        else:
+            plt.show()
+        
     def add_sparse_distance_matrix(self, features):
         if features is None:
             return None
@@ -2086,7 +2135,7 @@ class LCMSCollectionCalculations:
 
     def evaluate_clusters_for_repeats(self, features):
         summary_df = self.summarize_clusters(features)
-        summary_df = summary_df.copy()
+        summary_df = self.cluster_summary_dataframe.copy()
 
         # Arrange by decreasing median intensity
         summary_df = summary_df.sort_values(
