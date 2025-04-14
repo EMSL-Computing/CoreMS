@@ -616,11 +616,11 @@ def run_lipid_workflow(
 if __name__ == "__main__":
     # Set input variables to run
     cores = 1
-    file_dir = Path("/Users/heal742/LOCAL/corems_dev/corems/tmp_data/thermo_raw_mini")
+    file_dir = Path("/Users/cies677/sandbox/corems/support_code/nmdc/lipidomics/curr/raw/")
     out_dir = Path("tmp_data/_test_250115")
-    params_toml = Path("/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lipidomics_corems_params.toml")
+    params_toml = Path("/Users/cies677/sandbox/corems/support_code/nmdc/lipidomics/curr/emsl_lipidomics_corems_params.toml")
     verbose = True
-    scan_translator = Path("tmp_data/thermo_raw_collection/scan_translator.toml")
+    scan_translator = Path("/Users/cies677/sandbox/corems/support_code/nmdc/lipidomics/curr/emsl_lipidomics_scan_translator.toml")
 
     # Set up output directory
     out_dir.mkdir(parents=True, exist_ok=True)
