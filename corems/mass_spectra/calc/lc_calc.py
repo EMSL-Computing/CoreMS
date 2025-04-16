@@ -1990,11 +1990,27 @@ class LCMSCollectionCalculations:
         summary_df = summary_df.reset_index(drop=True)
         self.cluster_summary_dataframe = summary_df
 
-    def plot_mass_feature_per_cluster(self, return_fig = False):
+    def plot_mz_features_per_cluster(self, return_fig = False):
         """
         Plot the number of mass features in a cluster against how many clusters
         contain that number of mass features
+
+        Parameters
+        -----------
+        return_fig : boolean
+            Indicates whether to plot composite feature map (False) or return figure object (True). Defaults to False.
+
+        Returns
+        --------
+        matplotlib.pyplot.Figure
+            A figure displaying the frequency with which clusters contain the given number of m/z features
+
+        Raises
+        ------
+        Warning
+            If consensus features haven't been added to the object yet
         """
+
         if not hasattr(self, 'cluster_summary_dataframe'):
             raise ValueError(
                 'cluster_summary_dataframe is not set, must run add_consensus_mass_features() first'
@@ -2011,11 +2027,27 @@ class LCMSCollectionCalculations:
             else:
                 plt.show()
         
-    def plot_mass_features_across_samples(self, alpha = 0.75, s = 0.005, return_fig = False):
+    def plot_mz_features_across_samples(self, alpha = 0.75, s = 0.005, return_fig = False):
         """
         Generate Scan Time vs m/z plot of all the mass features across all 
         samples in collection where intensity of color on the plot indicates
         density of mass features, NOT INTENSITY
+
+        Parameters
+        -----------
+        alpha :  float
+            Desired transparency for plotted m/z features.  Defaults to 0.75.
+        s : float
+            Desired size of plotted m/z features. Defaults to 0.005.
+        return_fig : boolean
+            Indicates whether to plot composite feature map (False) or return figure object (True). Defaults to False.
+
+        Returns
+        --------
+        matplotlib.pyplot.Figure
+            A figure displaying a scan time vs m/z scatterplot of all the m/z features identified in the collection.
+            Parameters alpha (transparency) and s (marker size) allow the user to emphasize the density of features.
+            Intensity of features is not represented.
         """
         df = self.mass_features_dataframe.copy()
         fig = plt.figure()
@@ -2039,10 +2071,32 @@ class LCMSCollectionCalculations:
         else:
             plt.show()
 
-    def plot_consensus_mass_features(self, xb = 'xb', xt = 'xt', yb = 'yb', yt = 'yt', show_raw = True, return_fig = False):
+    def plot_consensus_mz_features(self, xb = 'xb', xt = 'xt', yb = 'yb', yt = 'yt', show_all = True, return_fig = False):
         """
         Generate Scan Time vs m/z plot of the consensus features scaled by size
-        with option ('show_raw') of leaving the raw data in the figure.
+        with option ('show_all') of leaving the individual m/z features in the figure.
+
+        Parameters
+        -----------
+        xb :  float
+            Desired starting scan time value for the x-axis. Defaults to 0.
+        xt : float
+            Desired ending scan time for the x-axis. Defaults to the maximum scan time value in the provided data.
+        yb :  float
+            Desired starting m/z value for the y-axis. Defaults to 0.
+        yt : float
+            Desired ending m/z for the y-axis. Defaults to the maximum m/z value in the provided data.
+        show_all : boolean
+            Indicates whether to display all identified m/z features (True) or just the consensus features (False). Defaults to True.
+        return_fig : boolean
+            Indicates whether to plot composite feature map (False) or return figure object (True). Defaults to False.
+
+        Returns
+        --------
+        matplotlib.pyplot.Figure
+            A scalable figure that overlays the consensus features over all the m/z features identified in the collection.
+            Consensus features are scaled by how many m/z features are represented in the consensus. Figure can be scaled by
+            inputting desired boundaries on the scan time (xb, xt) and m/z values (yb, yt).
         """
         df = self.cluster_summary_dataframe.copy()
 
@@ -2194,7 +2248,6 @@ class LCMSCollectionCalculations:
         self._sparse_distance_matrix = distances
 
     def evaluate_clusters_for_repeats(self, features):
-        summary_df = self.summarize_clusters(features)
         summary_df = self.cluster_summary_dataframe.copy()
 
         # Arrange by decreasing median intensity
