@@ -1953,18 +1953,19 @@ class LCMSCollectionCalculations:
         mfs_with_clusters.set_index('coll_mf_id', inplace = True)
 
         self.mass_features_dataframe = mfs_with_clusters
-        self.summarize_clusters(mfs_with_clusters)
+        self.cluster_summary_dataframe = self.summarize_clusters()
 
-    def summarize_clusters(self, features):
+    @property
+    def summarize_clusters(self):
         """
         Summarize the clusters of mass features by median attributes
         """
         # First check if there are minimum columns in the features dataframe
-        if len(features.columns) < 1:
+        if len(self.mass_features_dataframe.columns) < 1:
             return None
 
         summary_df = (
-            features.groupby("cluster")
+            self.mass_features_dataframe.groupby("cluster")
             .agg(
                 {
                     "mz": "median",
@@ -1988,7 +1989,7 @@ class LCMSCollectionCalculations:
         ]
         summary_df = summary_df.rename(columns={"cluster_": "cluster"})
         summary_df = summary_df.reset_index(drop=True)
-        self.cluster_summary_dataframe = summary_df
+        return summary_df
 
     def plot_mz_features_per_cluster(self, return_fig = False):
         """
