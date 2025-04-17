@@ -2100,7 +2100,7 @@ class LCMSCollectionCalculations:
         df = self.cluster_summary_dataframe.copy()
 
         fig = plt.figure()
-        if show_raw:
+        if show_all:
             plt.scatter(
                 df.scan_time_aligned,
                 df.mz,
