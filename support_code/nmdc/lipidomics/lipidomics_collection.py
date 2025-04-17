@@ -42,12 +42,7 @@ if __name__ == "__main__":
 
     # Make some plots 
     lcms_collection.plot_tics(type="both")
-    lcms_collection.plot_alignments()
-    lcms_collection.plot_mz_features_across_samples()
-    lcms_collection.plot_mz_features_per_cluster()
-    lcms_collection.plot_consensus_mz_features() ## zoomed out
-    lcms_collection.plot_consensus_mz_features(xb = 10, xt = 15, yb = 500, yt = 600) ## zoomed in 
-    
+    lcms_collection.plot_alignments()    
     # TODO: Think about other plots that would be useful to have here for assessing the quality of the data and alignment
 
     # Make consensus mass features from the consolidated mass features
@@ -55,6 +50,12 @@ if __name__ == "__main__":
     lcms_collection.add_consensus_mass_features()
     # THIS FUNCTION NEEDS WORK AND NEEDS MECHANISM TO EVALUATE THE RESULTS (plots? reports?)
     print("Time to roll up consensus mass features: ", time.time() - start_time, "seconds -", len(lcms_collection.mass_features_dataframe), " total mass features", ncores, " cores")   
+
+    lcms_collection.plot_mz_features_across_samples()
+    lcms_collection.plot_mz_features_per_cluster()
+    lcms_collection.plot_consensus_mz_features() ## zoomed out
+    lcms_collection.plot_consensus_mz_features(xb = 10, xt = 15, yb = 500, yt = 600) ## zoomed in 
+
     
     #TODO: Add code to load and save information about chromatographic settings
     #TODO: Add code to save and load collection to HDF5 file
