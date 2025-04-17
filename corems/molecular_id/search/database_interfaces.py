@@ -1,6 +1,7 @@
 import os
 import re
 from abc import ABC
+from io import StringIO
 
 import numpy as np
 import requests
@@ -31,11 +32,6 @@ class SpectralDatabaseInterface(ABC):
         """
 
         self.key = key
-
-        if self.key is None:
-            raise ValueError(
-                "Must specify environment variable key for token associatedwith this database interface."
-            )
 
     def set_token(self, path):
         """
@@ -167,6 +163,42 @@ class SpectralDatabaseInterface(ABC):
         # Return as JSON
         return response.json()
 
+    def _check_flash_entropy_kwargs(self, fe_kwargs):
+        """
+        Check FlashEntropy keyword arguments.
+
+        Parameters
+        ----------
+        fe_kwargs : dict
+            Keyword arguments for FlashEntropy search.
+
+        
+        Raises
+        ------
+        ValueError
+            If "min_ms2_difference_in_da" or "max_ms2_tolerance_in_da" are present in `fe_kwargs` and they
+            are not equal.
+        
+        """
+        # If "min_ms2_difference_in_da" in fe_kwargs, check that "max_ms2_tolerance_in_da" is also present and that min_ms2_difference_in_da = 2xmax_ms2_tolerance_in_da
+        if (
+            "min_ms2_difference_in_da" in fe_kwargs
+            or "max_ms2_tolerance_in_da" in fe_kwargs
+        ):
+            if (
+                "min_ms2_difference_in_da" not in fe_kwargs
+                or "max_ms2_tolerance_in_da" not in fe_kwargs
+            ):
+                raise ValueError(
+                    "Both 'min_ms2_difference_in_da' and 'max_ms2_tolerance_in_da' must be specified."
+                )
+            if (
+                fe_kwargs["min_ms2_difference_in_da"]
+                != 2 * fe_kwargs["max_ms2_tolerance_in_da"]
+            ):
+                raise ValueError(
+                    "The values of 'min_ms2_difference_in_da' must be exactly 2x 'max_ms2_tolerance_in_da'."
+                )
 
 class MetabRefInterface(SpectralDatabaseInterface):
     """
@@ -179,7 +211,7 @@ class MetabRefInterface(SpectralDatabaseInterface):
 
         """
 
-        super().__init__(key="METABREF_TOKEN")
+        super().__init__(key=None)
 
     def _get_format_func(self, format):
         """
@@ -251,25 +283,7 @@ class MetabRefInterface(SpectralDatabaseInterface):
             If "min_ms2_difference_in_da" or "max_ms2_tolerance_in_da" are present in `fe_kwargs` and they are not equal.
 
         """
-        # If "min_ms2_difference_in_da" in fe_kwargs, check that "max_ms2_tolerance_in_da" is also present and that min_ms2_difference_in_da = 2xmax_ms2_tolerance_in_da
-        if (
-            "min_ms2_difference_in_da" in fe_kwargs
-            or "max_ms2_tolerance_in_da" in fe_kwargs
-        ):
-            if (
-                "min_ms2_difference_in_da" not in fe_kwargs
-                or "max_ms2_tolerance_in_da" not in fe_kwargs
-            ):
-                raise ValueError(
-                    "Both 'min_ms2_difference_in_da' and 'max_ms2_tolerance_in_da' must be specified."
-                )
-            if (
-                fe_kwargs["min_ms2_difference_in_da"]
-                != 2 * fe_kwargs["max_ms2_tolerance_in_da"]
-            ):
-                raise ValueError(
-                    "The values of 'min_ms2_difference_in_da' must be exactly 2x 'max_ms2_tolerance_in_da'."
-                )
+        self._check_flash_entropy_kwargs(fe_kwargs)
 
         # Initialize empty library
         fe_lib = []
@@ -658,7 +672,7 @@ class MetabRefLCInterface(MetabRefInterface):
 
         """
 
-        super().__init__()
+        super().__init__(key=None)
 
         # API endpoint for precursor m/z search
         # inputs = mz, tolerance (in Da), polarity, page_no, per_page
@@ -904,3 +918,123 @@ class MetabRefLCInterface(MetabRefInterface):
         format_func = self._get_format_func(format)
         lib = format_func(lib, normalize=normalize, fe_kwargs=fe_kwargs)
         return (lib, mol_data_dict)
+
+
+class MSPInterface(SpectralDatabaseInterface):
+    """
+    Interface to parse NIST MSP files 
+    """
+
+    def __init__(self, file_path):
+        """
+        Initialize instance.
+
+        """
+
+        super().__init__(key=None)
+        #TODO KRH: Add support to read from S3 path rather than local
+        self.file_path = file_path
+        with open(self.file_path, "r") as f:
+            self._file_content = f.read()
+        self.__init_format_map__()
+
+    def __init_format_map__(self):
+        """
+        Initialize database format mapper, enabling multiple format requests.
+
+        """
+
+        # Define format workflows
+        self.format_map = {
+            "msp": lambda x, normalize, fe_kwargs: self._to_msp(x, normalize),
+            "flashentropy": lambda x, normalize, fe_kwargs: self._to_flashentropy(
+                x, normalize, fe_kwargs
+            ),
+            "df": lambda x, normalize, fe_kwargs: self._to_df(),
+        }
+
+        # Add aliases
+        self.format_map["fe"] = self.format_map["flashentropy"]
+        self.format_map["flash-entropy"] = self.format_map["flashentropy"]
+        self.format_map["dataframe"] = self.format_map["df"]
+        self.format_map["data-frame"] = self.format_map["df"]
+    
+    def _to_df(self):
+        """
+        Reads the MSP files into the pandas dataframe, and sort/remove zero intensity ions in MS/MS spectra.
+
+        Returns
+        -------
+        :obj:`~pandas.DataFrame`
+            DataFrame of spectra from the MSP file, exacly as it is in the file (no sorting, filtering etc)
+        """
+
+        spectra = []
+        spectrum = {}
+
+        f = StringIO(self._file_content)
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue  # Skip empty lines
+
+            # Handle metadata
+            if ":" in line:
+                key, value = line.split(":", 1)
+                key = key.strip().lower()
+                value = value.strip()
+
+                if key == "name":
+                    # Save current spectrum and start a new one
+                    if spectrum:
+                        spectra.append(spectrum)
+                    spectrum = {"name": value, "peaks": []}
+                else:
+                    spectrum[key] = value
+
+            # Handle peak data (assumed to start with a number)
+            elif line[0].isdigit():
+                peaks = line.split()
+                m_z = float(peaks[0])
+                intensity = float(peaks[1])
+                spectrum["peaks"].append(([m_z, intensity]))
+        # Save the last spectrum
+        if spectrum:
+            spectra.append(spectrum)
+
+        df = pd.DataFrame(spectra)
+        for column in df.columns:
+            if column != "peaks":  # Skip 'peaks' column
+                try:
+                    df[column] = pd.to_numeric(df[column], errors="raise")
+                except:
+                    pass
+        return df
+    
+    def _to_flashentropy(self, normalize=True, fe_kwargs={}):
+        """
+        Convert MSP-formatted library to FlashEntropy library.
+
+        Parameters
+        ----------
+        normalize : bool
+            Normalize each spectrum by its magnitude.
+        fe_kwargs : dict, optional
+            Keyword arguments for instantiation of FlashEntropy search and building index for FlashEntropy search;
+            any keys not recognized will be ignored. By default, all parameters set to defaults.
+
+        Returns
+        -------
+        :obj:`~ms_entropy.FlashEntropySearch`
+            MS2 library as FlashEntropy search instance.
+
+        Raises
+        ------
+        ValueError
+            If "min_ms2_difference_in_da" or "max_ms2_tolerance_in_da" are present in `fe_kwargs` and they
+        """
+        self._check_flash_entropy_kwargs(fe_kwargs)
+
+        #TODO KRH: Add support to convert MSP to FlashEntropy here
+
+
