@@ -1556,6 +1556,10 @@ class LCMSCollection(LCMSCollectionCalculations):
         self._combined_mass_features = df
     
     @property
+    def cluster_summary_dataframe(self):
+        return self.summarize_clusters()
+    
+    @property
     def samples(self):
         manifest_df = self.manifest_dataframe
         # order by batch, then by order

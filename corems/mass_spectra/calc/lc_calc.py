@@ -1953,9 +1953,7 @@ class LCMSCollectionCalculations:
         mfs_with_clusters.set_index('coll_mf_id', inplace = True)
 
         self.mass_features_dataframe = mfs_with_clusters
-        self.cluster_summary_dataframe = self.summarize_clusters()
 
-    @property
     def summarize_clusters(self):
         """
         Summarize the clusters of mass features by median attributes
