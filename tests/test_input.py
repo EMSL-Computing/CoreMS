@@ -328,3 +328,53 @@ def test_import_thermo_average():
 
     assert mass_spectrum.to_dataframe().shape[0] == 1518
     assert round(mass_spectrum[0].mz_exp, 0) == 100
+
+
+
+def test_import_thermo_parse_metadata():
+    file_location = Path.cwd() / "tests/tests_data/lcms/" / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.raw"
+
+    # creates the parser obj
+    parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
+
+    # Get instrument data
+    instrument_data = parser.get_instrument_data()
+    assert instrument_data['Model'] == 'Orbitrap Velos Pro'
+
+    # Get the scan header
+    scan_header = parser.get_scan_header(1)
+    assert scan_header['AGC:'] == 'On'
+
+    # Get all scan filters
+    filters = parser.get_all_filters()
+    assert filters[0][1] == 'FTMS - p ESI Full ms [200.00-2000.00]'
+
+    # Read the instrument method 
+    instrument_methods = parser.get_instrument_methods()
+    assert instrument_methods[0][:10] == 'Creator: L'
+
+    # Read it without attempting to parse the strings
+    instrument_methods = parser.get_instrument_methods(parse_strings=False)
+    assert instrument_methods[0][:10] == 'Creator: L'
+
+    # Get the tune file method 
+    tune_methods = parser.get_tune_method()
+    assert tune_methods['Tune File Values']['Source Type:'] == 'HESI'
+
+    # Read the status logs
+    status_log = parser.get_status_log(retention_time=1)
+    assert status_log['API SOURCE']['Source Voltage (kV):'] == '3.48'
+
+    # Read the error logs
+    error_logs = parser.get_error_logs()
+    #assert error_logs[0]['message'] == 'm/z: 202.00000' # This fails as the dictionary is populated in a different order locally or on GIT CI/CD
+    assert any(entry['message'] == 'm/z: 202.00000' for entry in error_logs.values())
+
+    # Read the sample information
+    sampleinfo = parser.get_sample_information()
+    assert sampleinfo['BarcodeStatus'] == 'NotRead'
+
+    # Close the file
+    parser.close_file()
+    assert parser.iRawDataPlus.get_IsOpen() == False
+

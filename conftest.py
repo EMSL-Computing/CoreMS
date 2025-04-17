@@ -34,3 +34,10 @@ def bruker_transient(ftms_file_location):
     bruker_transient = bruker_reader.get_transient()
 
     return bruker_transient
+
+@pytest.fixture
+def postgres_database():
+    """Returns the location of the postgres database for the tests"""
+    # Change this if running locally or the DB is running in a different location
+    #return "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp" ## Docker install, e.g. local
+    return "postgresql://coremsdb:coremsmolform@postgres:5432/molformula" ## Git CI/CD Build Pipeline

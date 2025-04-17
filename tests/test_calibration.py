@@ -80,10 +80,10 @@ def test_segmentedmzcalibration(mass_spectrum_ftms, ref_file_location):
     assert mass_spectrum_ftms.calibration_RMS < 2
 
 
-def test_old_calibration(mass_spectrum_ftms):
+def test_old_calibration(mass_spectrum_ftms, postgres_database):
     usedatoms = {"C": (1, 100), "H": (4, 200), "O": (1, 10)}
 
-    mass_spectrum_ftms.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
+    mass_spectrum_ftms.molecular_search_settings.url_database = postgres_database
     mass_spectrum_ftms.molecular_search_settings.error_method = "None"
     mass_spectrum_ftms.molecular_search_settings.min_ppm_error = -5
     mass_spectrum_ftms.molecular_search_settings.max_ppm_error = 5

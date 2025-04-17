@@ -49,7 +49,7 @@ CoreMS aims to provide
 
 ## Current Version
 
- `3.3.0`
+ `3.4.1`
 
 ***
 
@@ -151,6 +151,7 @@ As an open source project, CoreMS welcomes contributions of all forms. Before co
 - Calculated ICR Resolving Power based on magnetic field (B), and transient time(T)
 
 ### LC-MS Signal Processing, Molecular Formula Search and Assignment, and Spectral Similarity Searches
+See walkthough in [this notebook](examples/notebooks/LCMS_data_walkthrough.ipynb)
 - Two dimensional (m/z and retention time) peak picking using persistent homology
 - Smoothing, cetroid detection, and integration of extracted ion chromatograms
 - Peak shape metric calculations including half peak height, tailing factor, and dispersity index
@@ -335,11 +336,11 @@ UML (unified modeling language) diagrams for Direct Infusion FT-MS and GC-MS cla
 
 If you use CoreMS in your work, please use the following citation:
 
-Version [3.3.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v3.3.0), archived on Zenodo:  
+Version [3.4.1 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v3.4.1), archived on Zenodo:  
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14009575.svg)](https://doi.org/10.5281/zenodo.14009575)
 
-Yuri E. Corilo, William R. Kew, Lee Ann McCue, Katherine R . Heal, James C. Carr (2024, October 29). EMSL-Computing/CoreMS: CoreMS 3.3.0 (Version v3.3.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.14009575
+Yuri E. Corilo, William R. Kew, Lee Ann McCue, Katherine R . Heal, James C. Carr (2024, October 29). EMSL-Computing/CoreMS: CoreMS 3.4.1 (Version v3.4.1), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.14009575
 
 ```
 

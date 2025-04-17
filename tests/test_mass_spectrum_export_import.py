@@ -8,7 +8,7 @@ from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 
 
 @pytest.fixture
-def mass_spectrum_silico():
+def mass_spectrum_silico(postgres_database):
     # Test for generating accurate molecular formula from a single mass using the local sql database
     # Now also tests that it is handling isotopes correctly (for non-adducts)
     mz = [760.58156938877, 761.58548]
@@ -23,7 +23,7 @@ def mass_spectrum_silico():
     mass_spectrum_obj.settings.noise_threshold_method = "relative_abundance"
     mass_spectrum_obj.settings.noise_threshold_absolute_abundance = 0
 
-    mass_spectrum_obj.molecular_search_settings.url_database = "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"
+    mass_spectrum_obj.molecular_search_settings.url_database = postgres_database
     mass_spectrum_obj.molecular_search_settings.error_method = "None"
     mass_spectrum_obj.molecular_search_settings.min_ppm_error = -5
     mass_spectrum_obj.molecular_search_settings.max_ppm_error = 5
