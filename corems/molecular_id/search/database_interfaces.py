@@ -199,6 +199,74 @@ class SpectralDatabaseInterface(ABC):
                 raise ValueError(
                     "The values of 'min_ms2_difference_in_da' must be exactly 2x 'max_ms2_tolerance_in_da'."
                 )
+    
+    @staticmethod
+    def normalize_peaks(arr):
+        """
+        Normalize peaks in an array.
+
+        Parameters
+        ----------
+        arr : :obj:`~numpy.array`
+            Array of shape (N, 2), with m/z in the first column and abundance in
+            the second.
+
+        Returns
+        -------
+        :obj:`~numpy.array`
+            Normalized array of shape (N, 2), with m/z in the first column and
+            normalized abundance in the second.
+        """
+        # Normalize the array
+        arr[:, -1] = arr[:, -1] / arr[:, -1].sum()
+
+        return arr
+    
+    @staticmethod
+    def _build_flash_entropy_index(
+        fe_lib, fe_kwargs={}, clean_spectra=True
+    ):
+        """
+        Build FlashEntropy index.
+
+        Parameters
+        ----------
+        fe_lib : list
+            List of spectra to build index from. Can be a list of dictionaries or
+            a FlashEntropy search instance.
+        fe_kwargs : dict, optional
+            Keyword arguments for FlashEntropy search.
+        clean_spectra : bool, optional
+            Clean spectra before building index. Default is True.
+
+        Returns
+        -------
+        :obj:`~ms_entropy.FlashEntropySearch`
+            FlashEntropy search instance.
+
+        """
+        # Initialize FlashEntropy
+        fe_init_kws = [
+            "max_ms2_tolerance_in_da",
+            "mz_index_step",
+            "low_memory",
+            "path_data",
+        ]
+        fe_init_kws = {k: v for k, v in fe_kwargs.items() if k in fe_init_kws}
+        fes = FlashEntropySearch(**fe_init_kws)
+
+        # Build FlashEntropy index
+        fe_index_kws = [
+            "max_indexed_mz",
+            "precursor_ions_removal_da",
+            "noise_threshold",
+            "min_ms2_difference_in_da",
+            "max_peak_num",
+        ]
+        fe_index_kws = {k: v for k, v in fe_kwargs.items() if k in fe_index_kws}
+        fes.build_index(fe_lib, **fe_index_kws, clean_spectra=clean_spectra)
+
+        return fes
 
 class MetabRefInterface(SpectralDatabaseInterface):
     """
@@ -252,9 +320,8 @@ class MetabRefInterface(SpectralDatabaseInterface):
             re.findall(r"\(([^,]+),([^)]+)\)", spectrum), dtype=float
         ).reshape(-1, 2)
 
-        # Normalize the array
         if normalize:
-            arr[:, -1] = arr[:, -1] / arr[:, -1].sum()
+            arr = self.normalize_peaks(arr)
 
         return arr
 
@@ -308,28 +375,10 @@ class MetabRefInterface(SpectralDatabaseInterface):
             # Add spectrum to library
             fe_lib.append(spectrum)
 
-        # Initialize FlashEntropy
-        fe_init_kws = [
-            "max_ms2_tolerance_in_da",
-            "mz_index_step",
-            "low_memory",
-            "path_data",
-        ]
-        fe_init_kws = {k: v for k, v in fe_kwargs.items() if k in fe_init_kws}
-        fes = FlashEntropySearch(**fe_init_kws)
-
         # Build FlashEntropy index
-        fe_index_kws = [
-            "max_indexed_mz",
-            "precursor_ions_removal_da",
-            "noise_threshold",
-            "min_ms2_difference_in_da",
-            "max_peak_num",
-        ]
-        fe_index_kws = {k: v for k, v in fe_kwargs.items() if k in fe_index_kws}
-        fes.build_index(fe_lib, **fe_index_kws, clean_spectra=True)
+        fe_search = self._build_flash_entropy_index(fe_lib, fe_kwargs=fe_kwargs)
 
-        return fes
+        return fe_search
 
     def _dict_to_dataclass(self, metabref_lib, data_class):
         """
@@ -929,13 +978,28 @@ class MSPInterface(SpectralDatabaseInterface):
         """
         Initialize instance.
 
-        """
+        Parameters
+        ----------
+        file_path : str
+            Path to the MSP file or S3 path to the MSP file.
 
+        Attributes
+        ----------
+        file_path : str
+            Path to the MSP file or S3 path to the MSP file.
+        _file_content : str
+            Content of the MSP file.
+        _data_frame : :obj:`~pandas.DataFrame`
+            DataFrame of spectra from the MSP file with unaltered content.
+        """
         super().__init__(key=None)
+
         #TODO KRH: Add support to read from S3 path rather than local
         self.file_path = file_path
         with open(self.file_path, "r") as f:
             self._file_content = f.read()
+
+        self._data_frame = self._to_df()
         self.__init_format_map__()
 
     def __init_format_map__(self):
@@ -1035,6 +1099,52 @@ class MSPInterface(SpectralDatabaseInterface):
         """
         self._check_flash_entropy_kwargs(fe_kwargs)
 
-        #TODO KRH: Add support to convert MSP to FlashEntropy here
+        db_df = self._data_frame.copy()
 
+        # Convert to dictionary
+        db_dict = db_df.to_dict(orient="records")
+
+        # Initialize empty library
+        fe_lib = []
+
+        # Enumerate spectra
+        for i, source in enumerate(db_dict):
+            # Reorganize source dict, if necessary
+            if "spectrum_data" in source.keys():
+                spectrum = source["spectrum_data"]
+            else:
+                spectrum = source
+
+            # Rename precursor_mz key for FlashEntropy
+            if "precursor_mz" not in spectrum.keys():
+                if "precursormz" in spectrum:
+                    spectrum["precursor_mz"] = spectrum.pop("precursormz")
+                elif "precursor_ion" in spectrum:
+                    spectrum["precursor_mz"] = spectrum.pop("precursor_ion")
+                else:
+                    raise KeyError(
+                        "MSP must have either 'precursormz' or 'precursor_ion' key to be converted to FlashEntropy format."
+                    )
+
+            # Check that spectrum["peaks"] exists
+            if "peaks" not in spectrum.keys():
+                raise KeyError(
+                    "MSP not interpretted correctly, 'peaks' key not found in spectrum, check _dataframe attribute."
+                ) 
+            
+            # Convert spectrum["peaks"] to numpy array
+            if not isinstance(spectrum["peaks"], np.ndarray):
+                spectrum["peaks"] = np.array(spectrum["peaks"])
+            
+            # Normalize peaks, if requested
+            if normalize:
+                spectrum["peaks"] = self.normalize_peaks(spectrum["peaks"])
+
+            # Add spectrum to library
+            fe_lib.append(spectrum)
+        
+        # Build FlashEntropy index
+        fe_search = self._build_flash_entropy_index(fe_lib, fe_kwargs=fe_kwargs)
+
+        return fe_search
 
