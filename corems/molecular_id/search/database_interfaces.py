@@ -2,6 +2,7 @@ import os
 import re
 from abc import ABC
 from io import StringIO
+from pathlib import Path
 
 import numpy as np
 import requests
@@ -172,13 +173,13 @@ class SpectralDatabaseInterface(ABC):
         fe_kwargs : dict
             Keyword arguments for FlashEntropy search.
 
-        
+
         Raises
         ------
         ValueError
             If "min_ms2_difference_in_da" or "max_ms2_tolerance_in_da" are present in `fe_kwargs` and they
             are not equal.
-        
+
         """
         # If "min_ms2_difference_in_da" in fe_kwargs, check that "max_ms2_tolerance_in_da" is also present and that min_ms2_difference_in_da = 2xmax_ms2_tolerance_in_da
         if (
@@ -199,7 +200,7 @@ class SpectralDatabaseInterface(ABC):
                 raise ValueError(
                     "The values of 'min_ms2_difference_in_da' must be exactly 2x 'max_ms2_tolerance_in_da'."
                 )
-    
+
     @staticmethod
     def normalize_peaks(arr):
         """
@@ -221,11 +222,9 @@ class SpectralDatabaseInterface(ABC):
         arr[:, -1] = arr[:, -1] / arr[:, -1].sum()
 
         return arr
-    
+
     @staticmethod
-    def _build_flash_entropy_index(
-        fe_lib, fe_kwargs={}, clean_spectra=True
-    ):
+    def _build_flash_entropy_index(fe_lib, fe_kwargs={}, clean_spectra=True):
         """
         Build FlashEntropy index.
 
@@ -267,6 +266,7 @@ class SpectralDatabaseInterface(ABC):
         fes.build_index(fe_lib, **fe_index_kws, clean_spectra=clean_spectra)
 
         return fes
+
 
 class MetabRefInterface(SpectralDatabaseInterface):
     """
@@ -420,10 +420,10 @@ class MetabRefInterface(SpectralDatabaseInterface):
             if key not in input_dict.keys():
                 input_dict[key] = None
         return data_class(**input_dict)
-    
+
     def get_query(self, url, use_header=False):
         """Overwrites the get_query method on the parent class to default to not use a header
-        
+
         Notes
         -----
         As of January 2025, the metabref database no longer requires a token and therefore no header is needed
@@ -725,13 +725,13 @@ class MetabRefLCInterface(MetabRefInterface):
 
         # API endpoint for precursor m/z search
         # inputs = mz, tolerance (in Da), polarity, page_no, per_page
-        self.PRECURSOR_MZ_URL = (
-            "https://metabref.emsl.pnnl.gov/api/precursors/m/{}/t/{}/{}?page={}&per_page={}"
-        )
+        self.PRECURSOR_MZ_URL = "https://metabref.emsl.pnnl.gov/api/precursors/m/{}/t/{}/{}?page={}&per_page={}"
 
         # API endpoint for returning full list of precursor m/z values in database
         # inputs = polarity, page_no, per_page
-        self.PRECURSOR_MZ_ALL_URL = "https://metabref.emsl.pnnl.gov/api/precursors/{}?page={}&per_page={}"
+        self.PRECURSOR_MZ_ALL_URL = (
+            "https://metabref.emsl.pnnl.gov/api/precursors/{}?page={}&per_page={}"
+        )
 
         self.__init_format_map__()
 
@@ -754,7 +754,9 @@ class MetabRefLCInterface(MetabRefInterface):
         self.format_map["fe"] = self.format_map["flashentropy"]
         self.format_map["flash-entropy"] = self.format_map["flashentropy"]
 
-    def query_by_precursor(self, mz_list, polarity, mz_tol_ppm, mz_tol_da_api=0.2, max_per_page=50):
+    def query_by_precursor(
+        self, mz_list, polarity, mz_tol_ppm, mz_tol_da_api=0.2, max_per_page=50
+    ):
         """
         Query MetabRef by precursor m/z values.
 
@@ -804,23 +806,30 @@ class MetabRefLCInterface(MetabRefInterface):
                 tol = (max(mz_group) - min(mz_group)) / 2 + mz_tol_ppm**-6 * max(
                     mz_group
                 )
-            
+
             # Get first page of results
             response = self.get_query(
-                self.PRECURSOR_MZ_URL.format(str(mz), str(tol), polarity, 1, max_per_page)
+                self.PRECURSOR_MZ_URL.format(
+                    str(mz), str(tol), polarity, 1, max_per_page
+                )
             )
-            lib = lib + response['results']
+            lib = lib + response["results"]
 
             # If there are more pages of results, get them
-            if response['total_pages'] > 1: 
-                for i in np.arange(2, response['total_pages']+1):
-                    lib = lib + self.get_query(
-                        self.PRECURSOR_MZ_URL.format(str(mz), str(tol), polarity, i, max_per_page)
-                        )['results']
+            if response["total_pages"] > 1:
+                for i in np.arange(2, response["total_pages"] + 1):
+                    lib = (
+                        lib
+                        + self.get_query(
+                            self.PRECURSOR_MZ_URL.format(
+                                str(mz), str(tol), polarity, i, max_per_page
+                            )
+                        )["results"]
+                    )
 
         return lib
 
-    def request_all_precursors(self, polarity, per_page = 50000):
+    def request_all_precursors(self, polarity, per_page=50000):
         """
         Request all precursor m/z values for MS2 spectra from MetabRef.
 
@@ -840,18 +849,22 @@ class MetabRefLCInterface(MetabRefInterface):
         if polarity not in ["positive", "negative"]:
             raise ValueError("Polarity must be 'positive' or 'negative'")
 
-        precursors = []    
+        precursors = []
 
         # Get first page of results and total number of pages of results
-        response = self.get_query(self.PRECURSOR_MZ_ALL_URL.format(polarity, str(1), str(per_page)))
-        total_pages = response['total_pages']
-        precursors.extend([x['precursor_ion'] for x in response['results']])
+        response = self.get_query(
+            self.PRECURSOR_MZ_ALL_URL.format(polarity, str(1), str(per_page))
+        )
+        total_pages = response["total_pages"]
+        precursors.extend([x["precursor_ion"] for x in response["results"]])
 
         # Go through remaining pages of results
         for i in np.arange(2, total_pages + 1):
-            response = self.get_query(self.PRECURSOR_MZ_ALL_URL.format(polarity, str(i), str(per_page)))
-            precursors.extend([x['precursor_ion'] for x in response['results']])
-        
+            response = self.get_query(
+                self.PRECURSOR_MZ_ALL_URL.format(polarity, str(i), str(per_page))
+            )
+            precursors.extend([x["precursor_ion"] for x in response["results"]])
+
         # Sort precursors from smallest to largest and remove duplicates
         precursors = list(set(precursors))
         precursors.sort()
@@ -971,7 +984,7 @@ class MetabRefLCInterface(MetabRefInterface):
 
 class MSPInterface(SpectralDatabaseInterface):
     """
-    Interface to parse NIST MSP files 
+    Interface to parse NIST MSP files
     """
 
     def __init__(self, file_path):
@@ -981,12 +994,12 @@ class MSPInterface(SpectralDatabaseInterface):
         Parameters
         ----------
         file_path : str
-            Path to the MSP file or S3 path to the MSP file.
+            Path to a local MSP file.
 
         Attributes
         ----------
         file_path : str
-            Path to the MSP file or S3 path to the MSP file.
+            Path to the MSP file.
         _file_content : str
             Content of the MSP file.
         _data_frame : :obj:`~pandas.DataFrame`
@@ -994,8 +1007,11 @@ class MSPInterface(SpectralDatabaseInterface):
         """
         super().__init__(key=None)
 
-        #TODO KRH: Add support to read from S3 path rather than local
         self.file_path = file_path
+        if not os.path.exists(self.file_path):
+            raise FileNotFoundError(
+                f"File {self.file_path} does not exist. Please check the file path."
+            )
         with open(self.file_path, "r") as f:
             self._file_content = f.read()
 
@@ -1022,7 +1038,7 @@ class MSPInterface(SpectralDatabaseInterface):
         self.format_map["flash-entropy"] = self.format_map["flashentropy"]
         self.format_map["dataframe"] = self.format_map["df"]
         self.format_map["data-frame"] = self.format_map["df"]
-    
+
     def _to_df(self):
         """
         Reads the MSP files into the pandas dataframe, and sort/remove zero intensity ions in MS/MS spectra.
@@ -1074,7 +1090,7 @@ class MSPInterface(SpectralDatabaseInterface):
                 except:
                     pass
         return df
-    
+
     def _to_flashentropy(self, normalize=True, fe_kwargs={}):
         """
         Convert MSP-formatted library to FlashEntropy library.
@@ -1130,21 +1146,20 @@ class MSPInterface(SpectralDatabaseInterface):
             if "peaks" not in spectrum.keys():
                 raise KeyError(
                     "MSP not interpretted correctly, 'peaks' key not found in spectrum, check _dataframe attribute."
-                ) 
-            
+                )
+
             # Convert spectrum["peaks"] to numpy array
             if not isinstance(spectrum["peaks"], np.ndarray):
                 spectrum["peaks"] = np.array(spectrum["peaks"])
-            
+
             # Normalize peaks, if requested
             if normalize:
                 spectrum["peaks"] = self.normalize_peaks(spectrum["peaks"])
 
             # Add spectrum to library
             fe_lib.append(spectrum)
-        
+
         # Build FlashEntropy index
         fe_search = self._build_flash_entropy_index(fe_lib, fe_kwargs=fe_kwargs)
 
         return fe_search
-
