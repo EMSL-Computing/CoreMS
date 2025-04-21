@@ -721,7 +721,7 @@ class MetabRefLCInterface(MetabRefInterface):
 
         """
 
-        super().__init__(key=None)
+        super().__init__()
 
         # API endpoint for precursor m/z search
         # inputs = mz, tolerance (in Da), polarity, page_no, per_page
