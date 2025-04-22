@@ -185,8 +185,6 @@ class MetaboliteMetadata:
     -----------
     id : int
         The id of the compound.
-    name : Optional[str]
-        The name of the compound, preferably the same name as in PubChem.
     cas : str
         The CAS number of the compound.
     inchikey : str
@@ -207,11 +205,14 @@ class MetaboliteMetadata:
         The common name of the compound, preferrably the RefMet name.
     data_id : int
         The id of the compound in the molecularData table.
-    formula : str
+    name : Optional[str]
+        The name of the compound, preferably the same name as in PubChem,
+        Or if a lipid, name as in LipidMaps
+    formula : Optional[str]
         The formula of the compound.
-    pubchem_id : str
+    pubchem_id : Optional[str]
         The PubChem ID of the compound.
-    refmet_id : str
+    refmet_id : Optional[str]
         The RefMet ID of the compound.
     """
 

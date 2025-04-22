@@ -5,33 +5,46 @@ from dataclasses import dataclass
 
 from .EI_SQL import MetaboliteMetadata
 
+_no_default = object()
 @dataclass
 class LipidMetadata(MetaboliteMetadata):
-    def __init__(self, casno: str, structure_level: str, lipid_summed_name: str, lipid_subclass: str, lipid_class: str, lipid_category: str, **kwargs):
-        """
-        Initialize LipidMetadata with specific attributes and pass additional arguments to the superclass.
+    """Dataclass for the Lipid Metadata
 
-        Parameters
-        ----------
-        casno : str
-            The CAS number of the lipid
-        structure_level : str
-            The structure level of the lipid
-        lipid_summed_name : str
-            The summed name of the lipid
-        lipid_subclass : str
-            The subclass of the lipid
-        lipid_class : str
-            The class of the lipid
-        lipid_category : str
-            The category of the lipid
-        kwargs : dict
-            Additional arguments for the superclass
-        """
-        super().__init__(**kwargs)
-        self.casno = casno
-        self.structure_level = structure_level
-        self.lipid_summed_name = lipid_summed_name
-        self.lipid_subclass = lipid_subclass
-        self.lipid_class = lipid_class
-        self.lipid_category = lipid_category
+    Parameters
+    ----------
+    name : str
+        The name of the lipid, using the LIPID MAPS nomenclature
+    casno : str
+        The CAS number of the lipid
+    formula : str
+        The molecular formula of the lipid
+    pubchem_id : str
+        The PubChem ID of the lipid
+    structure_level : str
+        The structure level of the lipid, following the LIPID MAPS classification
+    lipid_summed_name : str
+        The summed name of the lipid, aka lipid species,
+        following the LIPID MAPS classification
+    lipid_subclass : str
+        The subclass of the lipid, following the LIPID MAPS classification
+    lipid_class : str
+        The class of the lipid, following the LIPID MAPS classification
+    lipid_category : str
+        The category of the lipid, following the LIPID MAPS classification
+    """
+
+    casno: str = _no_default
+    pubchem_id: str = _no_default
+    structure_level: str = _no_default
+
+    lipid_summed_name: str = _no_default
+    lipid_subclass: str = _no_default
+    lipid_class: str = _no_default
+    lipid_category: str = _no_default
+
+    def __post_init__(self):
+        for field in self.__dataclass_fields__:
+            if getattr(self, field) is _no_default:
+                raise TypeError(
+                    f"__init__ missing 1 required argument: '{field}'"
+                )
