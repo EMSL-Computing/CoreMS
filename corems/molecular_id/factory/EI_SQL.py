@@ -184,6 +184,8 @@ class MetaboliteMetadata:
     -----------
     id : int
         The id of the compound.
+    name : str
+        The name of the compound, perferrably the same name as in PubChem.
     cas : str
         The CAS number of the compound.
     inchikey : str
@@ -201,13 +203,19 @@ class MetaboliteMetadata:
     traditional_name : str
         The traditional name of the compound.
     common_name : str
-        The common name of the compound.
+        The common name of the compound, preferrably the RefMet name.
     data_id : int
         The id of the compound in the molecularData table.
-
+    formula : str
+        The formula of the compound.
+    pubchem_id : str
+        The PubChem ID of the compound.
+    refmet_id : str
+        The RefMet ID of the compound.
     """
 
     id: int
+    name: str
     cas: str
     inchikey: str
     inchi: str
@@ -218,6 +226,9 @@ class MetaboliteMetadata:
     iupac_name: str
     traditional_name: str
     common_name: str
+    formula: str
+    pubchem_id: str
+    refmet_id: str
 
 
 @dataclass

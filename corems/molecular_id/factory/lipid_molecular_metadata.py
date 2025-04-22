@@ -35,8 +35,6 @@ class LipidMetadata(MetaboliteMetadata):
 
     name: str
     casno: str
-    formula: str
-    pubchem_id: str
     structure_level: str
 
     lipid_summed_name: str

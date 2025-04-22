@@ -9,7 +9,7 @@ import requests
 import pandas as pd
 from ms_entropy import FlashEntropySearch
 
-from corems.molecular_id.factory.EI_SQL import EI_LowRes_SQLite, Metadatar
+from corems.molecular_id.factory.EI_SQL import EI_LowRes_SQLite, Metadatar, MetaboliteMetadata
 from corems.molecular_id.factory.lipid_molecular_metadata import LipidMetadata
 from corems.mass_spectra.calc.lc_calc import find_closest
 
@@ -201,6 +201,62 @@ class SpectralDatabaseInterface(ABC):
                     "The values of 'min_ms2_difference_in_da' must be exactly 2x 'max_ms2_tolerance_in_da'."
                 )
 
+    def _get_format_func(self, format):
+        """
+        Obtain format function by key.
+
+        Returns
+        -------
+        func
+            Formatting function.
+        """
+
+        if format.lower() in self.format_map.keys():
+            return self.format_map[format.lower()]
+
+        raise ValueError(("{} not a supported format.").format(format))
+    
+    def _dict_to_dataclass(self, metabref_lib, data_class):
+        """
+        Convert dictionary to dataclass.
+
+        Notes
+        -----
+        This function will pull the attributes a dataclass and its parent class
+        and convert the dictionary to a dataclass instance with the appropriate
+        attributes.
+
+        Parameters
+        ----------
+        data_class : :obj:`~dataclasses.dataclass`
+            Dataclass to convert to.
+        metabref_lib : dict
+            Metabref dictionary object to convert to dataclass.
+
+        Returns
+        -------
+        :obj:`~dataclasses.dataclass`
+            Dataclass instance.
+
+        """
+
+        # Get list of expected attributes of data_class
+        data_class_keys = list(data_class.__annotations__.keys())
+
+        # Does the data_class inherit from another class, if so, get the attributes of the parent class as well
+        if len(data_class.__mro__) > 2:
+            parent_class_keys = list(data_class.__bases__[0].__annotations__.keys())
+            data_class_keys = list(set(data_class_keys + parent_class_keys))
+
+        # Remove keys that are not in the data_class from the input dictionary
+        input_dict = {k: v for k, v in metabref_lib.items() if k in data_class_keys}
+
+        # Add keys that are in the data class but not in the input dictionary as None
+        for key in data_class_keys:
+            if key not in input_dict.keys():
+                input_dict[key] = None
+        return data_class(**input_dict)
+    
     @staticmethod
     def normalize_peaks(arr):
         """
@@ -280,21 +336,6 @@ class MetabRefInterface(SpectralDatabaseInterface):
         """
 
         super().__init__(key=None)
-
-    def _get_format_func(self, format):
-        """
-        Obtain format function by key.
-
-        Returns
-        -------
-        func
-            Formatting function.
-        """
-
-        if format.lower() in self.format_map.keys():
-            return self.format_map[format.lower()]
-
-        raise ValueError(("{} not a supported format.").format(format))
 
     def spectrum_to_array(self, spectrum, normalize=True):
         """
@@ -379,47 +420,6 @@ class MetabRefInterface(SpectralDatabaseInterface):
         fe_search = self._build_flash_entropy_index(fe_lib, fe_kwargs=fe_kwargs)
 
         return fe_search
-
-    def _dict_to_dataclass(self, metabref_lib, data_class):
-        """
-        Convert dictionary to dataclass.
-
-        Notes
-        -----
-        This function will pull the attributes a dataclass and its parent class
-        and convert the dictionary to a dataclass instance with the appropriate
-        attributes.
-
-        Parameters
-        ----------
-        data_class : :obj:`~dataclasses.dataclass`
-            Dataclass to convert to.
-        metabref_lib : dict
-            Metabref dictionary object to convert to dataclass.
-
-        Returns
-        -------
-        :obj:`~dataclasses.dataclass`
-            Dataclass instance.
-
-        """
-
-        # Get list of expected attributes of data_class
-        data_class_keys = list(data_class.__annotations__.keys())
-
-        # Does the data_class inherit from another class, if so, get the attributes of the parent class as well
-        if len(data_class.__mro__) > 2:
-            parent_class_keys = list(data_class.__bases__[0].__annotations__.keys())
-            data_class_keys = list(set(data_class_keys + parent_class_keys))
-
-        # Remove keys that are not in the data_class from the input dictionary
-        input_dict = {k: v for k, v in metabref_lib.items() if k in data_class_keys}
-
-        # Add keys that are in the data class but not in the input dictionary as None
-        for key in data_class_keys:
-            if key not in input_dict.keys():
-                input_dict[key] = None
-        return data_class(**input_dict)
 
     def get_query(self, url, use_header=False):
         """Overwrites the get_query method on the parent class to default to not use a header
@@ -1030,7 +1030,7 @@ class MSPInterface(SpectralDatabaseInterface):
             "flashentropy": lambda x, normalize, fe_kwargs: self._to_flashentropy(
                 x, normalize, fe_kwargs
             ),
-            "df": lambda x, normalize, fe_kwargs: self._to_df(),
+            "df": lambda x, normalize, fe_kwargs: self._to_df(x),
         }
 
         # Add aliases
@@ -1039,15 +1039,24 @@ class MSPInterface(SpectralDatabaseInterface):
         self.format_map["dataframe"] = self.format_map["df"]
         self.format_map["data-frame"] = self.format_map["df"]
 
-    def _to_df(self):
+    def _to_df(self, input_dataframe=None):
         """
         Reads the MSP files into the pandas dataframe, and sort/remove zero intensity ions in MS/MS spectra.
+
+        Parameters
+        ----------
+        input_dataframe : :obj:`~pandas.DataFrame`, optional
+            DataFrame to be used as input. If None, the MSP file will be read and parsed.
+            Default is None.
 
         Returns
         -------
         :obj:`~pandas.DataFrame`
             DataFrame of spectra from the MSP file, exacly as it is in the file (no sorting, filtering etc)
         """
+        # If input_dataframe is provided, return it it
+        if input_dataframe is not None:
+            return input_dataframe
 
         spectra = []
         spectrum = {}
@@ -1091,7 +1100,7 @@ class MSPInterface(SpectralDatabaseInterface):
                     pass
         return df
 
-    def _to_flashentropy(self, normalize=True, fe_kwargs={}):
+    def _to_flashentropy(self, input_dataframe, normalize=True, fe_kwargs={}):
         """
         Convert MSP-formatted library to FlashEntropy library.
 
@@ -1115,7 +1124,7 @@ class MSPInterface(SpectralDatabaseInterface):
         """
         self._check_flash_entropy_kwargs(fe_kwargs)
 
-        db_df = self._data_frame.copy()
+        db_df = input_dataframe
 
         # Convert to dictionary
         db_dict = db_df.to_dict(orient="records")
@@ -1163,3 +1172,109 @@ class MSPInterface(SpectralDatabaseInterface):
         fe_search = self._build_flash_entropy_index(fe_lib, fe_kwargs=fe_kwargs)
 
         return fe_search
+    
+    def _check_msp_compatibility(self):
+        """
+        Check if the MSP file is compatible with the get_metabolomics_spectra_library method and provide feedback if it is not.
+        """
+        # Check polarity 
+        if "polarity" not in self._data_frame.columns and "ionmode" not in self._data_frame.columns:
+            raise ValueError(
+                "Neither 'polarity' nor 'ionmode' columns found in the input MSP metadata. Please check the file."
+        )
+        polarity_column = "polarity" if "polarity" in self._data_frame.columns else "ionmode"
+
+        # Check if polarity_column contents is either "positive" or "negative"
+        if not all(
+            self._data_frame[polarity_column].isin(["positive", "negative"])
+        ):
+            raise ValueError(
+                f"Input field on MSP '{polarity_column}' must contain only 'positive' or 'negative' values."
+            )
+        
+        # Check if the MSP file contains the required columns for metabolite metadata
+        # inchikey, by name, not null
+        # either formula or molecular_formula, not null
+        if not all(
+            self._data_frame["inchikey"].notnull()
+        ):
+            raise ValueError(
+                "Input field on MSP 'inchikey' must contain only non-null values."
+            )
+        if "formula" not in self._data_frame.columns and "molecular_formula" not in self._data_frame.columns:
+            raise ValueError(
+                "Input field on MSP must contain either 'formula' or 'molecular_formula' columns."
+            )
+        molecular_formula_column = (
+            "formula" if "formula" in self._data_frame.columns else "molecular_formula"
+        )
+        if not all(
+            self._data_frame[molecular_formula_column].notnull()
+        ):
+            raise ValueError(
+                f"Input field on MSP '{molecular_formula_column}' must contain only non-null values."
+            )
+    
+    def get_metabolomics_spectra_library(
+        self,
+        polarity,
+        metabolite_metadata_mapping={},
+        format="json",
+        normalize=True,
+        fe_kwargs={},
+    ):
+        """
+        Prepare metabolomics spectra library and associated metabolite metadata
+
+        Note: this uses the inchikey as the index for the metabolite metadata dataframe and for connecting to the spectra, so it must be in the input
+
+        """
+        # Check if the MSP file is compatible with the get_metabolomics_spectra_library method
+        self._check_msp_compatibility()
+
+        # Check if the polarity parameter is valid and if a polarity column exists in the dataframe
+        if polarity not in ["positive", "negative"]:
+            raise ValueError("Polarity must be 'positive' or 'negative'")
+        polarity_column = "polarity" if "polarity" in self._data_frame.columns else "ionmode"
+
+        # Get a subset of the initial dataframea by polarity
+        db_df = self._data_frame[self._data_frame[polarity_column] == polarity].copy()
+        
+        # Rename the columns of the db_df to match the MetaboliteMetadata dataclass using the metabolite_metadata_mapping
+        # If the mapping is not provided, use the default mapping
+        if not metabolite_metadata_mapping:
+            metabolite_metadata_mapping = {
+                "chebi_id": "chebi",
+                "kegg_id": "kegg",
+                "refmet_name":"common_name",
+                "molecular_formula": "formula",
+            }
+        db_df.rename(columns=metabolite_metadata_mapping, inplace=True)
+
+        # Pull out the metabolite metadata from the dataframe and put it into a different dataframe
+        # First get a list of the possible attributes of the MetaboliteMetadata dataclass
+        metabolite_metadata_keys = list(MetaboliteMetadata.__annotations__.keys())
+        metabolite_metadata_df = db_df[
+            db_df.columns[db_df.columns.isin(metabolite_metadata_keys)]
+        ].copy()
+
+        # Make unique and use inchikey as the id/index
+        metabolite_metadata_df.drop_duplicates(subset=["inchikey"], inplace=True)
+        metabolite_metadata_df["id"] = metabolite_metadata_df["inchikey"]
+
+        # Convert to a dictionary using the inchikey as the key
+        metabolite_metadata_dict = metabolite_metadata_df.set_index("id").to_dict(orient="records")
+        metabolite_metadata_dict = {
+            v["inchikey"]: self._dict_to_dataclass(v, MetaboliteMetadata)
+            for v in metabolite_metadata_dict
+        }
+
+        # Remove the metabolite metadata columns from the original dataframe
+        for key in metabolite_metadata_keys:
+            if key in db_df.columns:
+                db_df.drop(columns=key, inplace=True)
+        
+        # Format the spectral library
+        format_func = self._get_format_func(format)
+        lib = format_func(db_df, normalize=normalize, fe_kwargs=fe_kwargs)
+        return (lib, metabolite_metadata_dict)
