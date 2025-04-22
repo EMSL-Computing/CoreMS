@@ -1177,6 +1177,13 @@ class MSPInterface(SpectralDatabaseInterface):
 
         return fe_search
 
+    def _to_msp(self, input_dataframe, normalize=True):
+        #TODO KRH: Write this functionality or remove before merging into master branch
+
+        raise NotImplementedError(
+            "MSP writing functionality not yet implemented."
+        )
+    
     def _check_msp_compatibility(self):
         """
         Check if the MSP file is compatible with the get_metabolomics_spectra_library method and provide feedback if it is not.
@@ -1225,7 +1232,7 @@ class MSPInterface(SpectralDatabaseInterface):
         self,
         polarity,
         metabolite_metadata_mapping={},
-        format="json",
+        format="fe",
         normalize=True,
         fe_kwargs={},
     ):
