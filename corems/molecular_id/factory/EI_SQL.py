@@ -204,14 +204,14 @@ class MetaboliteMetadata:
     traditional_name : str
         The traditional name of the compound.
     common_name : str
-        The common name of the compound, preferably the RefMet name.
+        The common name of the compound, preferrably the RefMet name.
     data_id : int
         The id of the compound in the molecularData table.
-    formula : Optional[str]
+    formula : str
         The formula of the compound.
-    pubchem_id : Optional[str]
+    pubchem_id : str
         The PubChem ID of the compound.
-    refmet_id : Optional[str]
+    refmet_id : str
         The RefMet ID of the compound.
     """
 
