@@ -9,7 +9,11 @@ import requests
 import pandas as pd
 from ms_entropy import FlashEntropySearch
 
-from corems.molecular_id.factory.EI_SQL import EI_LowRes_SQLite, Metadatar, MetaboliteMetadata
+from corems.molecular_id.factory.EI_SQL import (
+    EI_LowRes_SQLite,
+    Metadatar,
+    MetaboliteMetadata,
+)
 from corems.molecular_id.factory.lipid_molecular_metadata import LipidMetadata
 from corems.mass_spectra.calc.lc_calc import find_closest
 
@@ -215,7 +219,7 @@ class SpectralDatabaseInterface(ABC):
             return self.format_map[format.lower()]
 
         raise ValueError(("{} not a supported format.").format(format))
-    
+
     def _dict_to_dataclass(self, metabref_lib, data_class):
         """
         Convert dictionary to dataclass.
@@ -256,7 +260,7 @@ class SpectralDatabaseInterface(ABC):
             if key not in input_dict.keys():
                 input_dict[key] = None
         return data_class(**input_dict)
-    
+
     @staticmethod
     def normalize_peaks(arr):
         """
@@ -1172,49 +1176,51 @@ class MSPInterface(SpectralDatabaseInterface):
         fe_search = self._build_flash_entropy_index(fe_lib, fe_kwargs=fe_kwargs)
 
         return fe_search
-    
+
     def _check_msp_compatibility(self):
         """
         Check if the MSP file is compatible with the get_metabolomics_spectra_library method and provide feedback if it is not.
         """
-        # Check polarity 
-        if "polarity" not in self._data_frame.columns and "ionmode" not in self._data_frame.columns:
+        # Check polarity
+        if (
+            "polarity" not in self._data_frame.columns
+            and "ionmode" not in self._data_frame.columns
+        ):
             raise ValueError(
                 "Neither 'polarity' nor 'ionmode' columns found in the input MSP metadata. Please check the file."
+            )
+        polarity_column = (
+            "polarity" if "polarity" in self._data_frame.columns else "ionmode"
         )
-        polarity_column = "polarity" if "polarity" in self._data_frame.columns else "ionmode"
 
         # Check if polarity_column contents is either "positive" or "negative"
-        if not all(
-            self._data_frame[polarity_column].isin(["positive", "negative"])
-        ):
+        if not all(self._data_frame[polarity_column].isin(["positive", "negative"])):
             raise ValueError(
                 f"Input field on MSP '{polarity_column}' must contain only 'positive' or 'negative' values."
             )
-        
+
         # Check if the MSP file contains the required columns for metabolite metadata
         # inchikey, by name, not null
         # either formula or molecular_formula, not null
-        if not all(
-            self._data_frame["inchikey"].notnull()
-        ):
+        if not all(self._data_frame["inchikey"].notnull()):
             raise ValueError(
                 "Input field on MSP 'inchikey' must contain only non-null values."
             )
-        if "formula" not in self._data_frame.columns and "molecular_formula" not in self._data_frame.columns:
+        if (
+            "formula" not in self._data_frame.columns
+            and "molecular_formula" not in self._data_frame.columns
+        ):
             raise ValueError(
                 "Input field on MSP must contain either 'formula' or 'molecular_formula' columns."
             )
         molecular_formula_column = (
             "formula" if "formula" in self._data_frame.columns else "molecular_formula"
         )
-        if not all(
-            self._data_frame[molecular_formula_column].notnull()
-        ):
+        if not all(self._data_frame[molecular_formula_column].notnull()):
             raise ValueError(
                 f"Input field on MSP '{molecular_formula_column}' must contain only non-null values."
             )
-    
+
     def get_metabolomics_spectra_library(
         self,
         polarity,
@@ -1235,18 +1241,20 @@ class MSPInterface(SpectralDatabaseInterface):
         # Check if the polarity parameter is valid and if a polarity column exists in the dataframe
         if polarity not in ["positive", "negative"]:
             raise ValueError("Polarity must be 'positive' or 'negative'")
-        polarity_column = "polarity" if "polarity" in self._data_frame.columns else "ionmode"
+        polarity_column = (
+            "polarity" if "polarity" in self._data_frame.columns else "ionmode"
+        )
 
         # Get a subset of the initial dataframea by polarity
         db_df = self._data_frame[self._data_frame[polarity_column] == polarity].copy()
-        
+
         # Rename the columns of the db_df to match the MetaboliteMetadata dataclass using the metabolite_metadata_mapping
         # If the mapping is not provided, use the default mapping
         if not metabolite_metadata_mapping:
             metabolite_metadata_mapping = {
                 "chebi_id": "chebi",
                 "kegg_id": "kegg",
-                "refmet_name":"common_name",
+                "refmet_name": "common_name",
                 "molecular_formula": "formula",
             }
         db_df.rename(columns=metabolite_metadata_mapping, inplace=True)
@@ -1263,7 +1271,9 @@ class MSPInterface(SpectralDatabaseInterface):
         metabolite_metadata_df["id"] = metabolite_metadata_df["inchikey"]
 
         # Convert to a dictionary using the inchikey as the key
-        metabolite_metadata_dict = metabolite_metadata_df.set_index("id").to_dict(orient="records")
+        metabolite_metadata_dict = metabolite_metadata_df.set_index("id").to_dict(
+            orient="records"
+        )
         metabolite_metadata_dict = {
             v["inchikey"]: self._dict_to_dataclass(v, MetaboliteMetadata)
             for v in metabolite_metadata_dict
@@ -1273,7 +1283,7 @@ class MSPInterface(SpectralDatabaseInterface):
         for key in metabolite_metadata_keys:
             if key in db_df.columns:
                 db_df.drop(columns=key, inplace=True)
-        
+
         # Format the spectral library
         format_func = self._get_format_func(format)
         lib = format_func(db_df, normalize=normalize, fe_kwargs=fe_kwargs)

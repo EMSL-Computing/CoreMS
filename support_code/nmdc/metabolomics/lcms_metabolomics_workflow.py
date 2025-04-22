@@ -1,5 +1,5 @@
-# TODO KRH: This is a work in progress. It is not yet functional but serves as the development testbed for the
-# TODO KRH: LCMS metabolomics workflow.
+# TODO KRH: This is a work in progress. It is not yet complete but serves as the development testbed for the
+# LCMS metabolomics workflow.
 import os
 from pathlib import Path
 from multiprocessing import Pool
@@ -12,8 +12,9 @@ from support_code.nmdc.lipidomics.lipidomics_workflow import (
     add_mass_features,
     molecular_formula_search,
     export_results,
-    run_lipid_sp_ms1
+    run_lipid_sp_ms1,
 )
+
 
 def run_lcms_metabolomics_workflow(
     file_dir,
@@ -37,15 +38,18 @@ def run_lcms_metabolomics_workflow(
     if cores == 1 or len(files_list) == 1:
         for file_in, file_out in list(zip(files_list, out_paths_list)):
             print(f"Processing {file_in}")
-            _ = run_lipid_sp_ms1(
+            run_lipid_sp_ms1(
                 file_in=str(file_in),
                 out_path=str(file_out),
                 params_toml=params_toml,
                 scan_translator=scan_translator,
-                verbose=verbose
+                verbose=verbose,
+                return_mzs=False,
             )
     elif cores > 1:
-        raise ValueError("Parallel processing is not yet supported for LCMS metabolomics workflow.")
+        raise ValueError(
+            "Parallel processing is not yet supported for LCMS metabolomics workflow."
+        )
 
 
 def prepare_metadata(msp_file_path):
@@ -56,44 +60,57 @@ def prepare_metadata(msp_file_path):
         "fe": {"positive": None, "negative": None},
         "molecular_metadata": {},
     }
-    msp_positive, metabolite_metadata_positive = my_msp.get_metabolomics_spectra_library(
-        polarity="positive",
-        format="flashentropy",
-        normalize=True,
-        fe_kwargs={
+    msp_positive, metabolite_metadata_positive = (
+        my_msp.get_metabolomics_spectra_library(
+            polarity="positive",
+            format="flashentropy",
+            normalize=True,
+            fe_kwargs={
                 "normalize_intensity": True,
                 "min_ms2_difference_in_da": 0.02,  # for cleaning spectra
                 "max_ms2_tolerance_in_da": 0.01,  # for setting search space
                 "max_indexed_mz": 3000,
                 "precursor_ions_removal_da": None,
                 "noise_threshold": 0,
-            })
+            },
+        )
+    )
     metadata["fe"]["positive"] = msp_positive
     metadata["molecular_metadata"]["positive"] = metabolite_metadata_positive
 
-    msp_negative, metabolite_metadata_negative = my_msp.get_metabolomics_spectra_library(
-        polarity="negative",
-        format="flashentropy",
-        normalize=True,
-        fe_kwargs={
+    msp_negative, metabolite_metadata_negative = (
+        my_msp.get_metabolomics_spectra_library(
+            polarity="negative",
+            format="flashentropy",
+            normalize=True,
+            fe_kwargs={
                 "normalize_intensity": True,
                 "min_ms2_difference_in_da": 0.02,  # for cleaning spectra
                 "max_ms2_tolerance_in_da": 0.01,  # for setting search space
                 "max_indexed_mz": 3000,
                 "precursor_ions_removal_da": None,
                 "noise_threshold": 0,
-            })
+            },
+        )
+    )
     metadata["fe"]["negative"] = msp_negative
     metadata["molecular_metadata"].update(metabolite_metadata_negative)
 
     return metadata
-    
+
+
 if __name__ == "__main__":
     # Set input variables to run
     msp_file_path = "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/metams/data/databases/20250407_gnps_curated.msp"
-    file_dir = Path("/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_lcms_metab_test_data")
-    params_toml = Path("/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lcms_metabolomics_corems_params.toml")
-    scan_translator = Path("/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lcms_metabolomics_scan_translator.toml")
+    file_dir = Path(
+        "/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_lcms_metab_test_data"
+    )
+    params_toml = Path(
+        "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lcms_metabolomics_corems_params.toml"
+    )
+    scan_translator = Path(
+        "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lcms_metabolomics_scan_translator.toml"
+    )
     out_dir = Path("tmp_data/__lcms_metab_test_data")
     verbose = True
     cores = 1
@@ -112,8 +129,5 @@ if __name__ == "__main__":
         msp_file_path=msp_file_path,
         scan_translator=scan_translator,
         verbose=verbose,
-        cores=cores
+        cores=cores,
     )
-
-
-
