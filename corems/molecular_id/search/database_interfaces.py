@@ -1308,33 +1308,52 @@ class MSPInterface(SpectralDatabaseInterface):
                 "kegg_id": "kegg",
                 "refmet_name": "common_name",
                 "molecular_formula": "formula",
+                "gnps_spectra_id":"id",
+                "precursormz": "precursor_mz",
+                "precursortype":"ion_type"
             }
         db_df.rename(columns=metabolite_metadata_mapping, inplace=True)
+        db_df["molecular_data_id"] = db_df["inchikey"]
+
+
+
+        # Check if the resulting dataframe has the required columns for the flash entropy search
+        required_columns = ["molecular_data_id", "precursor_mz", "ion_type", "id"]
+        for col in required_columns:
+            if col not in db_df.columns:
+                raise ValueError(
+                    f"Input field on MSP must contain '{col}' column for FlashEntropy search."
+                )
 
         # Pull out the metabolite metadata from the dataframe and put it into a different dataframe
         # First get a list of the possible attributes of the MetaboliteMetadata dataclass
         metabolite_metadata_keys = list(MetaboliteMetadata.__annotations__.keys())
+        # Replace id with molecular_data_id in metabolite_metadata_keys
+        metabolite_metadata_keys = [
+            "molecular_data_id" if x == "id" else x for x in metabolite_metadata_keys
+        ]
         metabolite_metadata_df = db_df[
             db_df.columns[db_df.columns.isin(metabolite_metadata_keys)]
         ].copy()
 
-        # Make unique and use inchikey as the id/index
-        metabolite_metadata_df.drop_duplicates(subset=["inchikey"], inplace=True)
-        metabolite_metadata_df["id"] = metabolite_metadata_df["inchikey"]
+        # Make unique and recast the id column for metabolite metadata
+        metabolite_metadata_df.drop_duplicates(subset=["molecular_data_id"], inplace=True)
+        metabolite_metadata_df["id"] = metabolite_metadata_df["molecular_data_id"]
 
         # Convert to a dictionary using the inchikey as the key
-        metabolite_metadata_dict = metabolite_metadata_df.set_index("id").to_dict(
+        metabolite_metadata_dict = metabolite_metadata_df.to_dict(
             orient="records"
         )
         metabolite_metadata_dict = {
-            v["inchikey"]: self._dict_to_dataclass(v, MetaboliteMetadata)
+            v["id"]: self._dict_to_dataclass(v, MetaboliteMetadata)
             for v in metabolite_metadata_dict
         }
 
         # Remove the metabolite metadata columns from the original dataframe
         for key in metabolite_metadata_keys:
-            if key in db_df.columns:
-                db_df.drop(columns=key, inplace=True)
+            if key != "molecular_data_id":
+                if key in db_df.columns:
+                    db_df.drop(columns=key, inplace=True)
 
         # Format the spectral library
         format_func = self._get_format_func(format)

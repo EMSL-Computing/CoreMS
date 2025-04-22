@@ -216,7 +216,6 @@ class MetaboliteMetadata:
     """
 
     id: int
-    name: Optional[str]=None
     cas: str
     inchikey: str
     inchi: str
@@ -227,6 +226,7 @@ class MetaboliteMetadata:
     iupac_name: str
     traditional_name: str
     common_name: str
+    name: Optional[str]=None
     formula: Optional[str]=None
     pubchem_id: Optional[str]=None
     refmet_id: Optional[str]=None
