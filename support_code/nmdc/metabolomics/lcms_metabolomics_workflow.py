@@ -63,7 +63,7 @@ def prepare_metadata(msp_file_path):
     msp_positive, metabolite_metadata_positive = (
         my_msp.get_metabolomics_spectra_library(
             polarity="positive",
-            format="flashentropy",
+            format="df",
             normalize=True,
             fe_kwargs={
                 "normalize_intensity": True,

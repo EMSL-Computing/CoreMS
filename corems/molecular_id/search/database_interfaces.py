@@ -1019,7 +1019,7 @@ class MSPInterface(SpectralDatabaseInterface):
         with open(self.file_path, "r") as f:
             self._file_content = f.read()
 
-        self._data_frame = self._to_df()
+        self._data_frame = self._read_msp_file()
         self.__init_format_map__()
 
     def __init_format_map__(self):
@@ -1028,13 +1028,14 @@ class MSPInterface(SpectralDatabaseInterface):
 
         """
 
+        # x is a pandas dataframe similar to self._data_frame format
         # Define format workflows
         self.format_map = {
             "msp": lambda x, normalize, fe_kwargs: self._to_msp(x, normalize),
             "flashentropy": lambda x, normalize, fe_kwargs: self._to_flashentropy(
                 x, normalize, fe_kwargs
             ),
-            "df": lambda x, normalize, fe_kwargs: self._to_df(x),
+            "df": lambda x, normalize, fe_kwargs: self._to_df(x, normalize),
         }
 
         # Add aliases
@@ -1043,15 +1044,9 @@ class MSPInterface(SpectralDatabaseInterface):
         self.format_map["dataframe"] = self.format_map["df"]
         self.format_map["data-frame"] = self.format_map["df"]
 
-    def _to_df(self, input_dataframe=None):
+    def _read_msp_file(self):
         """
         Reads the MSP files into the pandas dataframe, and sort/remove zero intensity ions in MS/MS spectra.
-
-        Parameters
-        ----------
-        input_dataframe : :obj:`~pandas.DataFrame`, optional
-            DataFrame to be used as input. If None, the MSP file will be read and parsed.
-            Default is None.
 
         Returns
         -------
@@ -1059,9 +1054,6 @@ class MSPInterface(SpectralDatabaseInterface):
             DataFrame of spectra from the MSP file, exacly as it is in the file (no sorting, filtering etc)
         """
         # If input_dataframe is provided, return it it
-        if input_dataframe is not None:
-            return input_dataframe
-
         spectra = []
         spectrum = {}
 
@@ -1104,12 +1096,65 @@ class MSPInterface(SpectralDatabaseInterface):
                     pass
         return df
 
-    def _to_flashentropy(self, input_dataframe, normalize=True, fe_kwargs={}):
+    def _to_df(self, input_dataframe, normalize=True):
         """
-        Convert MSP-formatted library to FlashEntropy library.
+        Convert MSP-derived library to FlashEntropy library. 
 
         Parameters
         ----------
+        input_dataframe : :obj:`~pandas.DataFrame`
+            Input DataFrame containing MSP-formatted spectra.
+        normalize : bool, optional
+            Normalize each spectrum by its magnitude.
+            Default is True.
+
+        Returns
+        -------
+        :obj:`~pandas.DataFrame`
+            DataFrame of with desired normalization
+        """
+        if not normalize:
+            return input_dataframe
+        else:
+            # Convert to dictionary
+            db_dict = input_dataframe.to_dict(orient="records")
+
+            # Initialize empty library
+            lib = []
+
+            # Enumerate spectra
+            for i, source in enumerate(db_dict):
+                spectrum = source
+                # Check that spectrum["peaks"] exists
+                if "peaks" not in spectrum.keys():
+                    raise KeyError(
+                        "MSP not interpretted correctly, 'peaks' key not found in spectrum, check _dataframe attribute."
+                    )
+
+                # Convert spectrum["peaks"] to numpy array
+                if not isinstance(spectrum["peaks"], np.ndarray):
+                    spectrum["peaks"] = np.array(spectrum["peaks"])
+
+                # Normalize peaks, if requested
+                if normalize:
+                    spectrum["peaks"] = self.normalize_peaks(spectrum["peaks"])
+                    spectrum["num peaks"] = len(spectrum["peaks"])
+
+                # Add spectrum to library
+                lib.append(spectrum)
+            
+            # Convert to DataFrame
+            df = pd.DataFrame(lib)
+            return df
+    
+    def _to_flashentropy(self, input_dataframe, normalize=True, fe_kwargs={}):
+        """
+        Convert MSP-derived library to FlashEntropy library.
+
+        Parameters
+        ----------
+        input_dataframe : :obj:`~pandas.DataFrame`
+            Input DataFrame containing MSP-formatted spectra.
         normalize : bool
             Normalize each spectrum by its magnitude.
         fe_kwargs : dict, optional
