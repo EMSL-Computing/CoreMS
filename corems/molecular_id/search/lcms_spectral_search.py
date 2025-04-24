@@ -61,10 +61,13 @@ class LCMSSpectralSearch:
 
         """
 
-        # Get the original mz values from the library entry
-        lib_mzs = np.array(
-            re.findall(r"\(([^,]+),([^)]+)\)", lib_entry["mz"]), dtype=float
-        ).reshape(-1, 2)[:, 0]
+        if "mz" in lib_entry.keys():
+            # Get the original mz values from the library entry
+            lib_mzs = np.array(
+                re.findall(r"\(([^,]+),([^)]+)\)", lib_entry["mz"]), dtype=float
+            ).reshape(-1, 2)[:, 0]
+        elif "peaks" in lib_entry.keys() and lib_entry["peaks"] is not None:
+            lib_mzs = lib_entry["peaks"][:, 0]
 
         # Get count and fraction of peaks in query that are in lib entry
         query_in_lib = 0
