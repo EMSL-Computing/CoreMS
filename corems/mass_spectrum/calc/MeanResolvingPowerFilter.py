@@ -36,6 +36,7 @@ class MeanResolvingPowerFilter:
     ndeviations (int): The number of standard deviations used for filtering.
     plot (bool): Flag indicating whether to plot the results.
     guess_pars (bool): Flag indicating whether to guess the parameters for the Gaussian model.
+    return_rps (bool): Flag indicating whether to return the calculated resolving powers, will return the NORMALISED resolving power, the mean, and the standard deviation.
 
     Methods
     ------
@@ -58,6 +59,7 @@ class MeanResolvingPowerFilter:
         ndeviations: float = 3,
         plot: bool = False,
         guess_pars: bool = False,
+        return_rps: bool = False,
     ):
         # we dont want the assignments made in this exploratory class to copy to the original object, so we make a copy of it.
         # Possible future task - make mass spectrum base class copyable...
@@ -67,6 +69,7 @@ class MeanResolvingPowerFilter:
         self.plot = plot
         self.ndeviations = ndeviations
         self.guess_pars = guess_pars
+        self.return_rps = return_rps
 
     def extract_peaks(self):
         """Extracts the peaks from the mass spectrum.
@@ -161,6 +164,8 @@ class MeanResolvingPowerFilter:
 
         ndevs = self.ndeviations / 2
         rps_thresh = [mean_res - (fwhm_res * ndevs), mean_res + (fwhm_res * ndevs)]
+        if self.return_rps:
+            return rps_thresh, mean_res, std_res
         return rps_thresh
 
     def create_index_list_to_remove(self, tmpdf_ms, rps_thresh: list):
@@ -196,6 +201,12 @@ class MeanResolvingPowerFilter:
         """
         tmpdf_ms = self.extract_peaks()
         tmpdf_ms = self.normalise_rps(tmpdf_ms)
-        rps_thresh = self.calculate_distribution(tmpdf_ms)
+        if self.return_rps:
+            rps_thresh, mean_res, std_res = self.calculate_distribution(tmpdf_ms)
+        else:
+            rps_thresh = self.calculate_distribution(tmpdf_ms)
         index_to_remove = self.create_index_list_to_remove(tmpdf_ms, rps_thresh)
-        return index_to_remove
+        if self.return_rps:
+            return index_to_remove, rps_thresh, mean_res, std_res
+        else:
+            return index_to_remove
