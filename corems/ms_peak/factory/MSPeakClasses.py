@@ -416,8 +416,13 @@ class ICRMassPeak(_MSPeak):
     def __init__(self, *args, ms_parent=None, exp_freq=None):
         super().__init__(*args, exp_freq=exp_freq, ms_parent=ms_parent)
 
-    def resolving_power_calc(self, B, T):
+    def resolving_power_calc(self, B, T, apodization_method: str = None):#, kaiser_beta: float = None):
         """Calculate the theoretical resolving power of the peak.
+        
+        Note this presumes magntiude mode Fourier transform and fundamental frequency detection.
+        If you are doing aFT/eFT, or 2nd harmonic detection, you should adjust the B or T values accordingly.
+        Note that the window function corrections are an approximation and may not be 100% accurate. 
+        Encourage you to use with caution and/or re-do the derivation independently and update....
 
         Parameters
         ----------
@@ -425,22 +430,66 @@ class ICRMassPeak(_MSPeak):
             transient time
         B: float
             Magnetic Filed Strength (Tesla)
+        apodization_method: str, optional
+            The apodization method applied to the transient prior to FFT.
+            Default is None.
 
         Returns
         -------
         float
-            Theoretical resolving power of the peak.
+            Theoretical resolving power of the peak, with magnitude mode Fourier transform and fundamental frequency detection.
+        
 
         References
         ----------
         1. Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)
             DOI: 10.1002/(SICI)1098-2787(1998)17:1<1::AID-MAS1>3.0.CO;2-K
         """
-        return (1.274e7 * self.ion_charge * B * T) / (self.mz_exp * self.ion_charge)
+        #Calculate theoretical low pressure limit (undamped) ICR resolving power
+        RP_unwindowed = (1.274e7 * self.ion_charge * B * T) / (self.mz_exp * self.ion_charge)
 
-    def set_calc_resolving_power(self, B: float, T: float):
+        # Default correction factor (no windowing)
+        CF = 1.0
+
+        # Apply correction factor based on the window function
+        if apodization_method == "Rectangular" or apodization_method is None:
+            CF = 1.0
+        elif apodization_method == "Hamming":
+            CF = 0.685
+        elif apodization_method == "Hanning":
+            CF = 0.618 
+        elif apodization_method == "Blackman":
+            CF = 0.530
+        elif apodization_method == "Full-Sine":
+            CF = 0.736
+        elif apodization_method == "Half-Sine" or apodization_method == "Kaiser" or apodization_method == "Half-Kaiser":
+            raise ValueError(f"Apodization method {apodization_method} not supported yet")
+        else:
+            raise ValueError(f"Unknown window function: {apodization_method}")
+        
+        ''' # This was placeholder code, not sure these CF and equations are correct.
+        elif apodization_method == "Half-Sine":
+            CF = 0.85  # Approximate value
+        elif apodization_method == "Kaiser":
+            if kaiser_beta is not None:
+                CF = 1.3975 / (kaiser_beta + 0.5)
+            else:
+                raise ValueError("Beta parameter is required for Kaiser window")
+        elif apodization_method == "Half-Kaiser":
+            if kaiser_beta is not None:
+                k_half = 0.85  # Adjust this factor based on empirical data or literature
+                CF = (1.3975 / (kaiser_beta + 0.5)) * k_half
+            else:
+                raise ValueError("Beta parameter is required for Half-Kaiser window")
+        '''
+
+        # Adjusted resolving power after applying the window function
+        RP_windowed = RP_unwindowed * CF
+        return RP_windowed
+
+    def set_calc_resolving_power(self, B: float, T: float, apodization_method: str = None):
         """Set the resolving power of the peak to the calculated one."""
-        self.resolving_power = self.resolving_power_calc(B, T)
+        self.resolving_power = self.resolving_power_calc(B, T, apodization_method)
 
     def _mz_to_f_bruker(self):
         """[Not Functional] Convert a peak m/z value to frequency

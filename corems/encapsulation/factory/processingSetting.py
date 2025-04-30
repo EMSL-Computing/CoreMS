@@ -17,7 +17,8 @@ class TransientSetting:
     implemented_apodization_function : tuple
         Available apodization functions
     apodization_method : str
-        Apodization function to use. Hanning is a good default for Fourier transform magnitude mode. For absorption mode processing, Half-Sine or Half-Kaiser may be more appropriate.
+        Apodization function to use. Hanning is a good default for Fourier transform magnitude mode. 
+        For absorption mode processing, Half-Sine or Half-Kaiser may be more appropriate.
     number_of_truncations : int
         How many times to truncate the transient prior to Fourier transform
     number_of_zero_fills : int
@@ -38,6 +39,7 @@ class TransientSetting:
         "Half-Sine",
         "Kaiser",
         "Half-Kaiser",
+        "Rectangle",
     )
     apodization_method: str = "Hanning"
     number_of_truncations: int = 0
