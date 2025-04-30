@@ -3,8 +3,11 @@
 import os
 from pathlib import Path
 from multiprocessing import Pool
+import warnings
+
 from corems.molecular_id.search.database_interfaces import MSPInterface
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
+from corems.mass_spectra.output.export import LCMSMetabolomicsExport
 
 from support_code.nmdc.lipidomics.lipidomics_workflow import (
     run_lipid_sp_ms1,
@@ -35,7 +38,7 @@ def prepare_metadata(msp_file_path):
         )
     )
     metadata["fe"]["positive"] = msp_positive
-    metadata["molecular_metadata"]["positive"] = metabolite_metadata_positive
+    metadata["molecular_metadata"] = metabolite_metadata_positive
 
     msp_negative, metabolite_metadata_negative = (
         my_msp.get_metabolomics_spectra_library(
@@ -57,6 +60,34 @@ def prepare_metadata(msp_file_path):
 
     return metadata
 
+def export_results(myLCMSobj, out_path, molecular_metadata=None, final=False):
+    """Export results to hdf5 and csv as a lipid report
+
+    Parameters
+    ----------
+    myLCMSobj : corems LCMS object
+        LCMS object to process
+    out_path : str or Path
+        Path to output file
+    molecular_metadata : dict
+        Dict with molecular metadata
+    final : bool
+        Whether to export final results
+
+    Returns
+    -------
+    None, exports results to hdf5 and csv as a lipid report
+    """
+    exporter = LCMSMetabolomicsExport(out_path, myLCMSobj)
+    exporter.to_hdf(overwrite=True)
+    if final:
+        # Do not show warnings, these are expected
+        exporter.report_to_csv(molecular_metadata=molecular_metadata)
+    else:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            exporter.report_to_csv()
+
 def run_ms2_search(out_path, metadata, scan_translator=None):
     """Run ms2 spectral search and export final results
 
@@ -77,6 +108,7 @@ def run_ms2_search(out_path, metadata, scan_translator=None):
     parser = ReadCoreMSHDFMassSpectra(out_path_hdf5)
     myLCMSobj = parser.get_lcms_obj()
     process_ms2(myLCMSobj, metadata, scan_translator=scan_translator)
+    export_results(myLCMSobj, out_path=str(out_path), molecular_metadata=metadata["molecular_metadata"], final=True)
     
 def run_lcms_metabolomics_workflow(
     file_dir,

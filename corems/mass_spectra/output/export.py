@@ -1193,11 +1193,10 @@ class LCMSExport(HighResMassSpectraExport):
                     lcms_obj=self.mass_spectra,
                 )
 
+class LCMSMetabolomicsExport(LCMSExport):
+    """A class to export LCMS metabolite data.
 
-class LipidomicsExport(LCMSExport):
-    """A class to export lipidomics data.
-
-    This class provides methods to export lipidomics data to various formats and summarize the lipid report.
+    This class provides methods to export LCMS metabolite data to various formats and summarize the metabolite report.
 
     Parameters
     ----------
@@ -1210,7 +1209,7 @@ class LipidomicsExport(LCMSExport):
     def __init__(self, out_file_path, mass_spectra):
         super().__init__(out_file_path, mass_spectra)
         self.ion_type_dict = ion_type_dict
-
+    
     @staticmethod
     def get_ion_formula(neutral_formula, ion_type):
         """From a neutral formula and an ion type, return the formula of the ion.
@@ -1311,7 +1310,19 @@ class LipidomicsExport(LCMSExport):
             iso_class = None
 
         return iso_class
+    
+    def report_to_csv(self, molecular_metadata=None):
+        """Create a report of the mass features and their annotations and save it as a CSV file.
 
+        Parameters
+        ----------
+        molecular_metadata : dict, optional
+            The molecular metadata. Default is None.
+        """
+        report = self.to_report(molecular_metadata=molecular_metadata)
+        out_file = self.output_file.with_suffix(".csv")
+        report.to_csv(out_file, index=False)
+    
     def clean_ms1_report(self, ms1_summary_full):
         """Clean the MS1 report.
 
@@ -1364,6 +1375,86 @@ class LipidomicsExport(LCMSExport):
         ms1_summary = ms1_summary.set_index("mf_id")
 
         return ms1_summary
+    
+    def summarize_ms2_report(self, ms2_annot_report):
+        """
+        Summarize the MS2 report.
+
+        Parameters
+        ----------
+        ms2_annot_report : DataFrame
+            The MS2 annotation DataFrame with all annotations, output of mass_features_ms2_annot_to_df.
+        
+        Returns
+        -------
+        """
+    
+    def summarize_metabolomics_report(self, ms2_annot_report):
+        #TODO KRH: Add the summary of the metabolomics report
+        print("not yet implemented")
+
+    def clean_ms2_report(self, ms2_annot_report):
+        #TODO KRH: Add functionality here
+        print("not yet implemented")
+    
+    def combine_reports(self, mf_report, ms1_report, ms2_report):
+        #TODO KRH: Refactor by bringing up functionality from LipidomicsExport to_report function
+        print("not yet implemented")
+    
+    def to_report(self, molecular_metadata=None):
+        """Create a report of the mass features and their annotations.
+
+        Parameters
+        ----------
+        molecular_metadata : dict, optional
+            The molecular metadata. Default is None.
+
+        Returns
+        -------
+        DataFrame
+            The report as a Pandas DataFrame.
+        """
+        # Get mass feature dataframe
+        mf_report = self.mass_spectra.mass_features_to_df()
+        mf_report = mf_report.reset_index(drop=False)
+
+        # Get and clean ms1 annotation dataframe
+        ms1_annot_report = self.mass_spectra.mass_features_ms1_annot_to_df().copy()
+        ms1_annot_report = self.clean_ms1_report(ms1_annot_report)
+        ms1_annot_report = ms1_annot_report.reset_index(drop=False)
+
+        # Get, summarize, and clean ms2 annotation dataframe
+        ms2_annot_report = self.mass_spectra.mass_features_ms2_annot_to_df(
+            molecular_metadata=molecular_metadata
+        )
+        if ms2_annot_report is not None:
+            ms2_annot_report = self.summarize_metabolomics_report(ms2_annot_report)
+            ms2_annot_report = self.clean_ms2_report(ms2_annot_report)
+            ms2_annot_report = ms2_annot_report.dropna(axis=1, how="all")
+            ms2_annot_report = ms2_annot_report.reset_index(drop=False)
+        
+        report = self.combine_reports(
+            mf_report=mf_report,
+            ms1_report=ms1_annot_report,
+            ms2_report=ms2_annot_report
+        )
+
+        return report
+class LipidomicsExport(LCMSMetabolomicsExport):
+    """A class to export lipidomics data.
+
+    This class provides methods to export lipidomics data to various formats and summarize the lipid report.
+
+    Parameters
+    ----------
+    out_file_path : str | Path
+        The output file path, do not include the file extension.
+    mass_spectra : object
+        The high resolution mass spectra object.
+    """
+
+    def __init__(self, out_file_path, mass_spectra):
+        super().__init__(out_file_path, mass_spectra)
 
     def summarize_lipid_report(self, ms2_annot):
         """Summarize the lipid report.
@@ -1772,14 +1863,3 @@ class LipidomicsExport(LCMSExport):
 
         return mf_report
 
-    def report_to_csv(self, molecular_metadata=None):
-        """Create a report of the mass features and their annotations and save it as a CSV file.
-
-        Parameters
-        ----------
-        molecular_metadata : dict, optional
-            The molecular metadata. Default is None.
-        """
-        report = self.to_report(molecular_metadata=molecular_metadata)
-        out_file = self.output_file.with_suffix(".csv")
-        report.to_csv(out_file, index=False)
