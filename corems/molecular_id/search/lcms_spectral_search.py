@@ -242,6 +242,14 @@ class LCMSSpectralSearch:
                             "entropy_similarity": match_scores,
                             "ref_ion_type": ion_types,
                         }
+                        # Add database name, if present
+                        db_name = [
+                            fe_lib[x].get("database_name") for x in match_inds
+                        ]
+                        if db_name is not None:
+                            overall_results_dict[scan_oi][precursor_mz].update(
+                                {"database_name": db_name}
+                            )
                         if get_additional_metrics:
                             more_match_quals = [
                                 self.get_more_match_quals(

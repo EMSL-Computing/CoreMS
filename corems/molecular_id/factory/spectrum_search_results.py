@@ -49,6 +49,8 @@ class SpectrumSearchResults:
         The fragment types of the reference spectrum,
         i.e. LSF (lipid species fragments) or MSF (molecular species fragments),
         generally used for only for lipidomics
+    database_name : str
+        The name of the associated database, i.e. "LipidBlast" or "GNPS"
 
     Methods
     -------
@@ -78,6 +80,7 @@ class SpectrumSearchResults:
             "ref_mz_in_query_n",
             "ref_mz_in_query_fract",
             "ref_frag_types",
+            "database_name",
         ]
         for key in spectral_similarity_search_results.keys():
             if key in attribute_keys:
