@@ -1390,8 +1390,83 @@ class LCMSMetabolomicsExport(LCMSExport):
         """
     
     def summarize_metabolomics_report(self, ms2_annot_report):
-        #TODO KRH: Add the summary of the metabolomics report
-        print("not yet implemented")
+        # Prepare metadata with regards to the molecules
+        ms2_annot_report["chebi"] = (
+                pd.to_numeric(ms2_annot_report["chebi"], errors="coerce")
+                .apply(lambda x: str(int(x)) if pd.notna(x) else None)
+            )
+        mol_data = ms2_annot_report.groupby(["mf_id", "ref_mol_id"]).agg(
+            {
+                "cas": lambda x: ", ".join(x.unique())
+                if x.notna().any() else None,
+                "inchikey": lambda x: ", ".join(x.unique())
+                if x.notna().any() else None,
+                "inchi": lambda x: ", ".join(x.unique())
+                if x.notna().any() else None,
+                "chebi": lambda x:  ", ".join(x.unique())
+                if x.notna().any() else None,
+                "smiles": lambda x: ", ".join(x.unique())
+                if x.notna().any() else None,
+                "kegg": lambda x: ", ".join(x.unique())
+                if x.notna().any() else None,
+                "name": lambda x: ", ".join(x.unique())
+                if x.notna().any() else None,
+                "database_name": lambda x: ", ".join(x.unique())
+            }
+        ).reset_index()
+
+        # Prepare information about the search results, pulling out the best hit for the single report
+        # Group by mf_id,ref_mol_id grab row with highest entropy similarity
+        ms2_annot_report = ms2_annot_report.reset_index()
+        # Add column called "n_spectra_contributing" that is the number of unique values in query_spectrum_id per mf_id,ref_mol_id
+        ms2_annot_report["n_spectra_contributing"] = (
+            ms2_annot_report.groupby(["mf_id", "ref_mol_id"])["query_spectrum_id"]
+            .transform("nunique")
+        )
+        # Sort by entropy similarity
+        ms2_annot_report = ms2_annot_report.sort_values(
+            by=["mf_id", "ref_mol_id", "entropy_similarity"], ascending=[True, True, False]
+        )
+        best_entropy = ms2_annot_report.drop_duplicates(
+            subset=["mf_id", "ref_mol_id"], keep="first"
+        )
+        best_entropy = best_entropy[
+            [
+                "mf_id",
+                "ref_mol_id",
+                "ref_ms_id",
+                "entropy_similarity",
+                "ref_ion_type",
+                "ref_mz_in_query_fract",
+                "n_spectra_contributing"
+            ]
+        ].copy()
+
+        # Merge the two dataframes
+        output = mol_data.merge(
+            best_entropy,
+            how="left",
+            left_on=["mf_id", "ref_mol_id"],
+            right_on=["mf_id", "ref_mol_id"],
+        )
+
+        cols_to_keep = [
+            "mf_id",
+            "ref_ion_type",
+            "entropy_similarity",
+            "ref_mz_in_query_fract",
+            "name",
+            "inchikey",
+            "inchi",
+            "chebi",
+            "smiles",
+            "kegg",
+            "database_name",
+            "ref_ms_id",
+            "n_spectra_contributing",
+        ]
+
+        return output
 
     def clean_ms2_report(self, ms2_annot_report):
         #TODO KRH: Add functionality here
@@ -1510,6 +1585,7 @@ class LipidomicsExport(LCMSMetabolomicsExport):
         for mf_id in ms2_annot["mf_id"].unique():
             mlf_results_perid = []
             ms2_annot_mf = ms2_annot[ms2_annot["mf_id"] == mf_id].copy()
+            #TODO KRH: Fix this - it's not giving what we want!
             ms2_annot_mf["n_spectra_contributing"] = len(ms2_annot_mf)
 
             for query_scan in ms2_annot["query_spectrum_id"].unique():
