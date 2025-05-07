@@ -164,7 +164,7 @@ if __name__ == "__main__":
     scan_translator = Path(
         "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lcms_metabolomics_scan_translator.toml"
     )
-    out_dir = Path("tmp_data/__lcms_metab_test_data")
+    out_dir = Path("tmp_data/__lcms_metab_test_data3")
     verbose = True
     cores = 1
 
