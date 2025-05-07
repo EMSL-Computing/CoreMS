@@ -1162,12 +1162,12 @@ class LCMSExport(HighResMassSpectraExport):
                         ] = v2.query_spectrum_id
                         # Loop through each of the attributes and add them as datasets (if array)
                         for k3, v3 in v2.__dict__.items():
-                            if v3 is not None and k3 not in [
+                            if v3 is not None and v3 != [None] and k3 not in [
                                 "query_spectrum",
                                 "precursor_mz",
                                 "query_spectrum_id",
                             ]:
-                                if k3 == "query_frag_types" or k3 == "ref_frag_types":
+                                if k3 == "query_frag_types" or k3 == "ref_frag_types" or k3 == "database_name":
                                     v3 = [", ".join(x) for x in v3]
                                 array = np.array(v3)
                                 if array.dtype.str[0:2] == "<U":
