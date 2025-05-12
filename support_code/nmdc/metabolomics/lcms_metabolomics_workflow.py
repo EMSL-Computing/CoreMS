@@ -136,13 +136,20 @@ def run_lcms_metabolomics_workflow(
     add_mass_features(myLCMSobj, scan_translator)
     myLCMSobj.remove_unprocessed_data()
     molecular_formula_search(myLCMSobj)
+    # Just for testing, not needed for workflow
+    export_results(
+        myLCMSobj,
+        out_path=str(out_path),
+        molecular_metadata=metadata["molecular_metadata"],
+        final=False,
+    )
     process_ms2(myLCMSobj, metadata, scan_translator=scan_translator)
     export_results(
         myLCMSobj,
         out_path=str(out_path),
         molecular_metadata=metadata["molecular_metadata"],
+        final=True,
     )
-
 
 def run_lcms_metabolomics_workflow_batch(
     file_dir,
