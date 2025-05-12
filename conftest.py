@@ -5,6 +5,7 @@ from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.encapsulation.factory.parameters import MSParameters
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 
+
 @pytest.fixture
 def mass_spectrum_ftms(bruker_transient):
     """Creates a mass spectrum object to be used in the tests"""
@@ -18,15 +19,18 @@ def mass_spectrum_ftms(bruker_transient):
 
     return mass_spectrum
 
+
 @pytest.fixture
 def ref_file_location():
     """Returns the location of the reference file for calibration for the tests"""
     return Path.cwd() / "tests/tests_data/ftms/SRFA.ref"
 
+
 @pytest.fixture
 def ftms_file_location():
     """Returns the location of the FTMS file for the tests"""
     return Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA.d/"
+
 
 @pytest.fixture
 def bruker_transient(ftms_file_location):
@@ -35,6 +39,7 @@ def bruker_transient(ftms_file_location):
     bruker_transient = bruker_reader.get_transient()
 
     return bruker_transient
+
 
 @pytest.fixture
 def lcms_obj():
@@ -53,9 +58,15 @@ def lcms_obj():
 
 
 @pytest.fixture
+def msp_file_location():
+    """Returns the location of the msp file for the tests"""
+    return Path.cwd() / "tests/tests_data/lcms/test_db.msp"
+
+
+@pytest.fixture
 def postgres_database():
     """Returns the location of the postgres database for the tests"""
     # Change this if running locally or the DB is running in a different location
-    #return "" ## sqlite3 database (local)
-    #return "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp" ## Docker install, e.g. local
-    return "postgresql://coremsdb:coremsmolform@postgres:5432/molformula" ## Git CI/CD Build Pipeline
+    # return "" ## sqlite3 database (local)
+    # return "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp" ## Docker install, e.g. local
+    return "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"  ## Git CI/CD Build Pipeline
