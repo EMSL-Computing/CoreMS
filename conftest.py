@@ -3,6 +3,7 @@ from pathlib import Path
 
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.encapsulation.factory.parameters import MSParameters
+from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 
 @pytest.fixture
 def mass_spectrum_ftms(bruker_transient):
@@ -34,6 +35,22 @@ def bruker_transient(ftms_file_location):
     bruker_transient = bruker_reader.get_transient()
 
     return bruker_transient
+
+@pytest.fixture
+def lcms_obj():
+    """Returns an LCMS object for the tests"""
+    file_raw = (
+        Path.cwd()
+        / "tests/tests_data/lcms/"
+        / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.raw"
+    )
+    parser = ImportMassSpectraThermoMSFileReader(file_raw)
+
+    # Instatiate lc-ms data object using parser and pull in ms1 spectra into dataframe (without storing as MassSpectrum objects to save memory)
+    myLCMSobj = parser.get_lcms_obj(spectra="ms1")
+
+    return myLCMSobj
+
 
 @pytest.fixture
 def postgres_database():
