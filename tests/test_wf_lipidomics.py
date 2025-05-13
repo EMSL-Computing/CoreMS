@@ -16,12 +16,11 @@ from corems.encapsulation.factory.parameters import LCMSParameters, reset_lcms_p
 
 
 def test_import_lcmsobj_mzml():
-    # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
     # Instantiate parser based on binary file type
     file_mzml = (
         Path.cwd()
         / "tests/tests_data/lcms/"
-        / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.mzML"
+        / "test_centroid_neg_RP_metab.mzML"
     )
 
     parser = MZMLSpectraParser(file_mzml)
@@ -30,13 +29,19 @@ def test_import_lcmsobj_mzml():
     myLCMSobj = parser.get_lcms_obj(spectra="ms1")
     myLCMSobj.parameters = LCMSParameters(use_defaults=True)
 
+    # Modify parameters to deal with centroid data
+    myLCMSobj.parameters.lc_ms.peak_picking_method = "centroided_persistent_homology"
+    myLCMSobj.parameters.mass_spectrum[
+            "ms1"
+        ].mass_spectrum.noise_threshold_method = "relative_abundance"
+
     myLCMSobj.find_mass_features()
     myLCMSobj.add_associated_ms1(
-        auto_process=True, use_parser=False, spectrum_mode="profile"
+        auto_process=True, use_parser=True, spectrum_mode="centroid"
     )
     myLCMSobj.integrate_mass_features()
     mass_features_df = myLCMSobj.mass_features_to_df()
-    assert mass_features_df.shape == (197, 12)
+    assert mass_features_df.shape == (13995, 12)
     
     # Reset the MSParameters to the original values
     reset_lcms_parameters()
