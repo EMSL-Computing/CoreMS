@@ -133,6 +133,8 @@ def run_lcms_metabolomics_workflow(
     myLCMSobj = instantiate_lcms_obj(file_in)
     set_params_on_lcms_obj(myLCMSobj, params_toml, verbose)
     
+    # If the ms1 data are centroided, switch the peak picking method to centroided persistent homology
+    # and set the noise threshold method to relative abundance
     ms1_scan_df = myLCMSobj.scan_df[myLCMSobj.scan_df.ms_level == 1]
     if all(x == "centroid" for x in ms1_scan_df.ms_format.to_list()):
         # Switch peak picking method to centroided persistent homology
