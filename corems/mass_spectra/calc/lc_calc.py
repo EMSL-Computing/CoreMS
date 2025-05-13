@@ -333,7 +333,8 @@ class LCCalculations:
         ms_level : int, optional
             The MS level to use for peak picking Default is 1.
         grid : bool, optional
-            If True, will regrid the data before running the persistent homology calculations (after checking if the data is gridded, used for persistent homology peak picking. Default is True.
+            If True, will regrid the data before running the persistent homology calculations (after checking if the data is gridded), 
+            used for persistent homology peak picking for profile data only. Default is True.
 
         Raises
         ------
@@ -358,6 +359,16 @@ class LCCalculations:
             else:
                 raise ValueError(
                     "MS{} scans are not profile mode, which is required for persistent homology peak picking.".format(
+                        ms_level
+                    )
+                )
+        elif pp_method == "centroided_persistent_homology":
+            msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
+            if all(msx_scan_df["ms_format"] == "centroid"):
+                self.find_mass_features_ph_centroid(ms_level=ms_level)
+            else:
+                raise ValueError(
+                    "MS{} scans are not centroid mode, which is required for persistent homology centroided peak picking.".format(
                         ms_level
                     )
                 )
@@ -1286,6 +1297,51 @@ class PHCalculations:
         if self.parameters.lc_ms.verbose_processing:
             print("Found " + str(len(mass_features)) + " initial mass features")
 
+    def find_mass_features_ph_centroid(self, ms_level=1):
+        """Find mass features within an LCMSBase object using persistent homology, but with centroided data."""
+        # Check that ms_level is a key in self._ms_uprocessed
+        if ms_level not in self._ms_unprocessed.keys():
+            raise ValueError(
+                "No MS level "
+                + str(ms_level)
+                + " data found, did you instantiate with parser specific to MS level?"
+            )
+        
+        # Get ms data
+        data = self._ms_unprocessed[ms_level].copy()
+
+        # Drop rows with missing intensity values and reset index
+        data = data.dropna(subset=["intensity"]).reset_index(drop=True)
+        
+        # Threshold data
+        threshold = self.parameters.lc_ms.ph_inten_min_rel * data.intensity.max()
+        data_thres = data[data["intensity"] > threshold].reset_index(drop=True).copy()
+        data_thres['persistence'] = data_thres['intensity']
+
+        # Use this as the starting point for the mass features, adding scan_time
+        mf_df = data_thres
+        mf_df = mf_df.merge(self.scan_df[["scan", "scan_time"]], on="scan")
+
+        # Define tolerances and dimensions for rolling up
+        tol = [
+            self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
+            self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
+        ]
+        relative = [True, False]    
+        dims = ["mz", "scan_time"]
+        print("here")
+        mf_df = self.roll_up_dataframe(
+            df=mf_df,
+            sort_by="persistence",
+            dims=dims,
+            tol=tol,
+            relative=relative
+        )
+
+        #TODO: cast to LCMSMassFeature objects
+        print("here12")
+
+    
     def cluster_mass_features(self, drop_children=True, sort_by="persistence"):
         """Cluster mass features
 
@@ -1329,11 +1385,92 @@ class PHCalculations:
         ]  # mz, in relative; scan_time in minutes
         relative = [True, False]
 
+        # Roll up mass features based on their proximity in the declared dimensions
+        mf_df_new = self.roll_up_dataframe(
+            df=mf_df,
+            sort_by=sort_by,
+            dims=dims,
+            tol=tol,
+            relative=relative
+        )
+
+        mf_df_new["cluster_parent"] = np.where(
+            np.isin(mf_df_new.index, mf_df.index), True, False
+        )
+
+        # get mass feature ids of features that are not cluster parents
+        cluster_daughters = mf_df_new[mf_df_new["cluster_parent"] == False].index.values
+        if drop_children is True:
+            # Drop mass features that are not cluster parents from self
+            self.mass_features = {
+                k: v
+                for k, v in self.mass_features.items()
+                if k not in cluster_daughters
+            }
+        else:
+            return cluster_daughters
+
+    @staticmethod
+    def roll_up_dataframe(
+        df : pd.DataFrame,
+        sort_by : str,
+        tol : list,
+        relative : list,
+        dims : list
+    ):
+        """Roll up data based on their proximity in declared dimensions.
+        
+        Parameters
+        ----------
+        data : pd.DataFrame
+            The input data containing "dims" columns.
+        sort_by : str
+            The column to sort the data by, this will determine which mass features get rolled up into a parent mass feature.
+        dims : list
+            A list of dimension names (column names in the data DataFrame) to roll up the mass features by.
+        tol : list
+            A list of tolerances for each dimension. The length of the list must match the number of dimensions.
+            The tolerances can be relative (as a fraction of the maximum value in that dimension) or absolute (in the units of that dimension).
+            If relative is True, the tolerance will be multiplied by the maximum value in that dimension.
+            If relative is False, the tolerance will be used as is.
+        relative : list
+            A list of booleans indicating whether the tolerance for each dimension is relative (True) or absolute (False).
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame containing the indicies of the input data frame that are within the specified tolerances of each other.
+            The DataFrame will have two columns: "parent" and "child", indicating the parent and child mass features.  
+
+        """
+        og_columns = df.columns.copy()
+
+        # Unindex the data, but keep the original index
+        if df.index.name is not None:
+            og_index = df.index.name
+        else:
+            og_index = "index"
+        df = df.reset_index(drop=False)
+
+        # Sort data by sort_by column, and reindex
+        df = df.sort_values(by=sort_by, ascending=False).reset_index(drop=True)
+
+        # Check that data is a DataFrame and has columns for each of the dims
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError("Data must be a pandas DataFrame")
+        for dim in dims:
+            if dim not in df.columns:
+                raise ValueError(f"Data must have a column for {dim}")
+        if len(dims) != len(tol) or len(dims) != len(relative):
+            raise ValueError(
+                "Dimensions, tolerances, and relative flags must be the same length"
+            )
+        
         # Compute inter-feature distances
         distances = None
         for i in range(len(dims)):
             # Construct k-d tree
-            values = mf_df[dims[i]].values
+            values = df[dims[i]].values
             tree = KDTree(values.reshape(-1, 1))
 
             max_tol = tol[i]
@@ -1370,7 +1507,7 @@ class PHCalculations:
                 distances = sdm
             else:
                 distances = distances.multiply(sdm)
-
+        
         # Extract indices of within-tolerance points
         distances = distances.tocoo()
         pairs = np.stack((distances.row, distances.col), axis=1)
@@ -1396,26 +1533,13 @@ class PHCalculations:
             pairs_df = pairs_df.reset_index().set_index("parent")
 
         # Drop mass features that are not cluster parents
-        mf_df = mf_df.drop(index=np.array(to_drop))
+        df_sub = df.drop(index=np.array(to_drop))
 
-        # Set index back to mf_id
-        mf_df = mf_df.set_index("mf_id")
-        if verbose:
-            print(str(len(mf_df)) + " mass features remaining")
+        # Set index back to og_index and only keep the columns that are in the original dataframe
+        df_sub = df_sub.set_index(og_index)
 
-        mf_df_new = mf_df_og.copy()
-        mf_df_new["cluster_parent"] = np.where(
-            np.isin(mf_df_new.index, mf_df.index), True, False
-        )
+        # sort the dataframe by the original index
+        df_sub = df_sub.sort_index()
+        df_sub = df_sub[og_columns]
 
-        # get mass feature ids of features that are not cluster parents
-        cluster_daughters = mf_df_new[mf_df_new["cluster_parent"] == False].index.values
-        if drop_children is True:
-            # Drop mass features that are not cluster parents from self
-            self.mass_features = {
-                k: v
-                for k, v in self.mass_features.items()
-                if k not in cluster_daughters
-            }
-        else:
-            return cluster_daughters
+        return df_sub

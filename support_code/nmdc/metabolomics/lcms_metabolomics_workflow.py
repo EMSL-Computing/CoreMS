@@ -132,6 +132,9 @@ def run_lcms_metabolomics_workflow(
 ):
     myLCMSobj = instantiate_lcms_obj(file_in)
     set_params_on_lcms_obj(myLCMSobj, params_toml, verbose)
+    # Switch peak picking method to centroided persistent homology
+    myLCMSobj.parameters.lc_ms.peak_picking_method = "centroided_persistent_homology"
+
     check_scan_translator(myLCMSobj, scan_translator)
     add_mass_features(myLCMSobj, scan_translator)
     myLCMSobj.remove_unprocessed_data()
@@ -178,7 +181,7 @@ def run_lcms_metabolomics_workflow_batch(
     """
     # Make output dir and get list of files to process
     out_dir.mkdir(parents=True, exist_ok=True)
-    files_list = list(file_dir.glob("*.raw"))
+    files_list = [f for f in file_dir.iterdir() if f.suffix.lower() in {".raw", ".mzml"}]
     out_paths_list = [out_dir / f.stem for f in files_list]
 
     # Prepare search databases for ms2 search
@@ -204,9 +207,10 @@ def run_lcms_metabolomics_workflow_batch(
 
 if __name__ == "__main__":
     # Set input variables to run
-    msp_file_path = "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/metams/data/databases/20250407_gnps_curated.msp"
+    #msp_file_path = "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/metams/data/databases/20250407_gnps_curated.msp"
+    msp_file_path = "/Users/heal742/LOCAL/corems_dev/corems/tests/tests_data/lcms/test_db.msp"
     file_dir = Path(
-        "/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_lcms_metab_test_data"
+        "/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_lcms_metab_test_data/centroid"
     )
     params_toml = Path(
         "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lcms_metabolomics_corems_params.toml"
