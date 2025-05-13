@@ -1439,7 +1439,7 @@ class PHCalculations:
             print("Found " + str(len(mass_features)) + " initial mass features")
 
     def find_mass_features_ph_centroid(self, ms_level=1):
-        """Find mass features within an LCMSBase object using persistent homology type approach but with centroided data.
+        """Find mass features within an LCMSBase object using persistent homology-type approach but with centroided data.
         
         Parameters
         ----------
