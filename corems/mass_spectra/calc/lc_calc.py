@@ -1339,6 +1339,10 @@ class PHCalculations:
         )
 
         #TODO: cast to LCMSMassFeature objects
+        # Rename scan column to apex_scan
+        #mass_features = mass_features.rename(
+        #    columns={"scan": "apex_scan", "scan_time": "retention_time"}
+        #)
         print("here12")
 
     
@@ -1376,9 +1380,6 @@ class PHCalculations:
         mf_df_og = self.mass_features_to_df()
         mf_df = mf_df_og.copy()
 
-        # Sort mass features by sort_by column, make mf_id its own column for easier bookkeeping
-        mf_df = mf_df.sort_values(by=sort_by, ascending=False).reset_index(drop=False)
-
         tol = [
             self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
             self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
@@ -1394,12 +1395,12 @@ class PHCalculations:
             relative=relative
         )
 
-        mf_df_new["cluster_parent"] = np.where(
-            np.isin(mf_df_new.index, mf_df.index), True, False
+        mf_df["cluster_parent"] = np.where(
+            np.isin(mf_df.index, mf_df_new.index), True, False
         )
 
         # get mass feature ids of features that are not cluster parents
-        cluster_daughters = mf_df_new[mf_df_new["cluster_parent"] == False].index.values
+        cluster_daughters = mf_df[~mf_df["cluster_parent"]].index.values
         if drop_children is True:
             # Drop mass features that are not cluster parents from self
             self.mass_features = {
