@@ -977,7 +977,148 @@ class PHCalculations:
 
         # Result
         return a + idx_unq / idx_unq_mag
+    
+    @staticmethod
+    def roll_up_dataframe(
+        df : pd.DataFrame,
+        sort_by : str,
+        tol : list,
+        relative : list,
+        dims : list
+    ):
+        """Subset data by rolling up into apex in appropriate dimensions.
+        
+        Parameters
+        ----------
+        data : pd.DataFrame
+            The input data containing "dims" columns and the "sort_by" column.
+        sort_by : str
+            The column to sort the data by, this will determine which mass features get rolled up into a parent mass feature 
+            (i.e., the mass feature with the highest value in the sort_by column).
+        dims : list
+            A list of dimension names (column names in the data DataFrame) to roll up the mass features by.
+        tol : list
+            A list of tolerances for each dimension. The length of the list must match the number of dimensions.
+            The tolerances can be relative (as a fraction of the maximum value in that dimension) or absolute (in the units of that dimension).
+            If relative is True, the tolerance will be multiplied by the maximum value in that dimension.
+            If relative is False, the tolerance will be used as is.
+        relative : list
+            A list of booleans indicating whether the tolerance for each dimension is relative (True) or absolute (False).
 
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame with only the rolled up mass features, with the original index and columns.
+
+            
+        Raises
+        ------
+        ValueError
+            If the input data is not a pandas DataFrame.
+            If the input data does not have columns for each of the dimensions in "dims".
+            If the length of "dims", "tol", and "relative" do not match.
+        """
+        og_columns = df.columns.copy()
+
+        # Unindex the data, but keep the original index
+        if df.index.name is not None:
+            og_index = df.index.name
+        else:
+            og_index = "index"
+        df = df.reset_index(drop=False)
+
+        # Sort data by sort_by column, and reindex
+        df = df.sort_values(by=sort_by, ascending=False).reset_index(drop=True)
+
+        # Check that data is a DataFrame and has columns for each of the dims
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError("Data must be a pandas DataFrame")
+        for dim in dims:
+            if dim not in df.columns:
+                raise ValueError(f"Data must have a column for {dim}")
+        if len(dims) != len(tol) or len(dims) != len(relative):
+            raise ValueError(
+                "Dimensions, tolerances, and relative flags must be the same length"
+            )
+        
+        # Compute inter-feature distances
+        distances = None
+        for i in range(len(dims)):
+            # Construct k-d tree
+            values = df[dims[i]].values
+            tree = KDTree(values.reshape(-1, 1))
+
+            max_tol = tol[i]
+            if relative[i] is True:
+                # Maximum absolute tolerance
+                max_tol = tol[i] * values.max()
+
+            # Compute sparse distance matrix
+            # the larger the max_tol, the slower this operation is
+            sdm = tree.sparse_distance_matrix(tree, max_tol, output_type="coo_matrix")
+
+            # Only consider forward case, exclude diagonal
+            sdm = sparse.triu(sdm, k=1)
+
+            # Filter relative distances
+            if relative[i] is True:
+                # Compute relative distances
+                rel_dists = sdm.data / values[sdm.row]  # or col?
+
+                # Indices of relative distances less than tolerance
+                idx = rel_dists <= tol[i]
+
+                # Reconstruct sparse distance matrix
+                sdm = sparse.coo_matrix(
+                    (rel_dists[idx], (sdm.row[idx], sdm.col[idx])),
+                    shape=(len(values), len(values)),
+                )
+
+            # Cast as binary matrix
+            sdm.data = np.ones_like(sdm.data)
+
+            # Stack distances
+            if distances is None:
+                distances = sdm
+            else:
+                distances = distances.multiply(sdm)
+        
+        # Extract indices of within-tolerance points
+        distances = distances.tocoo()
+        pairs = np.stack((distances.row, distances.col), axis=1)
+        pairs_df = pd.DataFrame(pairs, columns=["parent", "child"])
+        pairs_df = pairs_df.set_index("parent")
+
+        to_drop = []
+        while not pairs_df.empty:
+            # Find root_parents and their children
+            root_parents = np.setdiff1d(
+                np.unique(pairs_df.index.values), np.unique(pairs_df.child.values)
+            )
+            children_of_roots = pairs_df.loc[root_parents, "child"].unique()
+            to_drop = np.append(to_drop, children_of_roots)
+
+            # Remove root_children as possible parents from pairs_df for next iteration
+            pairs_df = pairs_df.drop(index=children_of_roots, errors="ignore")
+            pairs_df = pairs_df.reset_index().set_index("child")
+            # Remove root_children as possible children from pairs_df for next iteration
+            pairs_df = pairs_df.drop(index=children_of_roots)
+
+            # Prepare for next iteration
+            pairs_df = pairs_df.reset_index().set_index("parent")
+
+        # Drop mass features that are not cluster parents
+        df_sub = df.drop(index=np.array(to_drop))
+
+        # Set index back to og_index and only keep the columns that are in the original dataframe
+        df_sub = df_sub.set_index(og_index)
+
+        # sort the dataframe by the original index
+        df_sub = df_sub.sort_index()
+        df_sub = df_sub[og_columns]
+
+        return df_sub
+    
     def sparse_upper_star(self, idx, V):
         """Sparse implementation of an upper star filtration.
 
@@ -1436,137 +1577,3 @@ class PHCalculations:
             }
         else:
             return cluster_daughters
-
-    @staticmethod
-    def roll_up_dataframe(
-        df : pd.DataFrame,
-        sort_by : str,
-        tol : list,
-        relative : list,
-        dims : list
-    ):
-        """Roll up data based on their proximity in declared dimensions.
-        
-        Parameters
-        ----------
-        data : pd.DataFrame
-            The input data containing "dims" columns.
-        sort_by : str
-            The column to sort the data by, this will determine which mass features get rolled up into a parent mass feature.
-        dims : list
-            A list of dimension names (column names in the data DataFrame) to roll up the mass features by.
-        tol : list
-            A list of tolerances for each dimension. The length of the list must match the number of dimensions.
-            The tolerances can be relative (as a fraction of the maximum value in that dimension) or absolute (in the units of that dimension).
-            If relative is True, the tolerance will be multiplied by the maximum value in that dimension.
-            If relative is False, the tolerance will be used as is.
-        relative : list
-            A list of booleans indicating whether the tolerance for each dimension is relative (True) or absolute (False).
-
-        Returns
-        -------
-        pd.DataFrame
-            A DataFrame containing the indicies of the input data frame that are within the specified tolerances of each other.
-            The DataFrame will have two columns: "parent" and "child", indicating the parent and child mass features.  
-
-        """
-        og_columns = df.columns.copy()
-
-        # Unindex the data, but keep the original index
-        if df.index.name is not None:
-            og_index = df.index.name
-        else:
-            og_index = "index"
-        df = df.reset_index(drop=False)
-
-        # Sort data by sort_by column, and reindex
-        df = df.sort_values(by=sort_by, ascending=False).reset_index(drop=True)
-
-        # Check that data is a DataFrame and has columns for each of the dims
-        if not isinstance(df, pd.DataFrame):
-            raise ValueError("Data must be a pandas DataFrame")
-        for dim in dims:
-            if dim not in df.columns:
-                raise ValueError(f"Data must have a column for {dim}")
-        if len(dims) != len(tol) or len(dims) != len(relative):
-            raise ValueError(
-                "Dimensions, tolerances, and relative flags must be the same length"
-            )
-        
-        # Compute inter-feature distances
-        distances = None
-        for i in range(len(dims)):
-            # Construct k-d tree
-            values = df[dims[i]].values
-            tree = KDTree(values.reshape(-1, 1))
-
-            max_tol = tol[i]
-            if relative[i] is True:
-                # Maximum absolute tolerance
-                max_tol = tol[i] * values.max()
-
-            # Compute sparse distance matrix
-            # the larger the max_tol, the slower this operation is
-            sdm = tree.sparse_distance_matrix(tree, max_tol, output_type="coo_matrix")
-
-            # Only consider forward case, exclude diagonal
-            sdm = sparse.triu(sdm, k=1)
-
-            # Filter relative distances
-            if relative[i] is True:
-                # Compute relative distances
-                rel_dists = sdm.data / values[sdm.row]  # or col?
-
-                # Indices of relative distances less than tolerance
-                idx = rel_dists <= tol[i]
-
-                # Reconstruct sparse distance matrix
-                sdm = sparse.coo_matrix(
-                    (rel_dists[idx], (sdm.row[idx], sdm.col[idx])),
-                    shape=(len(values), len(values)),
-                )
-
-            # Cast as binary matrix
-            sdm.data = np.ones_like(sdm.data)
-
-            # Stack distances
-            if distances is None:
-                distances = sdm
-            else:
-                distances = distances.multiply(sdm)
-        
-        # Extract indices of within-tolerance points
-        distances = distances.tocoo()
-        pairs = np.stack((distances.row, distances.col), axis=1)
-        pairs_df = pd.DataFrame(pairs, columns=["parent", "child"])
-        pairs_df = pairs_df.set_index("parent")
-
-        to_drop = []
-        while not pairs_df.empty:
-            # Find root_parents and their children
-            root_parents = np.setdiff1d(
-                np.unique(pairs_df.index.values), np.unique(pairs_df.child.values)
-            )
-            children_of_roots = pairs_df.loc[root_parents, "child"].unique()
-            to_drop = np.append(to_drop, children_of_roots)
-
-            # Remove root_children as possible parents from pairs_df for next iteration
-            pairs_df = pairs_df.drop(index=children_of_roots, errors="ignore")
-            pairs_df = pairs_df.reset_index().set_index("child")
-            # Remove root_children as possible children from pairs_df for next iteration
-            pairs_df = pairs_df.drop(index=children_of_roots)
-
-            # Prepare for next iteration
-            pairs_df = pairs_df.reset_index().set_index("parent")
-
-        # Drop mass features that are not cluster parents
-        df_sub = df.drop(index=np.array(to_drop))
-
-        # Set index back to og_index and only keep the columns that are in the original dataframe
-        df_sub = df_sub.set_index(og_index)
-
-        # sort the dataframe by the original index
-        df_sub = df_sub.sort_index()
-        df_sub = df_sub[og_columns]
-
-        return df_sub
