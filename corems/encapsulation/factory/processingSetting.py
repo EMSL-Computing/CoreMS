@@ -17,7 +17,7 @@ class TransientSetting:
     implemented_apodization_function : tuple
         Available apodization functions
     apodization_method : str
-        Apodization function to use. Hanning is a good default for Fourier transform magnitude mode. 
+        Apodization function to use. Hanning is a good default for Fourier transform magnitude mode.
         For absorption mode processing, Half-Sine or Half-Kaiser may be more appropriate.
     number_of_truncations : int
         How many times to truncate the transient prior to Fourier transform
@@ -223,7 +223,10 @@ class LiquidChromatographSetting:
 
     # Parameters used for 2D peak picking
     peak_picking_method: str = "persistent homology"
-    implemented_peak_picking_methods: tuple = ("persistent homology",)
+    implemented_peak_picking_methods: tuple = (
+        "persistent homology",
+        "centroided_persistent_homology",
+    )
 
     # Parameters used in persistent homology calculations
     ph_smooth_it = 1
@@ -821,7 +824,8 @@ class MolecularFormulaSearchSettings:
     verbose_processing: bool, optional
         If True, print verbose processing information. Default is True.
     """
-    verbose_processing: bool = True    
+
+    verbose_processing: bool = True
 
     use_isotopologue_filter: bool = False
 
@@ -931,7 +935,7 @@ class MolecularFormulaSearchSettings:
     def __post_init__(self):
         if not self.url_database or self.url_database == "":
             self.url_database = os.getenv(
-            "COREMS_DATABASE_URL", "sqlite:///db/molformula.db"
+                "COREMS_DATABASE_URL", "sqlite:///db/molformula.db"
             )
         # enforce datatype
         for field in dataclasses.fields(self):

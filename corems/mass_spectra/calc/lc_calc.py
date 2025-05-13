@@ -1298,7 +1298,22 @@ class PHCalculations:
             print("Found " + str(len(mass_features)) + " initial mass features")
 
     def find_mass_features_ph_centroid(self, ms_level=1):
-        """Find mass features within an LCMSBase object using persistent homology, but with centroided data."""
+        """Find mass features within an LCMSBase object using persistent homology type approach but with centroided data.
+        
+        Parameters
+        ----------
+        ms_level : int, optional
+            The MS level to use. Default is 1.
+        
+        Raises
+        ------
+        ValueError
+            If no MS level data is found on the object.
+
+        Returns
+        -------
+        None, but assigns the mass_features attribute to the object.        
+        """
         # Check that ms_level is a key in self._ms_uprocessed
         if ms_level not in self._ms_unprocessed.keys():
             raise ValueError(
@@ -1338,13 +1353,24 @@ class PHCalculations:
             relative=relative
         )
 
-        #TODO: cast to LCMSMassFeature objects
         # Rename scan column to apex_scan
-        #mass_features = mass_features.rename(
-        #    columns={"scan": "apex_scan", "scan_time": "retention_time"}
-        #)
-        print("here12")
+        mass_features = mf_df.rename(
+            columns={"scan": "apex_scan", "scan_time": "retention_time"}
+        )
+        # Sort my persistence and reset index
+        mass_features = mass_features.sort_values(
+            by="persistence", ascending=False
+        ).reset_index(drop=True)
 
+        # Populate mass_features attribute
+        self.mass_features = {}
+        for row in mass_features.itertuples():
+            row_dict = mass_features.iloc[row.Index].to_dict()
+            lcms_feature = LCMSMassFeature(self, **row_dict)
+            self.mass_features[lcms_feature.id] = lcms_feature
+
+        if self.parameters.lc_ms.verbose_processing:
+            print("Found " + str(len(mass_features)) + " initial mass features")
     
     def cluster_mass_features(self, drop_children=True, sort_by="persistence"):
         """Cluster mass features
