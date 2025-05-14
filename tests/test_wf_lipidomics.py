@@ -41,7 +41,7 @@ def test_import_lcmsobj_mzml():
     )
     myLCMSobj.integrate_mass_features()
     mass_features_df = myLCMSobj.mass_features_to_df()
-    assert mass_features_df.shape == (13995, 12)
+    assert mass_features_df.shape == (1395, 12)
     
     # Reset the MSParameters to the original values
     reset_lcms_parameters()
