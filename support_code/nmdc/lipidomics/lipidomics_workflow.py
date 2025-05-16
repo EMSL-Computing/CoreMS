@@ -20,7 +20,10 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.mass_spectra.input.mzml import MZMLSpectraParser
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 from corems.mass_spectra.output.export import LipidomicsExport
-from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas, SearchMolecularFormulasLC
+from corems.molecular_id.search.molecularFormulaSearch import (
+    SearchMolecularFormulas,
+    SearchMolecularFormulasLC,
+)
 from corems.molecular_id.search.database_interfaces import MetabRefLCInterface
 from corems.encapsulation.input.parameter_from_json import (
     load_and_set_toml_parameters_lcms,
@@ -161,9 +164,19 @@ def add_mass_features(myLCMSobj, scan_translator):
     None, processes the LCMS object
     """
     myLCMSobj.find_mass_features()
-    myLCMSobj.add_associated_ms1(
-        auto_process=True, use_parser=False, spectrum_mode="profile"
-    )
+
+    # Get the scan mode of the ms1 spectra
+    ms1_scan_df = myLCMSobj.scan_df[myLCMSobj.scan_df.ms_level == 1]
+
+    if all(x == "profile" for x in ms1_scan_df.ms_format.to_list()):
+        myLCMSobj.add_associated_ms1(
+            auto_process=True, use_parser=False, spectrum_mode="profile"
+        )
+    elif all(x == "centroid" for x in ms1_scan_df.ms_format.to_list()):
+        myLCMSobj.add_associated_ms1(
+            auto_process=True, use_parser=True, spectrum_mode="centroid"
+        )
+
     myLCMSobj.integrate_mass_features(drop_if_fail=True)
     # Count and report how many mass features are left after integration
     print("Number of mass features after integration: ", len(myLCMSobj.mass_features))
@@ -389,7 +402,7 @@ def run_lipid_sp_ms1(
     check_scan_translator(myLCMSobj, scan_translator)
     add_mass_features(myLCMSobj, scan_translator)
     myLCMSobj.remove_unprocessed_data()
-    #myLCMSobj.parameters.mass_spectrum['ms1'].molecular_search.verbose_processing = False
+    # myLCMSobj.parameters.mass_spectrum['ms1'].molecular_search.verbose_processing = False
     if ms1_molecular_search:
         molecular_formula_search(myLCMSobj)
     export_results(myLCMSobj, out_path=out_path, final=False)
@@ -608,7 +621,9 @@ if __name__ == "__main__":
     cores = 1
     file_dir = Path("/Users/heal742/LOCAL/corems_dev/corems/tmp_data/thermo_raw_mini")
     out_dir = Path("tmp_data/_test_250115")
-    params_toml = Path("/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lipidomics_corems_params.toml")
+    params_toml = Path(
+        "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lipidomics_corems_params.toml"
+    )
     verbose = True
     scan_translator = Path("tmp_data/thermo_raw_collection/scan_translator.toml")
 

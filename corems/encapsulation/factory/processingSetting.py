@@ -17,7 +17,7 @@ class TransientSetting:
     implemented_apodization_function : tuple
         Available apodization functions
     apodization_method : str
-        Apodization function to use. Hanning is a good default for Fourier transform magnitude mode. 
+        Apodization function to use. Hanning is a good default for Fourier transform magnitude mode.
         For absorption mode processing, Half-Sine or Half-Kaiser may be more appropriate.
     number_of_truncations : int
         How many times to truncate the transient prior to Fourier transform
@@ -144,30 +144,41 @@ class LiquidChromatographSetting:
         0-100 % used for extracted ion chromatogram peak detection. Default is 0.01.
     eic_buffer_time : float, optional
         Buffer time to add to the start and end of the plot of the extracted ion chromatogram, in minutes. Default is 1.5.
+    peak_picking_method : str, optional
+        Peak picking method to use. Default is 'persistent homology'. Other options are 'centroided_persistent_homology'.
+    implemented_peak_picking_methods : tuple, optional
+        Peak picking methods that can be implemented. Default is ('persistent homology', 'centroided_persistent_homology').
     ph_smooth_it : int, optional
         Number of iterations to use for smoothing prior to finding mass features.
+        Used only for "persistent homology" peak picking method.
         Called within the PHCalculations.find_mass_features_ph() method. Default is 7.
     ph_smooth_radius_mz : int, optional
         Radius in m/z steps (not daltons) for smoothing prior to finding mass features.
+        Used only for "persistent homology" peak picking method.
         Called within the PHCalculations.find_mass_features_ph() method. Default is 0.
     ph_smooth_radius_scan : int, optional
         Radius in scan steps for smoothing prior to finding mass features.
+        Used only for "persistent homology" peak picking method.
         Called within the PHCalculations.find_mass_features_ph() method. Default is 3.
     ph_inten_min_rel : int, optional
-        Relative minimum intensity to use for finding mass features.
+        Relative minimum intensity to use for finding mass features for persistent homology.
+        Used only for "persistent homology" peak picking method.
         Calculated as a fraction of the maximum intensity of the unprocessed profile data (mz, scan).
         Called within the PH_Calculations.find_mass_features() method. Default is 0.001.
     ph_persis_min_rel : int, optional
         Relative minimum persistence for retaining mass features.
+        Used for both "persistent homology" and "centroided_persistent_homology" peak picking methods.
         Calculated as a fraction of the maximum intensity of the unprocessed profile data (mz, scan).
         Should be greater to or equal to ph_inten_min_rel.
         Called within the PH_Calculations.find_mass_features() method. Default is 0.001.
     mass_feature_cluster_mz_tolerance_rel : float, optional
         Relative m/z tolerance to use for clustering mass features.
+        Used for both "persistent homology" and "centroided_persistent_homology" peak picking methods.
         Called with the PHCalculations.cluster_mass_features() and the LCCalculations.deconvolute_ms1_mass_features() methods.
         Default is 5E-6 (5 ppm).
     mass_feature_cluster_rt_tolerance : float, optional
         Retention time tolerance to use for clustering mass features, in minutes.
+        Used for both "persistent homology" and "centroided_persistent_homology" peak picking methods.
         Called with the PHCalculations.cluster_mass_features() and the LCCalculations.deconvolute_ms1_mass_features() methods.
         Default is 0.2.
     ms1_scans_to_average : int, optional
@@ -223,7 +234,10 @@ class LiquidChromatographSetting:
 
     # Parameters used for 2D peak picking
     peak_picking_method: str = "persistent homology"
-    implemented_peak_picking_methods: tuple = ("persistent homology",)
+    implemented_peak_picking_methods: tuple = (
+        "persistent homology",
+        "centroided_persistent_homology",
+    )
 
     # Parameters used in persistent homology calculations
     ph_smooth_it = 1
@@ -821,7 +835,8 @@ class MolecularFormulaSearchSettings:
     verbose_processing: bool, optional
         If True, print verbose processing information. Default is True.
     """
-    verbose_processing: bool = True    
+
+    verbose_processing: bool = True
 
     use_isotopologue_filter: bool = False
 
@@ -931,7 +946,7 @@ class MolecularFormulaSearchSettings:
     def __post_init__(self):
         if not self.url_database or self.url_database == "":
             self.url_database = os.getenv(
-            "COREMS_DATABASE_URL", "sqlite:///db/molformula.db"
+                "COREMS_DATABASE_URL", "sqlite:///db/molformula.db"
             )
         # enforce datatype
         for field in dataclasses.fields(self):

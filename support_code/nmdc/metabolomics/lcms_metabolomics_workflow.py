@@ -132,6 +132,21 @@ def run_lcms_metabolomics_workflow(
 ):
     myLCMSobj = instantiate_lcms_obj(file_in)
     set_params_on_lcms_obj(myLCMSobj, params_toml, verbose)
+    
+    # If the ms1 data are centroided, switch the peak picking method to centroided persistent homology
+    # and set the noise threshold method to relative abundance
+    ms1_scan_df = myLCMSobj.scan_df[myLCMSobj.scan_df.ms_level == 1]
+    if all(x == "centroid" for x in ms1_scan_df.ms_format.to_list()):
+        # Switch peak picking method to centroided persistent homology
+        myLCMSobj.parameters.lc_ms.peak_picking_method = "centroided_persistent_homology"
+        myLCMSobj.parameters.mass_spectrum[
+            "ms1"
+        ].mass_spectrum.noise_threshold_method = "relative_abundance"
+
+    myLCMSobj.parameters.mass_spectrum[
+        "ms1"
+    ].mass_spectrum.noise_threshold_min_relative_abundance = 0.1
+
     check_scan_translator(myLCMSobj, scan_translator)
     add_mass_features(myLCMSobj, scan_translator)
     myLCMSobj.remove_unprocessed_data()
@@ -150,6 +165,7 @@ def run_lcms_metabolomics_workflow(
         molecular_metadata=metadata["molecular_metadata"],
         final=True,
     )
+
 
 def run_lcms_metabolomics_workflow_batch(
     file_dir,
@@ -178,7 +194,9 @@ def run_lcms_metabolomics_workflow_batch(
     """
     # Make output dir and get list of files to process
     out_dir.mkdir(parents=True, exist_ok=True)
-    files_list = list(file_dir.glob("*.raw"))
+    files_list = [
+        f for f in file_dir.iterdir() if f.suffix.lower() in {".raw", ".mzml"}
+    ]
     out_paths_list = [out_dir / f.stem for f in files_list]
 
     # Prepare search databases for ms2 search
@@ -205,8 +223,9 @@ def run_lcms_metabolomics_workflow_batch(
 if __name__ == "__main__":
     # Set input variables to run
     msp_file_path = "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/metams/data/databases/20250407_gnps_curated.msp"
+    # msp_file_path = "/Users/heal742/LOCAL/corems_dev/corems/tests/tests_data/lcms/test_db.msp"
     file_dir = Path(
-        "/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_lcms_metab_test_data"
+        "/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_lcms_metab_test_data/centroid"
     )
     params_toml = Path(
         "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lcms_metabolomics_corems_params.toml"
