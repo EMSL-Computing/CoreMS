@@ -10,9 +10,14 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.mass_spectra.output.export import LCMSMetabolomicsExport
 
 from support_code.nmdc.lipidomics.lipidomics_workflow import (
-    run_lipid_sp_ms1,
-    process_ms2
+    instantiate_lcms_obj,
+    set_params_on_lcms_obj,
+    check_scan_translator,
+    add_mass_features,
+    molecular_formula_search,
+    process_ms2,
 )
+
 
 def prepare_metadata(msp_file_path):
     print("Parsing MSP file...")
@@ -60,6 +65,7 @@ def prepare_metadata(msp_file_path):
 
     return metadata
 
+
 def export_results(myLCMSobj, out_path, molecular_metadata=None, final=False):
     """Export results to hdf5 and csv as a lipid report
 
@@ -88,6 +94,7 @@ def export_results(myLCMSobj, out_path, molecular_metadata=None, final=False):
             warnings.simplefilter("ignore")
             exporter.report_to_csv()
 
+
 def run_ms2_search(out_path, metadata, scan_translator=None):
     """Run ms2 spectral search and export final results
 
@@ -108,17 +115,67 @@ def run_ms2_search(out_path, metadata, scan_translator=None):
     parser = ReadCoreMSHDFMassSpectra(out_path_hdf5)
     myLCMSobj = parser.get_lcms_obj()
     process_ms2(myLCMSobj, metadata, scan_translator=scan_translator)
-    export_results(myLCMSobj, out_path=str(out_path), molecular_metadata=metadata["molecular_metadata"], final=True)
-    
+    export_results(
+        myLCMSobj,
+        out_path=str(out_path),
+        molecular_metadata=metadata["molecular_metadata"],
+        final=True,
+    )
+
+
 def run_lcms_metabolomics_workflow(
+    file_in,
+    out_path,
+    params_toml,
+    scan_translator,
+    metadata,
+):
+    myLCMSobj = instantiate_lcms_obj(file_in)
+    set_params_on_lcms_obj(myLCMSobj, params_toml, verbose)
+    check_scan_translator(myLCMSobj, scan_translator)
+    add_mass_features(myLCMSobj, scan_translator)
+    myLCMSobj.remove_unprocessed_data()
+    molecular_formula_search(myLCMSobj)
+    # Just for testing, not needed for workflow
+    export_results(
+        myLCMSobj,
+        out_path=str(out_path),
+        molecular_metadata=metadata["molecular_metadata"],
+        final=False,
+    )
+    process_ms2(myLCMSobj, metadata, scan_translator=scan_translator)
+    export_results(
+        myLCMSobj,
+        out_path=str(out_path),
+        molecular_metadata=metadata["molecular_metadata"],
+        final=True,
+    )
+
+def run_lcms_metabolomics_workflow_batch(
     file_dir,
     out_dir,
     params_toml,
     msp_file_path,
     scan_translator=None,
-    verbose=True,
     cores=1,
 ):
+    """Run the LCMS metabolomics workflow on a batch of files
+
+    Parameters
+    ----------
+    file_dir : str or Path
+        Path to directory with raw files
+    out_dir : str or Path
+        Path to output directory
+    params_toml : str or Path
+        Path to toml file with parameters for all samples
+    msp_file_path : str or Path
+        Path to msp file with spectral library for MS2 search
+    scan_translator : str or Path
+        Path to toml file with scan translator for MS2 search
+    cores : int
+        Number of cores to use for processing
+    """
     # Make output dir and get list of files to process
     out_dir.mkdir(parents=True, exist_ok=True)
     files_list = list(file_dir.glob("*.raw"))
@@ -132,19 +189,12 @@ def run_lcms_metabolomics_workflow(
     if cores == 1 or len(files_list) == 1:
         for file_in, file_out in list(zip(files_list, out_paths_list)):
             print(f"Processing {file_in}")
-            run_lipid_sp_ms1(
-                file_in=str(file_in),
-                out_path=str(file_out),
+            run_lcms_metabolomics_workflow(
+                file_in=file_in,
+                out_path=file_out,
                 params_toml=params_toml,
                 scan_translator=scan_translator,
-                verbose=verbose,
-                return_mzs=False,
-            )
-            #TODO KRH: No need to save hdf5 and re-open, can combine sp and ms2 search with lcms_obj in memory
-            run_ms2_search(
-                out_path=str(file_out),
                 metadata=my_msp_FE,
-                scan_translator=scan_translator,
             )
     elif cores > 1:
         raise ValueError(
@@ -164,23 +214,18 @@ if __name__ == "__main__":
     scan_translator = Path(
         "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lcms_metabolomics_scan_translator.toml"
     )
-    out_dir = Path("tmp_data/__lcms_metab_test_data3")
+    out_dir = Path("tmp_data/__lcms_metab_test_data_250509")
     verbose = True
     cores = 1
 
     # Set up output directory
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # if cores > 1, don't use verbose output
-    if cores > 2:
-        verbose = False
-
-    run_lcms_metabolomics_workflow(
+    run_lcms_metabolomics_workflow_batch(
         file_dir=file_dir,
         out_dir=out_dir,
         params_toml=params_toml,
         msp_file_path=msp_file_path,
         scan_translator=scan_translator,
-        verbose=verbose,
         cores=cores,
     )

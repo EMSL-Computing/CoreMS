@@ -1162,14 +1162,15 @@ class LCMSExport(HighResMassSpectraExport):
                         ] = v2.query_spectrum_id
                         # Loop through each of the attributes and add them as datasets (if array)
                         for k3, v3 in v2.__dict__.items():
-                            if v3 is not None and v3 != [None] and k3 not in [
+                            if v3 is not None and k3 not in [
                                 "query_spectrum",
                                 "precursor_mz",
                                 "query_spectrum_id",
                             ]:
-                                if k3 == "query_frag_types" or k3 == "ref_frag_types" or k3 == "database_name":
+                                if k3 == "query_frag_types" or k3 == "ref_frag_types":
                                     v3 = [", ".join(x) for x in v3]
-                                array = np.array(v3)
+                                if all(v3 is not None for v3 in v3):
+                                    array = np.array(v3)
                                 if array.dtype.str[0:2] == "<U":
                                     array = array.astype("S")
                                 spectral_search_results[str(k)][str(k2)].create_dataset(
@@ -1402,67 +1403,37 @@ class LCMSMetabolomicsExport(LCMSExport):
         DataFrame
             The summarized metabolomics report.
         """
-        # Prepare metadata with regards to the molecules
-        ms2_annot_report["chebi"] = (
-                pd.to_numeric(ms2_annot_report["chebi"], errors="coerce")
-                .apply(lambda x: str(int(x)) if pd.notna(x) else None)
-            )
-        mol_data = ms2_annot_report.groupby(["mf_id", "ref_mol_id", "formula"]).agg(
-            {
-                "cas": lambda x: ", ".join(x.unique())
-                if x.notna().any() else None,
-                "inchikey": lambda x: ", ".join(x.unique())
-                if x.notna().any() else None,
-                "inchi": lambda x: ", ".join(x.unique())
-                if x.notna().any() else None,
-                "chebi": lambda x:  ", ".join(x.unique())
-                if x.notna().any() else None,
-                "smiles": lambda x: ", ".join(x.unique())
-                if x.notna().any() else None,
-                "kegg": lambda x: ", ".join(x.unique())
-                if x.notna().any() else None,
-                "name": lambda x: ", ".join(x.unique())
-                if x.notna().any() else None,
-                "database_name": lambda x: ", ".join(x.unique())
-            }
-        ).reset_index()
-
+        columns_to_drop = [
+            "precursor_mz",
+            "precursor_mz_error_ppm",
+            "cas",
+            "data_id",
+            "iupac_name",
+            "traditional_name",
+            "common_name",
+            "casno",
+        ]
+        ms2_annot = ms2_annot_report.drop(
+            columns=[col for col in columns_to_drop if col in ms2_annot_report.columns]
+        )
+        
         # Prepare information about the search results, pulling out the best hit for the single report
         # Group by mf_id,ref_mol_id grab row with highest entropy similarity
-        ms2_annot_report = ms2_annot_report.reset_index()
+        ms2_annot = ms2_annot.reset_index()
         # Add column called "n_spectra_contributing" that is the number of unique values in query_spectrum_id per mf_id,ref_mol_id
-        ms2_annot_report["n_spectra_contributing"] = (
-            ms2_annot_report.groupby(["mf_id", "ref_mol_id"])["query_spectrum_id"]
+        ms2_annot["n_spectra_contributing"] = (
+            ms2_annot.groupby(["mf_id", "ref_mol_id"])["query_spectrum_id"]
             .transform("nunique")
         )
         # Sort by entropy similarity
-        ms2_annot_report = ms2_annot_report.sort_values(
+        ms2_annot = ms2_annot.sort_values(
             by=["mf_id", "ref_mol_id", "entropy_similarity"], ascending=[True, True, False]
         )
-        best_entropy = ms2_annot_report.drop_duplicates(
+        best_entropy = ms2_annot.drop_duplicates(
             subset=["mf_id", "ref_mol_id"], keep="first"
         )
-        best_entropy = best_entropy[
-            [
-                "mf_id",
-                "ref_mol_id",
-                "ref_ms_id",
-                "entropy_similarity",
-                "ref_ion_type",
-                "ref_mz_in_query_fract",
-                "n_spectra_contributing"
-            ]
-        ].copy()
 
-        # Merge the two dataframes
-        output = mol_data.merge(
-            best_entropy,
-            how="left",
-            left_on=["mf_id", "ref_mol_id"],
-            right_on=["mf_id", "ref_mol_id"],
-        )
-
-        return output
+        return best_entropy
 
     def clean_ms2_report(self, metabolite_summary):
         """Clean the MS2 report.
@@ -1483,27 +1454,35 @@ class LCMSMetabolomicsExport(LCMSExport):
             for f, a in zip(metabolite_summary["formula"], metabolite_summary["ref_ion_type"])
         ]
 
+        col_order = [
+            "mf_id",
+            "ion_formula",
+            "ref_ion_type",
+            "formula",
+            "inchikey",
+            "name",
+            "inchi",
+            "chebi",
+            "smiles",
+            "kegg",
+            "cas",
+            "database_name",
+            "ref_ms_id",
+            "entropy_similarity",
+            "ref_mz_in_query_fract",
+            "n_spectra_contributing",
+        ]
+
         # Reorder columns
         metabolite_summary = metabolite_summary[
-            [
-                "mf_id",
-                "ion_formula",
-                "ref_ion_type",
-                "formula",
-                "inchikey",
-                "name",
-                "inchi",
-                "chebi",
-                "smiles",
-                "kegg",
-                "cas",
-                "database_name",
-                "ref_ms_id",
-                "entropy_similarity",
-                "ref_mz_in_query_fract",
-                "n_spectra_contributing",
-            ]
+            [col for col in col_order if col in metabolite_summary.columns]
         ]
+
+        # Convert chebi (if present) to int:
+        if "chebi" in metabolite_summary.columns:
+            metabolite_summary["chebi"] = metabolite_summary["chebi"].astype(
+                "Int64", errors="ignore"
+            )
 
         # Set the index to mf_id
         metabolite_summary = metabolite_summary.set_index("mf_id")
@@ -1627,12 +1606,14 @@ class LCMSMetabolomicsExport(LCMSExport):
         ms2_annot_report = self.mass_spectra.mass_features_ms2_annot_to_df(
             molecular_metadata=molecular_metadata
         )
-        if ms2_annot_report is not None:
+        if ms2_annot_report is not None and molecular_metadata is not None:
             ms2_annot_report = self.summarize_metabolomics_report(ms2_annot_report)
             ms2_annot_report = self.clean_ms2_report(ms2_annot_report)
             ms2_annot_report = ms2_annot_report.dropna(axis=1, how="all")
             ms2_annot_report = ms2_annot_report.reset_index(drop=False)
-        
+        else:
+            ms2_annot_report = None
+
         report = self.combine_reports(
             mf_report=mf_report,
             ms1_annot_report=ms1_annot_report,
@@ -1979,7 +1960,7 @@ class LipidomicsExport(LCMSMetabolomicsExport):
         ms2_annot_report = self.mass_spectra.mass_features_ms2_annot_to_df(
             molecular_metadata=molecular_metadata
         )
-        if ms2_annot_report is not None:
+        if ms2_annot_report is not None and molecular_metadata is not None:
             ms2_annot_report = self.summarize_lipid_report(ms2_annot_report)
             ms2_annot_report = self.clean_ms2_report(ms2_annot_report)
             ms2_annot_report = ms2_annot_report.dropna(axis=1, how="all")
