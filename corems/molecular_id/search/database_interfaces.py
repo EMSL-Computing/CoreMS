@@ -1221,13 +1221,6 @@ class MSPInterface(SpectralDatabaseInterface):
         fe_search = self._build_flash_entropy_index(fe_lib, fe_kwargs=fe_kwargs)
 
         return fe_search
-
-    def _to_msp(self, input_dataframe, normalize=True):
-        #TODO KRH: Write this functionality or remove before merging into master branch
-
-        raise NotImplementedError(
-            "MSP writing functionality not yet implemented."
-        )
     
     def _check_msp_compatibility(self):
         """

@@ -1,5 +1,3 @@
-# TODO KRH: This is a work in progress. It is not yet complete but serves as the development testbed for the
-# LCMS metabolomics workflow.
 import os
 from pathlib import Path
 from multiprocessing import Pool
