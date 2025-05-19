@@ -340,7 +340,7 @@ Version [3.6.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/relea
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14009575.svg)](https://doi.org/10.5281/zenodo.14009575)
 
-Yuri E. Corilo, William R. Kew, Lee Ann McCue, Katherine R . Heal, James C. Carr (2024, October 29). EMSL-Computing/CoreMS: CoreMS 3.6.0 (Version v3.6.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.14009575
+Yuri E. Corilo, William R. Kew, Lee Ann McCue, Katherine R . Heal, James C. Carr (2024, October 29). EMSL-Computing/CoreMS: CoreMS 3.0.0 (Version v3.0.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.14009575
 
 ```
 
