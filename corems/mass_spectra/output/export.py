@@ -1169,7 +1169,8 @@ class LCMSExport(HighResMassSpectraExport):
                             ]:
                                 if k3 == "query_frag_types" or k3 == "ref_frag_types":
                                     v3 = [", ".join(x) for x in v3]
-                                array = np.array(v3)
+                                if all(v3 is not None for v3 in v3):
+                                    array = np.array(v3)
                                 if array.dtype.str[0:2] == "<U":
                                     array = array.astype("S")
                                 spectral_search_results[str(k)][str(k2)].create_dataset(
@@ -1193,11 +1194,10 @@ class LCMSExport(HighResMassSpectraExport):
                     lcms_obj=self.mass_spectra,
                 )
 
+class LCMSMetabolomicsExport(LCMSExport):
+    """A class to export LCMS metabolite data.
 
-class LipidomicsExport(LCMSExport):
-    """A class to export lipidomics data.
-
-    This class provides methods to export lipidomics data to various formats and summarize the lipid report.
+    This class provides methods to export LCMS metabolite data to various formats and summarize the metabolite report.
 
     Parameters
     ----------
@@ -1210,7 +1210,7 @@ class LipidomicsExport(LCMSExport):
     def __init__(self, out_file_path, mass_spectra):
         super().__init__(out_file_path, mass_spectra)
         self.ion_type_dict = ion_type_dict
-
+    
     @staticmethod
     def get_ion_formula(neutral_formula, ion_type):
         """From a neutral formula and an ion type, return the formula of the ion.
@@ -1311,7 +1311,19 @@ class LipidomicsExport(LCMSExport):
             iso_class = None
 
         return iso_class
+    
+    def report_to_csv(self, molecular_metadata=None):
+        """Create a report of the mass features and their annotations and save it as a CSV file.
 
+        Parameters
+        ----------
+        molecular_metadata : dict, optional
+            The molecular metadata. Default is None.
+        """
+        report = self.to_report(molecular_metadata=molecular_metadata)
+        out_file = self.output_file.with_suffix(".csv")
+        report.to_csv(out_file, index=False)
+    
     def clean_ms1_report(self, ms1_summary_full):
         """Clean the MS1 report.
 
@@ -1364,6 +1376,266 @@ class LipidomicsExport(LCMSExport):
         ms1_summary = ms1_summary.set_index("mf_id")
 
         return ms1_summary
+    
+    def summarize_ms2_report(self, ms2_annot_report):
+        """
+        Summarize the MS2 report.
+
+        Parameters
+        ----------
+        ms2_annot_report : DataFrame
+            The MS2 annotation DataFrame with all annotations, output of mass_features_ms2_annot_to_df.
+        
+        Returns
+        -------
+        """
+    
+    def summarize_metabolomics_report(self, ms2_annot_report):
+        """Summarize the MS2 hits for a metabolomics report
+        
+        Parameters
+        ----------
+        ms2_annot : DataFrame
+            The MS2 annotation DataFrame with all annotations.
+
+        Returns
+        -------
+        DataFrame
+            The summarized metabolomics report.
+        """
+        columns_to_drop = [
+            "precursor_mz",
+            "precursor_mz_error_ppm",
+            "cas",
+            "data_id",
+            "iupac_name",
+            "traditional_name",
+            "common_name",
+            "casno",
+        ]
+        ms2_annot = ms2_annot_report.drop(
+            columns=[col for col in columns_to_drop if col in ms2_annot_report.columns]
+        )
+        
+        # Prepare information about the search results, pulling out the best hit for the single report
+        # Group by mf_id,ref_mol_id grab row with highest entropy similarity
+        ms2_annot = ms2_annot.reset_index()
+        # Add column called "n_spectra_contributing" that is the number of unique values in query_spectrum_id per mf_id,ref_mol_id
+        ms2_annot["n_spectra_contributing"] = (
+            ms2_annot.groupby(["mf_id", "ref_mol_id"])["query_spectrum_id"]
+            .transform("nunique")
+        )
+        # Sort by entropy similarity
+        ms2_annot = ms2_annot.sort_values(
+            by=["mf_id", "ref_mol_id", "entropy_similarity"], ascending=[True, True, False]
+        )
+        best_entropy = ms2_annot.drop_duplicates(
+            subset=["mf_id", "ref_mol_id"], keep="first"
+        )
+
+        return best_entropy
+
+    def clean_ms2_report(self, metabolite_summary):
+        """Clean the MS2 report.
+
+        Parameters
+        ----------
+        metabolite_summary : DataFrame
+            The full metabolomics summary DataFrame.
+
+        Returns
+        -------
+        DataFrame
+            The cleaned metabolomics summary DataFrame.
+        """
+        metabolite_summary = metabolite_summary.reset_index()
+        metabolite_summary["ion_formula"] = [
+            self.get_ion_formula(f, a)
+            for f, a in zip(metabolite_summary["formula"], metabolite_summary["ref_ion_type"])
+        ]
+
+        col_order = [
+            "mf_id",
+            "ion_formula",
+            "ref_ion_type",
+            "formula",
+            "inchikey",
+            "name",
+            "inchi",
+            "chebi",
+            "smiles",
+            "kegg",
+            "cas",
+            "database_name",
+            "ref_ms_id",
+            "entropy_similarity",
+            "ref_mz_in_query_fract",
+            "n_spectra_contributing",
+        ]
+
+        # Reorder columns
+        metabolite_summary = metabolite_summary[
+            [col for col in col_order if col in metabolite_summary.columns]
+        ]
+
+        # Convert chebi (if present) to int:
+        if "chebi" in metabolite_summary.columns:
+            metabolite_summary["chebi"] = metabolite_summary["chebi"].astype(
+                "Int64", errors="ignore"
+            )
+
+        # Set the index to mf_id
+        metabolite_summary = metabolite_summary.set_index("mf_id")
+
+        return metabolite_summary
+    
+    def combine_reports(self, mf_report, ms1_annot_report, ms2_annot_report):
+        """Combine the mass feature report with the MS1 and MS2 reports.
+
+        Parameters
+        ----------
+        mf_report : DataFrame
+            The mass feature report DataFrame.
+        ms1_annot_report : DataFrame
+            The MS1 annotation report DataFrame.
+        ms2_annot_report : DataFrame
+            The MS2 annotation report DataFrame.
+        """
+        # If there is an ms1_annot_report, merge it with the mf_report
+        if not ms1_annot_report.empty:
+            # MS1 has been run and has molecular formula information
+            mf_report = pd.merge(
+                mf_report,
+                ms1_annot_report,
+                how="left",
+                on=["mf_id", "isotopologue_type"],
+            )
+        if ms2_annot_report is not None:
+            # pull out the records with ion_formula and drop the ion_formula column (these should be empty if MS1 molecular formula assignment is working correctly)
+            mf_no_ion_formula = mf_report[mf_report["ion_formula"].isna()]
+            mf_no_ion_formula = mf_no_ion_formula.drop(columns=["ion_formula"])
+            mf_no_ion_formula = pd.merge(
+                mf_no_ion_formula, ms2_annot_report, how="left", on=["mf_id"]
+            )
+
+            # pull out the records with ion_formula
+            mf_with_ion_formula = mf_report[~mf_report["ion_formula"].isna()]
+            mf_with_ion_formula = pd.merge(
+                mf_with_ion_formula,
+                ms2_annot_report,
+                how="left",
+                on=["mf_id", "ion_formula"],
+            )
+
+            # put back together
+            mf_report = pd.concat([mf_no_ion_formula, mf_with_ion_formula])
+
+        # Rename colums
+        rename_dict = {
+            "mf_id": "Mass Feature ID",
+            "scan_time": "Retention Time (min)",
+            "mz": "m/z",
+            "apex_scan": "Apex Scan Number",
+            "intensity": "Intensity",
+            "persistence": "Persistence",
+            "area": "Area",
+            "half_height_width": "Half Height Width (min)",
+            "tailing_factor": "Tailing Factor",
+            "dispersity_index": "Dispersity Index",
+            "ms2_spectrum": "MS2 Spectrum",
+            "monoisotopic_mf_id": "Monoisotopic Mass Feature ID",
+            "isotopologue_type": "Isotopologue Type",
+            "mass_spectrum_deconvoluted_parent": "Is Largest Ion after Deconvolution",
+            "associated_mass_features": "Associated Mass Features after Deconvolution",
+            "ion_formula": "Ion Formula",
+            "formula": "Molecular Formula",
+            "ref_ion_type": "Ion Type",
+            "annot_level": "Lipid Annotation Level",
+            "lipid_molecular_species_id": "Lipid Molecular Species",
+            "lipid_summed_name": "Lipid Species",
+            "lipid_subclass": "Lipid Subclass",
+            "lipid_class": "Lipid Class",
+            "lipid_category": "Lipid Category",
+            "entropy_similarity": "Entropy Similarity",
+            "ref_mz_in_query_fract": "Library mzs in Query (fraction)",
+            "n_spectra_contributing": "Spectra with Annotation (n)",
+        }
+        mf_report = mf_report.rename(columns=rename_dict)
+        mf_report["Sample Name"] = self.mass_spectra.sample_name
+        mf_report["Polarity"] = self.mass_spectra.polarity
+        mf_report = mf_report[
+            ["Mass Feature ID", "Sample Name", "Polarity"]
+            + [
+                col
+                for col in mf_report.columns
+                if col not in ["Mass Feature ID", "Sample Name", "Polarity"]
+            ]
+        ]
+
+        # Reorder rows by "Mass Feature ID"
+        mf_report = mf_report.sort_values("Mass Feature ID")
+
+        # Reset index
+        mf_report = mf_report.reset_index(drop=True)
+
+        return mf_report
+    
+    def to_report(self, molecular_metadata=None):
+        """Create a report of the mass features and their annotations.
+
+        Parameters
+        ----------
+        molecular_metadata : dict, optional
+            The molecular metadata. Default is None.
+
+        Returns
+        -------
+        DataFrame
+            The report as a Pandas DataFrame.
+        """
+        # Get mass feature dataframe
+        mf_report = self.mass_spectra.mass_features_to_df()
+        mf_report = mf_report.reset_index(drop=False)
+
+        # Get and clean ms1 annotation dataframe
+        ms1_annot_report = self.mass_spectra.mass_features_ms1_annot_to_df().copy()
+        ms1_annot_report = self.clean_ms1_report(ms1_annot_report)
+        ms1_annot_report = ms1_annot_report.reset_index(drop=False)
+
+        # Get, summarize, and clean ms2 annotation dataframe
+        ms2_annot_report = self.mass_spectra.mass_features_ms2_annot_to_df(
+            molecular_metadata=molecular_metadata
+        )
+        if ms2_annot_report is not None and molecular_metadata is not None:
+            ms2_annot_report = self.summarize_metabolomics_report(ms2_annot_report)
+            ms2_annot_report = self.clean_ms2_report(ms2_annot_report)
+            ms2_annot_report = ms2_annot_report.dropna(axis=1, how="all")
+            ms2_annot_report = ms2_annot_report.reset_index(drop=False)
+        else:
+            ms2_annot_report = None
+
+        report = self.combine_reports(
+            mf_report=mf_report,
+            ms1_annot_report=ms1_annot_report,
+            ms2_annot_report=ms2_annot_report
+        )
+
+        return report
+class LipidomicsExport(LCMSMetabolomicsExport):
+    """A class to export lipidomics data.
+
+    This class provides methods to export lipidomics data to various formats and summarize the lipid report.
+
+    Parameters
+    ----------
+    out_file_path : str | Path
+        The output file path, do not include the file extension.
+    mass_spectra : object
+        The high resolution mass spectra object.
+    """
+
+    def __init__(self, out_file_path, mass_spectra):
+        super().__init__(out_file_path, mass_spectra)
 
     def summarize_lipid_report(self, ms2_annot):
         """Summarize the lipid report.
@@ -1419,6 +1691,7 @@ class LipidomicsExport(LCMSExport):
         for mf_id in ms2_annot["mf_id"].unique():
             mlf_results_perid = []
             ms2_annot_mf = ms2_annot[ms2_annot["mf_id"] == mf_id].copy()
+            #FIXME: Fix this - it's not giving what we want!
             ms2_annot_mf["n_spectra_contributing"] = len(ms2_annot_mf)
 
             for query_scan in ms2_annot["query_spectrum_id"].unique():
@@ -1687,99 +1960,17 @@ class LipidomicsExport(LCMSExport):
         ms2_annot_report = self.mass_spectra.mass_features_ms2_annot_to_df(
             molecular_metadata=molecular_metadata
         )
-        if ms2_annot_report is not None:
+        if ms2_annot_report is not None and molecular_metadata is not None:
             ms2_annot_report = self.summarize_lipid_report(ms2_annot_report)
             ms2_annot_report = self.clean_ms2_report(ms2_annot_report)
             ms2_annot_report = ms2_annot_report.dropna(axis=1, how="all")
             ms2_annot_report = ms2_annot_report.reset_index(drop=False)
+        report = self.combine_reports(
+            mf_report=mf_report,
+            ms1_annot_report=ms1_annot_report,
+            ms2_annot_report=ms2_annot_report
+        )
+        return report
 
-        # Combine the reports
-        if not ms1_annot_report.empty:
-            # MS1 has been run and has molecular formula information
-            mf_report = pd.merge(
-                mf_report,
-                ms1_annot_report,
-                how="left",
-                on=["mf_id", "isotopologue_type"],
-            )
-        if ms2_annot_report is not None:
-            # pull out the records with ion_formula and drop the ion_formula column (these should be empty if MS1 molecular formula assignment is working correctly)
-            mf_no_ion_formula = mf_report[mf_report["ion_formula"].isna()]
-            mf_no_ion_formula = mf_no_ion_formula.drop(columns=["ion_formula"])
-            mf_no_ion_formula = pd.merge(
-                mf_no_ion_formula, ms2_annot_report, how="left", on=["mf_id"]
-            )
+        
 
-            # pull out the records with ion_formula
-            mf_with_ion_formula = mf_report[~mf_report["ion_formula"].isna()]
-            mf_with_ion_formula = pd.merge(
-                mf_with_ion_formula,
-                ms2_annot_report,
-                how="left",
-                on=["mf_id", "ion_formula"],
-            )
-
-            # put back together
-            mf_report = pd.concat([mf_no_ion_formula, mf_with_ion_formula])
-
-        # Rename colums
-        rename_dict = {
-            "mf_id": "Mass Feature ID",
-            "scan_time": "Retention Time (min)",
-            "mz": "m/z",
-            "apex_scan": "Apex Scan Number",
-            "intensity": "Intensity",
-            "persistence": "Persistence",
-            "area": "Area",
-            "half_height_width": "Half Height Width (min)",
-            "tailing_factor": "Tailing Factor",
-            "dispersity_index": "Dispersity Index",
-            "ms2_spectrum": "MS2 Spectrum",
-            "monoisotopic_mf_id": "Monoisotopic Mass Feature ID",
-            "isotopologue_type": "Isotopologue Type",
-            "mass_spectrum_deconvoluted_parent": "Is Largest Ion after Deconvolution",
-            "associated_mass_features": "Associated Mass Features after Deconvolution",
-            "ion_formula": "Ion Formula",
-            "formula": "Molecular Formula",
-            "ref_ion_type": "Ion Type",
-            "annot_level": "Lipid Annotation Level",
-            "lipid_molecular_species_id": "Lipid Molecular Species",
-            "lipid_summed_name": "Lipid Species",
-            "lipid_subclass": "Lipid Subclass",
-            "lipid_class": "Lipid Class",
-            "lipid_category": "Lipid Category",
-            "entropy_similarity": "Entropy Similarity",
-            "ref_mz_in_query_fract": "Library mzs in Query (fraction)",
-            "n_spectra_contributing": "Spectra with Annotation (n)",
-        }
-        mf_report = mf_report.rename(columns=rename_dict)
-        mf_report["Sample Name"] = self.mass_spectra.sample_name
-        mf_report["Polarity"] = self.mass_spectra.polarity
-        mf_report = mf_report[
-            ["Mass Feature ID", "Sample Name", "Polarity"]
-            + [
-                col
-                for col in mf_report.columns
-                if col not in ["Mass Feature ID", "Sample Name", "Polarity"]
-            ]
-        ]
-
-        # Reorder rows by "Mass Feature ID"
-        mf_report = mf_report.sort_values("Mass Feature ID")
-
-        # Reset index
-        mf_report = mf_report.reset_index(drop=True)
-
-        return mf_report
-
-    def report_to_csv(self, molecular_metadata=None):
-        """Create a report of the mass features and their annotations and save it as a CSV file.
-
-        Parameters
-        ----------
-        molecular_metadata : dict, optional
-            The molecular metadata. Default is None.
-        """
-        report = self.to_report(molecular_metadata=molecular_metadata)
-        out_file = self.output_file.with_suffix(".csv")
-        report.to_csv(out_file, index=False)
