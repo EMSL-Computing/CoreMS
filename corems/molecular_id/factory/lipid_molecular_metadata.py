@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from .EI_SQL import MetaboliteMetadata
 
-
+_no_default = object()
 @dataclass
 class LipidMetadata(MetaboliteMetadata):
     """Dataclass for the Lipid Metadata
@@ -33,13 +33,18 @@ class LipidMetadata(MetaboliteMetadata):
         The category of the lipid, following the LIPID MAPS classification
     """
 
-    name: str
-    casno: str
-    formula: str
-    pubchem_id: str
-    structure_level: str
+    casno: str = _no_default
+    pubchem_id: str = _no_default
+    structure_level: str = _no_default
 
-    lipid_summed_name: str
-    lipid_subclass: str
-    lipid_class: str
-    lipid_category: str
+    lipid_summed_name: str = _no_default
+    lipid_subclass: str = _no_default
+    lipid_class: str = _no_default
+    lipid_category: str = _no_default
+
+    def __post_init__(self):
+        for field in self.__dataclass_fields__:
+            if getattr(self, field) is _no_default:
+                raise TypeError(
+                    f"__init__ missing 1 required argument: '{field}'"
+                )

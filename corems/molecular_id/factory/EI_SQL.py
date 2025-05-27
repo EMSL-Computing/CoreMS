@@ -3,6 +3,7 @@ __date__ = "Feb 12, 2020"
 
 import os
 from dataclasses import dataclass
+from typing import Optional
 
 from numpy import array, frombuffer
 from sqlalchemy import (
@@ -201,10 +202,18 @@ class MetaboliteMetadata:
     traditional_name : str
         The traditional name of the compound.
     common_name : str
-        The common name of the compound.
+        The common name of the compound, preferrably the RefMet name.
     data_id : int
         The id of the compound in the molecularData table.
-
+    name : Optional[str]
+        The name of the compound, preferably the same name as in PubChem,
+        Or if a lipid, name as in LipidMaps
+    formula : Optional[str]
+        The formula of the compound.
+    pubchem_id : Optional[str]
+        The PubChem ID of the compound.
+    refmet_id : Optional[str]
+        The RefMet ID of the compound.
     """
 
     id: int
@@ -218,6 +227,10 @@ class MetaboliteMetadata:
     iupac_name: str
     traditional_name: str
     common_name: str
+    name: Optional[str]=None
+    formula: Optional[str]=None
+    pubchem_id: Optional[str]=None
+    refmet_id: Optional[str]=None
 
 
 @dataclass

@@ -508,81 +508,130 @@
 </span><span id="L-416"><a href="#L-416"><span class="linenos">416</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ms_parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-417"><a href="#L-417"><span class="linenos">417</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="n">exp_freq</span><span class="p">,</span> <span class="n">ms_parent</span><span class="o">=</span><span class="n">ms_parent</span><span class="p">)</span>
 </span><span id="L-418"><a href="#L-418"><span class="linenos">418</span></a>
-</span><span id="L-419"><a href="#L-419"><span class="linenos">419</span></a>    <span class="k">def</span> <span class="nf">resolving_power_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+</span><span id="L-419"><a href="#L-419"><span class="linenos">419</span></a>    <span class="k">def</span> <span class="nf">resolving_power_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">apodization_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span><span class="c1">#, kaiser_beta: float = None):</span>
 </span><span id="L-420"><a href="#L-420"><span class="linenos">420</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the theoretical resolving power of the peak.</span>
-</span><span id="L-421"><a href="#L-421"><span class="linenos">421</span></a>
-</span><span id="L-422"><a href="#L-422"><span class="linenos">422</span></a><span class="sd">        Parameters</span>
-</span><span id="L-423"><a href="#L-423"><span class="linenos">423</span></a><span class="sd">        ----------</span>
-</span><span id="L-424"><a href="#L-424"><span class="linenos">424</span></a><span class="sd">        T: float</span>
-</span><span id="L-425"><a href="#L-425"><span class="linenos">425</span></a><span class="sd">            transient time</span>
-</span><span id="L-426"><a href="#L-426"><span class="linenos">426</span></a><span class="sd">        B: float</span>
-</span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a><span class="sd">            Magnetic Filed Strength (Tesla)</span>
-</span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a>
-</span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a><span class="sd">        Returns</span>
-</span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a><span class="sd">        -------</span>
-</span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a><span class="sd">        float</span>
-</span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a><span class="sd">            Theoretical resolving power of the peak.</span>
-</span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a>
-</span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a><span class="sd">        References</span>
-</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a><span class="sd">        ----------</span>
-</span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a><span class="sd">        1. Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)</span>
-</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a><span class="sd">            DOI: 10.1002/(SICI)1098-2787(1998)17:1&lt;1::AID-MAS1&gt;3.0.CO;2-K</span>
-</span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a>        <span class="k">return</span> <span class="p">(</span><span class="mf">1.274e7</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_charge</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">T</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mz_exp</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_charge</span><span class="p">)</span>
-</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a>
-</span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-</span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the resolving power of the peak to the calculated one.&quot;&quot;&quot;</span>
-</span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">resolving_power</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolving_power_calc</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
-</span><span id="L-444"><a href="#L-444"><span class="linenos">444</span></a>
-</span><span id="L-445"><a href="#L-445"><span class="linenos">445</span></a>    <span class="k">def</span> <span class="nf">_mz_to_f_bruker</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;[Not Functional] Convert a peak m/z value to frequency</span>
-</span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a>
-</span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a><span class="sd">        # Currently Broken - Not sure why</span>
-</span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a><span class="sd">        if self.mz_cal:</span>
-</span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a><span class="sd">            mz_val = self.mz_cal</span>
-</span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a><span class="sd">        else:</span>
-</span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a><span class="sd">            mz_val = self.mz_exp</span>
-</span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a><span class="sd">        Aterm, Bterm, Cterm = self._ms_parent.Aterm, self._ms_parent.Bterm, self._ms_parent.Cterm</span>
-</span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a><span class="sd">        # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage</span>
-</span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a>
-</span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a><span class="sd">        if Cterm == 0:</span>
-</span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a>
-</span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a><span class="sd">            if Bterm == 0:</span>
-</span><span id="L-459"><a href="#L-459"><span class="linenos">459</span></a><span class="sd">                #uncalibrated data</span>
-</span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a><span class="sd">                freq_domain = Aterm / mz_val</span>
-</span><span id="L-461"><a href="#L-461"><span class="linenos">461</span></a>
-</span><span id="L-462"><a href="#L-462"><span class="linenos">462</span></a><span class="sd">            else:</span>
-</span><span id="L-463"><a href="#L-463"><span class="linenos">463</span></a>
-</span><span id="L-464"><a href="#L-464"><span class="linenos">464</span></a><span class="sd">                freq_domain = (Aterm / (mz_val)) - Bterm</span>
-</span><span id="L-465"><a href="#L-465"><span class="linenos">465</span></a>
-</span><span id="L-466"><a href="#L-466"><span class="linenos">466</span></a><span class="sd">        # @will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to</span>
-</span><span id="L-467"><a href="#L-467"><span class="linenos">467</span></a><span class="sd">        else:</span>
-</span><span id="L-468"><a href="#L-468"><span class="linenos">468</span></a>
-</span><span id="L-469"><a href="#L-469"><span class="linenos">469</span></a><span class="sd">            freq_domain = (Aterm / mz_val) + (Bterm / power(mz_val, 2)) + Cterm</span>
-</span><span id="L-470"><a href="#L-470"><span class="linenos">470</span></a>
-</span><span id="L-471"><a href="#L-471"><span class="linenos">471</span></a><span class="sd">        return freq_domain</span>
-</span><span id="L-472"><a href="#L-472"><span class="linenos">472</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-473"><a href="#L-473"><span class="linenos">473</span></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Function not confirmed to work, disabled.&quot;</span><span class="p">)</span>
-</span><span id="L-474"><a href="#L-474"><span class="linenos">474</span></a>
-</span><span id="L-475"><a href="#L-475"><span class="linenos">475</span></a>
-</span><span id="L-476"><a href="#L-476"><span class="linenos">476</span></a><span class="k">class</span> <span class="nc">TOFMassPeak</span><span class="p">(</span><span class="n">_MSPeak</span><span class="p">):</span>
-</span><span id="L-477"><a href="#L-477"><span class="linenos">477</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class representing a peak in a TOF mass spectrum.&quot;&quot;&quot;</span>
-</span><span id="L-478"><a href="#L-478"><span class="linenos">478</span></a>
-</span><span id="L-479"><a href="#L-479"><span class="linenos">479</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-480"><a href="#L-480"><span class="linenos">480</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="n">exp_freq</span><span class="p">)</span>
-</span><span id="L-481"><a href="#L-481"><span class="linenos">481</span></a>
-</span><span id="L-482"><a href="#L-482"><span class="linenos">482</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-483"><a href="#L-483"><span class="linenos">483</span></a>        <span class="k">return</span> <span class="mi">0</span>
-</span><span id="L-484"><a href="#L-484"><span class="linenos">484</span></a>
+</span><span id="L-421"><a href="#L-421"><span class="linenos">421</span></a><span class="sd">        </span>
+</span><span id="L-422"><a href="#L-422"><span class="linenos">422</span></a><span class="sd">        Note this presumes magntiude mode Fourier transform and fundamental frequency detection.</span>
+</span><span id="L-423"><a href="#L-423"><span class="linenos">423</span></a><span class="sd">        If you are doing aFT/eFT, or 2nd harmonic detection, you should adjust the B or T values accordingly.</span>
+</span><span id="L-424"><a href="#L-424"><span class="linenos">424</span></a><span class="sd">        Note that the window function corrections are an approximation and may not be 100% accurate. </span>
+</span><span id="L-425"><a href="#L-425"><span class="linenos">425</span></a><span class="sd">        Encourage you to use with caution and/or re-do the derivation independently and update....</span>
+</span><span id="L-426"><a href="#L-426"><span class="linenos">426</span></a>
+</span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a><span class="sd">        Parameters</span>
+</span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a><span class="sd">        ----------</span>
+</span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a><span class="sd">        T: float</span>
+</span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a><span class="sd">            transient time</span>
+</span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a><span class="sd">        B: float</span>
+</span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a><span class="sd">            Magnetic Filed Strength (Tesla)</span>
+</span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a><span class="sd">        apodization_method: str, optional</span>
+</span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a><span class="sd">            The apodization method applied to the transient prior to FFT.</span>
+</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a><span class="sd">            Default is None.</span>
+</span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a>
+</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a><span class="sd">        Returns</span>
+</span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a><span class="sd">        -------</span>
+</span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a><span class="sd">        float</span>
+</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a><span class="sd">            Theoretical resolving power of the peak, with magnitude mode Fourier transform and fundamental frequency detection.</span>
+</span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a><span class="sd">        </span>
+</span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a>
+</span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a><span class="sd">        References</span>
+</span><span id="L-444"><a href="#L-444"><span class="linenos">444</span></a><span class="sd">        ----------</span>
+</span><span id="L-445"><a href="#L-445"><span class="linenos">445</span></a><span class="sd">        1. Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)</span>
+</span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a><span class="sd">            DOI: 10.1002/(SICI)1098-2787(1998)17:1&lt;1::AID-MAS1&gt;3.0.CO;2-K</span>
+</span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a>        <span class="c1">#Calculate theoretical low pressure limit (undamped) ICR resolving power</span>
+</span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>        <span class="n">RP_unwindowed</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.274e7</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_charge</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">T</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mz_exp</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_charge</span><span class="p">)</span>
+</span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>
+</span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>        <span class="c1"># Default correction factor (no windowing)</span>
+</span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a>        <span class="n">CF</span> <span class="o">=</span> <span class="mf">1.0</span>
+</span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a>
+</span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a>        <span class="c1"># Apply correction factor based on the window function</span>
+</span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a>        <span class="k">if</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Rectangular&quot;</span> <span class="ow">or</span> <span class="n">apodization_method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">1.0</span>
+</span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Hamming&quot;</span><span class="p">:</span>
+</span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">0.685</span>
+</span><span id="L-459"><a href="#L-459"><span class="linenos">459</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Hanning&quot;</span><span class="p">:</span>
+</span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">0.618</span> 
+</span><span id="L-461"><a href="#L-461"><span class="linenos">461</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Blackman&quot;</span><span class="p">:</span>
+</span><span id="L-462"><a href="#L-462"><span class="linenos">462</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">0.530</span>
+</span><span id="L-463"><a href="#L-463"><span class="linenos">463</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Full-Sine&quot;</span><span class="p">:</span>
+</span><span id="L-464"><a href="#L-464"><span class="linenos">464</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">0.736</span>
+</span><span id="L-465"><a href="#L-465"><span class="linenos">465</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Half-Sine&quot;</span> <span class="ow">or</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Kaiser&quot;</span> <span class="ow">or</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Half-Kaiser&quot;</span><span class="p">:</span>
+</span><span id="L-466"><a href="#L-466"><span class="linenos">466</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Apodization method </span><span class="si">{</span><span class="n">apodization_method</span><span class="si">}</span><span class="s2"> not supported yet&quot;</span><span class="p">)</span>
+</span><span id="L-467"><a href="#L-467"><span class="linenos">467</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-468"><a href="#L-468"><span class="linenos">468</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown window function: </span><span class="si">{</span><span class="n">apodization_method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-469"><a href="#L-469"><span class="linenos">469</span></a><span class="w">        </span>
+</span><span id="L-470"><a href="#L-470"><span class="linenos">470</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39; # This was placeholder code, not sure these CF and equations are correct.</span>
+</span><span id="L-471"><a href="#L-471"><span class="linenos">471</span></a><span class="sd">        elif apodization_method == &quot;Half-Sine&quot;:</span>
+</span><span id="L-472"><a href="#L-472"><span class="linenos">472</span></a><span class="sd">            CF = 0.85  # Approximate value</span>
+</span><span id="L-473"><a href="#L-473"><span class="linenos">473</span></a><span class="sd">        elif apodization_method == &quot;Kaiser&quot;:</span>
+</span><span id="L-474"><a href="#L-474"><span class="linenos">474</span></a><span class="sd">            if kaiser_beta is not None:</span>
+</span><span id="L-475"><a href="#L-475"><span class="linenos">475</span></a><span class="sd">                CF = 1.3975 / (kaiser_beta + 0.5)</span>
+</span><span id="L-476"><a href="#L-476"><span class="linenos">476</span></a><span class="sd">            else:</span>
+</span><span id="L-477"><a href="#L-477"><span class="linenos">477</span></a><span class="sd">                raise ValueError(&quot;Beta parameter is required for Kaiser window&quot;)</span>
+</span><span id="L-478"><a href="#L-478"><span class="linenos">478</span></a><span class="sd">        elif apodization_method == &quot;Half-Kaiser&quot;:</span>
+</span><span id="L-479"><a href="#L-479"><span class="linenos">479</span></a><span class="sd">            if kaiser_beta is not None:</span>
+</span><span id="L-480"><a href="#L-480"><span class="linenos">480</span></a><span class="sd">                k_half = 0.85  # Adjust this factor based on empirical data or literature</span>
+</span><span id="L-481"><a href="#L-481"><span class="linenos">481</span></a><span class="sd">                CF = (1.3975 / (kaiser_beta + 0.5)) * k_half</span>
+</span><span id="L-482"><a href="#L-482"><span class="linenos">482</span></a><span class="sd">            else:</span>
+</span><span id="L-483"><a href="#L-483"><span class="linenos">483</span></a><span class="sd">                raise ValueError(&quot;Beta parameter is required for Half-Kaiser window&quot;)</span>
+</span><span id="L-484"><a href="#L-484"><span class="linenos">484</span></a><span class="sd">        &#39;&#39;&#39;</span>
 </span><span id="L-485"><a href="#L-485"><span class="linenos">485</span></a>
-</span><span id="L-486"><a href="#L-486"><span class="linenos">486</span></a><span class="k">class</span> <span class="nc">OrbiMassPeak</span><span class="p">(</span><span class="n">_MSPeak</span><span class="p">):</span>
-</span><span id="L-487"><a href="#L-487"><span class="linenos">487</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class representing a peak in an Orbitrap mass spectrum.&quot;&quot;&quot;</span>
-</span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a>
-</span><span id="L-489"><a href="#L-489"><span class="linenos">489</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-490"><a href="#L-490"><span class="linenos">490</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="n">exp_freq</span><span class="p">)</span>
-</span><span id="L-491"><a href="#L-491"><span class="linenos">491</span></a>
-</span><span id="L-492"><a href="#L-492"><span class="linenos">492</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-493"><a href="#L-493"><span class="linenos">493</span></a>        <span class="k">return</span> <span class="mi">0</span>
+</span><span id="L-486"><a href="#L-486"><span class="linenos">486</span></a>        <span class="c1"># Adjusted resolving power after applying the window function</span>
+</span><span id="L-487"><a href="#L-487"><span class="linenos">487</span></a>        <span class="n">RP_windowed</span> <span class="o">=</span> <span class="n">RP_unwindowed</span> <span class="o">*</span> <span class="n">CF</span>
+</span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a>        <span class="k">return</span> <span class="n">RP_windowed</span>
+</span><span id="L-489"><a href="#L-489"><span class="linenos">489</span></a>
+</span><span id="L-490"><a href="#L-490"><span class="linenos">490</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">apodization_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="L-491"><a href="#L-491"><span class="linenos">491</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the resolving power of the peak to the calculated one.&quot;&quot;&quot;</span>
+</span><span id="L-492"><a href="#L-492"><span class="linenos">492</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">resolving_power</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolving_power_calc</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">apodization_method</span><span class="p">)</span>
+</span><span id="L-493"><a href="#L-493"><span class="linenos">493</span></a>
+</span><span id="L-494"><a href="#L-494"><span class="linenos">494</span></a>    <span class="k">def</span> <span class="nf">_mz_to_f_bruker</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-495"><a href="#L-495"><span class="linenos">495</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;[Not Functional] Convert a peak m/z value to frequency</span>
+</span><span id="L-496"><a href="#L-496"><span class="linenos">496</span></a>
+</span><span id="L-497"><a href="#L-497"><span class="linenos">497</span></a><span class="sd">        # Currently Broken - Not sure why</span>
+</span><span id="L-498"><a href="#L-498"><span class="linenos">498</span></a><span class="sd">        if self.mz_cal:</span>
+</span><span id="L-499"><a href="#L-499"><span class="linenos">499</span></a><span class="sd">            mz_val = self.mz_cal</span>
+</span><span id="L-500"><a href="#L-500"><span class="linenos">500</span></a><span class="sd">        else:</span>
+</span><span id="L-501"><a href="#L-501"><span class="linenos">501</span></a><span class="sd">            mz_val = self.mz_exp</span>
+</span><span id="L-502"><a href="#L-502"><span class="linenos">502</span></a><span class="sd">        Aterm, Bterm, Cterm = self._ms_parent.Aterm, self._ms_parent.Bterm, self._ms_parent.Cterm</span>
+</span><span id="L-503"><a href="#L-503"><span class="linenos">503</span></a><span class="sd">        # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage</span>
+</span><span id="L-504"><a href="#L-504"><span class="linenos">504</span></a>
+</span><span id="L-505"><a href="#L-505"><span class="linenos">505</span></a><span class="sd">        if Cterm == 0:</span>
+</span><span id="L-506"><a href="#L-506"><span class="linenos">506</span></a>
+</span><span id="L-507"><a href="#L-507"><span class="linenos">507</span></a><span class="sd">            if Bterm == 0:</span>
+</span><span id="L-508"><a href="#L-508"><span class="linenos">508</span></a><span class="sd">                #uncalibrated data</span>
+</span><span id="L-509"><a href="#L-509"><span class="linenos">509</span></a><span class="sd">                freq_domain = Aterm / mz_val</span>
+</span><span id="L-510"><a href="#L-510"><span class="linenos">510</span></a>
+</span><span id="L-511"><a href="#L-511"><span class="linenos">511</span></a><span class="sd">            else:</span>
+</span><span id="L-512"><a href="#L-512"><span class="linenos">512</span></a>
+</span><span id="L-513"><a href="#L-513"><span class="linenos">513</span></a><span class="sd">                freq_domain = (Aterm / (mz_val)) - Bterm</span>
+</span><span id="L-514"><a href="#L-514"><span class="linenos">514</span></a>
+</span><span id="L-515"><a href="#L-515"><span class="linenos">515</span></a><span class="sd">        # @will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to</span>
+</span><span id="L-516"><a href="#L-516"><span class="linenos">516</span></a><span class="sd">        else:</span>
+</span><span id="L-517"><a href="#L-517"><span class="linenos">517</span></a>
+</span><span id="L-518"><a href="#L-518"><span class="linenos">518</span></a><span class="sd">            freq_domain = (Aterm / mz_val) + (Bterm / power(mz_val, 2)) + Cterm</span>
+</span><span id="L-519"><a href="#L-519"><span class="linenos">519</span></a>
+</span><span id="L-520"><a href="#L-520"><span class="linenos">520</span></a><span class="sd">        return freq_domain</span>
+</span><span id="L-521"><a href="#L-521"><span class="linenos">521</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-522"><a href="#L-522"><span class="linenos">522</span></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Function not confirmed to work, disabled.&quot;</span><span class="p">)</span>
+</span><span id="L-523"><a href="#L-523"><span class="linenos">523</span></a>
+</span><span id="L-524"><a href="#L-524"><span class="linenos">524</span></a>
+</span><span id="L-525"><a href="#L-525"><span class="linenos">525</span></a><span class="k">class</span> <span class="nc">TOFMassPeak</span><span class="p">(</span><span class="n">_MSPeak</span><span class="p">):</span>
+</span><span id="L-526"><a href="#L-526"><span class="linenos">526</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class representing a peak in a TOF mass spectrum.&quot;&quot;&quot;</span>
+</span><span id="L-527"><a href="#L-527"><span class="linenos">527</span></a>
+</span><span id="L-528"><a href="#L-528"><span class="linenos">528</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-529"><a href="#L-529"><span class="linenos">529</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="n">exp_freq</span><span class="p">)</span>
+</span><span id="L-530"><a href="#L-530"><span class="linenos">530</span></a>
+</span><span id="L-531"><a href="#L-531"><span class="linenos">531</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-532"><a href="#L-532"><span class="linenos">532</span></a>        <span class="k">return</span> <span class="mi">0</span>
+</span><span id="L-533"><a href="#L-533"><span class="linenos">533</span></a>
+</span><span id="L-534"><a href="#L-534"><span class="linenos">534</span></a>
+</span><span id="L-535"><a href="#L-535"><span class="linenos">535</span></a><span class="k">class</span> <span class="nc">OrbiMassPeak</span><span class="p">(</span><span class="n">_MSPeak</span><span class="p">):</span>
+</span><span id="L-536"><a href="#L-536"><span class="linenos">536</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class representing a peak in an Orbitrap mass spectrum.&quot;&quot;&quot;</span>
+</span><span id="L-537"><a href="#L-537"><span class="linenos">537</span></a>
+</span><span id="L-538"><a href="#L-538"><span class="linenos">538</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-539"><a href="#L-539"><span class="linenos">539</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="n">exp_freq</span><span class="p">)</span>
+</span><span id="L-540"><a href="#L-540"><span class="linenos">540</span></a>
+</span><span id="L-541"><a href="#L-541"><span class="linenos">541</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-542"><a href="#L-542"><span class="linenos">542</span></a>        <span class="k">return</span> <span class="mi">0</span>
 </span></pre></div>
 
 
@@ -604,61 +653,110 @@
 </span><span id="ICRMassPeak-417"><a href="#ICRMassPeak-417"><span class="linenos">417</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ms_parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="ICRMassPeak-418"><a href="#ICRMassPeak-418"><span class="linenos">418</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="n">exp_freq</span><span class="p">,</span> <span class="n">ms_parent</span><span class="o">=</span><span class="n">ms_parent</span><span class="p">)</span>
 </span><span id="ICRMassPeak-419"><a href="#ICRMassPeak-419"><span class="linenos">419</span></a>
-</span><span id="ICRMassPeak-420"><a href="#ICRMassPeak-420"><span class="linenos">420</span></a>    <span class="k">def</span> <span class="nf">resolving_power_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+</span><span id="ICRMassPeak-420"><a href="#ICRMassPeak-420"><span class="linenos">420</span></a>    <span class="k">def</span> <span class="nf">resolving_power_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">apodization_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span><span class="c1">#, kaiser_beta: float = None):</span>
 </span><span id="ICRMassPeak-421"><a href="#ICRMassPeak-421"><span class="linenos">421</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the theoretical resolving power of the peak.</span>
-</span><span id="ICRMassPeak-422"><a href="#ICRMassPeak-422"><span class="linenos">422</span></a>
-</span><span id="ICRMassPeak-423"><a href="#ICRMassPeak-423"><span class="linenos">423</span></a><span class="sd">        Parameters</span>
-</span><span id="ICRMassPeak-424"><a href="#ICRMassPeak-424"><span class="linenos">424</span></a><span class="sd">        ----------</span>
-</span><span id="ICRMassPeak-425"><a href="#ICRMassPeak-425"><span class="linenos">425</span></a><span class="sd">        T: float</span>
-</span><span id="ICRMassPeak-426"><a href="#ICRMassPeak-426"><span class="linenos">426</span></a><span class="sd">            transient time</span>
-</span><span id="ICRMassPeak-427"><a href="#ICRMassPeak-427"><span class="linenos">427</span></a><span class="sd">        B: float</span>
-</span><span id="ICRMassPeak-428"><a href="#ICRMassPeak-428"><span class="linenos">428</span></a><span class="sd">            Magnetic Filed Strength (Tesla)</span>
-</span><span id="ICRMassPeak-429"><a href="#ICRMassPeak-429"><span class="linenos">429</span></a>
-</span><span id="ICRMassPeak-430"><a href="#ICRMassPeak-430"><span class="linenos">430</span></a><span class="sd">        Returns</span>
-</span><span id="ICRMassPeak-431"><a href="#ICRMassPeak-431"><span class="linenos">431</span></a><span class="sd">        -------</span>
-</span><span id="ICRMassPeak-432"><a href="#ICRMassPeak-432"><span class="linenos">432</span></a><span class="sd">        float</span>
-</span><span id="ICRMassPeak-433"><a href="#ICRMassPeak-433"><span class="linenos">433</span></a><span class="sd">            Theoretical resolving power of the peak.</span>
-</span><span id="ICRMassPeak-434"><a href="#ICRMassPeak-434"><span class="linenos">434</span></a>
-</span><span id="ICRMassPeak-435"><a href="#ICRMassPeak-435"><span class="linenos">435</span></a><span class="sd">        References</span>
-</span><span id="ICRMassPeak-436"><a href="#ICRMassPeak-436"><span class="linenos">436</span></a><span class="sd">        ----------</span>
-</span><span id="ICRMassPeak-437"><a href="#ICRMassPeak-437"><span class="linenos">437</span></a><span class="sd">        1. Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)</span>
-</span><span id="ICRMassPeak-438"><a href="#ICRMassPeak-438"><span class="linenos">438</span></a><span class="sd">            DOI: 10.1002/(SICI)1098-2787(1998)17:1&lt;1::AID-MAS1&gt;3.0.CO;2-K</span>
-</span><span id="ICRMassPeak-439"><a href="#ICRMassPeak-439"><span class="linenos">439</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="ICRMassPeak-440"><a href="#ICRMassPeak-440"><span class="linenos">440</span></a>        <span class="k">return</span> <span class="p">(</span><span class="mf">1.274e7</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_charge</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">T</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mz_exp</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_charge</span><span class="p">)</span>
-</span><span id="ICRMassPeak-441"><a href="#ICRMassPeak-441"><span class="linenos">441</span></a>
-</span><span id="ICRMassPeak-442"><a href="#ICRMassPeak-442"><span class="linenos">442</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-</span><span id="ICRMassPeak-443"><a href="#ICRMassPeak-443"><span class="linenos">443</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the resolving power of the peak to the calculated one.&quot;&quot;&quot;</span>
-</span><span id="ICRMassPeak-444"><a href="#ICRMassPeak-444"><span class="linenos">444</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">resolving_power</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolving_power_calc</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
-</span><span id="ICRMassPeak-445"><a href="#ICRMassPeak-445"><span class="linenos">445</span></a>
-</span><span id="ICRMassPeak-446"><a href="#ICRMassPeak-446"><span class="linenos">446</span></a>    <span class="k">def</span> <span class="nf">_mz_to_f_bruker</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="ICRMassPeak-447"><a href="#ICRMassPeak-447"><span class="linenos">447</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;[Not Functional] Convert a peak m/z value to frequency</span>
-</span><span id="ICRMassPeak-448"><a href="#ICRMassPeak-448"><span class="linenos">448</span></a>
-</span><span id="ICRMassPeak-449"><a href="#ICRMassPeak-449"><span class="linenos">449</span></a><span class="sd">        # Currently Broken - Not sure why</span>
-</span><span id="ICRMassPeak-450"><a href="#ICRMassPeak-450"><span class="linenos">450</span></a><span class="sd">        if self.mz_cal:</span>
-</span><span id="ICRMassPeak-451"><a href="#ICRMassPeak-451"><span class="linenos">451</span></a><span class="sd">            mz_val = self.mz_cal</span>
-</span><span id="ICRMassPeak-452"><a href="#ICRMassPeak-452"><span class="linenos">452</span></a><span class="sd">        else:</span>
-</span><span id="ICRMassPeak-453"><a href="#ICRMassPeak-453"><span class="linenos">453</span></a><span class="sd">            mz_val = self.mz_exp</span>
-</span><span id="ICRMassPeak-454"><a href="#ICRMassPeak-454"><span class="linenos">454</span></a><span class="sd">        Aterm, Bterm, Cterm = self._ms_parent.Aterm, self._ms_parent.Bterm, self._ms_parent.Cterm</span>
-</span><span id="ICRMassPeak-455"><a href="#ICRMassPeak-455"><span class="linenos">455</span></a><span class="sd">        # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage</span>
-</span><span id="ICRMassPeak-456"><a href="#ICRMassPeak-456"><span class="linenos">456</span></a>
-</span><span id="ICRMassPeak-457"><a href="#ICRMassPeak-457"><span class="linenos">457</span></a><span class="sd">        if Cterm == 0:</span>
-</span><span id="ICRMassPeak-458"><a href="#ICRMassPeak-458"><span class="linenos">458</span></a>
-</span><span id="ICRMassPeak-459"><a href="#ICRMassPeak-459"><span class="linenos">459</span></a><span class="sd">            if Bterm == 0:</span>
-</span><span id="ICRMassPeak-460"><a href="#ICRMassPeak-460"><span class="linenos">460</span></a><span class="sd">                #uncalibrated data</span>
-</span><span id="ICRMassPeak-461"><a href="#ICRMassPeak-461"><span class="linenos">461</span></a><span class="sd">                freq_domain = Aterm / mz_val</span>
-</span><span id="ICRMassPeak-462"><a href="#ICRMassPeak-462"><span class="linenos">462</span></a>
-</span><span id="ICRMassPeak-463"><a href="#ICRMassPeak-463"><span class="linenos">463</span></a><span class="sd">            else:</span>
-</span><span id="ICRMassPeak-464"><a href="#ICRMassPeak-464"><span class="linenos">464</span></a>
-</span><span id="ICRMassPeak-465"><a href="#ICRMassPeak-465"><span class="linenos">465</span></a><span class="sd">                freq_domain = (Aterm / (mz_val)) - Bterm</span>
-</span><span id="ICRMassPeak-466"><a href="#ICRMassPeak-466"><span class="linenos">466</span></a>
-</span><span id="ICRMassPeak-467"><a href="#ICRMassPeak-467"><span class="linenos">467</span></a><span class="sd">        # @will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to</span>
-</span><span id="ICRMassPeak-468"><a href="#ICRMassPeak-468"><span class="linenos">468</span></a><span class="sd">        else:</span>
-</span><span id="ICRMassPeak-469"><a href="#ICRMassPeak-469"><span class="linenos">469</span></a>
-</span><span id="ICRMassPeak-470"><a href="#ICRMassPeak-470"><span class="linenos">470</span></a><span class="sd">            freq_domain = (Aterm / mz_val) + (Bterm / power(mz_val, 2)) + Cterm</span>
-</span><span id="ICRMassPeak-471"><a href="#ICRMassPeak-471"><span class="linenos">471</span></a>
-</span><span id="ICRMassPeak-472"><a href="#ICRMassPeak-472"><span class="linenos">472</span></a><span class="sd">        return freq_domain</span>
-</span><span id="ICRMassPeak-473"><a href="#ICRMassPeak-473"><span class="linenos">473</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="ICRMassPeak-474"><a href="#ICRMassPeak-474"><span class="linenos">474</span></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Function not confirmed to work, disabled.&quot;</span><span class="p">)</span>
+</span><span id="ICRMassPeak-422"><a href="#ICRMassPeak-422"><span class="linenos">422</span></a><span class="sd">        </span>
+</span><span id="ICRMassPeak-423"><a href="#ICRMassPeak-423"><span class="linenos">423</span></a><span class="sd">        Note this presumes magntiude mode Fourier transform and fundamental frequency detection.</span>
+</span><span id="ICRMassPeak-424"><a href="#ICRMassPeak-424"><span class="linenos">424</span></a><span class="sd">        If you are doing aFT/eFT, or 2nd harmonic detection, you should adjust the B or T values accordingly.</span>
+</span><span id="ICRMassPeak-425"><a href="#ICRMassPeak-425"><span class="linenos">425</span></a><span class="sd">        Note that the window function corrections are an approximation and may not be 100% accurate. </span>
+</span><span id="ICRMassPeak-426"><a href="#ICRMassPeak-426"><span class="linenos">426</span></a><span class="sd">        Encourage you to use with caution and/or re-do the derivation independently and update....</span>
+</span><span id="ICRMassPeak-427"><a href="#ICRMassPeak-427"><span class="linenos">427</span></a>
+</span><span id="ICRMassPeak-428"><a href="#ICRMassPeak-428"><span class="linenos">428</span></a><span class="sd">        Parameters</span>
+</span><span id="ICRMassPeak-429"><a href="#ICRMassPeak-429"><span class="linenos">429</span></a><span class="sd">        ----------</span>
+</span><span id="ICRMassPeak-430"><a href="#ICRMassPeak-430"><span class="linenos">430</span></a><span class="sd">        T: float</span>
+</span><span id="ICRMassPeak-431"><a href="#ICRMassPeak-431"><span class="linenos">431</span></a><span class="sd">            transient time</span>
+</span><span id="ICRMassPeak-432"><a href="#ICRMassPeak-432"><span class="linenos">432</span></a><span class="sd">        B: float</span>
+</span><span id="ICRMassPeak-433"><a href="#ICRMassPeak-433"><span class="linenos">433</span></a><span class="sd">            Magnetic Filed Strength (Tesla)</span>
+</span><span id="ICRMassPeak-434"><a href="#ICRMassPeak-434"><span class="linenos">434</span></a><span class="sd">        apodization_method: str, optional</span>
+</span><span id="ICRMassPeak-435"><a href="#ICRMassPeak-435"><span class="linenos">435</span></a><span class="sd">            The apodization method applied to the transient prior to FFT.</span>
+</span><span id="ICRMassPeak-436"><a href="#ICRMassPeak-436"><span class="linenos">436</span></a><span class="sd">            Default is None.</span>
+</span><span id="ICRMassPeak-437"><a href="#ICRMassPeak-437"><span class="linenos">437</span></a>
+</span><span id="ICRMassPeak-438"><a href="#ICRMassPeak-438"><span class="linenos">438</span></a><span class="sd">        Returns</span>
+</span><span id="ICRMassPeak-439"><a href="#ICRMassPeak-439"><span class="linenos">439</span></a><span class="sd">        -------</span>
+</span><span id="ICRMassPeak-440"><a href="#ICRMassPeak-440"><span class="linenos">440</span></a><span class="sd">        float</span>
+</span><span id="ICRMassPeak-441"><a href="#ICRMassPeak-441"><span class="linenos">441</span></a><span class="sd">            Theoretical resolving power of the peak, with magnitude mode Fourier transform and fundamental frequency detection.</span>
+</span><span id="ICRMassPeak-442"><a href="#ICRMassPeak-442"><span class="linenos">442</span></a><span class="sd">        </span>
+</span><span id="ICRMassPeak-443"><a href="#ICRMassPeak-443"><span class="linenos">443</span></a>
+</span><span id="ICRMassPeak-444"><a href="#ICRMassPeak-444"><span class="linenos">444</span></a><span class="sd">        References</span>
+</span><span id="ICRMassPeak-445"><a href="#ICRMassPeak-445"><span class="linenos">445</span></a><span class="sd">        ----------</span>
+</span><span id="ICRMassPeak-446"><a href="#ICRMassPeak-446"><span class="linenos">446</span></a><span class="sd">        1. Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)</span>
+</span><span id="ICRMassPeak-447"><a href="#ICRMassPeak-447"><span class="linenos">447</span></a><span class="sd">            DOI: 10.1002/(SICI)1098-2787(1998)17:1&lt;1::AID-MAS1&gt;3.0.CO;2-K</span>
+</span><span id="ICRMassPeak-448"><a href="#ICRMassPeak-448"><span class="linenos">448</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="ICRMassPeak-449"><a href="#ICRMassPeak-449"><span class="linenos">449</span></a>        <span class="c1">#Calculate theoretical low pressure limit (undamped) ICR resolving power</span>
+</span><span id="ICRMassPeak-450"><a href="#ICRMassPeak-450"><span class="linenos">450</span></a>        <span class="n">RP_unwindowed</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.274e7</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_charge</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">T</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mz_exp</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_charge</span><span class="p">)</span>
+</span><span id="ICRMassPeak-451"><a href="#ICRMassPeak-451"><span class="linenos">451</span></a>
+</span><span id="ICRMassPeak-452"><a href="#ICRMassPeak-452"><span class="linenos">452</span></a>        <span class="c1"># Default correction factor (no windowing)</span>
+</span><span id="ICRMassPeak-453"><a href="#ICRMassPeak-453"><span class="linenos">453</span></a>        <span class="n">CF</span> <span class="o">=</span> <span class="mf">1.0</span>
+</span><span id="ICRMassPeak-454"><a href="#ICRMassPeak-454"><span class="linenos">454</span></a>
+</span><span id="ICRMassPeak-455"><a href="#ICRMassPeak-455"><span class="linenos">455</span></a>        <span class="c1"># Apply correction factor based on the window function</span>
+</span><span id="ICRMassPeak-456"><a href="#ICRMassPeak-456"><span class="linenos">456</span></a>        <span class="k">if</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Rectangular&quot;</span> <span class="ow">or</span> <span class="n">apodization_method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="ICRMassPeak-457"><a href="#ICRMassPeak-457"><span class="linenos">457</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">1.0</span>
+</span><span id="ICRMassPeak-458"><a href="#ICRMassPeak-458"><span class="linenos">458</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Hamming&quot;</span><span class="p">:</span>
+</span><span id="ICRMassPeak-459"><a href="#ICRMassPeak-459"><span class="linenos">459</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">0.685</span>
+</span><span id="ICRMassPeak-460"><a href="#ICRMassPeak-460"><span class="linenos">460</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Hanning&quot;</span><span class="p">:</span>
+</span><span id="ICRMassPeak-461"><a href="#ICRMassPeak-461"><span class="linenos">461</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">0.618</span> 
+</span><span id="ICRMassPeak-462"><a href="#ICRMassPeak-462"><span class="linenos">462</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Blackman&quot;</span><span class="p">:</span>
+</span><span id="ICRMassPeak-463"><a href="#ICRMassPeak-463"><span class="linenos">463</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">0.530</span>
+</span><span id="ICRMassPeak-464"><a href="#ICRMassPeak-464"><span class="linenos">464</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Full-Sine&quot;</span><span class="p">:</span>
+</span><span id="ICRMassPeak-465"><a href="#ICRMassPeak-465"><span class="linenos">465</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">0.736</span>
+</span><span id="ICRMassPeak-466"><a href="#ICRMassPeak-466"><span class="linenos">466</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Half-Sine&quot;</span> <span class="ow">or</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Kaiser&quot;</span> <span class="ow">or</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Half-Kaiser&quot;</span><span class="p">:</span>
+</span><span id="ICRMassPeak-467"><a href="#ICRMassPeak-467"><span class="linenos">467</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Apodization method </span><span class="si">{</span><span class="n">apodization_method</span><span class="si">}</span><span class="s2"> not supported yet&quot;</span><span class="p">)</span>
+</span><span id="ICRMassPeak-468"><a href="#ICRMassPeak-468"><span class="linenos">468</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="ICRMassPeak-469"><a href="#ICRMassPeak-469"><span class="linenos">469</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown window function: </span><span class="si">{</span><span class="n">apodization_method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="ICRMassPeak-470"><a href="#ICRMassPeak-470"><span class="linenos">470</span></a><span class="w">        </span>
+</span><span id="ICRMassPeak-471"><a href="#ICRMassPeak-471"><span class="linenos">471</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39; # This was placeholder code, not sure these CF and equations are correct.</span>
+</span><span id="ICRMassPeak-472"><a href="#ICRMassPeak-472"><span class="linenos">472</span></a><span class="sd">        elif apodization_method == &quot;Half-Sine&quot;:</span>
+</span><span id="ICRMassPeak-473"><a href="#ICRMassPeak-473"><span class="linenos">473</span></a><span class="sd">            CF = 0.85  # Approximate value</span>
+</span><span id="ICRMassPeak-474"><a href="#ICRMassPeak-474"><span class="linenos">474</span></a><span class="sd">        elif apodization_method == &quot;Kaiser&quot;:</span>
+</span><span id="ICRMassPeak-475"><a href="#ICRMassPeak-475"><span class="linenos">475</span></a><span class="sd">            if kaiser_beta is not None:</span>
+</span><span id="ICRMassPeak-476"><a href="#ICRMassPeak-476"><span class="linenos">476</span></a><span class="sd">                CF = 1.3975 / (kaiser_beta + 0.5)</span>
+</span><span id="ICRMassPeak-477"><a href="#ICRMassPeak-477"><span class="linenos">477</span></a><span class="sd">            else:</span>
+</span><span id="ICRMassPeak-478"><a href="#ICRMassPeak-478"><span class="linenos">478</span></a><span class="sd">                raise ValueError(&quot;Beta parameter is required for Kaiser window&quot;)</span>
+</span><span id="ICRMassPeak-479"><a href="#ICRMassPeak-479"><span class="linenos">479</span></a><span class="sd">        elif apodization_method == &quot;Half-Kaiser&quot;:</span>
+</span><span id="ICRMassPeak-480"><a href="#ICRMassPeak-480"><span class="linenos">480</span></a><span class="sd">            if kaiser_beta is not None:</span>
+</span><span id="ICRMassPeak-481"><a href="#ICRMassPeak-481"><span class="linenos">481</span></a><span class="sd">                k_half = 0.85  # Adjust this factor based on empirical data or literature</span>
+</span><span id="ICRMassPeak-482"><a href="#ICRMassPeak-482"><span class="linenos">482</span></a><span class="sd">                CF = (1.3975 / (kaiser_beta + 0.5)) * k_half</span>
+</span><span id="ICRMassPeak-483"><a href="#ICRMassPeak-483"><span class="linenos">483</span></a><span class="sd">            else:</span>
+</span><span id="ICRMassPeak-484"><a href="#ICRMassPeak-484"><span class="linenos">484</span></a><span class="sd">                raise ValueError(&quot;Beta parameter is required for Half-Kaiser window&quot;)</span>
+</span><span id="ICRMassPeak-485"><a href="#ICRMassPeak-485"><span class="linenos">485</span></a><span class="sd">        &#39;&#39;&#39;</span>
+</span><span id="ICRMassPeak-486"><a href="#ICRMassPeak-486"><span class="linenos">486</span></a>
+</span><span id="ICRMassPeak-487"><a href="#ICRMassPeak-487"><span class="linenos">487</span></a>        <span class="c1"># Adjusted resolving power after applying the window function</span>
+</span><span id="ICRMassPeak-488"><a href="#ICRMassPeak-488"><span class="linenos">488</span></a>        <span class="n">RP_windowed</span> <span class="o">=</span> <span class="n">RP_unwindowed</span> <span class="o">*</span> <span class="n">CF</span>
+</span><span id="ICRMassPeak-489"><a href="#ICRMassPeak-489"><span class="linenos">489</span></a>        <span class="k">return</span> <span class="n">RP_windowed</span>
+</span><span id="ICRMassPeak-490"><a href="#ICRMassPeak-490"><span class="linenos">490</span></a>
+</span><span id="ICRMassPeak-491"><a href="#ICRMassPeak-491"><span class="linenos">491</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">apodization_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="ICRMassPeak-492"><a href="#ICRMassPeak-492"><span class="linenos">492</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the resolving power of the peak to the calculated one.&quot;&quot;&quot;</span>
+</span><span id="ICRMassPeak-493"><a href="#ICRMassPeak-493"><span class="linenos">493</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">resolving_power</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolving_power_calc</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">apodization_method</span><span class="p">)</span>
+</span><span id="ICRMassPeak-494"><a href="#ICRMassPeak-494"><span class="linenos">494</span></a>
+</span><span id="ICRMassPeak-495"><a href="#ICRMassPeak-495"><span class="linenos">495</span></a>    <span class="k">def</span> <span class="nf">_mz_to_f_bruker</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="ICRMassPeak-496"><a href="#ICRMassPeak-496"><span class="linenos">496</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;[Not Functional] Convert a peak m/z value to frequency</span>
+</span><span id="ICRMassPeak-497"><a href="#ICRMassPeak-497"><span class="linenos">497</span></a>
+</span><span id="ICRMassPeak-498"><a href="#ICRMassPeak-498"><span class="linenos">498</span></a><span class="sd">        # Currently Broken - Not sure why</span>
+</span><span id="ICRMassPeak-499"><a href="#ICRMassPeak-499"><span class="linenos">499</span></a><span class="sd">        if self.mz_cal:</span>
+</span><span id="ICRMassPeak-500"><a href="#ICRMassPeak-500"><span class="linenos">500</span></a><span class="sd">            mz_val = self.mz_cal</span>
+</span><span id="ICRMassPeak-501"><a href="#ICRMassPeak-501"><span class="linenos">501</span></a><span class="sd">        else:</span>
+</span><span id="ICRMassPeak-502"><a href="#ICRMassPeak-502"><span class="linenos">502</span></a><span class="sd">            mz_val = self.mz_exp</span>
+</span><span id="ICRMassPeak-503"><a href="#ICRMassPeak-503"><span class="linenos">503</span></a><span class="sd">        Aterm, Bterm, Cterm = self._ms_parent.Aterm, self._ms_parent.Bterm, self._ms_parent.Cterm</span>
+</span><span id="ICRMassPeak-504"><a href="#ICRMassPeak-504"><span class="linenos">504</span></a><span class="sd">        # Check if the Bterm of Ledford equation scales with the ICR trap voltage or not then Bterm = Bterm*trap_voltage</span>
+</span><span id="ICRMassPeak-505"><a href="#ICRMassPeak-505"><span class="linenos">505</span></a>
+</span><span id="ICRMassPeak-506"><a href="#ICRMassPeak-506"><span class="linenos">506</span></a><span class="sd">        if Cterm == 0:</span>
+</span><span id="ICRMassPeak-507"><a href="#ICRMassPeak-507"><span class="linenos">507</span></a>
+</span><span id="ICRMassPeak-508"><a href="#ICRMassPeak-508"><span class="linenos">508</span></a><span class="sd">            if Bterm == 0:</span>
+</span><span id="ICRMassPeak-509"><a href="#ICRMassPeak-509"><span class="linenos">509</span></a><span class="sd">                #uncalibrated data</span>
+</span><span id="ICRMassPeak-510"><a href="#ICRMassPeak-510"><span class="linenos">510</span></a><span class="sd">                freq_domain = Aterm / mz_val</span>
+</span><span id="ICRMassPeak-511"><a href="#ICRMassPeak-511"><span class="linenos">511</span></a>
+</span><span id="ICRMassPeak-512"><a href="#ICRMassPeak-512"><span class="linenos">512</span></a><span class="sd">            else:</span>
+</span><span id="ICRMassPeak-513"><a href="#ICRMassPeak-513"><span class="linenos">513</span></a>
+</span><span id="ICRMassPeak-514"><a href="#ICRMassPeak-514"><span class="linenos">514</span></a><span class="sd">                freq_domain = (Aterm / (mz_val)) - Bterm</span>
+</span><span id="ICRMassPeak-515"><a href="#ICRMassPeak-515"><span class="linenos">515</span></a>
+</span><span id="ICRMassPeak-516"><a href="#ICRMassPeak-516"><span class="linenos">516</span></a><span class="sd">        # @will I need you insight here, not sure what is the inverted ledford equation that Bruker refers to</span>
+</span><span id="ICRMassPeak-517"><a href="#ICRMassPeak-517"><span class="linenos">517</span></a><span class="sd">        else:</span>
+</span><span id="ICRMassPeak-518"><a href="#ICRMassPeak-518"><span class="linenos">518</span></a>
+</span><span id="ICRMassPeak-519"><a href="#ICRMassPeak-519"><span class="linenos">519</span></a><span class="sd">            freq_domain = (Aterm / mz_val) + (Bterm / power(mz_val, 2)) + Cterm</span>
+</span><span id="ICRMassPeak-520"><a href="#ICRMassPeak-520"><span class="linenos">520</span></a>
+</span><span id="ICRMassPeak-521"><a href="#ICRMassPeak-521"><span class="linenos">521</span></a><span class="sd">        return freq_domain</span>
+</span><span id="ICRMassPeak-522"><a href="#ICRMassPeak-522"><span class="linenos">522</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="ICRMassPeak-523"><a href="#ICRMassPeak-523"><span class="linenos">523</span></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Function not confirmed to work, disabled.&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -689,37 +787,91 @@
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">resolving_power_calc</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">B</span>, </span><span class="param"><span class="n">T</span></span><span class="return-annotation">):</span></span>
+        <span class="name">resolving_power_calc</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">B</span>, </span><span class="param"><span class="n">T</span>, </span><span class="param"><span class="n">apodization_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="ICRMassPeak.resolving_power_calc-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#ICRMassPeak.resolving_power_calc"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ICRMassPeak.resolving_power_calc-420"><a href="#ICRMassPeak.resolving_power_calc-420"><span class="linenos">420</span></a>    <span class="k">def</span> <span class="nf">resolving_power_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ICRMassPeak.resolving_power_calc-420"><a href="#ICRMassPeak.resolving_power_calc-420"><span class="linenos">420</span></a>    <span class="k">def</span> <span class="nf">resolving_power_calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">apodization_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span><span class="c1">#, kaiser_beta: float = None):</span>
 </span><span id="ICRMassPeak.resolving_power_calc-421"><a href="#ICRMassPeak.resolving_power_calc-421"><span class="linenos">421</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the theoretical resolving power of the peak.</span>
-</span><span id="ICRMassPeak.resolving_power_calc-422"><a href="#ICRMassPeak.resolving_power_calc-422"><span class="linenos">422</span></a>
-</span><span id="ICRMassPeak.resolving_power_calc-423"><a href="#ICRMassPeak.resolving_power_calc-423"><span class="linenos">423</span></a><span class="sd">        Parameters</span>
-</span><span id="ICRMassPeak.resolving_power_calc-424"><a href="#ICRMassPeak.resolving_power_calc-424"><span class="linenos">424</span></a><span class="sd">        ----------</span>
-</span><span id="ICRMassPeak.resolving_power_calc-425"><a href="#ICRMassPeak.resolving_power_calc-425"><span class="linenos">425</span></a><span class="sd">        T: float</span>
-</span><span id="ICRMassPeak.resolving_power_calc-426"><a href="#ICRMassPeak.resolving_power_calc-426"><span class="linenos">426</span></a><span class="sd">            transient time</span>
-</span><span id="ICRMassPeak.resolving_power_calc-427"><a href="#ICRMassPeak.resolving_power_calc-427"><span class="linenos">427</span></a><span class="sd">        B: float</span>
-</span><span id="ICRMassPeak.resolving_power_calc-428"><a href="#ICRMassPeak.resolving_power_calc-428"><span class="linenos">428</span></a><span class="sd">            Magnetic Filed Strength (Tesla)</span>
-</span><span id="ICRMassPeak.resolving_power_calc-429"><a href="#ICRMassPeak.resolving_power_calc-429"><span class="linenos">429</span></a>
-</span><span id="ICRMassPeak.resolving_power_calc-430"><a href="#ICRMassPeak.resolving_power_calc-430"><span class="linenos">430</span></a><span class="sd">        Returns</span>
-</span><span id="ICRMassPeak.resolving_power_calc-431"><a href="#ICRMassPeak.resolving_power_calc-431"><span class="linenos">431</span></a><span class="sd">        -------</span>
-</span><span id="ICRMassPeak.resolving_power_calc-432"><a href="#ICRMassPeak.resolving_power_calc-432"><span class="linenos">432</span></a><span class="sd">        float</span>
-</span><span id="ICRMassPeak.resolving_power_calc-433"><a href="#ICRMassPeak.resolving_power_calc-433"><span class="linenos">433</span></a><span class="sd">            Theoretical resolving power of the peak.</span>
-</span><span id="ICRMassPeak.resolving_power_calc-434"><a href="#ICRMassPeak.resolving_power_calc-434"><span class="linenos">434</span></a>
-</span><span id="ICRMassPeak.resolving_power_calc-435"><a href="#ICRMassPeak.resolving_power_calc-435"><span class="linenos">435</span></a><span class="sd">        References</span>
-</span><span id="ICRMassPeak.resolving_power_calc-436"><a href="#ICRMassPeak.resolving_power_calc-436"><span class="linenos">436</span></a><span class="sd">        ----------</span>
-</span><span id="ICRMassPeak.resolving_power_calc-437"><a href="#ICRMassPeak.resolving_power_calc-437"><span class="linenos">437</span></a><span class="sd">        1. Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)</span>
-</span><span id="ICRMassPeak.resolving_power_calc-438"><a href="#ICRMassPeak.resolving_power_calc-438"><span class="linenos">438</span></a><span class="sd">            DOI: 10.1002/(SICI)1098-2787(1998)17:1&lt;1::AID-MAS1&gt;3.0.CO;2-K</span>
-</span><span id="ICRMassPeak.resolving_power_calc-439"><a href="#ICRMassPeak.resolving_power_calc-439"><span class="linenos">439</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="ICRMassPeak.resolving_power_calc-440"><a href="#ICRMassPeak.resolving_power_calc-440"><span class="linenos">440</span></a>        <span class="k">return</span> <span class="p">(</span><span class="mf">1.274e7</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_charge</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">T</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mz_exp</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_charge</span><span class="p">)</span>
+</span><span id="ICRMassPeak.resolving_power_calc-422"><a href="#ICRMassPeak.resolving_power_calc-422"><span class="linenos">422</span></a><span class="sd">        </span>
+</span><span id="ICRMassPeak.resolving_power_calc-423"><a href="#ICRMassPeak.resolving_power_calc-423"><span class="linenos">423</span></a><span class="sd">        Note this presumes magntiude mode Fourier transform and fundamental frequency detection.</span>
+</span><span id="ICRMassPeak.resolving_power_calc-424"><a href="#ICRMassPeak.resolving_power_calc-424"><span class="linenos">424</span></a><span class="sd">        If you are doing aFT/eFT, or 2nd harmonic detection, you should adjust the B or T values accordingly.</span>
+</span><span id="ICRMassPeak.resolving_power_calc-425"><a href="#ICRMassPeak.resolving_power_calc-425"><span class="linenos">425</span></a><span class="sd">        Note that the window function corrections are an approximation and may not be 100% accurate. </span>
+</span><span id="ICRMassPeak.resolving_power_calc-426"><a href="#ICRMassPeak.resolving_power_calc-426"><span class="linenos">426</span></a><span class="sd">        Encourage you to use with caution and/or re-do the derivation independently and update....</span>
+</span><span id="ICRMassPeak.resolving_power_calc-427"><a href="#ICRMassPeak.resolving_power_calc-427"><span class="linenos">427</span></a>
+</span><span id="ICRMassPeak.resolving_power_calc-428"><a href="#ICRMassPeak.resolving_power_calc-428"><span class="linenos">428</span></a><span class="sd">        Parameters</span>
+</span><span id="ICRMassPeak.resolving_power_calc-429"><a href="#ICRMassPeak.resolving_power_calc-429"><span class="linenos">429</span></a><span class="sd">        ----------</span>
+</span><span id="ICRMassPeak.resolving_power_calc-430"><a href="#ICRMassPeak.resolving_power_calc-430"><span class="linenos">430</span></a><span class="sd">        T: float</span>
+</span><span id="ICRMassPeak.resolving_power_calc-431"><a href="#ICRMassPeak.resolving_power_calc-431"><span class="linenos">431</span></a><span class="sd">            transient time</span>
+</span><span id="ICRMassPeak.resolving_power_calc-432"><a href="#ICRMassPeak.resolving_power_calc-432"><span class="linenos">432</span></a><span class="sd">        B: float</span>
+</span><span id="ICRMassPeak.resolving_power_calc-433"><a href="#ICRMassPeak.resolving_power_calc-433"><span class="linenos">433</span></a><span class="sd">            Magnetic Filed Strength (Tesla)</span>
+</span><span id="ICRMassPeak.resolving_power_calc-434"><a href="#ICRMassPeak.resolving_power_calc-434"><span class="linenos">434</span></a><span class="sd">        apodization_method: str, optional</span>
+</span><span id="ICRMassPeak.resolving_power_calc-435"><a href="#ICRMassPeak.resolving_power_calc-435"><span class="linenos">435</span></a><span class="sd">            The apodization method applied to the transient prior to FFT.</span>
+</span><span id="ICRMassPeak.resolving_power_calc-436"><a href="#ICRMassPeak.resolving_power_calc-436"><span class="linenos">436</span></a><span class="sd">            Default is None.</span>
+</span><span id="ICRMassPeak.resolving_power_calc-437"><a href="#ICRMassPeak.resolving_power_calc-437"><span class="linenos">437</span></a>
+</span><span id="ICRMassPeak.resolving_power_calc-438"><a href="#ICRMassPeak.resolving_power_calc-438"><span class="linenos">438</span></a><span class="sd">        Returns</span>
+</span><span id="ICRMassPeak.resolving_power_calc-439"><a href="#ICRMassPeak.resolving_power_calc-439"><span class="linenos">439</span></a><span class="sd">        -------</span>
+</span><span id="ICRMassPeak.resolving_power_calc-440"><a href="#ICRMassPeak.resolving_power_calc-440"><span class="linenos">440</span></a><span class="sd">        float</span>
+</span><span id="ICRMassPeak.resolving_power_calc-441"><a href="#ICRMassPeak.resolving_power_calc-441"><span class="linenos">441</span></a><span class="sd">            Theoretical resolving power of the peak, with magnitude mode Fourier transform and fundamental frequency detection.</span>
+</span><span id="ICRMassPeak.resolving_power_calc-442"><a href="#ICRMassPeak.resolving_power_calc-442"><span class="linenos">442</span></a><span class="sd">        </span>
+</span><span id="ICRMassPeak.resolving_power_calc-443"><a href="#ICRMassPeak.resolving_power_calc-443"><span class="linenos">443</span></a>
+</span><span id="ICRMassPeak.resolving_power_calc-444"><a href="#ICRMassPeak.resolving_power_calc-444"><span class="linenos">444</span></a><span class="sd">        References</span>
+</span><span id="ICRMassPeak.resolving_power_calc-445"><a href="#ICRMassPeak.resolving_power_calc-445"><span class="linenos">445</span></a><span class="sd">        ----------</span>
+</span><span id="ICRMassPeak.resolving_power_calc-446"><a href="#ICRMassPeak.resolving_power_calc-446"><span class="linenos">446</span></a><span class="sd">        1. Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)</span>
+</span><span id="ICRMassPeak.resolving_power_calc-447"><a href="#ICRMassPeak.resolving_power_calc-447"><span class="linenos">447</span></a><span class="sd">            DOI: 10.1002/(SICI)1098-2787(1998)17:1&lt;1::AID-MAS1&gt;3.0.CO;2-K</span>
+</span><span id="ICRMassPeak.resolving_power_calc-448"><a href="#ICRMassPeak.resolving_power_calc-448"><span class="linenos">448</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="ICRMassPeak.resolving_power_calc-449"><a href="#ICRMassPeak.resolving_power_calc-449"><span class="linenos">449</span></a>        <span class="c1">#Calculate theoretical low pressure limit (undamped) ICR resolving power</span>
+</span><span id="ICRMassPeak.resolving_power_calc-450"><a href="#ICRMassPeak.resolving_power_calc-450"><span class="linenos">450</span></a>        <span class="n">RP_unwindowed</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.274e7</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_charge</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">T</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mz_exp</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_charge</span><span class="p">)</span>
+</span><span id="ICRMassPeak.resolving_power_calc-451"><a href="#ICRMassPeak.resolving_power_calc-451"><span class="linenos">451</span></a>
+</span><span id="ICRMassPeak.resolving_power_calc-452"><a href="#ICRMassPeak.resolving_power_calc-452"><span class="linenos">452</span></a>        <span class="c1"># Default correction factor (no windowing)</span>
+</span><span id="ICRMassPeak.resolving_power_calc-453"><a href="#ICRMassPeak.resolving_power_calc-453"><span class="linenos">453</span></a>        <span class="n">CF</span> <span class="o">=</span> <span class="mf">1.0</span>
+</span><span id="ICRMassPeak.resolving_power_calc-454"><a href="#ICRMassPeak.resolving_power_calc-454"><span class="linenos">454</span></a>
+</span><span id="ICRMassPeak.resolving_power_calc-455"><a href="#ICRMassPeak.resolving_power_calc-455"><span class="linenos">455</span></a>        <span class="c1"># Apply correction factor based on the window function</span>
+</span><span id="ICRMassPeak.resolving_power_calc-456"><a href="#ICRMassPeak.resolving_power_calc-456"><span class="linenos">456</span></a>        <span class="k">if</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Rectangular&quot;</span> <span class="ow">or</span> <span class="n">apodization_method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="ICRMassPeak.resolving_power_calc-457"><a href="#ICRMassPeak.resolving_power_calc-457"><span class="linenos">457</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">1.0</span>
+</span><span id="ICRMassPeak.resolving_power_calc-458"><a href="#ICRMassPeak.resolving_power_calc-458"><span class="linenos">458</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Hamming&quot;</span><span class="p">:</span>
+</span><span id="ICRMassPeak.resolving_power_calc-459"><a href="#ICRMassPeak.resolving_power_calc-459"><span class="linenos">459</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">0.685</span>
+</span><span id="ICRMassPeak.resolving_power_calc-460"><a href="#ICRMassPeak.resolving_power_calc-460"><span class="linenos">460</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Hanning&quot;</span><span class="p">:</span>
+</span><span id="ICRMassPeak.resolving_power_calc-461"><a href="#ICRMassPeak.resolving_power_calc-461"><span class="linenos">461</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">0.618</span> 
+</span><span id="ICRMassPeak.resolving_power_calc-462"><a href="#ICRMassPeak.resolving_power_calc-462"><span class="linenos">462</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Blackman&quot;</span><span class="p">:</span>
+</span><span id="ICRMassPeak.resolving_power_calc-463"><a href="#ICRMassPeak.resolving_power_calc-463"><span class="linenos">463</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">0.530</span>
+</span><span id="ICRMassPeak.resolving_power_calc-464"><a href="#ICRMassPeak.resolving_power_calc-464"><span class="linenos">464</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Full-Sine&quot;</span><span class="p">:</span>
+</span><span id="ICRMassPeak.resolving_power_calc-465"><a href="#ICRMassPeak.resolving_power_calc-465"><span class="linenos">465</span></a>            <span class="n">CF</span> <span class="o">=</span> <span class="mf">0.736</span>
+</span><span id="ICRMassPeak.resolving_power_calc-466"><a href="#ICRMassPeak.resolving_power_calc-466"><span class="linenos">466</span></a>        <span class="k">elif</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Half-Sine&quot;</span> <span class="ow">or</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Kaiser&quot;</span> <span class="ow">or</span> <span class="n">apodization_method</span> <span class="o">==</span> <span class="s2">&quot;Half-Kaiser&quot;</span><span class="p">:</span>
+</span><span id="ICRMassPeak.resolving_power_calc-467"><a href="#ICRMassPeak.resolving_power_calc-467"><span class="linenos">467</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Apodization method </span><span class="si">{</span><span class="n">apodization_method</span><span class="si">}</span><span class="s2"> not supported yet&quot;</span><span class="p">)</span>
+</span><span id="ICRMassPeak.resolving_power_calc-468"><a href="#ICRMassPeak.resolving_power_calc-468"><span class="linenos">468</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="ICRMassPeak.resolving_power_calc-469"><a href="#ICRMassPeak.resolving_power_calc-469"><span class="linenos">469</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown window function: </span><span class="si">{</span><span class="n">apodization_method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="ICRMassPeak.resolving_power_calc-470"><a href="#ICRMassPeak.resolving_power_calc-470"><span class="linenos">470</span></a><span class="w">        </span>
+</span><span id="ICRMassPeak.resolving_power_calc-471"><a href="#ICRMassPeak.resolving_power_calc-471"><span class="linenos">471</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39; # This was placeholder code, not sure these CF and equations are correct.</span>
+</span><span id="ICRMassPeak.resolving_power_calc-472"><a href="#ICRMassPeak.resolving_power_calc-472"><span class="linenos">472</span></a><span class="sd">        elif apodization_method == &quot;Half-Sine&quot;:</span>
+</span><span id="ICRMassPeak.resolving_power_calc-473"><a href="#ICRMassPeak.resolving_power_calc-473"><span class="linenos">473</span></a><span class="sd">            CF = 0.85  # Approximate value</span>
+</span><span id="ICRMassPeak.resolving_power_calc-474"><a href="#ICRMassPeak.resolving_power_calc-474"><span class="linenos">474</span></a><span class="sd">        elif apodization_method == &quot;Kaiser&quot;:</span>
+</span><span id="ICRMassPeak.resolving_power_calc-475"><a href="#ICRMassPeak.resolving_power_calc-475"><span class="linenos">475</span></a><span class="sd">            if kaiser_beta is not None:</span>
+</span><span id="ICRMassPeak.resolving_power_calc-476"><a href="#ICRMassPeak.resolving_power_calc-476"><span class="linenos">476</span></a><span class="sd">                CF = 1.3975 / (kaiser_beta + 0.5)</span>
+</span><span id="ICRMassPeak.resolving_power_calc-477"><a href="#ICRMassPeak.resolving_power_calc-477"><span class="linenos">477</span></a><span class="sd">            else:</span>
+</span><span id="ICRMassPeak.resolving_power_calc-478"><a href="#ICRMassPeak.resolving_power_calc-478"><span class="linenos">478</span></a><span class="sd">                raise ValueError(&quot;Beta parameter is required for Kaiser window&quot;)</span>
+</span><span id="ICRMassPeak.resolving_power_calc-479"><a href="#ICRMassPeak.resolving_power_calc-479"><span class="linenos">479</span></a><span class="sd">        elif apodization_method == &quot;Half-Kaiser&quot;:</span>
+</span><span id="ICRMassPeak.resolving_power_calc-480"><a href="#ICRMassPeak.resolving_power_calc-480"><span class="linenos">480</span></a><span class="sd">            if kaiser_beta is not None:</span>
+</span><span id="ICRMassPeak.resolving_power_calc-481"><a href="#ICRMassPeak.resolving_power_calc-481"><span class="linenos">481</span></a><span class="sd">                k_half = 0.85  # Adjust this factor based on empirical data or literature</span>
+</span><span id="ICRMassPeak.resolving_power_calc-482"><a href="#ICRMassPeak.resolving_power_calc-482"><span class="linenos">482</span></a><span class="sd">                CF = (1.3975 / (kaiser_beta + 0.5)) * k_half</span>
+</span><span id="ICRMassPeak.resolving_power_calc-483"><a href="#ICRMassPeak.resolving_power_calc-483"><span class="linenos">483</span></a><span class="sd">            else:</span>
+</span><span id="ICRMassPeak.resolving_power_calc-484"><a href="#ICRMassPeak.resolving_power_calc-484"><span class="linenos">484</span></a><span class="sd">                raise ValueError(&quot;Beta parameter is required for Half-Kaiser window&quot;)</span>
+</span><span id="ICRMassPeak.resolving_power_calc-485"><a href="#ICRMassPeak.resolving_power_calc-485"><span class="linenos">485</span></a><span class="sd">        &#39;&#39;&#39;</span>
+</span><span id="ICRMassPeak.resolving_power_calc-486"><a href="#ICRMassPeak.resolving_power_calc-486"><span class="linenos">486</span></a>
+</span><span id="ICRMassPeak.resolving_power_calc-487"><a href="#ICRMassPeak.resolving_power_calc-487"><span class="linenos">487</span></a>        <span class="c1"># Adjusted resolving power after applying the window function</span>
+</span><span id="ICRMassPeak.resolving_power_calc-488"><a href="#ICRMassPeak.resolving_power_calc-488"><span class="linenos">488</span></a>        <span class="n">RP_windowed</span> <span class="o">=</span> <span class="n">RP_unwindowed</span> <span class="o">*</span> <span class="n">CF</span>
+</span><span id="ICRMassPeak.resolving_power_calc-489"><a href="#ICRMassPeak.resolving_power_calc-489"><span class="linenos">489</span></a>        <span class="k">return</span> <span class="n">RP_windowed</span>
 </span></pre></div>
 
 
             <div class="docstring"><p>Calculate the theoretical resolving power of the peak.</p>
+
+<p>Note this presumes magntiude mode Fourier transform and fundamental frequency detection.
+If you are doing aFT/eFT, or 2nd harmonic detection, you should adjust the B or T values accordingly.
+Note that the window function corrections are an approximation and may not be 100% accurate. 
+Encourage you to use with caution and/or re-do the derivation independently and update....</p>
 
 <h6 id="parameters">Parameters</h6>
 
@@ -728,12 +880,15 @@
 transient time</li>
 <li><strong>B</strong> (float):
 Magnetic Filed Strength (Tesla)</li>
+<li><strong>apodization_method</strong> (str, optional):
+The apodization method applied to the transient prior to FFT.
+Default is None.</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
 
 <ul>
-<li><strong>float</strong>: Theoretical resolving power of the peak.</li>
+<li><strong>float</strong>: Theoretical resolving power of the peak, with magnitude mode Fourier transform and fundamental frequency detection.</li>
 </ul>
 
 <h6 id="references">References</h6>
@@ -751,15 +906,15 @@ DOI: 10.1002/(SICI)1098-2787(1998)17:1&lt;1::AID-MAS1>3.0.CO;2-K</li>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">set_calc_resolving_power</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">B</span><span class="p">:</span> <span class="nb">float</span>, </span><span class="param"><span class="n">T</span><span class="p">:</span> <span class="nb">float</span></span><span class="return-annotation">):</span></span>
+        <span class="name">set_calc_resolving_power</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">B</span><span class="p">:</span> <span class="nb">float</span>, </span><span class="param"><span class="n">T</span><span class="p">:</span> <span class="nb">float</span>, </span><span class="param"><span class="n">apodization_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="ICRMassPeak.set_calc_resolving_power-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#ICRMassPeak.set_calc_resolving_power"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ICRMassPeak.set_calc_resolving_power-442"><a href="#ICRMassPeak.set_calc_resolving_power-442"><span class="linenos">442</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-</span><span id="ICRMassPeak.set_calc_resolving_power-443"><a href="#ICRMassPeak.set_calc_resolving_power-443"><span class="linenos">443</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the resolving power of the peak to the calculated one.&quot;&quot;&quot;</span>
-</span><span id="ICRMassPeak.set_calc_resolving_power-444"><a href="#ICRMassPeak.set_calc_resolving_power-444"><span class="linenos">444</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">resolving_power</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolving_power_calc</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ICRMassPeak.set_calc_resolving_power-491"><a href="#ICRMassPeak.set_calc_resolving_power-491"><span class="linenos">491</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">apodization_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="ICRMassPeak.set_calc_resolving_power-492"><a href="#ICRMassPeak.set_calc_resolving_power-492"><span class="linenos">492</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the resolving power of the peak to the calculated one.&quot;&quot;&quot;</span>
+</span><span id="ICRMassPeak.set_calc_resolving_power-493"><a href="#ICRMassPeak.set_calc_resolving_power-493"><span class="linenos">493</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">resolving_power</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolving_power_calc</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">apodization_method</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -840,14 +995,14 @@ DOI: 10.1002/(SICI)1098-2787(1998)17:1&lt;1::AID-MAS1>3.0.CO;2-K</li>
 
     </div>
     <a class="headerlink" href="#TOFMassPeak"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="TOFMassPeak-477"><a href="#TOFMassPeak-477"><span class="linenos">477</span></a><span class="k">class</span> <span class="nc">TOFMassPeak</span><span class="p">(</span><span class="n">_MSPeak</span><span class="p">):</span>
-</span><span id="TOFMassPeak-478"><a href="#TOFMassPeak-478"><span class="linenos">478</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class representing a peak in a TOF mass spectrum.&quot;&quot;&quot;</span>
-</span><span id="TOFMassPeak-479"><a href="#TOFMassPeak-479"><span class="linenos">479</span></a>
-</span><span id="TOFMassPeak-480"><a href="#TOFMassPeak-480"><span class="linenos">480</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="TOFMassPeak-481"><a href="#TOFMassPeak-481"><span class="linenos">481</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="n">exp_freq</span><span class="p">)</span>
-</span><span id="TOFMassPeak-482"><a href="#TOFMassPeak-482"><span class="linenos">482</span></a>
-</span><span id="TOFMassPeak-483"><a href="#TOFMassPeak-483"><span class="linenos">483</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="TOFMassPeak-484"><a href="#TOFMassPeak-484"><span class="linenos">484</span></a>        <span class="k">return</span> <span class="mi">0</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="TOFMassPeak-526"><a href="#TOFMassPeak-526"><span class="linenos">526</span></a><span class="k">class</span> <span class="nc">TOFMassPeak</span><span class="p">(</span><span class="n">_MSPeak</span><span class="p">):</span>
+</span><span id="TOFMassPeak-527"><a href="#TOFMassPeak-527"><span class="linenos">527</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class representing a peak in a TOF mass spectrum.&quot;&quot;&quot;</span>
+</span><span id="TOFMassPeak-528"><a href="#TOFMassPeak-528"><span class="linenos">528</span></a>
+</span><span id="TOFMassPeak-529"><a href="#TOFMassPeak-529"><span class="linenos">529</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="TOFMassPeak-530"><a href="#TOFMassPeak-530"><span class="linenos">530</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="n">exp_freq</span><span class="p">)</span>
+</span><span id="TOFMassPeak-531"><a href="#TOFMassPeak-531"><span class="linenos">531</span></a>
+</span><span id="TOFMassPeak-532"><a href="#TOFMassPeak-532"><span class="linenos">532</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="TOFMassPeak-533"><a href="#TOFMassPeak-533"><span class="linenos">533</span></a>        <span class="k">return</span> <span class="mi">0</span>
 </span></pre></div>
 
 
@@ -865,8 +1020,8 @@ DOI: 10.1002/(SICI)1098-2787(1998)17:1&lt;1::AID-MAS1>3.0.CO;2-K</li>
 
     </div>
     <a class="headerlink" href="#TOFMassPeak.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="TOFMassPeak.__init__-480"><a href="#TOFMassPeak.__init__-480"><span class="linenos">480</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="TOFMassPeak.__init__-481"><a href="#TOFMassPeak.__init__-481"><span class="linenos">481</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="n">exp_freq</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="TOFMassPeak.__init__-529"><a href="#TOFMassPeak.__init__-529"><span class="linenos">529</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="TOFMassPeak.__init__-530"><a href="#TOFMassPeak.__init__-530"><span class="linenos">530</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="n">exp_freq</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -884,8 +1039,8 @@ DOI: 10.1002/(SICI)1098-2787(1998)17:1&lt;1::AID-MAS1>3.0.CO;2-K</li>
 
     </div>
     <a class="headerlink" href="#TOFMassPeak.set_calc_resolving_power"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="TOFMassPeak.set_calc_resolving_power-483"><a href="#TOFMassPeak.set_calc_resolving_power-483"><span class="linenos">483</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="TOFMassPeak.set_calc_resolving_power-484"><a href="#TOFMassPeak.set_calc_resolving_power-484"><span class="linenos">484</span></a>        <span class="k">return</span> <span class="mi">0</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="TOFMassPeak.set_calc_resolving_power-532"><a href="#TOFMassPeak.set_calc_resolving_power-532"><span class="linenos">532</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="TOFMassPeak.set_calc_resolving_power-533"><a href="#TOFMassPeak.set_calc_resolving_power-533"><span class="linenos">533</span></a>        <span class="k">return</span> <span class="mi">0</span>
 </span></pre></div>
 
 
@@ -964,14 +1119,14 @@ DOI: 10.1002/(SICI)1098-2787(1998)17:1&lt;1::AID-MAS1>3.0.CO;2-K</li>
 
     </div>
     <a class="headerlink" href="#OrbiMassPeak"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="OrbiMassPeak-487"><a href="#OrbiMassPeak-487"><span class="linenos">487</span></a><span class="k">class</span> <span class="nc">OrbiMassPeak</span><span class="p">(</span><span class="n">_MSPeak</span><span class="p">):</span>
-</span><span id="OrbiMassPeak-488"><a href="#OrbiMassPeak-488"><span class="linenos">488</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class representing a peak in an Orbitrap mass spectrum.&quot;&quot;&quot;</span>
-</span><span id="OrbiMassPeak-489"><a href="#OrbiMassPeak-489"><span class="linenos">489</span></a>
-</span><span id="OrbiMassPeak-490"><a href="#OrbiMassPeak-490"><span class="linenos">490</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="OrbiMassPeak-491"><a href="#OrbiMassPeak-491"><span class="linenos">491</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="n">exp_freq</span><span class="p">)</span>
-</span><span id="OrbiMassPeak-492"><a href="#OrbiMassPeak-492"><span class="linenos">492</span></a>
-</span><span id="OrbiMassPeak-493"><a href="#OrbiMassPeak-493"><span class="linenos">493</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="OrbiMassPeak-494"><a href="#OrbiMassPeak-494"><span class="linenos">494</span></a>        <span class="k">return</span> <span class="mi">0</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="OrbiMassPeak-536"><a href="#OrbiMassPeak-536"><span class="linenos">536</span></a><span class="k">class</span> <span class="nc">OrbiMassPeak</span><span class="p">(</span><span class="n">_MSPeak</span><span class="p">):</span>
+</span><span id="OrbiMassPeak-537"><a href="#OrbiMassPeak-537"><span class="linenos">537</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A class representing a peak in an Orbitrap mass spectrum.&quot;&quot;&quot;</span>
+</span><span id="OrbiMassPeak-538"><a href="#OrbiMassPeak-538"><span class="linenos">538</span></a>
+</span><span id="OrbiMassPeak-539"><a href="#OrbiMassPeak-539"><span class="linenos">539</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="OrbiMassPeak-540"><a href="#OrbiMassPeak-540"><span class="linenos">540</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="n">exp_freq</span><span class="p">)</span>
+</span><span id="OrbiMassPeak-541"><a href="#OrbiMassPeak-541"><span class="linenos">541</span></a>
+</span><span id="OrbiMassPeak-542"><a href="#OrbiMassPeak-542"><span class="linenos">542</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="OrbiMassPeak-543"><a href="#OrbiMassPeak-543"><span class="linenos">543</span></a>        <span class="k">return</span> <span class="mi">0</span>
 </span></pre></div>
 
 
@@ -989,8 +1144,8 @@ DOI: 10.1002/(SICI)1098-2787(1998)17:1&lt;1::AID-MAS1>3.0.CO;2-K</li>
 
     </div>
     <a class="headerlink" href="#OrbiMassPeak.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="OrbiMassPeak.__init__-490"><a href="#OrbiMassPeak.__init__-490"><span class="linenos">490</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="OrbiMassPeak.__init__-491"><a href="#OrbiMassPeak.__init__-491"><span class="linenos">491</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="n">exp_freq</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="OrbiMassPeak.__init__-539"><a href="#OrbiMassPeak.__init__-539"><span class="linenos">539</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="OrbiMassPeak.__init__-540"><a href="#OrbiMassPeak.__init__-540"><span class="linenos">540</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">exp_freq</span><span class="o">=</span><span class="n">exp_freq</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -1008,8 +1163,8 @@ DOI: 10.1002/(SICI)1098-2787(1998)17:1&lt;1::AID-MAS1>3.0.CO;2-K</li>
 
     </div>
     <a class="headerlink" href="#OrbiMassPeak.set_calc_resolving_power"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="OrbiMassPeak.set_calc_resolving_power-493"><a href="#OrbiMassPeak.set_calc_resolving_power-493"><span class="linenos">493</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="OrbiMassPeak.set_calc_resolving_power-494"><a href="#OrbiMassPeak.set_calc_resolving_power-494"><span class="linenos">494</span></a>        <span class="k">return</span> <span class="mi">0</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="OrbiMassPeak.set_calc_resolving_power-542"><a href="#OrbiMassPeak.set_calc_resolving_power-542"><span class="linenos">542</span></a>    <span class="k">def</span> <span class="nf">set_calc_resolving_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="OrbiMassPeak.set_calc_resolving_power-543"><a href="#OrbiMassPeak.set_calc_resolving_power-543"><span class="linenos">543</span></a>        <span class="k">return</span> <span class="mi">0</span>
 </span></pre></div>
 
 

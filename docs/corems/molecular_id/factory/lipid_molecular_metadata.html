@@ -37,13 +37,7 @@
                                 <a class="function" href="#LipidMetadata.__init__">LipidMetadata</a>
                         </li>
                         <li>
-                                <a class="variable" href="#LipidMetadata.name">name</a>
-                        </li>
-                        <li>
                                 <a class="variable" href="#LipidMetadata.casno">casno</a>
-                        </li>
-                        <li>
-                                <a class="variable" href="#LipidMetadata.formula">formula</a>
                         </li>
                         <li>
                                 <a class="variable" href="#LipidMetadata.pubchem_id">pubchem_id</a>
@@ -94,7 +88,7 @@
 </span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>
 </span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="kn">from</span> <span class="nn">.EI_SQL</span> <span class="kn">import</span> <span class="n">MetaboliteMetadata</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="n">_no_default</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="nd">@dataclass</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="k">class</span> <span class="nc">LipidMetadata</span><span class="p">(</span><span class="n">MetaboliteMetadata</span><span class="p">):</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Dataclass for the Lipid Metadata</span>
@@ -122,16 +116,21 @@
 </span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a><span class="sd">        The category of the lipid, following the LIPID MAPS classification</span>
 </span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>    <span class="n">casno</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>    <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>    <span class="n">pubchem_id</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>    <span class="n">structure_level</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>    <span class="n">lipid_summed_name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>    <span class="n">lipid_subclass</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>    <span class="n">lipid_class</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>    <span class="n">lipid_category</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>    <span class="n">casno</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_no_default</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>    <span class="n">pubchem_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_no_default</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>    <span class="n">structure_level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_no_default</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>    <span class="n">lipid_summed_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_no_default</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>    <span class="n">lipid_subclass</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_no_default</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>    <span class="n">lipid_class</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_no_default</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>    <span class="n">lipid_category</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_no_default</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dataclass_fields__</span><span class="p">:</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span> <span class="ow">is</span> <span class="n">_no_default</span><span class="p">:</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>                    <span class="sa">f</span><span class="s2">&quot;__init__ missing 1 required argument: &#39;</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>                <span class="p">)</span>
 </span></pre></div>
 
 
@@ -175,16 +174,21 @@
 </span><span id="LipidMetadata-34"><a href="#LipidMetadata-34"><span class="linenos">34</span></a><span class="sd">        The category of the lipid, following the LIPID MAPS classification</span>
 </span><span id="LipidMetadata-35"><a href="#LipidMetadata-35"><span class="linenos">35</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="LipidMetadata-36"><a href="#LipidMetadata-36"><span class="linenos">36</span></a>
-</span><span id="LipidMetadata-37"><a href="#LipidMetadata-37"><span class="linenos">37</span></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="LipidMetadata-38"><a href="#LipidMetadata-38"><span class="linenos">38</span></a>    <span class="n">casno</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="LipidMetadata-39"><a href="#LipidMetadata-39"><span class="linenos">39</span></a>    <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="LipidMetadata-40"><a href="#LipidMetadata-40"><span class="linenos">40</span></a>    <span class="n">pubchem_id</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="LipidMetadata-41"><a href="#LipidMetadata-41"><span class="linenos">41</span></a>    <span class="n">structure_level</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="LipidMetadata-42"><a href="#LipidMetadata-42"><span class="linenos">42</span></a>
-</span><span id="LipidMetadata-43"><a href="#LipidMetadata-43"><span class="linenos">43</span></a>    <span class="n">lipid_summed_name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="LipidMetadata-44"><a href="#LipidMetadata-44"><span class="linenos">44</span></a>    <span class="n">lipid_subclass</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="LipidMetadata-45"><a href="#LipidMetadata-45"><span class="linenos">45</span></a>    <span class="n">lipid_class</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="LipidMetadata-46"><a href="#LipidMetadata-46"><span class="linenos">46</span></a>    <span class="n">lipid_category</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="LipidMetadata-37"><a href="#LipidMetadata-37"><span class="linenos">37</span></a>    <span class="n">casno</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_no_default</span>
+</span><span id="LipidMetadata-38"><a href="#LipidMetadata-38"><span class="linenos">38</span></a>    <span class="n">pubchem_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_no_default</span>
+</span><span id="LipidMetadata-39"><a href="#LipidMetadata-39"><span class="linenos">39</span></a>    <span class="n">structure_level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_no_default</span>
+</span><span id="LipidMetadata-40"><a href="#LipidMetadata-40"><span class="linenos">40</span></a>
+</span><span id="LipidMetadata-41"><a href="#LipidMetadata-41"><span class="linenos">41</span></a>    <span class="n">lipid_summed_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_no_default</span>
+</span><span id="LipidMetadata-42"><a href="#LipidMetadata-42"><span class="linenos">42</span></a>    <span class="n">lipid_subclass</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_no_default</span>
+</span><span id="LipidMetadata-43"><a href="#LipidMetadata-43"><span class="linenos">43</span></a>    <span class="n">lipid_class</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_no_default</span>
+</span><span id="LipidMetadata-44"><a href="#LipidMetadata-44"><span class="linenos">44</span></a>    <span class="n">lipid_category</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_no_default</span>
+</span><span id="LipidMetadata-45"><a href="#LipidMetadata-45"><span class="linenos">45</span></a>
+</span><span id="LipidMetadata-46"><a href="#LipidMetadata-46"><span class="linenos">46</span></a>    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="LipidMetadata-47"><a href="#LipidMetadata-47"><span class="linenos">47</span></a>        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dataclass_fields__</span><span class="p">:</span>
+</span><span id="LipidMetadata-48"><a href="#LipidMetadata-48"><span class="linenos">48</span></a>            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span> <span class="ow">is</span> <span class="n">_no_default</span><span class="p">:</span>
+</span><span id="LipidMetadata-49"><a href="#LipidMetadata-49"><span class="linenos">49</span></a>                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+</span><span id="LipidMetadata-50"><a href="#LipidMetadata-50"><span class="linenos">50</span></a>                    <span class="sa">f</span><span class="s2">&quot;__init__ missing 1 required argument: &#39;</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+</span><span id="LipidMetadata-51"><a href="#LipidMetadata-51"><span class="linenos">51</span></a>                <span class="p">)</span>
 </span></pre></div>
 
 
@@ -219,7 +223,7 @@ The category of the lipid, following the LIPID MAPS classification</li>
                             <div id="LipidMetadata.__init__" class="classattr">
                                 <div class="attr function">
             
-        <span class="name">LipidMetadata</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">cas</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">inchikey</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">inchi</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">chebi</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">kegg</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">data_id</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">iupac_name</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">traditional_name</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">common_name</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">name</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">casno</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">formula</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">pubchem_id</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">structure_level</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">lipid_summed_name</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">lipid_subclass</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">lipid_class</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">lipid_category</span><span class="p">:</span> <span class="nb">str</span></span>)</span>
+        <span class="name">LipidMetadata</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">cas</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">inchikey</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">inchi</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">chebi</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">kegg</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">data_id</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">iupac_name</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">traditional_name</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">common_name</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">formula</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">pubchem_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nb">object</span> <span class="nb">object</span><span class="o">&gt;</span>,</span><span class="param">	<span class="n">refmet_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">casno</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nb">object</span> <span class="nb">object</span><span class="o">&gt;</span>,</span><span class="param">	<span class="n">structure_level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nb">object</span> <span class="nb">object</span><span class="o">&gt;</span>,</span><span class="param">	<span class="n">lipid_summed_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nb">object</span> <span class="nb">object</span><span class="o">&gt;</span>,</span><span class="param">	<span class="n">lipid_subclass</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nb">object</span> <span class="nb">object</span><span class="o">&gt;</span>,</span><span class="param">	<span class="n">lipid_class</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nb">object</span> <span class="nb">object</span><span class="o">&gt;</span>,</span><span class="param">	<span class="n">lipid_category</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nb">object</span> <span class="nb">object</span><span class="o">&gt;</span></span>)</span>
 
         
     </div>
@@ -228,20 +232,10 @@ The category of the lipid, following the LIPID MAPS classification</li>
     
 
                             </div>
-                            <div id="LipidMetadata.name" class="classattr">
-                                <div class="attr variable">
-            <span class="name">name</span><span class="annotation">: str</span>
-
-        
-    </div>
-    <a class="headerlink" href="#LipidMetadata.name"></a>
-    
-    
-
-                            </div>
                             <div id="LipidMetadata.casno" class="classattr">
                                 <div class="attr variable">
-            <span class="name">casno</span><span class="annotation">: str</span>
+            <span class="name">casno</span><span class="annotation">: str</span>        =
+<span class="default_value">&lt;object object&gt;</span>
 
         
     </div>
@@ -250,20 +244,10 @@ The category of the lipid, following the LIPID MAPS classification</li>
     
 
                             </div>
-                            <div id="LipidMetadata.formula" class="classattr">
-                                <div class="attr variable">
-            <span class="name">formula</span><span class="annotation">: str</span>
-
-        
-    </div>
-    <a class="headerlink" href="#LipidMetadata.formula"></a>
-    
-    
-
-                            </div>
                             <div id="LipidMetadata.pubchem_id" class="classattr">
                                 <div class="attr variable">
-            <span class="name">pubchem_id</span><span class="annotation">: str</span>
+            <span class="name">pubchem_id</span><span class="annotation">: str</span>        =
+<span class="default_value">&lt;object object&gt;</span>
 
         
     </div>
@@ -274,7 +258,8 @@ The category of the lipid, following the LIPID MAPS classification</li>
                             </div>
                             <div id="LipidMetadata.structure_level" class="classattr">
                                 <div class="attr variable">
-            <span class="name">structure_level</span><span class="annotation">: str</span>
+            <span class="name">structure_level</span><span class="annotation">: str</span>        =
+<span class="default_value">&lt;object object&gt;</span>
 
         
     </div>
@@ -285,7 +270,8 @@ The category of the lipid, following the LIPID MAPS classification</li>
                             </div>
                             <div id="LipidMetadata.lipid_summed_name" class="classattr">
                                 <div class="attr variable">
-            <span class="name">lipid_summed_name</span><span class="annotation">: str</span>
+            <span class="name">lipid_summed_name</span><span class="annotation">: str</span>        =
+<span class="default_value">&lt;object object&gt;</span>
 
         
     </div>
@@ -296,7 +282,8 @@ The category of the lipid, following the LIPID MAPS classification</li>
                             </div>
                             <div id="LipidMetadata.lipid_subclass" class="classattr">
                                 <div class="attr variable">
-            <span class="name">lipid_subclass</span><span class="annotation">: str</span>
+            <span class="name">lipid_subclass</span><span class="annotation">: str</span>        =
+<span class="default_value">&lt;object object&gt;</span>
 
         
     </div>
@@ -307,7 +294,8 @@ The category of the lipid, following the LIPID MAPS classification</li>
                             </div>
                             <div id="LipidMetadata.lipid_class" class="classattr">
                                 <div class="attr variable">
-            <span class="name">lipid_class</span><span class="annotation">: str</span>
+            <span class="name">lipid_class</span><span class="annotation">: str</span>        =
+<span class="default_value">&lt;object object&gt;</span>
 
         
     </div>
@@ -318,7 +306,8 @@ The category of the lipid, following the LIPID MAPS classification</li>
                             </div>
                             <div id="LipidMetadata.lipid_category" class="classattr">
                                 <div class="attr variable">
-            <span class="name">lipid_category</span><span class="annotation">: str</span>
+            <span class="name">lipid_category</span><span class="annotation">: str</span>        =
+<span class="default_value">&lt;object object&gt;</span>
 
         
     </div>
@@ -342,6 +331,9 @@ The category of the lipid, following the LIPID MAPS classification</li>
                 <dd id="LipidMetadata.iupac_name" class="variable"><a href="EI_SQL.html#MetaboliteMetadata.iupac_name">iupac_name</a></dd>
                 <dd id="LipidMetadata.traditional_name" class="variable"><a href="EI_SQL.html#MetaboliteMetadata.traditional_name">traditional_name</a></dd>
                 <dd id="LipidMetadata.common_name" class="variable"><a href="EI_SQL.html#MetaboliteMetadata.common_name">common_name</a></dd>
+                <dd id="LipidMetadata.name" class="variable"><a href="EI_SQL.html#MetaboliteMetadata.name">name</a></dd>
+                <dd id="LipidMetadata.formula" class="variable"><a href="EI_SQL.html#MetaboliteMetadata.formula">formula</a></dd>
+                <dd id="LipidMetadata.refmet_id" class="variable"><a href="EI_SQL.html#MetaboliteMetadata.refmet_id">refmet_id</a></dd>
 
             </div>
                                 </dl>
