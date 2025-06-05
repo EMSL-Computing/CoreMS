@@ -2316,7 +2316,7 @@ class LCMSCollectionCalculations:
         else:
             features = features.copy()
 
-        # Define how to calculate the distance between features
+        # Parameters for calculating distance between features
         dims = ["mz", "scan_time_aligned"]
         relative = [True, False]
         mz_tol_relative = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
@@ -2334,6 +2334,11 @@ class LCMSCollectionCalculations:
             )
 
         # Make connectivity matrix for masking within sample mass features
+        ## Masking matrix cmat will mark all features from the same sample as 0
+        ## To mask, a matrix can be multiplied by cmat and features from same
+        ## samples are multiplied by 0, while features from different samples 
+        ## are multiplied by 1
+
         if "sample_id" not in features.columns:
             cmat = None
         else:
@@ -2341,12 +2346,12 @@ class LCMSCollectionCalculations:
             cmat = scipy.spatial.distance.cdist(vals, vals)
             # Convert to binary (0 if same sample, 1 if different)
             cmat = np.where(cmat == 0, 0, 1)
-            # Convert to coorindate matrix for sparse operations later
+            # Convert to coordinate matrix for sparse operations later
             cmat = sparse.coo_matrix(cmat)
 
         # Compute inter-feature distances using sparse matrix approach
-        distances = None
-        for i in range(len(dims)):
+        distances = None # clear the distances object before starting
+        for i in range(len(dims)): # iterate through all dimensions to be considered
             # Construct k-d tree
             values = features[dims[i]].values
 
@@ -2378,6 +2383,9 @@ class LCMSCollectionCalculations:
                     shape=(len(values), len(values)),
                 )
 
+            # Scaled distances (between 0 and 1)
+            sdm.data = sdm.data / max(sdm.data)
+
             # Stack distances for dimensions where na_allow is False
             if distances is None:
                 sdm.data = sdm.data * dist_weight[i]
@@ -2385,17 +2393,23 @@ class LCMSCollectionCalculations:
             else:
                 # Prepare sdm to match shape of existing distances
                 distances_truth = distances.copy()
+                # make new sparse matrix with same positions as previous 
+                # distance matrix but all ones for values
                 distances_truth.data = np.ones_like(distances_truth.data)
+                # multiply the new sparse matrix (sdm) by this mask to remove 
+                # data that doesn't exist in original sparse matrix
                 sdm = distances_truth.multiply(sdm)
                 sdm.data = sdm.data * dist_weight[i]
 
+                # use same process as before to remove data from previous
+                # distances matrix that isn't in new distances matrix
                 sdm_truth = sdm.copy()
                 sdm_truth.data = np.ones_like(sdm_truth.data)
 
                 # remove the distances that are not sdm
                 distances = distances.multiply(sdm_truth)
 
-                # Add the new distances
+                # Sum the new distances
                 distances = distances + sdm
 
         # Multiply by connectivity matrix for more masking
