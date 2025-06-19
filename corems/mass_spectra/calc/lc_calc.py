@@ -2082,36 +2082,38 @@ class LCMSCollectionCalculations:
         # Embed a new cluster id into the mass features dataframe and set as index
         mfs_with_clusters["idx"] = mfs_with_clusters.index
 
-        # Check if any clusters can be merged into a single cluster
-        eval_dict = self.evaluate_clusters_for_repeats(mfs_with_clusters)
-
-        # Merge clusters identified in eval_dict
-        while len(eval_dict["merge_these_clusters"]) > 0:
-            list_of_clusters_to_merge = [
-                [x[0], x[1]] for x in eval_dict["merge_these_clusters"]
-            ]
-            # Convert to a dataframe with columns "new_cluster" and "cluster"
-            df = pd.DataFrame(
-                np.array(list_of_clusters_to_merge), columns=["new_cluster", "cluster"]
-            )
-            # Drop duplicates of "child" clusters
-            df = df.drop_duplicates("cluster", keep="first")
-            df = df.drop_duplicates("new_cluster", keep="first")
-            mfs_with_clusters = mfs_with_clusters.merge(df, on="cluster", how="left")
-            mfs_with_clusters["cluster"] = mfs_with_clusters["new_cluster"].fillna(
-                mfs_with_clusters["cluster"]
-            )
-            mfs_with_clusters = mfs_with_clusters.drop(columns=["new_cluster"])
-
-            # Re-evaluate clusters for repeats
+        try:
+            # Check if any clusters can be merged into a single cluster
             eval_dict = self.evaluate_clusters_for_repeats(mfs_with_clusters)
 
+            # Merge clusters identified in eval_dict
+            while len(eval_dict["merge_these_clusters"]) > 0:
+                list_of_clusters_to_merge = [
+                    [x[0], x[1]] for x in eval_dict["merge_these_clusters"]
+                ]
+                # Convert to a dataframe with columns "new_cluster" and "cluster"
+                df = pd.DataFrame(
+                    np.array(list_of_clusters_to_merge), columns=["new_cluster", "cluster"]
+                )
+                # Drop duplicates of "child" clusters
+                df = df.drop_duplicates("cluster", keep="first")
+                df = df.drop_duplicates("new_cluster", keep="first")
+                mfs_with_clusters = mfs_with_clusters.merge(df, on="cluster", how="left")
+                mfs_with_clusters["cluster"] = mfs_with_clusters["new_cluster"].fillna(
+                    mfs_with_clusters["cluster"]
+                )
+                mfs_with_clusters = mfs_with_clusters.drop(columns=["new_cluster"])
+
+                # Re-evaluate clusters for repeats
+                eval_dict = self.evaluate_clusters_for_repeats(mfs_with_clusters)
+                self.mass_features_dataframe = mfs_with_clusters
+
+        except:
+            mfs_with_clusters.set_index('coll_mf_id', inplace = True)
+            self.mass_features_dataframe = mfs_with_clusters
+            
         # TODO KRH: Deal with isomers better? Pool them together and then split them out using samples with 2 as the template?
         
-        mfs_with_clusters.set_index('coll_mf_id', inplace = True)
-
-        self.mass_features_dataframe = mfs_with_clusters
-
     def summarize_clusters(self):
         """
         Summarize the clusters of mass features by median attributes
@@ -2383,8 +2385,8 @@ class LCMSCollectionCalculations:
                     shape=(len(values), len(values)),
                 )
 
-            # Scaled distances (between 0 and 1)
-            sdm.data = sdm.data / max(sdm.data)
+            # Scaled distances wrt the maximum tolerance for the dimension
+            sdm.data = sdm.data / tol[i]
 
             # Stack distances for dimensions where na_allow is False
             if distances is None:
@@ -2419,6 +2421,7 @@ class LCMSCollectionCalculations:
         self._sparse_distance_matrix = distances
 
     def evaluate_clusters_for_repeats(self, features):
+        raise NotImplementedError('evaluate_clusters_for_repeats not implemented yet')
         summary_df = self.cluster_summary_dataframe.copy()
 
         # Arrange by decreasing median intensity
@@ -2553,3 +2556,112 @@ class LCMSCollectionCalculations:
             features["cluster"] = np.arange(len(features.index))
 
         return features
+
+    def cluster_inspection_plot(self, clu, return_fig = False):        
+        """
+        Generate Scan Time vs m/z plot for a narrow range around a given 
+        cluster. This tool is meant to support the user in fine tuning the
+        tolerances used for the clustering algorithm. The user-provided cluster
+        ID is highlighted in larger, magenta marker and the ten largest of the
+        remaining clusters are idenfitied with different colors while the
+        smallest clusters are light gray.
+
+        Parameters
+        -----------
+        clu :  integer
+            A cluster ID that exists in self.mass_features_dataframe
+        return_fig : boolean
+            Indicates whether to plot cluster inspection figure (False) or 
+            return figure object (True). Defaults to False.
+
+        Returns
+        --------
+        matplotlib.pyplot.Figure
+            A figure displaying a scan time vs m/z scatterplot of small region
+            around a given cluster with the ten largest clusters in the region
+            distinctly identified
+
+        Raises
+        ------
+        Warning
+            If consensus features haven't been added to the object yet
+        """
+
+        if not hasattr(self, 'mass_features_dataframe.cluster'):
+            raise ValueError(
+                'Cluster information is not yet added to mass_features_dataframe, must run add_consensus_mass_features() first'
+            )
+        
+        else:
+            mztol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
+            rttol = self.parameters.lcms_collection.consensus_rt_tol
+            clu_features = self.mass_features_dataframe.copy()
+
+            inclu = clu_features[clu_features.cluster == clu]
+            exclu = clu_features[clu_features.cluster != clu]
+
+            dt_ymin = np.floor(min(inclu.mz)) - 1
+            dt_ymax = np.ceil(max(inclu.mz)) + 1
+            dt_xmin = np.floor(min(inclu.scan_time_aligned)) - 1
+            dt_xmax = np.ceil(max(inclu.scan_time_aligned)) + 1
+
+            exclu = exclu[
+                (
+                    exclu.mz.between(dt_ymin, dt_ymax, inclusive = 'both')
+                ) & (
+                    exclu.scan_time_aligned.between(dt_xmin, dt_xmax, inclusive = 'both')
+                )
+            ]
+
+            bigclulist = list(exclu.cluster.value_counts()[:10].index)
+            bigclu = exclu[exclu.cluster.isin(bigclulist)]
+            smclu = exclu[~exclu.cluster.isin(bigclulist)]
+
+            colors = np.arange(0, 10)
+            colordict = dict(zip(bigclulist, colors))
+            bigclu['color'] = bigclu.cluster.apply(lambda x: colordict[x])
+
+            fig = plt.figure(figsize = (7.5, 5))
+
+            plt.scatter(
+                inclu.scan_time_aligned,
+                inclu.mz,
+                c = 'm',
+                s = 3,
+                label = 'Cluster ' + str(clu)
+            )
+
+            plt.scatter(
+                bigclu.scan_time_aligned,
+                bigclu.mz,
+                c = bigclu.color,
+                cmap = 'tab10',
+                s = 1.5
+            )
+
+            plt.scatter(
+                smclu.scan_time_aligned,
+                smclu.mz,
+                c = 'silver',
+                s = 2,
+                label = 'Small clusters'
+            )
+
+            plt.ylim(dt_ymin, dt_ymax)
+            plt.xlim(dt_xmin, dt_xmax)
+            plt.legend(ncol = 2, bbox_to_anchor = (0.8, -0.1))
+            plt.xlabel('Scan time')
+            plt.ylabel('m/z')
+            title_str = 'Cluster ' + str(clu)
+            title_str += ': representing ' + str(len(inclu.sample_id.unique())) 
+            title_str += ' of ' + str(len(clu_features.sample_id.unique())) 
+            title_str += ' samples\n'
+            title_str += 'M/Z tolerance: ' + str(mztol) + '\n'
+            title_str += 'Scan Time tolerance: ' + str(rttol)
+            plt.title(title_str, fontsize = 10)
+
+            if return_fig:
+                plt.close(fig)
+                return fig
+            else:
+                plt.show()
