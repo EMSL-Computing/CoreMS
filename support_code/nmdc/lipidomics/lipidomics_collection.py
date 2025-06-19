@@ -55,7 +55,7 @@ if __name__ == "__main__":
     lcms_collection.plot_mz_features_per_cluster()
     lcms_collection.plot_consensus_mz_features() ## zoomed out
     lcms_collection.plot_consensus_mz_features(xb = 10, xt = 15, yb = 500, yt = 600) ## zoomed in 
-
+    lcms_collection.cluster_inspection_plot(11391)
     
     #TODO: Add code to load and save information about chromatographic settings
     #TODO: Add code to save and load collection to HDF5 file
