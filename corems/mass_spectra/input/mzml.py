@@ -469,3 +469,54 @@ class MZMLSpectraParser(SpectraParserInterface):
         lcms_obj._tic_list = list(scan_df.tic)
 
         return lcms_obj
+
+    def get_instrument_info(self):
+        """
+        Return instrument information.
+
+        Returns
+        -------
+        dict
+            A dictionary with the keys 'model' and 'serial_number'.
+        """
+        # Load the pymzml data
+        data = self.load()
+        instrument_info = data.info.get('referenceable_param_group_list_element')[0]
+        #.get("CommonInstrumentParams")
+        # instrument_info is a xml element, so we need extract by accession number (MS:1003112, Make/model, MS:1000529 serial number)
+        cv_params = instrument_info.findall('{http://psi.hupo.org/ms/mzml}cvParam')
+
+        # Extract details from each cvParam
+        params = []
+        for param in cv_params:
+            accession = param.get('accession')  # Get 'accession' attribute
+            name = param.get('name')           # Get 'name' attribute
+            value = param.get('value')         # Get 'value' attribute
+            params.append({
+                'accession': accession,
+                'name': name,
+                'value': value
+            })
+
+        # Loop through params and try to find the relevant information
+        instrument_dict = {
+            'model': 'Unknown',
+            'serial_number': 'Unknown'
+        }
+        # Assuming there are only two paramters here
+        if len(params) < 2:
+            raise ValueError("Not enough parameters found in the instrument info, cannot parse.")
+        if len(params) > 2:
+            raise ValueError("Too many parameters found in the instrument info, cannot parse.")
+        for param in params:
+            if param['accession'] == 'MS:1000529':
+                instrument_dict['serial_number'] = param['value']
+            else:
+                instrument_dict['model'] = data.OT[param['accession']]     
+
+        return instrument_dict
+
+    def get_creation_time(self):
+        #TODO KRH: Implement this method to return the creation time of the mzML file.
+        print("Creation time is not available in mzML files, returning current time.")
+        # load data, then get data.info['start_time']

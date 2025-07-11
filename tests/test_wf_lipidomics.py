@@ -25,6 +25,11 @@ def test_import_lcmsobj_mzml():
 
     parser = MZMLSpectraParser(file_mzml)
 
+    # Get the instrument information and creation time
+    instrument_info = parser.get_instrument_info()
+    assert instrument_info['model'] == "Orbitrap ID-X"
+    #creation_time = parser.get_creation_time()
+    
     # Instatiate lc-ms data object using parser and pull in ms1 spectra into dataframe (without storing as MassSpectrum objects to save memory)
     myLCMSobj = parser.get_lcms_obj(spectra="ms1")
     myLCMSobj.parameters = LCMSParameters(use_defaults=True)

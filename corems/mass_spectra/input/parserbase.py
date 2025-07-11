@@ -74,7 +74,7 @@ class SpectraParserInterface(ABC):
         Returns
         -------
         dict
-            A dictionary with the keys 'model', 'name', and 'serial_number'.
+            A dictionary with the keys 'model', and 'serial_number'.
         """
         pass
 

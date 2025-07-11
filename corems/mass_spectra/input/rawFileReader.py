@@ -249,7 +249,6 @@ class ThermoBaseClass:
         instrumentData = self.iRawDataPlus.GetInstrumentData()
         return {
             "model": instrumentData.Model,
-            "name": instrumentData.Name,
             "serial_number": instrumentData.SerialNumber
         }
     
