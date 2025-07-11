@@ -6,6 +6,7 @@ from threading import Thread
 from pathlib import Path
 
 import pandas as pd
+import warnings
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 from corems.encapsulation.input.parameter_from_json import (
@@ -528,3 +529,23 @@ class ReadCoreMSHDFMassSpectra(
         mass_spectra.spectra_parser = parser
 
         return mass_spectra
+    
+    def get_creation_time(self):
+        """
+        Raise a NotImplemented Warning, as creation time is not available in CoreMS HDF5 files and returning None.
+        """
+        warnings.warn(
+            "Creation time is not available in CoreMS HDF5 files, returning None." \
+            "This should be accessed through the original parser.",
+        )
+        return None
+    
+    def get_instrument_info(self):
+        """
+        Raise a NotImplemented Warning, as instrument info is not available in CoreMS HDF5 files and returning None.
+        """
+        warnings.warn(
+            "Instrument info is not available in CoreMS HDF5 files, returning None." \
+            "This should be accessed through the original parser.",
+        )
+        return None
