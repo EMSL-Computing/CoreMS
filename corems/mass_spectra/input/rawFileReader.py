@@ -83,6 +83,8 @@ class ThermoBaseClass:
     --------
     * set_msordertype(scanFilter, mstype: str = 'ms1') -> scanFilter
         Convert the user-passed MS Type string to a Thermo MSOrderType object.
+    * get_instrument_info() -> dict
+        Get the instrument information from the Thermo Raw file.
     * get_creation_time() -> datetime.datetime
         Extract the creation date stamp from the .RAW file and return it as a formatted datetime object.
     * remove_temp_file()
@@ -244,7 +246,7 @@ class ThermoBaseClass:
         Returns:
         --------
         dict
-            A dictionary with the keys 'model', 'name', and 'serial_number'.
+            A dictionary with the keys 'model', and 'serial_number'.
         """
         instrumentData = self.iRawDataPlus.GetInstrumentData()
         return {

@@ -53,6 +53,10 @@ class MZMLSpectraParser(SpectraParserInterface):
         Parses the mzml file and instantiates a MassSpectraBase object.
     * get_lcms_obj().
         Parses the mzml file and instantiates an LCMSBase object.
+    * get_instrument_info().
+        Return instrument information from the mzML file.
+    * get_creation_time().
+        Return the creation time of the mzML file as a datetime object.
 
     Inherits from ThermoBaseClass and SpectraParserInterface
     """
