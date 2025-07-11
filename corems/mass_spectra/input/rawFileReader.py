@@ -237,6 +237,22 @@ class ThermoBaseClass:
         scanFilter.MSOrder = msordertypedict[mstype]
         return scanFilter
 
+    def get_instrument_info(self) -> dict:
+        """
+        Get the instrument information from the Thermo Raw file.
+
+        Returns:
+        --------
+        dict
+            A dictionary with the keys 'model', 'name', and 'serial_number'.
+        """
+        instrumentData = self.iRawDataPlus.GetInstrumentData()
+        return {
+            "model": instrumentData.Model,
+            "name": instrumentData.Name,
+            "serial_number": instrumentData.SerialNumber
+        }
+    
     def get_creation_time(self) -> datetime.datetime:
         """
         Extract the creation date stamp from the .RAW file

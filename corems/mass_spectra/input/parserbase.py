@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import datetime
 
 
 class SpectraParserInterface(ABC):
@@ -62,5 +63,29 @@ class SpectraParserInterface(ABC):
     ):
         """
         Return mass spectrum data object from scan number.
+        """
+        pass
+
+    @abstractmethod
+    def get_instrument_info(self):
+        """
+        Return instrument information.
+
+        Returns
+        -------
+        dict
+            A dictionary with the keys 'model', 'name', and 'serial_number'.
+        """
+        pass
+
+    @abstractmethod
+    def get_creation_time(self) -> datetime.datetime:
+        """
+        Return the creation time of the mass spectra data.
+
+        Returns
+        -------
+        datetime.datetime
+            The creation time of the mass spectra data.
         """
         pass
