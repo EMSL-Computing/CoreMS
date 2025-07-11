@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pymzml
+import datetime
 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.parameters import default_parameters
@@ -482,8 +483,6 @@ class MZMLSpectraParser(SpectraParserInterface):
         # Load the pymzml data
         data = self.load()
         instrument_info = data.info.get('referenceable_param_group_list_element')[0]
-        #.get("CommonInstrumentParams")
-        # instrument_info is a xml element, so we need extract by accession number (MS:1003112, Make/model, MS:1000529 serial number)
         cv_params = instrument_info.findall('{http://psi.hupo.org/ms/mzml}cvParam')
 
         # Extract details from each cvParam
@@ -503,7 +502,9 @@ class MZMLSpectraParser(SpectraParserInterface):
             'model': 'Unknown',
             'serial_number': 'Unknown'
         }
-        # Assuming there are only two paramters here
+
+        # Assuming there are only two paramters here - one is for the serial number (agnostic to the model) and the other is for the model
+        # If there are more than two, we raise an error
         if len(params) < 2:
             raise ValueError("Not enough parameters found in the instrument info, cannot parse.")
         if len(params) > 2:
@@ -516,7 +517,15 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         return instrument_dict
 
-    def get_creation_time(self):
-        #TODO KRH: Implement this method to return the creation time of the mzML file.
-        print("Creation time is not available in mzML files, returning current time.")
-        # load data, then get data.info['start_time']
+    def get_creation_time(self) -> datetime.datetime:
+        """
+        Return the creation time of the mzML file.
+        """
+        data = self.load()
+        write_time = data.info.get('start_time')
+        if write_time:
+            # Convert the write time to a datetime object
+            return datetime.datetime.strptime(write_time, "%Y-%m-%dT%H:%M:%SZ")
+        else:
+            raise ValueError("Creation time is not available in the mzML file. "
+                           "Please ensure the file contains the 'start_time' information.")
