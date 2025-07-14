@@ -1518,6 +1518,7 @@ class PHCalculations:
 
         if self.parameters.lc_ms.verbose_processing:
             print("Found " + str(len(mass_features)) + " initial mass features")
+
     
     def cluster_mass_features(self, drop_children=True, sort_by="persistence"):
         """Cluster mass features
@@ -2126,14 +2127,14 @@ class LCMSCollectionCalculations:
             self.mass_features_dataframe.groupby("cluster")
             .agg(
                 {
-                    "mz": "median",
-                    "scan_time_aligned": "median",
-                    "half_height_width": "median",
-                    "tailing_factor": "median",
-                    "dispersity_index": "median",
-                    "sample_id": ["nunique", "count"],
-                    "intensity": ["max", "median"],
-                    "persistence": ["max", "median"],
+                    "mz": ["median", "mean", "std"],
+                    "scan_time_aligned": ["median", "mean", "std"],
+                    "half_height_width": ["median", "mean", "std"],
+                    "tailing_factor": ["median", "mean", "std"],
+                    "dispersity_index": ["median", "mean", "std"],
+                    "sample_id": ["nunique"],
+                    "intensity": ["max", "median", "mean", "std"],
+                    "persistence": ["max", "median", "mean", "std"],
                 }
             )
             .reset_index()
@@ -2584,7 +2585,7 @@ class LCMSCollectionCalculations:
         Raises
         ------
         Warning
-            If consensus features haven't been added to the object yet
+            If cluster data haven't been added to the object yet
         """
 
         if not hasattr(self, 'mass_features_dataframe.cluster'):
@@ -2665,3 +2666,95 @@ class LCMSCollectionCalculations:
                 return fig
             else:
                 plt.show()
+
+    def plot_cluster_outlier_frequency(self, dim_list = ['mz', 'scan_time_aligned'], clu_size_thresh = 0.5, return_fig = False):
+        """
+        Generate histogram showing the frequency of outlier occurrences by
+        clustering dimension across all clusters
+
+        Parameters
+        -----------
+        dim_list :  list
+            List of strings describing dimensions that can be used in 
+            clustering. Available list items:
+                - 'mz'
+                - 'scan_time_aligned'
+                - 'half_height_width'
+                - 'tailing_factor'
+                - 'dispersity_index'
+                - 'intensity'
+                - 'persistence'
+        clu_size_thresh : float
+            Value between 0 and 1 that indicates what percentage of samples 
+            need to be present in a cluster before it's evaluated for outliers.
+            Defaults to 0.5.
+        return_fig : boolean
+            Indicates whether to plot cluster inspection figure (False) or 
+            return figure object (True). Defaults to False.
+
+        Returns
+        --------
+        matplotlib.pyplot.Figure
+            A figure displaying the frequency of outlier occurrences across all
+            clusters in the provided measurement dimensions
+
+        Raises
+        ------
+        Warning
+            If cluster data haven't been added to the object yet
+        """
+
+        if not hasattr(self, 'cluster_summary_dataframe'):
+            raise ValueError(
+                'cluster_summary_dataframe is not yet added, must run add_consensus_mass_features() first'
+            )
+
+        mfdf = self.mass_features_dataframe.copy()
+        sumdf = self.cluster_summary_dataframe.copy()
+
+        numsamples = mfdf.sample_id.max() + 1
+        sumdf = sumdf[sumdf.sample_id_nunique > numsamples * clu_size_thresh]
+
+        ## find the ranges for non-outlier values and add them to sumdf
+        mergelist = ['cluster']
+        for dim in dim_list:
+            maxtag = dim + '_outmax'
+            mintag = dim + '_outmin'
+            mergelist.append(maxtag)
+            mergelist.append(mintag)
+            sumdf[maxtag] = None
+            sumdf[mintag] = None
+            for i in range(len(sumdf)):
+                sumdf.loc[i, mintag] = sumdf[dim + '_mean'].iloc[i] - 3*sumdf[dim + '_std'].iloc[i]
+                sumdf.loc[i, maxtag] = sumdf[dim + '_mean'].iloc[i] + 3*sumdf[dim + '_std'].iloc[i]
+                ## If NaN shows up anywhere in dim_min, dim_max calculations, value is set to NaN and it's 
+                ## not flagged. This happens when there's not enough values to compute median/std for that 
+                ## dimension therefore can't have outliers
+
+        ## add ranges to mfdf and identify mass features that fall outside the ranges
+        outdf = pd.merge(mfdf, sumdf[mergelist], on = 'cluster')
+        outtags = ['cluster']
+        for dim in dim_list:
+            dimtag = dim + '_outlier'
+            outtags.append(dimtag)
+            outdf[dimtag] = np.where(
+                ((outdf[dim] > outdf[dim + '_outmax'])) | ((outdf[dim] < outdf[dim + '_outmin'])), 
+                True, 
+                False
+            )
+
+        ## identify number of outliers in each cluster
+        outliers = outdf[outtags]
+        outliers = outliers.groupby(['cluster']).sum()
+
+        ## plot number of clusters that contain any outliers
+        fig = plt.figure()
+        plt.bar(dim_list, outliers.sum().values, width = 0.5)
+        plt.xticks(rotation = 90)
+        plt.title('Frequency of outliers across all clusters by category')
+        
+        if return_fig:
+            plt.close(fig)
+            return fig
+        else:
+            plt.show()
