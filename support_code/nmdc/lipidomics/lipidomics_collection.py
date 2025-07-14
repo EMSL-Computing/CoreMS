@@ -56,7 +56,17 @@ if __name__ == "__main__":
     lcms_collection.plot_consensus_mz_features() ## zoomed out
     lcms_collection.plot_consensus_mz_features(xb = 10, xt = 15, yb = 500, yt = 600) ## zoomed in 
     lcms_collection.cluster_inspection_plot(11391)
-    
+    dim_list = [
+        'mz', 
+        'scan_time_aligned', 
+        'half_height_width', 
+        'tailing_factor', 
+        'dispersity_index', 
+        'intensity', 
+        'persistence'
+    ]
+    lcms_collection.plot_cluster_outlier_frequency(dim_list, clu_size_thresh = 0.25)
+
     #TODO: Add code to load and save information about chromatographic settings
     #TODO: Add code to save and load collection to HDF5 file
     #TODO: Add code to plot a consensus mass feature
