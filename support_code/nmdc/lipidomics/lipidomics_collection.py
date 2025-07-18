@@ -5,14 +5,14 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollec
 
 if __name__ == "__main__":
     # Set the path to the collection of LCMS runs (previously processed)
-    collection_path = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/UDN_neg/processed_data")
+    collection_path = Path("/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_stegen_lipidomics/20241221_processed")
     # Path to manifest file
-    manifest_file = collection_path / "manifest_very_small.csv"
+    manifest_file = Path("/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_stegen_lipidomics/20241221_processed/manifest_very_small.csv")
     # This file will need to be created by the user or helper script?
-    chromatography_file = collection_path / "long_lipid_gradient_chroma.csv"
-    
+    chromatography_file = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/UDN_neg/processed_data/long_lipid_gradient_chroma.csv") 
+
     # Set the number of cores to use for loading the data (the parser is parallelized)
-    ncores = 10
+    ncores = 5
 
     # Instantiate the parser
     parser = ReadCoreMSHDFMassSpectraCollection(
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     # Load the LCMS collection (minimally load the data)
     start_time = time.time()
     lcms_collection = parser.get_lcms_collection(load_raw=False, load_light=True)
-    print("Time to load LCMS collection ", time.time() - start_time, "seconds -", len(lcms_collection), " LCMS runs and ", ncores, " cores") 
+    print("Time to load LCMS collection ", time.time() - start_time, "seconds -", len(lcms_collection), " LCMS runs and ", ncores, " cores")
     #10s for 7 samples, 10 cores; 162s for 70 samples, 10 cores
 
     # Set flag to call _drop_isotopologue() when running _check_mass_features_df()
