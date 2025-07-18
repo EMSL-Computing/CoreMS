@@ -196,7 +196,12 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
 
     # Check that the parameters match
     assert myLCMSobj2.parameters == lcms_obj.parameters
+
+    # Check that the spectra parser class is the same as the original parser and that we can plot a mass spectrum using the original parser
     assert myLCMSobj2.spectra_parser_class.__name__ == "ImportMassSpectraThermoMSFileReader"
+    myLCMSobj2.spectra_parser.get_mass_spectrum_from_scan(1, spectrum_mode="profile").plot_centroid()
+
+    # Check that the mass features dataframe is the same as the original
     df2 = myLCMSobj2.mass_features_to_df()
     assert df2.shape == (130, 16)
     myLCMSobj2.mass_features[0].mass_spectrum.to_dataframe()

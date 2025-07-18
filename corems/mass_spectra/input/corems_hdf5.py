@@ -485,7 +485,6 @@ class ReadCoreMSHDFMassSpectra(
             analyzer=self.analyzer,
             instrument_label=self.instrument_label,
             sample_name=self.sample_name,
-            spectra_parser=self
         )
 
         # This will populate the majority of the attributes on the LCMS object
@@ -500,6 +499,8 @@ class ReadCoreMSHDFMassSpectra(
         # If use_original_parser is True, instantiate the original parser and populate the LCMS object
         if use_original_parser:
             lcms_obj = self.add_original_parser(lcms_obj, raw_file_path=raw_file_path)
+        else:
+            lcms_obj.spectra_parser_class = self.__class__
 
         return lcms_obj
 
@@ -512,8 +513,8 @@ class ReadCoreMSHDFMassSpectra(
         str
             The raw file location.
         """
-        if "raw_file_location" in self.h5pydata.attrs:
-            return self.h5pydata.attrs["raw_file_location"]
+        if "original_file_location" in self.h5pydata.attrs:
+            return self.h5pydata.attrs["original_file_location"]
         else:
             return None
     
@@ -531,11 +532,25 @@ class ReadCoreMSHDFMassSpectra(
         # Get the original parser type
         og_parser_type = self.h5pydata.attrs["parser_type"]
 
+        # If raw_file_path is None, get it from the HDF5 file attributes
+        if raw_file_path is None:
+            raw_file_path = self.get_raw_file_location()
+            if raw_file_path is None:
+                raise ValueError(
+                    "Raw file path not found in HDF5 file attributes, cannot instantiate original parser."
+                )
+            
+        # Set the raw file path on the mass_spectra object so the parser knows where to find the raw file
+        mass_spectra.raw_file_location = raw_file_path
+
         if og_parser_type == "ImportMassSpectraThermoMSFileReader":
+            # Check that the parser can be instantiated with the raw file path
             parser = ImportMassSpectraThermoMSFileReader(raw_file_path)
         elif og_parser_type == "MZMLSpectraParser":
+            # Check that the parser can be instantiated with the raw file path
             parser = MZMLSpectraParser(raw_file_path)
 
+        # Set the spectra parser class on the mass_spectra object so the spectra_parser property can be used with the original parser
         mass_spectra.spectra_parser_class = parser.__class__
 
         return mass_spectra
