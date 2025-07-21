@@ -503,6 +503,8 @@ class LCCalculations:
             else:
                 if drop_if_fail is True:
                     self.mass_features.pop(idx)
+            # Check number of consecutive scans in EIC around apex scan with intensity > 0
+            print("HERE")
 
         if drop_duplicates:
             # Prepare mass feature dataframe
@@ -769,7 +771,14 @@ class LCCalculations:
 
             # Subset the correlation matrix to only include the masses of the mass feature and those with a correlation > 0.8
             decon_corr_min = self.parameters.lc_ms.ms1_deconvolution_corr_min
-            corr_subset = corr.loc[mass_feature.mz,]
+
+            # Try catch for KeyError in case the mass feature mz is not in the correlation matrix
+            try:
+                corr_subset = corr.loc[mass_feature.mz,]
+            except KeyError:
+            # If the mass feature mz is not in the correlation matrix, skip to the next mass feature
+                continue
+
             corr_subset = corr_subset[corr_subset > decon_corr_min]
 
             # Get the masses from the mass spectrum that are the result of the deconvolution
