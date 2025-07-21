@@ -481,6 +481,21 @@ class LCCalculations:
             )
             l_a_r_scan_idx = [i for i in centroid_eics]
             if len(l_a_r_scan_idx) > 0:
+                # Calculate number of consecutive scans with intensity > 0 and check if it is above the minimum consecutive scans
+                # Find the number of consecutive non-zero values in the EIC segment
+                mask = myEIC.eic[l_a_r_scan_idx[0][0]:l_a_r_scan_idx[0][2] + 1] > 0
+                # Find the longest run of consecutive True values
+                if np.any(mask):
+                    # Find indices where mask changes value
+                    diff = np.diff(np.concatenate(([0], mask.astype(int), [0])))
+                    starts = np.where(diff == 1)[0]
+                    ends = np.where(diff == -1)[0]
+                    consecutive_scans = (ends - starts).max()
+                else:
+                    consecutive_scans = 0
+                if consecutive_scans < self.parameters.lc_ms.consecutive_scan_min:
+                    self.mass_features.pop(idx)
+                    continue
                 # Add start and final scan to mass_features and EICData
                 left_scan, right_scan = (
                     myEIC.scans[l_a_r_scan_idx[0][0]],
@@ -503,8 +518,6 @@ class LCCalculations:
             else:
                 if drop_if_fail is True:
                     self.mass_features.pop(idx)
-            # Check number of consecutive scans in EIC around apex scan with intensity > 0
-            print("HERE")
 
         if drop_duplicates:
             # Prepare mass feature dataframe
