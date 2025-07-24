@@ -1265,6 +1265,7 @@ class PHCalculations:
         attempt_i = 0
         while attempt_i < attempts:
             attempt_i += 1
+            data = self._grid_data(data)
 
             if self.check_if_grid(data):
                 return data
