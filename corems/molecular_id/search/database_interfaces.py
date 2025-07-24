@@ -762,9 +762,6 @@ class MetabRefLCInterface(MetabRefInterface):
         self.format_map["metabref"] = self.format_map["json"]
         self.format_map["fe"] = self.format_map["flashentropy"]
         self.format_map["flash-entropy"] = self.format_map["flashentropy"]
-
-    def post_query(self, url, variable, values, tolerance):
-        return super().post_query(url, variable, values, tolerance)
     
     def query_by_precursor(
         self, mz_list, polarity, mz_tol_ppm, mz_tol_da_api=0.2, max_per_page=50
@@ -816,7 +813,7 @@ class MetabRefLCInterface(MetabRefInterface):
 
     def post_lipid_query(self, mz_list, polarity, mz_tol_ppm):
         """
-        Post query to MetabRef lipid library API.
+        Post query to get MetabRef lipid spectra.
 
         Parameters
         ----------
@@ -874,6 +871,11 @@ class MetabRefLCInterface(MetabRefInterface):
         ----------
         job_id : str
             Job ID for the lipid library query.
+            Retrieved from the post_lipid_query method.
+        attempts : int, optional
+            Number of attempts to retrieve the data. Default is 10.
+        delay : int, optional
+            Delay in seconds between attempts. Default is 5.
 
         Returns
         -------
@@ -918,6 +920,8 @@ class MetabRefLCInterface(MetabRefInterface):
         format="json",
         normalize=True,
         fe_kwargs={},
+        api_delay=5,
+        api_attempts=10,
     ):
         """
         Request MetabRef lipid library.
@@ -940,6 +944,10 @@ class MetabRefLCInterface(MetabRefInterface):
             Normalize the spectrum by its magnitude. Default is True.
         fe_kwargs : dict, optional
             Keyword arguments for FlashEntropy search. Default is {}.
+        api_delay : int, optional
+            Delay in seconds between API attempts. Default is 5.
+        api_attempts : int, optional
+            Number of attempts to retrieve the data from the API. Default is 10.
 
         Returns
         -------
@@ -965,6 +973,8 @@ class MetabRefLCInterface(MetabRefInterface):
         
         lib = self.get_lipid_data(
             job_id=job_id,
+            attempts=api_attempts,
+            delay=api_delay,
         )
         lib = json.loads(lib)
 
