@@ -1240,15 +1240,17 @@ class PHCalculations:
         else:
             return True
 
-    def grid_data(self, data):
+    def grid_data(self, data, attempts=5):
         """Grid the data in the mz dimension.
 
-        Data must be gridded prior to persistent homology calculations.
+        Data must be gridded prior to persistent homology calculations and computing average mass spectrum
 
         Parameters
         ----------
         data : DataFrame
             The input data containing mz, scan, scan_time, and intensity columns.
+        attempts : int, optional
+            The number of attempts to grid the data. Default is 5.
 
         Returns
         -------
@@ -1258,9 +1260,43 @@ class PHCalculations:
         Raises
         ------
         ValueError
-            If gridding fails.
+            If gridding fails after the specified number of attempts.
         """
+        attempt_i = 0
+        while attempt_i < attempts:
+            attempt_i += 1
 
+            if self.check_if_grid(data):
+                return data
+        
+        if not self.check_if_grid(data):
+            raise ValueError(
+                "Gridding failed after "
+                + str(attempt_i)
+                + " attempts. Please check the data."
+            )
+        else:
+            return data
+    
+    def _grid_data(self, data):
+        """Internal method to grid the data in the mz dimension.
+        
+        Notes
+        -----
+        This method is called by the grid_data method and should not be called directly.
+        It will attempt to grid the data in the mz dimension by creating a grid of mz values based on the minimum mz difference within each scan,
+        but it does not check if the data is already gridded or if the gridding is successful.
+
+        Parameters
+        ----------
+        data : pd.DataFrame or pl.DataFrame
+            The input data to grid.
+
+        Returns
+        -------
+        pd.DataFrame or pl.DataFrame
+            The data after attempting to grid it in the mz dimension.
+        """
         # Calculate the difference between consecutive mz values in a single scan for grid spacing
         data_w = data.copy().reset_index(drop=True)
         data_w["mz_diff"] = np.abs(data_w["mz"].diff())
@@ -1318,12 +1354,8 @@ class PHCalculations:
             .copy()
         )
 
-        # Check if grid worked and return
-        if self.check_if_grid(new_data_w):
-            return new_data_w
-        else:
-            raise ValueError("Gridding failed")
-
+        return new_data_w
+    
     def find_mass_features_ph(self, ms_level=1, grid=True):
         """Find mass features within an LCMSBase object using persistent homology.
 
