@@ -154,7 +154,7 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
     metabref = MetabRefLCInterface()
     mzs = [i.mz for k, i in lcms_obj.mass_features.items()]
     spectra_library_fe, lipid_metadata = metabref.get_lipid_library(
-            mz_list=mzs[1:10],
+            mz_list=mzs,
             polarity="negative",
             mz_tol_ppm=5,
             format="flashentropy",
@@ -189,7 +189,7 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
     exporter.report_to_csv()
     report = exporter.to_report()
     assert report['Ion Formula'][1] == 'C24 H47 O2'
-    #assert report['Lipid Species'][1] == 'FA 24:0'
+    assert report['Lipid Species'][1] == 'FA 24:0'
 
     # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
     parser = ReadCoreMSHDFMassSpectra(
