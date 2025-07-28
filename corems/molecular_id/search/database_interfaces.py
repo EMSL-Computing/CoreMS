@@ -3,6 +3,8 @@ import re
 from abc import ABC
 from io import StringIO
 from pathlib import Path
+import time
+import json
 
 import numpy as np
 import requests
@@ -737,6 +739,9 @@ class MetabRefLCInterface(MetabRefInterface):
             "https://metabref.emsl.pnnl.gov/api/precursors/{}?page={}&per_page={}"
         )
 
+        # API endpoint for lipid data
+        self.LIPID_LIBRARY_URL = "https://metabref.emsl.pnnl.gov/api/lipid/data"
+
         self.__init_format_map__()
 
     def __init_format_map__(self):
@@ -757,7 +762,7 @@ class MetabRefLCInterface(MetabRefInterface):
         self.format_map["metabref"] = self.format_map["json"]
         self.format_map["fe"] = self.format_map["flashentropy"]
         self.format_map["flash-entropy"] = self.format_map["flashentropy"]
-
+    
     def query_by_precursor(
         self, mz_list, polarity, mz_tol_ppm, mz_tol_da_api=0.2, max_per_page=50
     ):
@@ -784,54 +789,9 @@ class MetabRefLCInterface(MetabRefInterface):
         list
             List of library entries in original JSON format.
         """
-
-        # If polarity is anything other than positive or negative, raise error
-        if polarity not in ["positive", "negative"]:
-            raise ValueError("Polarity must be 'positive' or 'negative'")
-
-        # Cluster groups of mz according to mz_tol_da_api for precursor query
-        mz_list.sort()
-        mz_groups = [[mz_list[0]]]
-        for x in mz_list[1:]:
-            if abs(x - mz_groups[-1][0]) <= mz_tol_da_api:
-                mz_groups[-1].append(x)
-            else:
-                mz_groups.append([x])
-
-        # Query MetabRef for each mz group
-        lib = []
-        for mz_group in mz_groups:
-            mz = np.mean(mz_group)
-            if len(mz_group) == 1:
-                mz = mz_group[0]
-                tol = mz_tol_ppm * 10**-6 * mz
-            else:
-                mz = (max(mz_group) - min(mz_group)) / 2 + min(mz_group)
-                tol = (max(mz_group) - min(mz_group)) / 2 + mz_tol_ppm**-6 * max(
-                    mz_group
-                )
-
-            # Get first page of results
-            response = self.get_query(
-                self.PRECURSOR_MZ_URL.format(
-                    str(mz), str(tol), polarity, 1, max_per_page
-                )
-            )
-            lib = lib + response["results"]
-
-            # If there are more pages of results, get them
-            if response["total_pages"] > 1:
-                for i in np.arange(2, response["total_pages"] + 1):
-                    lib = (
-                        lib
-                        + self.get_query(
-                            self.PRECURSOR_MZ_URL.format(
-                                str(mz), str(tol), polarity, i, max_per_page
-                            )
-                        )["results"]
-                    )
-
-        return lib
+        raise DeprecationWarning(
+            "query_by_precursor is deprecated. Use get_lipid_library instead."
+        )
 
     def request_all_precursors(self, polarity, per_page=50000):
         """
@@ -849,41 +809,119 @@ class MetabRefLCInterface(MetabRefInterface):
         list
             List of all precursor m/z values, sorted.
         """
-        # If polarity is anything other than positive or negative, raise error
-        if polarity not in ["positive", "negative"]:
-            raise ValueError("Polarity must be 'positive' or 'negative'")
+        raise DeprecationWarning("request_all_precursors is deprecated.")
 
-        precursors = []
+    def post_lipid_query(self, mz_list, polarity, mz_tol_ppm):
+        """
+        Post query to get MetabRef lipid spectra.
 
-        # Get first page of results and total number of pages of results
-        response = self.get_query(
-            self.PRECURSOR_MZ_ALL_URL.format(polarity, str(1), str(per_page))
-        )
-        total_pages = response["total_pages"]
-        precursors.extend([x["precursor_ion"] for x in response["results"]])
+        Parameters
+        ----------
+        mz_list : list
+            List of precursor m/z values.
+        polarity : str
+            Ionization polarity, either "positive" or "negative".
+        mz_tol_ppm : float
+            Tolerance in ppm for each precursor m/z value.
 
-        # Go through remaining pages of results
-        for i in np.arange(2, total_pages + 1):
-            response = self.get_query(
-                self.PRECURSOR_MZ_ALL_URL.format(polarity, str(i), str(per_page))
-            )
-            precursors.extend([x["precursor_ion"] for x in response["results"]])
+        Returns
+        -------
+        download_id : str
+            Download ID for the lipid library query.
 
-        # Sort precursors from smallest to largest and remove duplicates
-        precursors = list(set(precursors))
-        precursors.sort()
+        Raises
+        ------
+        ValueError
+            If any input parameter is invalid.
+            If no download ID is returned.
+        """
+        url = self.LIPID_LIBRARY_URL
 
-        return precursors
+        headers = {
+            'accept': '*/*',
+            'Content-Type': 'application/json'
+        }
+        
+        payload = {
+            "tolerance_ppm": mz_tol_ppm,
+            "polarity": polarity,
+            "mz_list": list(set(np.sort(mz_list))) 
+        }
+        
+        try:
+            response = requests.post(url, headers=headers, json=payload)
+            response.raise_for_status()  # Raises an HTTPError for bad responses
+            text = response.text.strip()
+            # Drop everything before the final space
+            if not text:
+                raise ValueError("Empty response from MetabRef lipid library API.")
+            if " " in text:
+                text = text.rsplit(" ", 1)[-1]
+                return text
+            else:
+                raise ValueError("Unexpected response format from MetabRef lipid library API.")
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"Error querying MetabRef lipid library: {e}")
 
+    def get_lipid_data(self, job_id, attempts=10, delay=5):
+        """
+        Get download content from lipid library query from MetabRef using job ID.
+
+        Parameters
+        ----------
+        job_id : str
+            Job ID for the lipid library query.
+            Retrieved from the post_lipid_query method.
+        attempts : int, optional
+            Number of attempts to retrieve the data. Default is 10.
+        delay : int, optional
+            Delay in seconds between attempts. Default is 5.
+
+        Returns
+        -------
+        str
+            Download content from the lipid library query.
+
+        Raises
+        ------
+        ValueError
+            If no download content is returned.
+        """
+        url = f"https://metabref.emsl.pnnl.gov/api/lipid/data/download/{job_id}"
+        
+        # Check the response, if it's 400, try again in 5 seconds.  Try up to 10 times
+        for attempt in range(attempts):
+            try:
+                response = requests.get(url)
+                response.raise_for_status()  # Raises an HTTPError for bad responses
+                if response.status_code == 200:
+                    if response.content == b"Job still running":
+                        if attempt < attempts - 1:
+                            time.sleep(delay)
+                            continue
+                    else:
+                        lib = response.content
+                        return lib.decode('utf-8') if isinstance(lib, bytes) else lib
+                elif response.status_code == 400:
+                    if attempt < attempts - 1:
+                        time.sleep(delay)  # Wait before retrying
+                        continue
+                    else:
+                        raise ValueError("Job ID not found or job is still processing.")
+            except requests.exceptions.RequestException as e:
+                raise ValueError(f"Error retrieving lipid library job: {e}")
+    
     def get_lipid_library(
         self,
         mz_list,
         polarity,
         mz_tol_ppm,
-        mz_tol_da_api=0.2,
+        mz_tol_da_api=None,
         format="json",
         normalize=True,
         fe_kwargs={},
+        api_delay=5,
+        api_attempts=10,
     ):
         """
         Request MetabRef lipid library.
@@ -898,8 +936,7 @@ class MetabRefLCInterface(MetabRefInterface):
             Tolerance in ppm for each precursor m/z value.
             Used for retrieving from a potential match from database.
         mz_tol_da_api : float, optional
-            Maximum tolerance between precursor m/z values for API search, in daltons.
-            Used to group similar mzs into a single API query for speed. Default is 0.2.
+            DEPRECATED.  No longer used, but kept for backwards compatibility.
         format : str, optional
             Format of requested library, i.e. "json", "sql", "flashentropy".
             See `available_formats` method for aliases. Default is "json".
@@ -907,6 +944,10 @@ class MetabRefLCInterface(MetabRefInterface):
             Normalize the spectrum by its magnitude. Default is True.
         fe_kwargs : dict, optional
             Keyword arguments for FlashEntropy search. Default is {}.
+        api_delay : int, optional
+            Delay in seconds between API attempts. Default is 5.
+        api_attempts : int, optional
+            Number of attempts to retrieve the data from the API. Default is 10.
 
         Returns
         -------
@@ -914,65 +955,38 @@ class MetabRefLCInterface(MetabRefInterface):
             Library in requested format and lipid metadata as a LipidMetadata dataclass.
 
         """
-        mz_list.sort()
-        mz_list = np.array(mz_list)
-
-        # Get all precursors in the library matching the polarity
-        precusors_in_lib = self.request_all_precursors(polarity=polarity)
-        precusors_in_lib = np.array(precusors_in_lib)
-
-        # Compare the mz_list with the precursors in the library, keep any mzs that are within mz_tol of any precursor in the library
-        lib_mz_df = pd.DataFrame(precusors_in_lib, columns=["lib_mz"])
-        lib_mz_df["closest_obs_mz"] = mz_list[
-            find_closest(mz_list, lib_mz_df.lib_mz.values)
-        ]
-        lib_mz_df["mz_diff_ppm"] = np.abs(
-            (lib_mz_df["lib_mz"] - lib_mz_df["closest_obs_mz"])
-            / lib_mz_df["lib_mz"]
-            * 1e6
-        )
-        lib_mz_sub = lib_mz_df[lib_mz_df["mz_diff_ppm"] <= mz_tol_ppm]
-
-        # Do the same in the opposite direction
-        mz_df = pd.DataFrame(mz_list, columns=["mass_feature_mz"])
-        mz_df["closest_lib_pre_mz"] = precusors_in_lib[
-            find_closest(precusors_in_lib, mz_df.mass_feature_mz.values)
-        ]
-        mz_df["mz_diff_ppm"] = np.abs(
-            (mz_df["mass_feature_mz"] - mz_df["closest_lib_pre_mz"])
-            / mz_df["mass_feature_mz"]
-            * 1e6
-        )
-        mz_df_sub = mz_df[mz_df["mz_diff_ppm"] <= mz_tol_ppm]
-
-        # Evaluate which is fewer mzs - lib_mz_sub or mz_df_sub and use that as the input for next step
-        if len(lib_mz_sub) < len(mz_df_sub):
-            mzs_to_query = lib_mz_sub.lib_mz.values
-        else:
-            mzs_to_query = mz_df_sub.mass_feature_mz.values
-
-        # Query the library for the precursors in the mz_list that are in the library to retrieve the spectra and metadata
-        lib = self.query_by_precursor(
-            mz_list=mzs_to_query,
+        # Check for valid types in mz_list, polarity, and mz_tol_ppm
+        if not isinstance(mz_list, (list, np.ndarray)):
+            raise ValueError("mz_list must be a list or numpy array")
+        if not all(isinstance(mz, (float, int)) for mz in mz_list):
+            raise ValueError("All elements in mz_list must be float or int")
+        if not isinstance(polarity, str):
+            raise ValueError("polarity must be a string")
+        if not isinstance(mz_tol_ppm, (float, int)):
+            raise ValueError("mz_tol_ppm must be a float or int")
+        
+        job_id = self.post_lipid_query(
+            mz_list=mz_list,
             polarity=polarity,
             mz_tol_ppm=mz_tol_ppm,
-            mz_tol_da_api=mz_tol_da_api,
         )
+        
+        lib = self.get_lipid_data(
+            job_id=job_id,
+            attempts=api_attempts,
+            delay=api_delay,
+        )
+        lib = json.loads(lib)
 
         # Pull out lipid metadata from the metabref library and convert to LipidMetadata dataclass
-        mol_data_dict = {x["id"]: x["Molecular Data"] for x in lib}
-        lipid_lib = {x["id"]: x["Lipid Tree"] for x in lib if "Lipid Tree" in x.keys()}
-        mol_data_dict = {k: {**v, **lipid_lib[k]} for k, v in mol_data_dict.items()}
+        mol_data_dict = lib['molecular_data']
         mol_data_dict = {
-            k: self._dict_to_dataclass(v, LipidMetadata)
+            int(k): self._dict_to_dataclass(v, LipidMetadata)
             for k, v in mol_data_dict.items()
         }
 
         # Remove lipid metadata from the metabref library
-        lib = [
-            {k: v for k, v in x.items() if k not in ["Molecular Data", "Lipid Tree"]}
-            for x in lib
-        ]
+        lib = lib['mass_spectrum_data']
         # Unpack the 'Lipid Fragments' key and the 'MSO Data" key from each entry
         for x in lib:
             if "Lipid Fragments" in x.keys():
