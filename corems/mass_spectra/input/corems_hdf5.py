@@ -767,7 +767,7 @@ class ReadCoreMSHDFMassSpectraCollection:
             # Create a pool of workers (one for each core or sample, whichever is smaller)
             pool = multiprocessing.Pool(ncores)
             # Load the LCMS objects in parallel - do not instantiate the original parser by default
-            use_original_parser = False
+            use_original_parser = True
             args = [(sample, load_raw, load_light, use_original_parser) for sample in samples]
             lcms_objs = pool.starmap(self.get_lcms_obj, args)
             for sample_name, lcms_obj in zip(samples, lcms_objs):
