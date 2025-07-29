@@ -90,8 +90,8 @@ class LCMSSpectralSearch:
                     "Flash entropy library entry must have 'fragment_types' key to include fragment types in output."
                 )
 
-            # Get types of fragments in the lib entry
-            lib_frags = lib_entry["fragment_types"]
+            # Get types of fragments in the lib entry and convert it to a list on ", "
+            lib_frags = [x.strip() for x in lib_entry["fragment_types"].split(",")]
             # make list of the fragment types that are present in the query spectrum
             lib_in_query_ids = list(
                 set(

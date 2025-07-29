@@ -909,7 +909,11 @@ class MetabRefLCInterface(MetabRefInterface):
                     else:
                         raise ValueError("Job ID not found or job is still processing.")
             except requests.exceptions.RequestException as e:
-                raise ValueError(f"Error retrieving lipid library job: {e}")
+                if attempt < attempts - 1:
+                    time.sleep(delay)
+                    continue
+                else:
+                    raise ValueError(f"Error retrieving lipid library job: {e}")
     
     def get_lipid_library(
         self,

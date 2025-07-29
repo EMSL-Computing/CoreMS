@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pymzml
+import datetime
 
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.parameters import default_parameters
@@ -52,6 +53,10 @@ class MZMLSpectraParser(SpectraParserInterface):
         Parses the mzml file and instantiates a MassSpectraBase object.
     * get_lcms_obj().
         Parses the mzml file and instantiates an LCMSBase object.
+    * get_instrument_info().
+        Return instrument information from the mzML file.
+    * get_creation_time().
+        Return the creation time of the mzML file as a datetime object.
 
     Inherits from ThermoBaseClass and SpectraParserInterface
     """
@@ -469,3 +474,62 @@ class MZMLSpectraParser(SpectraParserInterface):
         lcms_obj._tic_list = list(scan_df.tic)
 
         return lcms_obj
+
+    def get_instrument_info(self):
+        """
+        Return instrument information.
+
+        Returns
+        -------
+        dict
+            A dictionary with the keys 'model' and 'serial_number'.
+        """
+        # Load the pymzml data
+        data = self.load()
+        instrument_info = data.info.get('referenceable_param_group_list_element')[0]
+        cv_params = instrument_info.findall('{http://psi.hupo.org/ms/mzml}cvParam')
+
+        # Extract details from each cvParam
+        params = []
+        for param in cv_params:
+            accession = param.get('accession')  # Get 'accession' attribute
+            name = param.get('name')           # Get 'name' attribute
+            value = param.get('value')         # Get 'value' attribute
+            params.append({
+                'accession': accession,
+                'name': name,
+                'value': value
+            })
+
+        # Loop through params and try to find the relevant information
+        instrument_dict = {
+            'model': 'Unknown',
+            'serial_number': 'Unknown'
+        }
+
+        # Assuming there are only two paramters here - one is for the serial number (agnostic to the model) and the other is for the model
+        # If there are more than two, we raise an error
+        if len(params) < 2:
+            raise ValueError("Not enough parameters found in the instrument info, cannot parse.")
+        if len(params) > 2:
+            raise ValueError("Too many parameters found in the instrument info, cannot parse.")
+        for param in params:
+            if param['accession'] == 'MS:1000529':
+                instrument_dict['serial_number'] = param['value']
+            else:
+                instrument_dict['model'] = data.OT[param['accession']]     
+
+        return instrument_dict
+
+    def get_creation_time(self) -> datetime.datetime:
+        """
+        Return the creation time of the mzML file.
+        """
+        data = self.load()
+        write_time = data.info.get('start_time')
+        if write_time:
+            # Convert the write time to a datetime object
+            return datetime.datetime.strptime(write_time, "%Y-%m-%dT%H:%M:%SZ")
+        else:
+            raise ValueError("Creation time is not available in the mzML file. "
+                           "Please ensure the file contains the 'start_time' information.")
