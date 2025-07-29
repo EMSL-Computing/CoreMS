@@ -1544,6 +1544,98 @@ class LCMSCollection(LCMSCollectionCalculations):
 
         self.isotopes_dropped = True
         self._combined_mass_features = cmb_mf_df2
+    
+
+    def load_raw_data(self, sample_idx: int, ms_level = 1) -> None:
+        """Load raw data for a specific sample index in the collection.
+        
+        Parameters
+        -----------
+        sample_idx : int
+            The index of the sample in the collection.
+        ms_level : int, optional
+            The MS level to load raw data for. Defaults to 1.
+            
+        Raises
+        -------
+        IndexError
+            If the sample index is out of range.
+        ValueError
+            If raw data for the specified MS level is already loaded for the sample index.
+        ValueError
+            If the spectra parser is not set for the LCMS object or if the parser type does not support loading raw data.
+
+        Returns
+        --------
+        None, but updates the LCMS object with the raw data for the specified MS level.
+        """
+        if sample_idx < 0 or sample_idx >= len(self.samples):
+            raise IndexError("Sample index out of range.")
+
+        # Check that the sample does not already have raw data loaded
+        if ms_level in self[sample_idx]._ms_unprocessed:
+            raise ValueError(f"Raw data for MS{ms_level} already loaded for sample index {sample_idx}. Drop data first if you want to reload it.")
+
+        # Check the parser type of the LCMS object
+        if self[sample_idx].spectra_parser is None:
+            raise ValueError("Spectra parser is not set for this LCMS object.")
+
+        # Instantiate the parser and load the raw data using the correct method
+        parser = self[sample_idx].spectra_parser
+        parser_class_name = self[sample_idx].spectra_parser_class.__name__
+        scan_df = self[sample_idx].scan_df
+
+        # Get raw data for the specified MS level using the appropriate method
+        if parser_class_name == "ImportMassSpectraThermoMSFileReader":
+            self[sample_idx]._ms_unprocessed[ms_level] = parser.get_ms_raw(
+                spectra=f"ms{ms_level}",
+                scan_df=scan_df
+            )[f"ms{ms_level}"]
+
+        elif parser_class_name == "MZMLSpectraParser":
+            data = parser.load()
+            self[sample_idx]._ms_unprocessed[ms_level] = parser.get_ms_raw(
+                spectra=f"ms{ms_level}",
+                scan_df=scan_df,
+                data=data
+                )[f"ms{ms_level}"]
+            
+        elif parser_class_name == "MassSpectraParser":
+            raise ValueError(
+                "MassSpectraParser does not have a method to load raw data. Need to instantiate the original parser to access the raw data."
+            )
+
+    def drop_raw_data(self, sample_idx: int, ms_level = 1) -> None:
+        """Drop raw data for a specific sample index in the collection.
+
+        Parameters
+        -----------
+        sample_idx : int
+            The index of the sample in the collection.
+        ms_level : int, optional
+            The MS level to drop raw data for. Defaults to 1.
+
+        Raises
+        -------
+        IndexError
+            If the sample index is out of range.
+        ValueError
+            If raw data for the specified MS level is not loaded for the sample index.
+
+        Returns
+        --------
+        None
+        """
+        if sample_idx < 0 or sample_idx >= len(self.samples):
+            raise IndexError("Sample index out of range.")
+
+        # Check that the sample has raw data loaded
+        if ms_level not in self[sample_idx]._ms_unprocessed:
+            raise ValueError(f"No raw data for MS{ms_level} found for sample index {sample_idx}. Load data first if you want to drop it.")
+
+        # Drop the raw data
+        del self[sample_idx]._ms_unprocessed[ms_level]
+
 
     @property
     def parameters(self):
