@@ -190,8 +190,8 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801", lcms_obj
     )
     exporter.to_hdf(overwrite=True)
-    exporter.report_to_csv()
-    report = exporter.to_report()
+    exporter.report_to_csv(molecular_metadata=lipid_metadata)
+    report = exporter.to_report(molecular_metadata=lipid_metadata)
     assert report['Ion Formula'][1] == 'C24 H47 O2'
     assert report['Lipid Species'][1] == 'FA 24:0'
 
