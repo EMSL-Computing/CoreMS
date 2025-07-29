@@ -126,6 +126,8 @@ class LiquidChromatographSetting:
         Smoothing methods that can be implemented. Values are ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar').
     savgol_pol_order : int, optional
         Polynomial order for Savitzky-Golay smoothing. Default is 2.
+    consecutive_scan_min : int, optional
+        Minimum number of consecutive scans to consider for peak detection. Default is 0 for backwards compatibility, but a value of 3 is recommended.
     peak_height_max_percent : float, optional
         1-100 % used for baseline detection use 0.1 for second_derivative and 10 for other methods. Default is 10.
     peak_max_prominence_percent : float, optional
@@ -218,6 +220,7 @@ class LiquidChromatographSetting:
         "boxcar",
     )
     savgol_pol_order: int = 2
+    consecutive_scan_min: int = 0
     peak_height_max_percent: float = 10
     peak_max_prominence_percent: float = 1
     peak_derivative_threshold: float = 0.0005

@@ -820,23 +820,34 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         ).main()
         self.filter_by_index(indexes_to_remove)
 
-    def filter_by_min_resolving_power(self, B, T):
-        """Filter the mass spectrum by the specified minimum resolving power.
+    def filter_by_min_resolving_power(self, B, T, apodization_method: str=None, tolerance: float=0):
+        """Filter the mass spectrum by the calculated minimum theoretical resolving power.
+
+        This is currently designed only for FTICR data, and accounts only for magnitude mode data
+        Accurate results require passing the apodisaion method used to calculate the resolving power.
+        see the ICRMassPeak function `resolving_power_calc` for more details.
 
         Parameters
         ----------
-        B : float
-        T : float
+        B : Magnetic field strength in Tesla, float
+        T : transient length in seconds, float
+        apodization_method : str, optional
+            The apodization method to use for calculating the resolving power. Defaults to None.
+        tolerance : float, optional
+            The tolerance for the threshold. Defaults to 0, i.e. no tolerance
 
         """
-        rpe = lambda m, z: (1.274e7 * z * B * T) / (m * z)
+        if self.analyzer != "ICR":
+            raise Exception(
+                "This method is only applicable to ICR mass spectra. "
+            )
 
         self.check_mspeaks_warning()
 
         indexes_to_remove = [
             index
             for index, mspeak in enumerate(self.mspeaks)
-            if mspeak.resolving_power <= rpe(mspeak.mz_exp, mspeak.ion_charge)
+            if mspeak.resolving_power < (1-tolerance) * mspeak.resolving_power_calc(B, T, apodization_method=apodization_method)
         ]
         self.filter_by_index(indexes_to_remove)
 
