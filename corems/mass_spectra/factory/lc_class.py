@@ -6,7 +6,6 @@ import warnings
 import multiprocessing
 
 import matplotlib.pyplot as plt
-import matplotlib.pyplot as plt
 
 from corems.encapsulation.factory.parameters import LCMSParameters, LCMSCollectionParameters
 from corems.mass_spectra.calc.lc_calc import LCCalculations, PHCalculations, LCMSCollectionCalculations
@@ -84,15 +83,19 @@ class MassSpectraBase:
         self.file_location = file_location
         self.analyzer = analyzer
         self.instrument_label = instrument_label
+        self._raw_file_location = None
 
         # Add the spectra parser class to the object if it is not None
         if spectra_parser is not None:
             self.spectra_parser_class = spectra_parser.__class__
-            self.spectra_parser = spectra_parser
-            # Check that spectra_pasrser.sample_name is same as sample_name etc, raise warning if not
+            if self.spectra_parser_class.__name__ == "ReadCoreMSHDFMassSpectra":
+                self.raw_file_location = spectra_parser.get_raw_file_location()
+
+            # Check that spectra_parser.sample_name is same as sample_name etc, raise warning if not
             if (
                 self.sample_name is not None
                 and self.sample_name != self.spectra_parser.sample_name
+                and self.spectra_parser_class.__name__ != "ReadCoreMSHDFMassSpectra"
             ):
                 warnings.warn(
                     "sample_name provided to MassSpectraBase object does not match sample_name provided to spectra parser object",
@@ -118,6 +121,20 @@ class MassSpectraBase:
         self._scan_info = {}
         self._ms = {}
         self._ms_unprocessed = {}
+
+    @property
+    def spectra_parser(self):
+        """Returns an instance of the spectra parser class."""
+        return self.spectra_parser_class(self.raw_file_location)
+
+    @property
+    def raw_file_location(self):
+        """Returns the file_location unless the _raw_file_location is not None."""
+        return self._raw_file_location if self._raw_file_location is not None else self.file_location   
+    
+    @raw_file_location.setter
+    def raw_file_location(self, value):
+        self._raw_file_location = value
 
     def add_mass_spectrum(self, mass_spec):
         """Adds a mass spectrum to the dataset.
@@ -1600,5 +1617,7 @@ class LCMSCollection(LCMSCollectionCalculations):
             # Clean up column names
             cluster_summary.columns = ['_'.join(col).strip() for col in cluster_summary.columns.values]
 
-    
-
+    @property
+    def raw_files(self):
+        """Returns a list of raw files in the collection."""
+        return [x.raw_file_location for x in self]

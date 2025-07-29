@@ -629,8 +629,8 @@ def run_lipid_workflow(
 if __name__ == "__main__":
     # Set input variables to run
     cores = 1
-    file_dir = Path("/Users/heal742/LOCAL/corems_dev/corems/tmp_data/thermo_raw_mini")
-    out_dir = Path("tmp_data/_test_250115")
+    file_dir = Path("/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_blanchard_lipidomics/mini_collection_test")
+    out_dir = Path("/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_blanchard_lipidomics/mini_collection_test_out")
     params_toml = Path(
         "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lipidomics_corems_params.toml"
     )
