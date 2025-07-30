@@ -29,10 +29,10 @@ if __name__ == "__main__":
     print("Time to load LCMS collection ", time.time() - start_time, "seconds -", len(lcms_collection), " LCMS runs and ", ncores, " cores")
     #10s for 7 samples, 10 cores; 162s for 70 samples, 10 cores
 
-    # Check parsers and the ability to load raw data
-    #TODO KRH: Make this into two methods on the collection - lcms_collection.load_raw_data(sample_idx);   lcms_collection.drop_raw_data(sample_idx)
-    # Add error handling into those methods; make sure it works with both thermo and mzml data
-    lcms_collection[0]._ms_unprocessed[1] = lcms_collection[0].spectra_parser.get_ms_raw(spectra="ms1", scan_df=lcms_collection[0].scan_df)['ms1']
+    # Check and demonstrate the parsers' ability to load raw data
+    lcms_collection.load_raw_data(sample_idx=0, ms_level=1)
+    assert lcms_collection[0]._ms_unprocessed[1] is not None, "Raw data for MS1 should be loaded successfully."
+    lcms_collection.drop_raw_data(sample_idx=0, ms_level=1)
 
     # Set flag to call _drop_isotopologue() when running _check_mass_features_df()
     lcms_collection.parameters.lcms_collection.drop_isotopologues = True
