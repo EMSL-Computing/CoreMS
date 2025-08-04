@@ -8,8 +8,6 @@ if __name__ == "__main__":
     collection_path = Path("/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_blanchard_lipidomics/mini_collection_test_out")
     # Path to manifest file
     manifest_file = Path("/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_blanchard_lipidomics/mini_collection_test_out/manifest.csv")
-    # This file will need to be created by the user or helper script?
-    chromatography_file = Path("/Users/heal742/LOCAL/10_lcms_collection_testing/UDN_neg/processed_data/long_lipid_gradient_chroma.csv") 
 
     # Set the number of cores to use for loading the data (the parser is parallelized)
     ncores = 5
@@ -18,7 +16,6 @@ if __name__ == "__main__":
     parser = ReadCoreMSHDFMassSpectraCollection(
             folder_location = collection_path,
             manifest_file = manifest_file,
-            chromatography_file=chromatography_file,
             cores = ncores
             )
     print("Loading LCMS collection with", len(parser.manifest), "samples using", ncores, " cores")
@@ -57,7 +54,7 @@ if __name__ == "__main__":
     print("Time to roll up consensus mass features: ", time.time() - start_time, "seconds -", len(lcms_collection.mass_features_dataframe), " total mass features", ncores, " cores")   
 
     lcms_collection.plot_mz_features_across_samples()
-    lcms_collection.plot_mz_features_per_cluster()
+    lcms_collection.plot_mz_features_per_cluster() #TODO: Fix this function, - errroring out with 'DataFrame' object has no attribute 'sample_id_count'
     lcms_collection.plot_consensus_mz_features() ## zoomed out
     lcms_collection.plot_consensus_mz_features(xb = 10, xt = 15, yb = 500, yt = 600) ## zoomed in 
     lcms_collection.cluster_inspection_plot(11391)
@@ -72,6 +69,5 @@ if __name__ == "__main__":
     ]
     lcms_collection.plot_cluster_outlier_frequency(dim_list, clu_size_thresh = 0.25)
 
-    #TODO: Add code to load and save information about chromatographic settings
     #TODO: Add code to save and load collection to HDF5 file
     #TODO: Add code to plot a consensus mass feature
