@@ -1306,7 +1306,6 @@ class LCMSCollection(LCMSCollectionCalculations):
         self.collection_parser = collection_parser
 
         # These attributes are generally set by the parser during instantiation of this class
-        self._chromatography_df = None
         self._lcms = {}
         self._combined_mass_features = None
         self.consensus_mass_features = {}
@@ -1351,30 +1350,6 @@ class LCMSCollection(LCMSCollectionCalculations):
             mf_df = mf_df.merge(scan_df, left_on="apex_scan", right_index=True)
         
         return mf_df
-    
-    def _convert_solvent_A(self, x):
-        """
-        Converts the solvent A fraction based on the scan time.
-
-        Parameters
-        -----------
-        x : float or numpy.ndarray
-            The scan time in minutes or an array of scan times in minutes.
-
-        Returns
-        --------
-        float or numpy.ndarray or None
-            The solvent A fraction at the scan time or an array of solvent A fractions at the scan times (if the function is set)
-    """
-        if self._chromatography_df is not None:
-            xp = self._chromatography_df.time_min.values
-            yp = self._chromatography_df.A.values
-
-            # Define a function to interpolate the chromatogram data
-            pred_y = np.interp(x, xp, yp)
-            return pred_y
-        else:
-            return None
        
     def _combine_mass_features(self):
         """
@@ -1411,12 +1386,6 @@ class LCMSCollection(LCMSCollectionCalculations):
 
         # Make coll_mf_id the index
         combined_mass_features = combined_mass_features.set_index("coll_mf_id")
-
-        # If _chromatogram_df is set, combine it with the mass features dataframe to add A fraction for each mass feature
-        if self._chromatography_df is not None:
-
-            # Add solvent A fraction to the combined mass features dataframe
-            combined_mass_features['solvent_A_frac'] = self._convert_solvent_A(combined_mass_features.scan_time.values)
 
         self._combined_mass_features = combined_mass_features
 
