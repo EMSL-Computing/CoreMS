@@ -13,6 +13,8 @@ from corems.mass_spectra.factory.lc_class import LCMSBase
 # from corems.encapsulation.factory.parameters import default_parameters
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 
+from corems.mass_spectra.input.brukerSolarix_utils import get_scan_attributes
+
 
 class ReadBruker_SolarixTransientMassSpectra(Thread):
     """
@@ -50,6 +52,7 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
             raise FileNotFoundError("File does not exist: " + str(d_directory_location))
 
         self.scan_attr = d_directory_location / "scan.xml"
+        self.imaging_info_attr = d_directory_location / "ImagingInfo.xml"
 
         if not self.scan_attr.exists():
             raise FileExistsError(
@@ -66,24 +69,20 @@ class ReadBruker_SolarixTransientMassSpectra(Thread):
 
     def get_scan_attr(self) -> dict:
         """
-        Get the scan attributes from the scan.xml file.
+        Get the scan attributes from the scan.xml or ImagingInfo.xml file.
+        If the scan.xml file exists, it will be used; otherwise, it will look for ImagingInfo.xml.
+        If neither file exists, a FileNotFoundError will be raised.
+
+
+        TODO: - This function is replicated in the corems.transient.input.brukerSolarix module,
+                consider refactoring to avoid duplication.
 
         Returns
         -------
         dict
             Dictionary containing the scan number as key and a tuple of retention time and TIC as value.
         """
-        from bs4 import BeautifulSoup
-
-        soup = BeautifulSoup(self.scan_attr.open(), "xml")
-
-        list_rt = [float(rt.text) for rt in soup.find_all("minutes")]
-        list_tic = [float(tic.text) for tic in soup.find_all("tic")]
-        list_scan = [int(scan.text) for scan in soup.find_all("count")]
-
-        dict_scan_rt_tic = dict(zip(list_scan, zip(list_rt, list_tic)))
-
-        return dict_scan_rt_tic
+        return get_scan_attributes(self.scan_attr, self.imaging_info_attr)
 
     def import_mass_spectra(self) -> None:
         """
