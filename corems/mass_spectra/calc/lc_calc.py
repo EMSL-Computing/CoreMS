@@ -323,7 +323,7 @@ class LCCalculations:
                 ms.process_mass_spec()
         return ms
 
-    def find_mass_features_ph(self, ms_level=1, grid=True, n_chunks=2):
+    def find_mass_features_ph(self, ms_level=1, grid=True):
         """Find mass features within an LCMSBase object using persistent homology.
 
         Assigns the mass_features attribute to the object (a dictionary of LCMSMassFeature objects, keyed by mass feature id)
@@ -334,8 +334,6 @@ class LCCalculations:
             The MS level to use. Default is 1.
         grid : bool, optional
             If True, will regrid the data before running the persistent homology calculations (after checking if the data is gridded). Default is True.
-        n_chunks : int, optional
-            Number of chunks to split the data into for memory optimization. If None, processes all data at once.
 
         Raises
         ------
@@ -351,6 +349,9 @@ class LCCalculations:
         -----
         This function has been adapted from the original implementation in the Deimos package: https://github.com/pnnl/deimos
         """
+        # Source number of partitions from parameters
+        n_partitions = self.parameters.lc_ms.ph_partitions
+
         # Check that ms_level is a key in self._ms_uprocessed
         if ms_level not in self._ms_unprocessed.keys():
             raise ValueError(
@@ -384,8 +385,8 @@ class LCCalculations:
         data_thres = data_thres.merge(self.scan_df[["scan", "scan_time"]], on="scan")
         
         # Process in chunks if requested
-        if n_chunks is not None and n_chunks > 1:
-            return self._find_mass_features_ph_chunked(data_thres, dims, n_chunks, data)
+        if n_partitions is not None and n_partitions > 1:
+            return self._find_mass_features_ph_partition(data_thres, dims, n_partitions, data)
         else:
             # Process all at once
             return self._find_mass_features_ph_single(data_thres, dims, data)
@@ -410,60 +411,60 @@ class LCCalculations:
         # Populate mass_features attribute
         self._populate_mass_features(mass_features_df)
 
-        def _find_mass_features_ph_chunked(self, data_thres, dims, n_chunks, data_orig):
-            """Process data in time-based chunks with overlap."""
-            all_mass_features = []
-            
-            # Split scans into chunks
-            unique_scans = sorted(data_thres['scan'].unique())
-            
-            # Calculate chunk size and overlap
-            chunk_size = len(unique_scans) // n_chunks
-            overlap_size = chunk_size // 4  # 25% overlap
-            
-            # Create chunks with overlap
-            for i in range(n_chunks):
-                start_idx = max(0, i * chunk_size - overlap_size) if i > 0 else 0
-                end_idx = min(len(unique_scans), (i + 1) * chunk_size + overlap_size)
-                
-                chunk_scans = unique_scans[start_idx:end_idx]
-                chunk_data = data_thres[data_thres['scan'].isin(chunk_scans)].copy()
-                
-                if len(chunk_data) == 0:
-                    continue
-                    
-                # Build factors for this chunk
-                factors = {
-                    dim: pd.factorize(chunk_data[dim], sort=True)[1].astype(np.float32)
-                    for dim in dims
-                }
+    def _find_mass_features_ph_partition(self, data_thres, dims, n_partitions, data_orig):
+        """Process data in time-based partitions with overlap."""
+        all_mass_features = []
+        
+        # Split scans into partitions
+        unique_scans = sorted(data_thres['scan'].unique())
 
-                # Build indexes
-                index = {
-                    dim: np.searchsorted(factors[dim], chunk_data[dim]).astype(np.float32)
-                    for dim in factors
-                }
+        # Calculate partition size and overlap
+        partition_size = len(unique_scans) // n_partitions
+        # Five scans overlap
+        overlap_size = 5
+        # Create partitions with overlap
+        for i in range(n_partitions):
+            start_idx = max(0, i * partition_size - overlap_size) if i > 0 else 0
+            end_idx = min(len(unique_scans), (i + 1) * partition_size + overlap_size)
 
-                # Process chunk
-                chunk_features = self._process_chunk_ph(chunk_data, index, dims, data_orig)
-                
-                if len(chunk_features) > 0:
-                    all_mass_features.append(chunk_features)
+            partition_scans = unique_scans[start_idx:end_idx]
+            partition_data = data_thres[data_thres['scan'].isin(partition_scans)].copy()
+
+            if len(partition_data) == 0:
+                continue
+
+            # Build factors for this partition
+            factors = {
+                dim: pd.factorize(partition_data[dim], sort=True)[1].astype(np.float32)
+                for dim in dims
+            }
+
+            # Build indexes
+            index = {
+                dim: np.searchsorted(factors[dim], partition_data[dim]).astype(np.float32)
+                for dim in factors
+            }
+
+            # Process partition
+            partition_features = self._process_partition_ph(partition_data, index, dims, data_orig)
+
+            if len(partition_features) > 0:
+                all_mass_features.append(partition_features)
+
+        # Combine results from all partitions
+        if all_mass_features:
+            combined_features = pd.concat(all_mass_features, ignore_index=True)
             
-            # Combine results from all chunks
-            if all_mass_features:
-                combined_features = pd.concat(all_mass_features, ignore_index=True)
-                
-                # Remove duplicates from overlapping regions
-                combined_features = self._deduplicate_overlapping_features(combined_features)
-                
-                # Populate mass_features attribute
-                self._populate_mass_features(combined_features)
-            else:
-                self.mass_features = {}
+            # Remove duplicates from overlapping regions
+            combined_features = self._deduplicate_overlapping_features(combined_features)
+            
+            # Populate mass_features attribute
+            self._populate_mass_features(combined_features)
+        else:
+            self.mass_features = {}
 
-    def _process_chunk_ph(self, chunk_data, index, dims, data_orig):
-        """Process a single chunk with persistent homology."""
+    def _process_partition_ph(self, partition_data, index, dims, data_orig):
+        """Process a single partition with persistent homology."""
         # Smooth data
         iterations = self.parameters.lc_ms.ph_smooth_it
         smooth_radius = [
@@ -472,7 +473,7 @@ class LCCalculations:
         ]
 
         index_array = np.vstack([index[dim] for dim in dims]).T
-        V = chunk_data["intensity"].values
+        V = partition_data["intensity"].values
         resid = np.inf
         
         for i in range(iterations):
@@ -494,8 +495,8 @@ class LCCalculations:
                     break
 
         # Overwrite values
-        chunk_data = chunk_data.copy()
-        chunk_data["intensity"] = V
+        partition_data = partition_data.copy()
+        partition_data["intensity"] = V
 
         # Use persistent homology to find regions of interest
         pidx, pers = self.sparse_upper_star(index_array, V)
@@ -506,7 +507,7 @@ class LCCalculations:
             return pd.DataFrame()
 
         # Get peaks
-        peaks = chunk_data.iloc[pidx, :].reset_index(drop=True)
+        peaks = partition_data.iloc[pidx, :].reset_index(drop=True)
 
         # Add persistence column
         peaks["persistence"] = pers

@@ -173,6 +173,8 @@ class LiquidChromatographSetting:
         Calculated as a fraction of the maximum intensity of the unprocessed profile data (mz, scan).
         Should be greater to or equal to ph_inten_min_rel.
         Called within the PH_Calculations.find_mass_features() method. Default is 0.001.
+    ph_partitions : int, optional
+        Number of partitions to use for persistent homology. Default is 5.
     mass_feature_cluster_mz_tolerance_rel : float, optional
         Relative m/z tolerance to use for clustering mass features.
         Used for both "persistent homology" and "centroided_persistent_homology" peak picking methods.
@@ -248,6 +250,7 @@ class LiquidChromatographSetting:
     ph_smooth_radius_scan = 1
     ph_inten_min_rel = 0.001
     ph_persis_min_rel = 0.001
+    ph_partitions: int = 5
 
     # Parameters used to cluster mass features
     mass_feature_cluster_mz_tolerance_rel: float = 5e-6
