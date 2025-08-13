@@ -1972,4 +1972,37 @@ class LipidomicsExport(LCMSMetabolomicsExport):
         return report
 
         
+class LCMSCollectionExporter():
+    """A class to export an LCMS collection.
 
+    This class provides methods to export lipidomics data to various formats and summarize the lipid report.
+
+    Parameters
+    ----------
+    out_file_path : str | Path
+        The output file path, do not include the file extension.
+    mass_spectra_collection : object
+        The high resolution mass spectra collection object.
+    """
+    def __init__(self, out_file_path, mass_spectra_collection):
+        self.out_file_path = Path(out_file_path)
+        self.mass_spectra_collection = mass_spectra_collection
+
+    def export_to_hdf5(self, overwrite = False):
+        """Export the LCMS collection to an HDF5 file."""
+        # TODO: Add hdf5 export to each of the mass spectra in the collection to ensure that scan time alignment, induced mass features, and mass features into clusters are retained
+
+        if overwrite:
+            if self.out_file_path.with_suffix(".hdf5").exists():
+                self.out_file_path.with_suffix(".hdf5").unlink()
+
+        with h5py.File(self.out_file_path.with_suffix(".hdf5"), "a") as hdf_handle:
+            # Add basic attributes to the HDF5 file
+            timenow = str(
+                    datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z")
+                )
+            hdf_handle.attrs["date_utc"] = timenow
+            hdf_handle.attrs["lcms_objects_folder"] = str(self.mass_spectra_collection.collection_parser.folder_location)
+            hdf_handle.attrs["manifest"] = json.dumps(self.mass_spectra_collection.collection_parser.manifest)
+
+        #TODO: save parameters

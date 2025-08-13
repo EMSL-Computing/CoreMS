@@ -1568,10 +1568,10 @@ class LCMSCollection(LCMSCollectionCalculations):
                 scan_df=scan_df,
                 data=data
                 )[f"ms{ms_level}"]
-            
-        elif parser_class_name == "MassSpectraParser":
+
+        elif parser_class_name == "ReadCoreMSHDFMassSpectra":
             raise ValueError(
-                "MassSpectraParser does not have a method to load raw data. Need to instantiate the original parser to access the raw data."
+                "ReadCoreMSHDFMassSpectra does not have a method to load raw data. Need to instantiate the original parser to access the raw data."
             )
 
     def drop_raw_data(self, sample_idx: int, ms_level = 1) -> None:

@@ -3,6 +3,7 @@ __date__ = "Oct 29, 2019"
 
 
 from threading import Thread
+import h5py
 import toml
 import json
 import multiprocessing
@@ -826,3 +827,52 @@ class ReadCoreMSHDFMassSpectraCollection:
             return toml_files
         else:
             raise ValueError("Parameters files are not saved for all samples.")
+
+class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
+    """
+    Subclass to read and re-instantiate a LCMSCollection from a saved HDF5 file.
+    
+    
+    Parameters
+    ----------
+    collection_hdf5_path : str or Path
+        Path to the saved LCMSCollection HDF5 file.
+    cores : int, optional
+        Number of cores for processing. Default is 1.
+    """
+    
+    def __init__(
+        self, 
+        collection_hdf5_path: str, 
+        cores: int = 1
+    ):
+        # Convert to Path objects
+        self.collection_hdf5_path = Path(collection_hdf5_path)
+        
+        # Validate the collection file exists
+        if not self.collection_hdf5_path.exists():
+            raise FileNotFoundError(f"Collection HDF5 file {self.collection_hdf5_path} not found.")
+        
+        # Validate cores
+        self._validate_cores(cores)
+
+        # Set data
+        self.h5pydata = h5py.File(self.collection_hdf5_path, "r")
+
+        # Load metadata from saved collection
+        self._load_collection_metadata()
+
+        if not self.folder_location.exists():
+            raise FileNotFoundError(f"Folder location {self.folder_location} not found.")
+
+        # Load the mass spectra data
+        self._validate_manifest()
+
+    def _load_collection_metadata(self):
+        """Load metadata and manifest from the saved collection HDF5 file."""
+        with h5py.File(self.collection_hdf5_path, 'r') as f:
+            self.folder_location = Path(f.attrs.get('lcms_objects_folder', ''))
+            manifest_json = f.attrs.get('manifest', '{}')
+            if isinstance(manifest_json, bytes):
+                manifest_json = manifest_json.decode('utf-8')
+            self._manifest_dict = json.loads(manifest_json)
