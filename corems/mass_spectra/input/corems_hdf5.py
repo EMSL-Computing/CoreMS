@@ -720,8 +720,8 @@ class ReadCoreMSHDFMassSpectraCollection:
             lcms_obj.mass_features = {}
             lcms_obj.light_mf_df = mf_df
         return lcms_obj
-    
-    def get_lcms_collection(self, load_raw = False, load_light = True) -> LCMSCollection:
+
+    def get_lcms_collection(self, load_raw = False, load_light = True, use_original_parser = True) -> LCMSCollection:
         """Return a LCMSCollection object
         
         Parameters
@@ -754,8 +754,6 @@ class ReadCoreMSHDFMassSpectraCollection:
                 ncores = self._cores
             # Create a pool of workers (one for each core or sample, whichever is smaller)
             pool = multiprocessing.Pool(ncores)
-            # Load the LCMS objects in parallel - do not instantiate the original parser by default
-            use_original_parser = True
             args = [(sample, load_raw, load_light, use_original_parser) for sample in samples]
             lcms_objs = pool.starmap(self.get_lcms_obj, args)
             for sample_name, lcms_obj in zip(samples, lcms_objs):
@@ -764,7 +762,7 @@ class ReadCoreMSHDFMassSpectraCollection:
         elif self._cores == 1:
             # Load the LCMS objects sequentially - do not instantiate the original parser by default
             for sample_name in samples:
-                lcms_coll._lcms[sample_name] = self.get_lcms_obj(sample_name, load_raw=load_raw, load_light=load_light, use_original_parser=False)
+                lcms_coll._lcms[sample_name] = self.get_lcms_obj(sample_name, load_raw=load_raw, load_light=load_light, use_original_parser=use_original_parser)
 
         else:
             raise ValueError("Number of cores must be greater than 0 and set on the ReadCoreMSHDFMassSpectraCollection object.")
@@ -855,9 +853,6 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
         
         # Validate cores
         self._validate_cores(cores)
-
-        # Set data
-        self.h5pydata = h5py.File(self.collection_hdf5_path, "r")
 
         # Load metadata from saved collection
         self._load_collection_metadata()
