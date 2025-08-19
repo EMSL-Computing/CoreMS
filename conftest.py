@@ -50,6 +50,10 @@ def lcms_obj():
         / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.raw"
     )
     parser = ImportMassSpectraThermoMSFileReader(file_raw)
+    instrument_info = parser.get_instrument_info()
+    assert instrument_info['model'] == "Orbitrap Velos Pro"
+    creation_time = parser.get_creation_time()
+    assert creation_time.year == 2018
 
     # Instatiate lc-ms data object using parser and pull in ms1 spectra into dataframe (without storing as MassSpectrum objects to save memory)
     myLCMSobj = parser.get_lcms_obj(spectra="ms1")

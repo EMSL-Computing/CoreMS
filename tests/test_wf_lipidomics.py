@@ -25,6 +25,12 @@ def test_import_lcmsobj_mzml():
 
     parser = MZMLSpectraParser(file_mzml)
 
+    # Get the instrument information and creation time
+    instrument_info = parser.get_instrument_info()
+    assert instrument_info['model'] == "Orbitrap ID-X"
+    creation_time = parser.get_creation_time()
+    assert creation_time.year == 2022
+    
     # Instatiate lc-ms data object using parser and pull in ms1 spectra into dataframe (without storing as MassSpectrum objects to save memory)
     myLCMSobj = parser.get_lcms_obj(spectra="ms1")
     myLCMSobj.parameters = LCMSParameters(use_defaults=True)
@@ -152,7 +158,7 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
     metabref = MetabRefLCInterface()
     mzs = [i.mz for k, i in lcms_obj.mass_features.items()]
     spectra_library_fe, lipid_metadata = metabref.get_lipid_library(
-            mz_list=mzs[1:10],
+            mz_list=mzs,
             polarity="negative",
             mz_tol_ppm=5,
             format="flashentropy",
@@ -178,6 +184,7 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
     lcms_obj.fe_search(
         scan_list=ms2_scans_oi_hr, fe_lib=spectra_library_fe, peak_sep_da=0.01
     )
+
     # Export the lcms object to an hdf5 file using the LipidomicsExport class
     exporter = LipidomicsExport(
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801", lcms_obj
@@ -186,7 +193,7 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
     exporter.report_to_csv(molecular_metadata=lipid_metadata)
     report = exporter.to_report(molecular_metadata=lipid_metadata)
     assert report['Ion Formula'][1] == 'C24 H47 O2'
-    #assert report['Lipid Species'][1] == 'FA 24:0'
+    assert report['Lipid Species'][1] == 'FA 24:0'
 
     # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
     parser = ReadCoreMSHDFMassSpectra(

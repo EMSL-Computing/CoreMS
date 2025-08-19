@@ -481,6 +481,21 @@ class LCCalculations:
             )
             l_a_r_scan_idx = [i for i in centroid_eics]
             if len(l_a_r_scan_idx) > 0:
+                # Calculate number of consecutive scans with intensity > 0 and check if it is above the minimum consecutive scans
+                # Find the number of consecutive non-zero values in the EIC segment
+                mask = myEIC.eic[l_a_r_scan_idx[0][0]:l_a_r_scan_idx[0][2] + 1] > 0
+                # Find the longest run of consecutive True values
+                if np.any(mask):
+                    # Find indices where mask changes value
+                    diff = np.diff(np.concatenate(([0], mask.astype(int), [0])))
+                    starts = np.where(diff == 1)[0]
+                    ends = np.where(diff == -1)[0]
+                    consecutive_scans = (ends - starts).max()
+                else:
+                    consecutive_scans = 0
+                if consecutive_scans < self.parameters.lc_ms.consecutive_scan_min:
+                    self.mass_features.pop(idx)
+                    continue
                 # Add start and final scan to mass_features and EICData
                 left_scan, right_scan = (
                     myEIC.scans[l_a_r_scan_idx[0][0]],
@@ -769,7 +784,14 @@ class LCCalculations:
 
             # Subset the correlation matrix to only include the masses of the mass feature and those with a correlation > 0.8
             decon_corr_min = self.parameters.lc_ms.ms1_deconvolution_corr_min
-            corr_subset = corr.loc[mass_feature.mz,]
+
+            # Try catch for KeyError in case the mass feature mz is not in the correlation matrix
+            try:
+                corr_subset = corr.loc[mass_feature.mz,]
+            except KeyError:
+            # If the mass feature mz is not in the correlation matrix, skip to the next mass feature
+                continue
+
             corr_subset = corr_subset[corr_subset > decon_corr_min]
 
             # Get the masses from the mass spectrum that are the result of the deconvolution
@@ -1218,15 +1240,17 @@ class PHCalculations:
         else:
             return True
 
-    def grid_data(self, data):
+    def grid_data(self, data, attempts=5):
         """Grid the data in the mz dimension.
 
-        Data must be gridded prior to persistent homology calculations.
+        Data must be gridded prior to persistent homology calculations and computing average mass spectrum
 
         Parameters
         ----------
         data : DataFrame
             The input data containing mz, scan, scan_time, and intensity columns.
+        attempts : int, optional
+            The number of attempts to grid the data. Default is 5.
 
         Returns
         -------
@@ -1236,9 +1260,44 @@ class PHCalculations:
         Raises
         ------
         ValueError
-            If gridding fails.
+            If gridding fails after the specified number of attempts.
         """
+        attempt_i = 0
+        while attempt_i < attempts:
+            attempt_i += 1
+            data = self._grid_data(data)
 
+            if self.check_if_grid(data):
+                return data
+        
+        if not self.check_if_grid(data):
+            raise ValueError(
+                "Gridding failed after "
+                + str(attempt_i)
+                + " attempts. Please check the data."
+            )
+        else:
+            return data
+    
+    def _grid_data(self, data):
+        """Internal method to grid the data in the mz dimension.
+        
+        Notes
+        -----
+        This method is called by the grid_data method and should not be called directly.
+        It will attempt to grid the data in the mz dimension by creating a grid of mz values based on the minimum mz difference within each scan,
+        but it does not check if the data is already gridded or if the gridding is successful.
+
+        Parameters
+        ----------
+        data : pd.DataFrame or pl.DataFrame
+            The input data to grid.
+
+        Returns
+        -------
+        pd.DataFrame or pl.DataFrame
+            The data after attempting to grid it in the mz dimension.
+        """
         # Calculate the difference between consecutive mz values in a single scan for grid spacing
         data_w = data.copy().reset_index(drop=True)
         data_w["mz_diff"] = np.abs(data_w["mz"].diff())
@@ -1296,12 +1355,8 @@ class PHCalculations:
             .copy()
         )
 
-        # Check if grid worked and return
-        if self.check_if_grid(new_data_w):
-            return new_data_w
-        else:
-            raise ValueError("Gridding failed")
-
+        return new_data_w
+    
     def find_mass_features_ph(self, ms_level=1, grid=True):
         """Find mass features within an LCMSBase object using persistent homology.
 
