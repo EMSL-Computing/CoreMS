@@ -8,13 +8,14 @@ from scipy.spatial import KDTree
 from sklearn.svm import SVR
 from sklearn.cluster import AgglomerativeClustering
 import matplotlib.pyplot as plt
+from ast import literal_eval
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 from corems.mass_spectra.calc import SignalProcessing as sp
 from corems.mass_spectra.factory.chromat_data import EIC_Data
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
 
-warnings.filterwarnings("ignore", category=RuntimeWarning) 
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 def find_closest(A, target):
     """Find the index of closest value in A to each value in target.
@@ -185,20 +186,25 @@ class LCCalculations:
 
         return real_scan
 
-    def add_peak_metrics(self):
+    def add_peak_metrics(self, induced_features = False):
         """Add peak metrics to the mass features.
 
         This function calculates the peak metrics for each mass feature and adds them to the mass feature objects.
         """
         # Check that at least some mass features have eic data
-        if not any([mf._eic_data is not None for mf in self.mass_features.values()]):
+        if induced_features:
+            mf_dict_values = self.induced_mass_features.values()
+        else:
+            mf_dict_values = self.mass_features.values()
+
+        if not any([mf._eic_data is not None for mf in mf_dict_values]):
             raise ValueError(
                 "No mass features have EIC data. Run integrate_mass_features first."
             )
 
-        for mass_feature in self.mass_features.values():
+        for mass_feature in mf_dict_values:
             # Check if the mass feature has been integrated
-            if mass_feature._eic_data is not None:
+            if mass_feature._eic_data is not None and mass_feature.area is not None:
                 # Calculate peak metrics
                 mass_feature.calc_half_height_width()
                 mass_feature.calc_tailing_factor()
@@ -382,7 +388,7 @@ class LCCalculations:
             raise ValueError("Peak picking method not implemented")
 
     def integrate_mass_features(
-        self, drop_if_fail=True, drop_duplicates=True, ms_level=1
+        self, drop_if_fail=True, drop_duplicates=True, ms_level=1, induced_features=False
     ):
         """Integrate mass features and extract EICs.
 
@@ -399,6 +405,8 @@ class LCCalculations:
             Default is True.
         ms_level : int, optional
             The MS level to use. Default is 1.
+        induced_features : bool, optional
+            Whether the mass features to be intergrated were induced. Default is False.
 
         Raises
         ------
@@ -414,24 +422,41 @@ class LCCalculations:
         -----
         drop_if_fail is useful for discarding mass features that do not have good shapes, usually due to a detection on a shoulder of a peak or a noisy region (especially if minimal smoothing is used during mass feature detection).
         """
+        
         # Check if there is data
         if ms_level in self._ms_unprocessed.keys():
             raw_data = self._ms_unprocessed[ms_level].copy()
         else:
             raise ValueError("No MS level " + str(ms_level) + " data found")
-        if self.mass_features is not None:
-            mf_df = self.mass_features_to_df().copy()
-        else:
-            raise ValueError(
-                "No mass features found, did you run find_mass_features() first?"
-            )
+
         # Check if mass_spectrum exists on each mass feature
-        if not all(
-            [mf.mass_spectrum is not None for mf in self.mass_features.values()]
-        ):
-            raise ValueError(
-                "Mass spectrum must be associated with each mass feature, did you run add_associated_ms1() first?"
-            )
+        if induced_features:
+            mf_dict = self.induced_mass_features
+            if len(mf_dict) == 0:
+                raise ValueError(
+                    "No mass features found, did you run search_for_targeted_mass_feature() first?"
+                )
+            if not any(
+                [mf.mass_spectrum is not None for mf in mf_dict.values()]
+            ):
+                raise ValueError(
+                    "Mass spectrum must be associated with induced mass features, did you run add_associated_ms1() first?"
+                )
+            ## remove not found induced mass features
+            mf_dict = {k:v for k, v in mf_dict.items() if v.mass_spectrum is not None}
+
+        else:
+            mf_dict = self.mass_features
+            if len(mf_dict) == 0:
+                raise ValueError(
+                    "No mass features found, did you run find_mass_features() first?"
+                )
+            if not all(
+                [mf.mass_spectrum is not None for mf in mf_dict.values()]
+            ):
+                raise ValueError(
+                    "Mass spectrum must be associated with each mass feature, did you run add_associated_ms1() first?"
+                )
 
         # Subset scan data to only include correct ms_level
         scan_df_sub = self.scan_df[
@@ -441,7 +466,7 @@ class LCCalculations:
             raise ValueError("No MS level " + ms_level + " data found in scan data")
         scan_df_sub = scan_df_sub[["scan", "scan_time"]].copy()
 
-        mzs_to_extract = np.unique(mf_df["mz"].values)
+        mzs_to_extract = np.unique([mf.mz for mf in mf_dict.values()])
         mzs_to_extract.sort()
 
         # Get EICs for each unique mz in mass features list
@@ -468,14 +493,13 @@ class LCCalculations:
             self.eics[mz] = myEIC
 
         # Get limits of mass features using EIC centroid detector and integrate
-        mf_df["area"] = np.nan
-        for idx, mass_feature in mf_df.iterrows():
+        for idx, mass_feature in mf_dict.items():
             mz = mass_feature.mz
             apex_scan = mass_feature.apex_scan
 
             # Pull EIC data and find apex scan index
             myEIC = self.eics[mz]
-            self.mass_features[idx]._eic_data = myEIC
+            mf_dict[idx]._eic_data = myEIC
             apex_index = np.where(myEIC.scans == apex_scan)[0][0]
 
             # Find left and right limits of peak using EIC centroid detector, add to EICData
@@ -500,7 +524,7 @@ class LCCalculations:
                 else:
                     consecutive_scans = 0
                 if consecutive_scans < self.parameters.lc_ms.consecutive_scan_min:
-                    self.mass_features.pop(idx)
+                    mf_dict.pop(idx)
                     continue
                 # Add start and final scan to mass_features and EICData
                 left_scan, right_scan = (
@@ -509,25 +533,28 @@ class LCCalculations:
                 )
                 mf_scan_apex = [(left_scan, int(apex_scan), right_scan)]
                 myEIC.apexes = myEIC.apexes + mf_scan_apex
-                self.mass_features[idx].start_scan = left_scan
-                self.mass_features[idx].final_scan = right_scan
+                mf_dict[idx].start_scan = left_scan
+                mf_dict[idx].final_scan = right_scan
 
                 # Find area under peak using limits from EIC centroid detector, add to mass_features and EICData
                 area = np.trapz(
                     myEIC.eic_smoothed[l_a_r_scan_idx[0][0] : l_a_r_scan_idx[0][2] + 1],
                     myEIC.time[l_a_r_scan_idx[0][0] : l_a_r_scan_idx[0][2] + 1],
                 )
-                mf_df.at[idx, "area"] = area
                 myEIC.areas = myEIC.areas + [area]
                 self.eics[mz] = myEIC
-                self.mass_features[idx]._area = area
+                mf_dict[idx]._area = area
             else:
                 if drop_if_fail is True:
-                    self.mass_features.pop(idx)
+                    mf_dict.pop(idx)
 
         if drop_duplicates:
             # Prepare mass feature dataframe
-            mf_df = self.mass_features_to_df().copy()
+            if induced_features:
+                mf_df = self.mass_features_to_df(induced_features = True).copy()
+                mf_df = mf_df[mf_df.start_scan.notna()]        
+            else:
+                mf_df = self.mass_features_to_df(induced_features = False).copy()
 
             # For each mass feature, find all mass features within the clustering tolerance ppm and drop if their start and end times are within another mass feature
             # Kepp the first mass fea
@@ -2182,14 +2209,14 @@ class LCMSCollectionCalculations:
             self.mass_features_dataframe.groupby("cluster")
             .agg(
                 {
-                    "mz": ["median", "mean", "std"],
-                    "scan_time_aligned": ["median", "mean", "std"],
-                    "half_height_width": ["median", "mean", "std"],
-                    "tailing_factor": ["median", "mean", "std"],
-                    "dispersity_index": ["median", "mean", "std"],
+                    "mz": ["median", "mean", "std", "max", "min"],
+                    "scan_time_aligned": ["median", "mean", "std", "max", "min"],
+                    "half_height_width": ["median", "mean", "std", "max", "min"],
+                    "tailing_factor": ["median", "mean", "std", "max", "min"],
+                    "dispersity_index": ["median", "mean", "std", "max", "min"],
                     "sample_id": ["nunique"],
-                    "intensity": ["max", "median", "mean", "std"],
-                    "persistence": ["max", "median", "mean", "std"],
+                    "intensity": ["max", "median", "mean", "std", "max", "min"],
+                    "persistence": ["max", "median", "mean", "std", "max", "min"],
                 }
             )
             .reset_index()
@@ -2233,7 +2260,7 @@ class LCMSCollectionCalculations:
         else:
             sum_data = self.cluster_summary_dataframe
             fig, ax = plt.subplots()
-            sum_data.sample_id_count.value_counts().sort_index().plot(ax = ax, kind = 'bar')
+            sum_data.sample_id_nunique.value_counts().sort_index().plot(ax = ax, kind = 'bar')
             plt.xlabel('Number of mass features in a cluster')
             plt.ylabel('Number of clusters with this many mass features')
             if return_fig:
@@ -2329,7 +2356,7 @@ class LCMSCollectionCalculations:
             df.mz_median, 
             c = 'tab:orange',
             alpha = 0.7, 
-            s = (df.sample_id_count**2)/5
+            s = (df.sample_id_nunique**2)/5
         )
 
         plt.xlabel('Scan time')
@@ -2348,7 +2375,7 @@ class LCMSCollectionCalculations:
 
         kw = dict(
             prop = 'sizes',
-            num = len(df.sample_id_count.unique())/3,
+            num = len(df.sample_id_nunique.unique())/3,
             color = 'tab:orange',
             alpha = 0.7,
             func = lambda s: np.sqrt(s*5)
@@ -2813,3 +2840,94 @@ class LCMSCollectionCalculations:
             return fig
         else:
             plt.show()
+            
+    def search_for_missing_mass_features_in_one_sample(self, samplename, threshold = 0.5, tol_flag = 0):
+        '''
+        Work in progress temporary code
+        threshold default to 0.5 --> 
+            only consider clusters that contain at least 50% of the sample
+        tol_flag default to 0 -->
+            don't check for possible mass features on the edges of the cluster
+            for sampleindex == 7, tol_flag == 1 picks up 6 more mass features
+        '''
+        summarydf = self.cluster_summary_dataframe
+        mfdf = self.mass_features_dataframe
+        sampleindex = self.samples.index(samplename)
+        self.load_raw_data(sampleindex, 1)
+        
+        sample_ct = len(self.samples)
+        missingdf = summarydf[[
+            'cluster', 
+            'sample_id_nunique', 
+            'mz_min', 
+            'mz_max', 
+            'scan_time_aligned_min', 
+            'scan_time_aligned_max'
+        ]]
+        missingdf = missingdf[missingdf.sample_id_nunique > threshold*(sample_ct)]
+        missingdf = missingdf[missingdf.sample_id_nunique != sample_ct]
+
+        missingdf['missing_samples'] = None
+        for c in missingdf.cluster.to_numpy():
+            cludf = mfdf[mfdf.cluster == c]
+            missingdf.loc[c, 'missing_samples'] = str(
+                [x for x in mfdf.sample_name.unique() if x not in cludf.sample_name.unique()]
+            )
+        missingdf['missing_samples'] = missingdf.missing_samples.apply(literal_eval)
+
+        ## to get clusters missing data based on sample name:
+        sampledf = missingdf[
+            missingdf.missing_samples.apply(lambda x: samplename in x)
+        ].reset_index(drop = True).copy()
+        
+        if tol_flag == 1:
+            mz_clu_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
+            rt_clu_tol = self.parameters.lcms_collection.consensus_rt_tol
+            sampledf['mz_max_allowed'] = sampledf.mz_max + mz_clu_tol*sampledf.mz_max
+            sampledf['mz_min_allowed'] = sampledf.mz_min - mz_clu_tol*sampledf.mz_min
+            sampledf['sta_max_allowed'] = sampledf.scan_time_aligned_max + rt_clu_tol*sampledf.scan_time_aligned_max
+            sampledf['sta_min_allowed'] = sampledf.scan_time_aligned_min - rt_clu_tol*sampledf.scan_time_aligned_min
+
+        ms1df = self[sampleindex]._ms_unprocessed[1].copy()
+        scan_df = self[sampleindex].scan_df[['scan', 'scan_time_aligned']]
+        ms1df = pd.merge(ms1df, scan_df, on = 'scan')
+
+        for i in range(len(sampledf)):
+            mz_min = sampledf.mz_min.iloc[i]
+            mz_max = sampledf.mz_max.iloc[i]
+            st_min = sampledf.scan_time_aligned_min.iloc[i]
+            st_max = sampledf.scan_time_aligned_max.iloc[i]
+            found_feature = self[sampleindex].search_for_targeted_mass_feature(            
+                ms1df, 
+                mz_min, 
+                mz_max, 
+                st_min, 
+                st_max,
+                set_id = 'c' + str(sampledf.cluster.iloc[i]) + '_' + str(i) + '_i',
+                obj_idx = sampleindex,
+                st_aligned = True
+            )
+
+            if tol_flag == 1 and found_feature.apex_scan == -99:
+                mz_min = sampledf.mz_min_allowed.iloc[i] 
+                mz_max = sampledf.mz_max_allowed.iloc[i]
+                st_min = sampledf.sta_min_allowed.iloc[i] 
+                st_max = sampledf.sta_max_allowed.iloc[i] 
+
+                found_feature = self[sampleindex].search_for_targeted_mass_feature(            
+                    ms1df, 
+                    mz_min, 
+                    mz_max, 
+                    st_min, 
+                    st_max,
+                    set_id = 'c' + str(sampledf.cluster.iloc[i]) + '_' + str(i) + '_i',
+                    obj_idx = sampleindex,
+                    st_aligned = True
+                )
+        
+            self[sampleindex].induced_mass_features[found_feature.id] = found_feature
+
+        self[sampleindex].add_associated_ms1(induced_features = True)
+        # need to set drop_if_fail to false for induced features as they will fail
+        self[sampleindex].integrate_mass_features(drop_if_fail = False, induced_features = True)
+        self[sampleindex].add_peak_metrics(induced_features = True)

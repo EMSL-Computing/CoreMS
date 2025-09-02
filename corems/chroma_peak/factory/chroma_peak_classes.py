@@ -122,7 +122,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         The scan number of the apex of the feature.
     persistence : float, optional
         The persistence of the feature. Default is None.
-
+        
     Attributes
     --------
     _mz_exp : float
@@ -183,7 +183,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         intensity: float,
         apex_scan: int,
         persistence: float = None,
-        id: int = None,
+        id: int = None
     ):
         super().__init__(
             chromatogram_parent=lcms_parent,
