@@ -54,7 +54,7 @@ if __name__ == "__main__":
     print("Time to roll up consensus mass features: ", time.time() - start_time, "seconds -", len(lcms_collection.mass_features_dataframe), " total mass features", ncores, " cores")   
 
     lcms_collection.plot_mz_features_across_samples()
-    lcms_collection.plot_mz_features_per_cluster() #TODO: Fix this function, - errroring out with 'DataFrame' object has no attribute 'sample_id_count'
+    lcms_collection.plot_mz_features_per_cluster()
     lcms_collection.plot_consensus_mz_features() ## zoomed out
     lcms_collection.plot_consensus_mz_features(xb = 10, xt = 15, yb = 500, yt = 600) ## zoomed in 
     lcms_collection.cluster_inspection_plot(11391)
@@ -69,5 +69,13 @@ if __name__ == "__main__":
     ]
     lcms_collection.plot_cluster_outlier_frequency(dim_list, clu_size_thresh = 0.25)
 
+    ## WORK IN PROGRESS: temporary code for testing
+    ## want to adjust function to iterate throught samples by index, not name
+    ## want to be able to do that in parallel/multiprocess
+    samplename = 'Blanch_Nat_Lip_H_11_AB_M_13_POS_23Jan18_Brandi-WCSH5801'    
+    lcms_collection.search_for_missing_mass_features_in_one_sample(samplename)
+    print(lcms_collection._lcms[samplename].mass_features_to_df(induced_features = True))
+
+    #TODO: Add code to load and save information about chromatographic settings
     #TODO: Add code to save and load collection to HDF5 file
     #TODO: Add code to plot a consensus mass feature
