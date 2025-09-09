@@ -1521,22 +1521,22 @@ class PHCalculations:
         
         # Work with reference instead of copy
         data = self._ms_unprocessed[ms_level]
-        
+        print('here1')
         # Calculate threshold first to avoid multiple operations
         max_intensity = data['intensity'].max()
         threshold = self.parameters.lc_ms.ph_inten_min_rel * max_intensity
-        
+        print('here2')
         # Create single filter condition and apply to required columns only
         valid_mask = data['intensity'].notna() & (data['intensity'] > threshold)
         required_cols = ['mz', 'intensity', 'scan']
         data_thres = data.loc[valid_mask, required_cols].copy()
         data_thres['persistence'] = data_thres['intensity']
-
+        print('here3')  
         # Merge efficiently with only required scan data
         scan_subset = self.scan_df[["scan", "scan_time"]]
         mf_df = data_thres.merge(scan_subset, on="scan", how='inner')
         del data_thres, scan_subset  # Free memory immediately
-
+        print('here4')  
         # Define tolerances and dimensions for rolling up
         tol = [
             self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
@@ -1544,23 +1544,57 @@ class PHCalculations:
         ]
         relative = [True, False]    
         dims = ["mz", "scan_time"]
-        
-        mf_df = self.roll_up_dataframe(
-            df=mf_df,
+        print('here5')  
+
+        # Order by mz, then scan_time, and partition into chunks of 10K rows
+        mf_df = mf_df.sort_values(by=dims, ascending=[True, True]).reset_index(drop=True)
+        partition_size = 10000
+        partitions = [
+            mf_df.iloc[i:i + partition_size].reset_index(drop=True)
+            for i in range(0, len(mf_df), partition_size)
+        ]
+        del mf_df  # Free memory
+
+        print('here6')
+        # Run roll_up_dataframe on each partition
+        rolled_partitions = []
+        for part in partitions:
+            rolled = self.roll_up_dataframe(
+                df=part,
+                sort_by="persistence",
+                dims=["mz", "scan_time"],
+                tol=[
+                    self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
+                    self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
+                ],
+                relative=[True, False]
+            )
+            rolled_partitions.append(rolled)
+        del partitions  # Free memory
+
+        # Run roll_up_dataframe on the rolled_up partitions to merge features near partition boundaries
+        print('here7')
+
+        # Combine results and run a final roll-up to merge features near partition boundaries
+        mf_df_combined = pd.concat(rolled_partitions, ignore_index=True)
+        mf_df_final = self.roll_up_dataframe(
+            df=mf_df_combined,
             sort_by="persistence",
-            dims=dims,
-            tol=tol,
-            relative=relative
+            dims=["mz", "scan_time"],
+            tol=[
+                self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
+                self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
+            ],
+            relative=[True, False]
         )
 
         # Combine rename and sort operations
-        mass_features = (mf_df
+        mass_features = (mf_df_final
                         .rename(columns={"scan": "apex_scan", "scan_time": "retention_time"})
                         .sort_values(by="persistence", ascending=False)
                         .reset_index(drop=True))
-        del mf_df  # Free memory
+        del mf_df_final  # Free memory
 
-        # Populate mass_features attribute more efficiently
         self.mass_features = {}
         for idx, row in mass_features.iterrows():
             row_dict = row.to_dict()
