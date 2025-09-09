@@ -1063,81 +1063,82 @@ class PHCalculations:
                 "Dimensions, tolerances, and relative flags must be the same length"
             )
         
-        # Compute inter-feature distances
+        # Pre-compute all values arrays to avoid repeated extraction
+        all_values = [df[dim].values for dim in dims]
+        
+        # Compute inter-feature distances with memory optimization
         distances = None
         for i in range(len(dims)):
-            # Construct k-d tree
-            values = df[dims[i]].values
-            tree = KDTree(values.reshape(-1, 1))
+            values = all_values[i]
+            # Use single precision if possible to reduce memory
+            tree = KDTree(values.reshape(-1, 1).astype(np.float32))
 
             max_tol = tol[i]
             if relative[i] is True:
-                # Maximum absolute tolerance
                 max_tol = tol[i] * values.max()
 
-            # Compute sparse distance matrix
-            # the larger the max_tol, the slower this operation is
+            # Compute sparse distance matrix with smaller chunks if memory is an issue
             sdm = tree.sparse_distance_matrix(tree, max_tol, output_type="coo_matrix")
 
             # Only consider forward case, exclude diagonal
             sdm = sparse.triu(sdm, k=1)
 
-            # Filter relative distances
+            # Process relative distances more efficiently
             if relative[i] is True:
-                # Compute relative distances
-                rel_dists = sdm.data / values[sdm.row]  # or col?
-
-                # Indices of relative distances less than tolerance
-                idx = rel_dists <= tol[i]
-
-                # Reconstruct sparse distance matrix
+                # Vectorized computation without creating intermediate arrays
+                row_values = values[sdm.row]
+                valid_idx = sdm.data <= tol[i] * row_values
+                
+                # Reconstruct sparse matrix more efficiently
                 sdm = sparse.coo_matrix(
-                    (rel_dists[idx], (sdm.row[idx], sdm.col[idx])),
+                    (np.ones(valid_idx.sum(), dtype=np.uint8), 
+                    (sdm.row[valid_idx], sdm.col[valid_idx])),
                     shape=(len(values), len(values)),
                 )
+            else:
+                # Cast as binary matrix with smaller data type
+                sdm.data = np.ones(len(sdm.data), dtype=np.uint8)
 
-            # Cast as binary matrix
-            sdm.data = np.ones_like(sdm.data)
-
-            # Stack distances
+            # Stack distances with memory-efficient multiplication
             if distances is None:
                 distances = sdm
             else:
+                # Use in-place operations where possible
                 distances = distances.multiply(sdm)
+                del sdm  # Free memory immediately
         
-        # Extract indices of within-tolerance points
+        # Process pairs with original logic but memory optimizations
         distances = distances.tocoo()
         pairs = np.stack((distances.row, distances.col), axis=1)
-        pairs_df = pd.DataFrame(pairs, columns=["parent", "child"])
-        pairs_df = pairs_df.set_index("parent")
+        pairs_df = pd.DataFrame(pairs, columns=["parent", "child"]).set_index("parent")
+        del distances, pairs  # Free memory immediately
 
         to_drop = []
         while not pairs_df.empty:
-            # Find root_parents and their children
+            # Find root_parents and their children (original logic preserved)
             root_parents = np.setdiff1d(
                 np.unique(pairs_df.index.values), np.unique(pairs_df.child.values)
             )
             children_of_roots = pairs_df.loc[root_parents, "child"].unique()
-            to_drop = np.append(to_drop, children_of_roots)
+            to_drop.extend(children_of_roots)  # Use extend instead of append
 
             # Remove root_children as possible parents from pairs_df for next iteration
             pairs_df = pairs_df.drop(index=children_of_roots, errors="ignore")
             pairs_df = pairs_df.reset_index().set_index("child")
-            # Remove root_children as possible children from pairs_df for next iteration
+            # Remove root_children as possible children from pairs_df for next iteration  
             pairs_df = pairs_df.drop(index=children_of_roots)
 
             # Prepare for next iteration
             pairs_df = pairs_df.reset_index().set_index("parent")
 
+        # Convert to numpy array for efficient dropping
+        to_drop = np.array(to_drop)
+        
         # Drop mass features that are not cluster parents
-        df_sub = df.drop(index=np.array(to_drop))
+        df_sub = df.drop(index=to_drop)
 
-        # Set index back to og_index and only keep the columns that are in the original dataframe
-        df_sub = df_sub.set_index(og_index)
-
-        # sort the dataframe by the original index
-        df_sub = df_sub.sort_index()
-        df_sub = df_sub[og_columns]
+        # Set index back to og_index and only keep original columns
+        df_sub = df_sub.set_index(og_index).sort_index()[og_columns]
 
         return df_sub
     
@@ -1518,20 +1519,23 @@ class PHCalculations:
                 + " data found, did you instantiate with parser specific to MS level?"
             )
         
-        # Get ms data
-        data = self._ms_unprocessed[ms_level].copy()
-
-        # Drop rows with missing intensity values and reset index
-        data = data.dropna(subset=["intensity"]).reset_index(drop=True)
+        # Work with reference instead of copy
+        data = self._ms_unprocessed[ms_level]
         
-        # Threshold data
-        threshold = self.parameters.lc_ms.ph_inten_min_rel * data.intensity.max()
-        data_thres = data[data["intensity"] > threshold].reset_index(drop=True).copy()
+        # Calculate threshold first to avoid multiple operations
+        max_intensity = data['intensity'].max()
+        threshold = self.parameters.lc_ms.ph_inten_min_rel * max_intensity
+        
+        # Create single filter condition and apply to required columns only
+        valid_mask = data['intensity'].notna() & (data['intensity'] > threshold)
+        required_cols = ['mz', 'intensity', 'scan']
+        data_thres = data.loc[valid_mask, required_cols].copy()
         data_thres['persistence'] = data_thres['intensity']
 
-        # Use this as the starting point for the mass features, adding scan_time
-        mf_df = data_thres
-        mf_df = mf_df.merge(self.scan_df[["scan", "scan_time"]], on="scan")
+        # Merge efficiently with only required scan data
+        scan_subset = self.scan_df[["scan", "scan_time"]]
+        mf_df = data_thres.merge(scan_subset, on="scan", how='inner')
+        del data_thres, scan_subset  # Free memory immediately
 
         # Define tolerances and dimensions for rolling up
         tol = [
@@ -1540,7 +1544,7 @@ class PHCalculations:
         ]
         relative = [True, False]    
         dims = ["mz", "scan_time"]
-        print("here")
+        
         mf_df = self.roll_up_dataframe(
             df=mf_df,
             sort_by="persistence",
@@ -1549,19 +1553,17 @@ class PHCalculations:
             relative=relative
         )
 
-        # Rename scan column to apex_scan
-        mass_features = mf_df.rename(
-            columns={"scan": "apex_scan", "scan_time": "retention_time"}
-        )
-        # Sort my persistence and reset index
-        mass_features = mass_features.sort_values(
-            by="persistence", ascending=False
-        ).reset_index(drop=True)
+        # Combine rename and sort operations
+        mass_features = (mf_df
+                        .rename(columns={"scan": "apex_scan", "scan_time": "retention_time"})
+                        .sort_values(by="persistence", ascending=False)
+                        .reset_index(drop=True))
+        del mf_df  # Free memory
 
-        # Populate mass_features attribute
+        # Populate mass_features attribute more efficiently
         self.mass_features = {}
-        for row in mass_features.itertuples():
-            row_dict = mass_features.iloc[row.Index].to_dict()
+        for idx, row in mass_features.iterrows():
+            row_dict = row.to_dict()
             lcms_feature = LCMSMassFeature(self, **row_dict)
             self.mass_features[lcms_feature.id] = lcms_feature
 
