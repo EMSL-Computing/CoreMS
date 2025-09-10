@@ -1009,7 +1009,8 @@ class PHCalculations:
         sort_by : str,
         tol : list,
         relative : list,
-        dims : list
+        dims : list,
+        memory_opt_threshold : int = 10000
     ):
         """Subset data by rolling up into apex in appropriate dimensions.
         
@@ -1029,6 +1030,8 @@ class PHCalculations:
             If relative is False, the tolerance will be used as is.
         relative : list
             A list of booleans indicating whether the tolerance for each dimension is relative (True) or absolute (False).
+        memory_opt_threshold : int, optional
+            Minimum number of rows to trigger memory-optimized processing. Default is 10000.
 
         Returns
         -------
@@ -1069,9 +1072,55 @@ class PHCalculations:
         # Pre-compute all values arrays to avoid repeated extraction
         all_values = [df[dim].values for dim in dims]
         
+        # Choose processing method based on dataframe size
+        if len(df) >= memory_opt_threshold:
+            # Memory-optimized approach for large dataframes
+            distances = PHCalculations._compute_distances_memory_optimized(all_values, tol, relative)
+        else:
+            # Original approach for smaller dataframes
+            distances = PHCalculations._compute_distances_original(all_values, tol, relative)
+
+        # Process pairs with original logic but memory optimizations
+        distances = distances.tocoo()
+        pairs = np.stack((distances.row, distances.col), axis=1)
+        pairs_df = pd.DataFrame(pairs, columns=["parent", "child"]).set_index("parent")
+        del distances, pairs  # Free memory immediately
+
+        to_drop = []
+        while not pairs_df.empty:
+            # Find root_parents and their children (original logic preserved)
+            root_parents = np.setdiff1d(
+                np.unique(pairs_df.index.values), np.unique(pairs_df.child.values)
+            )
+            children_of_roots = pairs_df.loc[root_parents, "child"].unique()
+            to_drop.extend(children_of_roots)  # Use extend instead of append
+
+            # Remove root_children as possible parents from pairs_df for next iteration
+            pairs_df = pairs_df.drop(index=children_of_roots, errors="ignore")
+            pairs_df = pairs_df.reset_index().set_index("child")
+            # Remove root_children as possible children from pairs_df for next iteration  
+            pairs_df = pairs_df.drop(index=children_of_roots)
+
+            # Prepare for next iteration
+            pairs_df = pairs_df.reset_index().set_index("parent")
+
+        # Convert to numpy array for efficient dropping
+        to_drop = np.array(to_drop)
+        
+        # Drop mass features that are not cluster parents
+        df_sub = df.drop(index=to_drop)
+
+        # Set index back to og_index and only keep original columns
+        df_sub = df_sub.set_index(og_index).sort_index()[og_columns]
+
+        return df_sub
+
+    @staticmethod
+    def _compute_distances_original(all_values, tol, relative):
+        """Original distance computation method for smaller datasets."""
         # Compute inter-feature distances with memory optimization
         distances = None
-        for i in range(len(dims)):
+        for i in range(len(all_values)):
             values = all_values[i]
             # Use single precision if possible to reduce memory
             tree = KDTree(values.reshape(-1, 1).astype(np.float32))
@@ -1110,40 +1159,82 @@ class PHCalculations:
                 distances = distances.multiply(sdm)
                 del sdm  # Free memory immediately
         
-        # Process pairs with original logic but memory optimizations
-        distances = distances.tocoo()
-        pairs = np.stack((distances.row, distances.col), axis=1)
-        pairs_df = pd.DataFrame(pairs, columns=["parent", "child"]).set_index("parent")
-        del distances, pairs  # Free memory immediately
+        return distances
 
-        to_drop = []
-        while not pairs_df.empty:
-            # Find root_parents and their children (original logic preserved)
-            root_parents = np.setdiff1d(
-                np.unique(pairs_df.index.values), np.unique(pairs_df.child.values)
-            )
-            children_of_roots = pairs_df.loc[root_parents, "child"].unique()
-            to_drop.extend(children_of_roots)  # Use extend instead of append
-
-            # Remove root_children as possible parents from pairs_df for next iteration
-            pairs_df = pairs_df.drop(index=children_of_roots, errors="ignore")
-            pairs_df = pairs_df.reset_index().set_index("child")
-            # Remove root_children as possible children from pairs_df for next iteration  
-            pairs_df = pairs_df.drop(index=children_of_roots)
-
-            # Prepare for next iteration
-            pairs_df = pairs_df.reset_index().set_index("parent")
-
-        # Convert to numpy array for efficient dropping
-        to_drop = np.array(to_drop)
+    @staticmethod 
+    def _compute_distances_memory_optimized(all_values, tol, relative):
+        """Memory-optimized distance computation for large datasets."""
+        # Compute distance matrix for first dimension (full matrix as before)
+        values_0 = all_values[0].astype(np.float32)
+        tree_0 = KDTree(values_0.reshape(-1, 1))
         
-        # Drop mass features that are not cluster parents
-        df_sub = df.drop(index=to_drop)
-
-        # Set index back to og_index and only keep original columns
-        df_sub = df_sub.set_index(og_index).sort_index()[og_columns]
-
-        return df_sub
+        max_tol_0 = tol[0]
+        if relative[0] is True:
+            max_tol_0 = tol[0] * values_0.max()
+        
+        # Compute sparse distance matrix for first dimension
+        distances = tree_0.sparse_distance_matrix(tree_0, max_tol_0, output_type="coo_matrix")
+        distances = sparse.triu(distances, k=1)
+        
+        # Process relative distances for first dimension
+        if relative[0] is True:
+            row_values = values_0[distances.row]
+            valid_idx = distances.data <= tol[0] * row_values
+            distances = sparse.coo_matrix(
+                (np.ones(valid_idx.sum(), dtype=np.uint8), 
+                (distances.row[valid_idx], distances.col[valid_idx])),
+                shape=(len(values_0), len(values_0)),
+            )
+        else:
+            distances.data = np.ones(len(distances.data), dtype=np.uint8)
+        
+        # For remaining dimensions, work only on chunks defined by first dimension pairs
+        if len(all_values) > 1:
+            distances_coo = distances.tocoo()
+            valid_pairs = []
+            
+            # Process each pair from first dimension
+            for idx in range(len(distances_coo.data)):
+                i, j = distances_coo.row[idx], distances_coo.col[idx]
+                is_valid_pair = True
+                
+                # Check remaining dimensions for this specific pair
+                for dim_idx in range(1, len(all_values)):
+                    values = all_values[dim_idx]
+                    val_i, val_j = values[i], values[j]
+                    
+                    max_tol = tol[dim_idx]
+                    if relative[dim_idx] is True:
+                        max_tol = tol[dim_idx] * values.max()
+                    
+                    distance_ij = abs(val_i - val_j)
+                    
+                    # Check if this pair satisfies the tolerance for this dimension
+                    if relative[dim_idx] is True:
+                        if distance_ij > tol[dim_idx] * val_i:
+                            is_valid_pair = False
+                            break
+                    else:
+                        if distance_ij > max_tol:
+                            is_valid_pair = False
+                            break
+                
+                if is_valid_pair:
+                    valid_pairs.append((i, j))
+            
+            # Rebuild distances matrix with only valid pairs
+            if valid_pairs:
+                valid_pairs = np.array(valid_pairs)
+                distances = sparse.coo_matrix(
+                    (np.ones(len(valid_pairs), dtype=np.uint8), 
+                    (valid_pairs[:, 0], valid_pairs[:, 1])),
+                    shape=(len(values_0), len(values_0)),
+                )
+            else:
+                # No valid pairs found
+                distances = sparse.coo_matrix((len(values_0), len(values_0)), dtype=np.uint8)
+        
+        return distances
     
     def sparse_upper_star(self, idx, V):
         """Sparse implementation of an upper star filtration.
@@ -1674,22 +1765,22 @@ class PHCalculations:
         
         # Work with reference instead of copy
         data = self._ms_unprocessed[ms_level]
-        print('here1')
+        
         # Calculate threshold first to avoid multiple operations
         max_intensity = data['intensity'].max()
         threshold = self.parameters.lc_ms.ph_inten_min_rel * max_intensity
-        print('here2')
+        
         # Create single filter condition and apply to required columns only
         valid_mask = data['intensity'].notna() & (data['intensity'] > threshold)
         required_cols = ['mz', 'intensity', 'scan']
         data_thres = data.loc[valid_mask, required_cols].copy()
         data_thres['persistence'] = data_thres['intensity']
-        print('here3')  
+        
         # Merge efficiently with only required scan data
         scan_subset = self.scan_df[["scan", "scan_time"]]
         mf_df = data_thres.merge(scan_subset, on="scan", how='inner')
         del data_thres, scan_subset  # Free memory immediately
-        print('here4')  
+         
         # Define tolerances and dimensions for rolling up
         tol = [
             self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
@@ -1697,10 +1788,11 @@ class PHCalculations:
         ]
         relative = [True, False]    
         dims = ["mz", "scan_time"]
-        print('here5')  
+         
 
-        # Order by mz, then scan_time, and partition into chunks of 10K rows
-        mf_df = mf_df.sort_values(by=dims, ascending=[True, True]).reset_index(drop=True)
+        #TODO KRH: partition by scans like in _find_mass_features_ph_partition to reduce memory usage
+        # Order by scan_time and then mz to ensure features near in rt are processed together
+        mf_df = mf_df.sort_values(by=["scan_time", "mz"], ascending=[True, True]).reset_index(drop=True)
         partition_size = 10000
         partitions = [
             mf_df.iloc[i:i + partition_size].reset_index(drop=True)
@@ -1708,7 +1800,6 @@ class PHCalculations:
         ]
         del mf_df  # Free memory
 
-        print('here6')
         # Run roll_up_dataframe on each partition
         rolled_partitions = []
         for part in partitions:
@@ -1723,15 +1814,20 @@ class PHCalculations:
                 relative=[True, False]
             )
             rolled_partitions.append(rolled)
-        del partitions  # Free memory
+        del partitions
 
         # Run roll_up_dataframe on the rolled_up partitions to merge features near partition boundaries
-        print('here7')
+
 
         # Combine results and run a final roll-up to merge features near partition boundaries
-        mf_df_combined = pd.concat(rolled_partitions, ignore_index=True)
+        mf_df_final = pd.concat(rolled_partitions, ignore_index=True)
+        del rolled_partitions
+
+        # Reorder by persistence before final roll-up
+        mf_df_final = mf_df_final.sort_values(by="persistence", ascending=False).reset_index(drop=True)
+
         mf_df_final = self.roll_up_dataframe(
-            df=mf_df_combined,
+            df=mf_df_final,
             sort_by="persistence",
             dims=["mz", "scan_time"],
             tol=[
@@ -1740,6 +1836,8 @@ class PHCalculations:
             ],
             relative=[True, False]
         )
+        #reset index
+        mf_df_final = mf_df_final.reset_index(drop=True)
 
         # Combine rename and sort operations
         mass_features = (mf_df_final
@@ -1779,13 +1877,11 @@ class PHCalculations:
         -------
         None if drop_children is True, otherwise returns a list of mass feature ids that are not cluster parents.
         """
-        verbose = self.parameters.lc_ms.verbose_processing
-
         if self.mass_features is None:
             raise ValueError("No mass features found, run find_mass_features() first")
         if len(self.mass_features) > 400000:
             raise ValueError(
-                "Too many mass featuers of interest found, run find_mass_features() with a higher intensity threshold"
+                "Too many mass features of interest found, run find_mass_features() with a higher intensity threshold"
             )
         dims = ["mz", "scan_time"]
         mf_df_og = self.mass_features_to_df()
