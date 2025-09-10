@@ -438,14 +438,21 @@ class LCCalculations:
         mzs_to_extract.sort()
 
         print("here1")
-        #TODO KRH: work to make this step faster
+        
+        # Pre-sort raw_data by mz for faster filtering
+        raw_data_sorted = raw_data.sort_values(['mz', 'scan']).reset_index(drop=True)
+        raw_data_mz = raw_data_sorted['mz'].values
+        
         # Get EICs for each unique mz in mass features list
         for mz in mzs_to_extract:
             mz_max = mz + self.parameters.lc_ms.eic_tolerance_ppm * mz / 1e6
             mz_min = mz - self.parameters.lc_ms.eic_tolerance_ppm * mz / 1e6
-            raw_data_sub = raw_data[
-                (raw_data["mz"] >= mz_min) & (raw_data["mz"] <= mz_max)
-            ].reset_index(drop=True)
+            
+            # Use binary search for faster mz range filtering
+            left_idx = np.searchsorted(raw_data_mz, mz_min, side='left')
+            right_idx = np.searchsorted(raw_data_mz, mz_max, side='right')
+            raw_data_sub = raw_data_sorted.iloc[left_idx:right_idx].copy()
+            
             raw_data_sub = (
                 raw_data_sub.groupby(["scan"])["intensity"].sum().reset_index()
             )
@@ -524,7 +531,7 @@ class LCCalculations:
 
         if drop_duplicates:
             # Prepare mass feature dataframe
-            mf_df = self.mass_features_to_df().copy()
+            mf_df = self.mass_features_to_df()
 
             # For each mass feature, find all mass features within the clustering tolerance ppm and drop if their start and end times are within another mass feature
             # Keep the first mass feature (highest persistence)
