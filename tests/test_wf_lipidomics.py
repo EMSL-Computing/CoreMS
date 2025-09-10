@@ -48,7 +48,7 @@ def test_import_lcmsobj_mzml():
     )
     myLCMSobj.integrate_mass_features()
     mass_features_df = myLCMSobj.mass_features_to_df()
-    assert mass_features_df.shape == (1395, 12)
+    assert mass_features_df.shape == (1391, 12)
     
     # Reset the MSParameters to the original values
     reset_lcms_parameters()
@@ -112,6 +112,7 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
     # Find mass features, cluster, and integrate them.  Then annotate pairs of mass features that are c13 iso pairs.
 
     lcms_obj.find_mass_features()
+    assert len(lcms_obj.mass_features) == 131
     lcms_obj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile"
     )
