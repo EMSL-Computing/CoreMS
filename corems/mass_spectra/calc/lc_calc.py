@@ -437,8 +437,6 @@ class LCCalculations:
         mzs_to_extract = np.unique(mf_df["mz"].values)
         mzs_to_extract.sort()
 
-        print("here1")
-        
         # Pre-sort raw_data by mz for faster filtering
         raw_data_sorted = raw_data.sort_values(['mz', 'scan']).reset_index(drop=True)
         raw_data_mz = raw_data_sorted['mz'].values
@@ -469,7 +467,6 @@ class LCCalculations:
             myEIC.eic_smoothed = smoothed_eic
             self.eics[mz] = myEIC
 
-        print("here2")
         # Get limits of mass features using EIC centroid detector and integrate
         mf_df["area"] = np.nan
         for idx, mass_feature in mf_df.iterrows():
@@ -527,7 +524,6 @@ class LCCalculations:
             else:
                 if drop_if_fail is True:
                     self.mass_features.pop(idx)
-        print("here3")
 
         if drop_duplicates:
             # Prepare mass feature dataframe
@@ -1076,7 +1072,7 @@ class PHCalculations:
                 "Dimensions, tolerances, and relative flags must be the same length"
             )
         
-        # Pre-compute all values arrays to avoid repeated extraction
+        # Pre-compute all values arrays
         all_values = [df[dim].values for dim in dims]
         
         # Choose processing method based on dataframe size
@@ -1084,7 +1080,7 @@ class PHCalculations:
             # Memory-optimized approach for large dataframes
             distances = PHCalculations._compute_distances_memory_optimized(all_values, tol, relative)
         else:
-            # Original approach for smaller dataframes
+            # Faster approach for smaller dataframes
             distances = PHCalculations._compute_distances_original(all_values, tol, relative)
 
         # Process pairs with original logic but memory optimizations
@@ -1124,7 +1120,26 @@ class PHCalculations:
 
     @staticmethod
     def _compute_distances_original(all_values, tol, relative):
-        """Original distance computation method for smaller datasets."""
+        """Original distance computation method for smaller datasets.
+
+        This method computes the pairwise distances between features in the dataset
+        using a straightforward approach. It is suitable for smaller datasets where
+        memory usage is not a primary concern.
+
+        Parameters
+        ----------
+        all_values : list of :obj:`~numpy.array`
+            List of arrays containing the values for each dimension.
+        tol : list of float
+            List of tolerances for each dimension.
+        relative : list of bool
+            List of booleans indicating whether the tolerance for each dimension is relative (True) or absolute (False).
+        
+        Returns
+        -------
+        :obj:`~scipy.sparse.coo_matrix`
+            Sparse matrix indicating pairwise distances within tolerances.
+        """
         # Compute inter-feature distances with memory optimization
         distances = None
         for i in range(len(all_values)):
@@ -1170,7 +1185,26 @@ class PHCalculations:
 
     @staticmethod 
     def _compute_distances_memory_optimized(all_values, tol, relative):
-        """Memory-optimized distance computation for large datasets."""
+        """Memory-optimized distance computation for large datasets.
+
+        This method computes the pairwise distances between features in the dataset
+        using a more memory-efficient approach. It is suitable for larger datasets
+        where memory usage is a primary concern.
+
+        Parameters
+        ----------
+        all_values : list of :obj:`~numpy.array`
+            List of arrays containing the values for each dimension.
+        tol : list of float
+            List of tolerances for each dimension.
+        relative : list of bool
+            List of booleans indicating whether the tolerance for each dimension is relative (True) or absolute (False).
+
+        Returns
+        -------
+        :obj:`~scipy.sparse.coo_matrix`
+            Sparse matrix indicating pairwise distances within tolerances.
+        """
         # Compute distance matrix for first dimension (full matrix as before)
         values_0 = all_values[0].astype(np.float32)
         tree_0 = KDTree(values_0.reshape(-1, 1))
@@ -1522,7 +1556,6 @@ class PHCalculations:
             return self._find_mass_features_ph_partition(data_thres, dims, persistence_threshold)
         else:
             # Process all at once
-            #TODO KRH: change data_orig to persistence_threshold used in _find_mass_features_ph_single
             return self._find_mass_features_ph_single(data_thres, dims, persistence_threshold)
 
     def _find_mass_features_ph_single(self, data_thres, dims, persistence_threshold):
@@ -1729,7 +1762,18 @@ class PHCalculations:
         return mass_features
 
     def _populate_mass_features(self, mass_features_df):
-        """Populate the mass_features attribute from a DataFrame."""
+        """Populate the mass_features attribute from a DataFrame.
+        
+        Parameters
+        ----------
+        mass_features_df : pd.DataFrame
+            DataFrame containing mass feature information. 
+            Note that the order of this DataFrame will determine the order of mass features in the mass_features attribute.
+            
+        Returns
+        -------
+        None, but assigns the mass_features attribute to the object.
+        """
         # Rename scan column to apex_scan
         mass_features_df = mass_features_df.rename(
             columns={"scan": "apex_scan", "scan_time": "retention_time"}
@@ -1782,30 +1826,21 @@ class PHCalculations:
         required_cols = ['mz', 'intensity', 'scan']
         data_thres = data.loc[valid_mask, required_cols].copy()
         data_thres['persistence'] = data_thres['intensity']
-        
-        # Merge efficiently with only required scan data
+
+        # Merge with required scan data
         scan_subset = self.scan_df[["scan", "scan_time"]]
         mf_df = data_thres.merge(scan_subset, on="scan", how='inner')
-        del data_thres, scan_subset  # Free memory immediately
-         
-        # Define tolerances and dimensions for rolling up
-        tol = [
-            self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
-            self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
-        ]
-        relative = [True, False]    
-        dims = ["mz", "scan_time"]
-         
+        del data_thres, scan_subset       
 
-        #TODO KRH: partition by scans like in _find_mass_features_ph_partition to reduce memory usage
         # Order by scan_time and then mz to ensure features near in rt are processed together
+        # It's ok that different scans are in different partitions; we will roll up later
         mf_df = mf_df.sort_values(by=["scan_time", "mz"], ascending=[True, True]).reset_index(drop=True)
         partition_size = 10000
         partitions = [
             mf_df.iloc[i:i + partition_size].reset_index(drop=True)
             for i in range(0, len(mf_df), partition_size)
         ]
-        del mf_df  # Free memory
+        del mf_df
 
         # Run roll_up_dataframe on each partition
         rolled_partitions = []
