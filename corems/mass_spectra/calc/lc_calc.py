@@ -333,7 +333,7 @@ class LCCalculations:
         ms_level : int, optional
             The MS level to use for peak picking Default is 1.
         grid : bool, optional
-            If True, will regrid the data before running the persistent homology calculations (after checking if the data is gridded), 
+            If True, will regrid the data before running the persistent homology calculations (after checking if the data is gridded),
             used for persistent homology peak picking for profile data only. Default is True.
 
         Raises
@@ -438,19 +438,19 @@ class LCCalculations:
         mzs_to_extract.sort()
 
         # Pre-sort raw_data by mz for faster filtering
-        raw_data_sorted = raw_data.sort_values(['mz', 'scan']).reset_index(drop=True)
-        raw_data_mz = raw_data_sorted['mz'].values
-        
+        raw_data_sorted = raw_data.sort_values(["mz", "scan"]).reset_index(drop=True)
+        raw_data_mz = raw_data_sorted["mz"].values
+
         # Get EICs for each unique mz in mass features list
         for mz in mzs_to_extract:
             mz_max = mz + self.parameters.lc_ms.eic_tolerance_ppm * mz / 1e6
             mz_min = mz - self.parameters.lc_ms.eic_tolerance_ppm * mz / 1e6
-            
+
             # Use binary search for faster mz range filtering
-            left_idx = np.searchsorted(raw_data_mz, mz_min, side='left')
-            right_idx = np.searchsorted(raw_data_mz, mz_max, side='right')
+            left_idx = np.searchsorted(raw_data_mz, mz_min, side="left")
+            right_idx = np.searchsorted(raw_data_mz, mz_max, side="right")
             raw_data_sub = raw_data_sorted.iloc[left_idx:right_idx].copy()
-            
+
             raw_data_sub = (
                 raw_data_sub.groupby(["scan"])["intensity"].sum().reset_index()
             )
@@ -489,7 +489,7 @@ class LCCalculations:
             if len(l_a_r_scan_idx) > 0:
                 # Calculate number of consecutive scans with intensity > 0 and check if it is above the minimum consecutive scans
                 # Find the number of consecutive non-zero values in the EIC segment
-                mask = myEIC.eic[l_a_r_scan_idx[0][0]:l_a_r_scan_idx[0][2] + 1] > 0
+                mask = myEIC.eic[l_a_r_scan_idx[0][0] : l_a_r_scan_idx[0][2] + 1] > 0
                 # Find the longest run of consecutive True values
                 if np.any(mask):
                     # Find indices where mask changes value
@@ -795,7 +795,7 @@ class LCCalculations:
             try:
                 corr_subset = corr.loc[mass_feature.mz,]
             except KeyError:
-            # If the mass feature mz is not in the correlation matrix, skip to the next mass feature
+                # If the mass feature mz is not in the correlation matrix, skip to the next mass feature
                 continue
 
             corr_subset = corr_subset[corr_subset > decon_corr_min]
@@ -1005,24 +1005,24 @@ class PHCalculations:
 
         # Result
         return a + idx_unq / idx_unq_mag
-    
+
     @staticmethod
     def roll_up_dataframe(
-        df : pd.DataFrame,
-        sort_by : str,
-        tol : list,
-        relative : list,
-        dims : list,
-        memory_opt_threshold : int = 10000
+        df: pd.DataFrame,
+        sort_by: str,
+        tol: list,
+        relative: list,
+        dims: list,
+        memory_opt_threshold: int = 10000,
     ):
         """Subset data by rolling up into apex in appropriate dimensions.
-        
+
         Parameters
         ----------
         data : pd.DataFrame
             The input data containing "dims" columns and the "sort_by" column.
         sort_by : str
-            The column to sort the data by, this will determine which mass features get rolled up into a parent mass feature 
+            The column to sort the data by, this will determine which mass features get rolled up into a parent mass feature
             (i.e., the mass feature with the highest value in the sort_by column).
         dims : list
             A list of dimension names (column names in the data DataFrame) to roll up the mass features by.
@@ -1041,7 +1041,7 @@ class PHCalculations:
         pd.DataFrame
             A DataFrame with only the rolled up mass features, with the original index and columns.
 
-            
+
         Raises
         ------
         ValueError
@@ -1071,17 +1071,21 @@ class PHCalculations:
             raise ValueError(
                 "Dimensions, tolerances, and relative flags must be the same length"
             )
-        
+
         # Pre-compute all values arrays
         all_values = [df[dim].values for dim in dims]
-        
+
         # Choose processing method based on dataframe size
         if len(df) >= memory_opt_threshold:
             # Memory-optimized approach for large dataframes
-            distances = PHCalculations._compute_distances_memory_optimized(all_values, tol, relative)
+            distances = PHCalculations._compute_distances_memory_optimized(
+                all_values, tol, relative
+            )
         else:
             # Faster approach for smaller dataframes
-            distances = PHCalculations._compute_distances_original(all_values, tol, relative)
+            distances = PHCalculations._compute_distances_original(
+                all_values, tol, relative
+            )
 
         # Process pairs with original logic but memory optimizations
         distances = distances.tocoo()
@@ -1101,7 +1105,7 @@ class PHCalculations:
             # Remove root_children as possible parents from pairs_df for next iteration
             pairs_df = pairs_df.drop(index=children_of_roots, errors="ignore")
             pairs_df = pairs_df.reset_index().set_index("child")
-            # Remove root_children as possible children from pairs_df for next iteration  
+            # Remove root_children as possible children from pairs_df for next iteration
             pairs_df = pairs_df.drop(index=children_of_roots)
 
             # Prepare for next iteration
@@ -1109,7 +1113,7 @@ class PHCalculations:
 
         # Convert to numpy array for efficient dropping
         to_drop = np.array(to_drop)
-        
+
         # Drop mass features that are not cluster parents
         df_sub = df.drop(index=to_drop)
 
@@ -1134,7 +1138,7 @@ class PHCalculations:
             List of tolerances for each dimension.
         relative : list of bool
             List of booleans indicating whether the tolerance for each dimension is relative (True) or absolute (False).
-        
+
         Returns
         -------
         :obj:`~scipy.sparse.coo_matrix`
@@ -1162,11 +1166,13 @@ class PHCalculations:
                 # Vectorized computation without creating intermediate arrays
                 row_values = values[sdm.row]
                 valid_idx = sdm.data <= tol[i] * row_values
-                
+
                 # Reconstruct sparse matrix more efficiently
                 sdm = sparse.coo_matrix(
-                    (np.ones(valid_idx.sum(), dtype=np.uint8), 
-                    (sdm.row[valid_idx], sdm.col[valid_idx])),
+                    (
+                        np.ones(valid_idx.sum(), dtype=np.uint8),
+                        (sdm.row[valid_idx], sdm.col[valid_idx]),
+                    ),
                     shape=(len(values), len(values)),
                 )
             else:
@@ -1180,10 +1186,10 @@ class PHCalculations:
                 # Use in-place operations where possible
                 distances = distances.multiply(sdm)
                 del sdm  # Free memory immediately
-        
+
         return distances
 
-    @staticmethod 
+    @staticmethod
     def _compute_distances_memory_optimized(all_values, tol, relative):
         """Memory-optimized distance computation for large datasets.
 
@@ -1208,48 +1214,52 @@ class PHCalculations:
         # Compute distance matrix for first dimension (full matrix as before)
         values_0 = all_values[0].astype(np.float32)
         tree_0 = KDTree(values_0.reshape(-1, 1))
-        
+
         max_tol_0 = tol[0]
         if relative[0] is True:
             max_tol_0 = tol[0] * values_0.max()
-        
+
         # Compute sparse distance matrix for first dimension
-        distances = tree_0.sparse_distance_matrix(tree_0, max_tol_0, output_type="coo_matrix")
+        distances = tree_0.sparse_distance_matrix(
+            tree_0, max_tol_0, output_type="coo_matrix"
+        )
         distances = sparse.triu(distances, k=1)
-        
+
         # Process relative distances for first dimension
         if relative[0] is True:
             row_values = values_0[distances.row]
             valid_idx = distances.data <= tol[0] * row_values
             distances = sparse.coo_matrix(
-                (np.ones(valid_idx.sum(), dtype=np.uint8), 
-                (distances.row[valid_idx], distances.col[valid_idx])),
+                (
+                    np.ones(valid_idx.sum(), dtype=np.uint8),
+                    (distances.row[valid_idx], distances.col[valid_idx]),
+                ),
                 shape=(len(values_0), len(values_0)),
             )
         else:
             distances.data = np.ones(len(distances.data), dtype=np.uint8)
-        
+
         # For remaining dimensions, work only on chunks defined by first dimension pairs
         if len(all_values) > 1:
             distances_coo = distances.tocoo()
             valid_pairs = []
-            
+
             # Process each pair from first dimension
             for idx in range(len(distances_coo.data)):
                 i, j = distances_coo.row[idx], distances_coo.col[idx]
                 is_valid_pair = True
-                
+
                 # Check remaining dimensions for this specific pair
                 for dim_idx in range(1, len(all_values)):
                     values = all_values[dim_idx]
                     val_i, val_j = values[i], values[j]
-                    
+
                     max_tol = tol[dim_idx]
                     if relative[dim_idx] is True:
                         max_tol = tol[dim_idx] * values.max()
-                    
+
                     distance_ij = abs(val_i - val_j)
-                    
+
                     # Check if this pair satisfies the tolerance for this dimension
                     if relative[dim_idx] is True:
                         if distance_ij > tol[dim_idx] * val_i:
@@ -1259,24 +1269,28 @@ class PHCalculations:
                         if distance_ij > max_tol:
                             is_valid_pair = False
                             break
-                
+
                 if is_valid_pair:
                     valid_pairs.append((i, j))
-            
+
             # Rebuild distances matrix with only valid pairs
             if valid_pairs:
                 valid_pairs = np.array(valid_pairs)
                 distances = sparse.coo_matrix(
-                    (np.ones(len(valid_pairs), dtype=np.uint8), 
-                    (valid_pairs[:, 0], valid_pairs[:, 1])),
+                    (
+                        np.ones(len(valid_pairs), dtype=np.uint8),
+                        (valid_pairs[:, 0], valid_pairs[:, 1]),
+                    ),
                     shape=(len(values_0), len(values_0)),
                 )
             else:
                 # No valid pairs found
-                distances = sparse.coo_matrix((len(values_0), len(values_0)), dtype=np.uint8)
-        
+                distances = sparse.coo_matrix(
+                    (len(values_0), len(values_0)), dtype=np.uint8
+                )
+
         return distances
-    
+
     def sparse_upper_star(self, idx, V):
         """Sparse implementation of an upper star filtration.
 
@@ -1405,7 +1419,7 @@ class PHCalculations:
 
             if self.check_if_grid(data):
                 return data
-        
+
         if not self.check_if_grid(data):
             raise ValueError(
                 "Gridding failed after "
@@ -1414,10 +1428,10 @@ class PHCalculations:
             )
         else:
             return data
-    
+
     def _grid_data(self, data):
         """Internal method to grid the data in the mz dimension.
-        
+
         Notes
         -----
         This method is called by the grid_data method and should not be called directly.
@@ -1492,7 +1506,7 @@ class PHCalculations:
         )
 
         return new_data_w
-    
+
     def find_mass_features_ph(self, ms_level=1, grid=True):
         """Find mass features within an LCMSBase object using persistent homology.
 
@@ -1536,7 +1550,9 @@ class PHCalculations:
         # Threshold data
         dims = ["mz", "scan_time"]
         threshold = self.parameters.lc_ms.ph_inten_min_rel * data.intensity.max()
-        persistence_threshold = self.parameters.lc_ms.ph_persis_min_rel * data.intensity.max()
+        persistence_threshold = (
+            self.parameters.lc_ms.ph_persis_min_rel * data.intensity.max()
+        )
         data_thres = data[data["intensity"] > threshold].reset_index(drop=True).copy()
 
         # Check if gridded, if not, grid
@@ -1553,10 +1569,14 @@ class PHCalculations:
         data_thres = data_thres.merge(self.scan_df[["scan", "scan_time"]], on="scan")
         # Process in chunks if required
         if len(data_thres) > 10000:
-            return self._find_mass_features_ph_partition(data_thres, dims, persistence_threshold)
+            return self._find_mass_features_ph_partition(
+                data_thres, dims, persistence_threshold
+            )
         else:
             # Process all at once
-            return self._find_mass_features_ph_single(data_thres, dims, persistence_threshold)
+            return self._find_mass_features_ph_single(
+                data_thres, dims, persistence_threshold
+            )
 
     def _find_mass_features_ph_single(self, data_thres, dims, persistence_threshold):
         """Process all data at once (original logic)."""
@@ -1573,7 +1593,9 @@ class PHCalculations:
         }
 
         # Smooth and process
-        mass_features_df = self._process_partition_ph(data_thres, index, dims, persistence_threshold)
+        mass_features_df = self._process_partition_ph(
+            data_thres, index, dims, persistence_threshold
+        )
 
         # Roll up within chunk to remove duplicates
         mass_features_df = self.roll_up_dataframe(
@@ -1584,7 +1606,7 @@ class PHCalculations:
                 self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
                 self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
             ],
-            relative=[True, False]
+            relative=[True, False],
         )
         mass_features_df = mass_features_df.reset_index(drop=True)
 
@@ -1594,7 +1616,7 @@ class PHCalculations:
     def _find_mass_features_ph_partition(self, data_thres, dims, persistence_threshold):
         """Partition the persistent homology mass feature detection for large datasets.
 
-        This method splits the input data into overlapping scan partitions, processes each partition to detect mass features 
+        This method splits the input data into overlapping scan partitions, processes each partition to detect mass features
         using persistent homology, rolls up duplicates within and across partitions, and populates the mass_features attribute.
 
         Parameters
@@ -1612,14 +1634,16 @@ class PHCalculations:
             Populates the mass_features attribute of the object with detected mass features.
         """
         all_mass_features = []
-        
+
         # Split scans into partitions
-        unique_scans = sorted(data_thres['scan'].unique())
+        unique_scans = sorted(data_thres["scan"].unique())
         unique_scans_n = len(unique_scans)
 
         # Calculate partition size in scans based on goal
         partition_size_goal = 5000
-        scans_per_partition = max(1, partition_size_goal // (len(data_thres) // unique_scans_n))
+        scans_per_partition = max(
+            1, partition_size_goal // (len(data_thres) // unique_scans_n)
+        )
         if scans_per_partition == 0:
             scans_per_partition = 1
 
@@ -1628,12 +1652,14 @@ class PHCalculations:
         partition_scans = []
         for i in range(0, unique_scans_n, scans_per_partition):
             start_idx = max(0, i - scan_overlap)
-            end_idx = min(unique_scans_n - 1, i + scans_per_partition - 1 + scan_overlap)
-            scans_group = [int(s) for s in unique_scans[start_idx:end_idx + 1]]
+            end_idx = min(
+                unique_scans_n - 1, i + scans_per_partition - 1 + scan_overlap
+            )
+            scans_group = [int(s) for s in unique_scans[start_idx : end_idx + 1]]
             partition_scans.append(scans_group)
 
         # Set index to scan for faster filtering
-        data_thres = data_thres.set_index('scan')
+        data_thres = data_thres.set_index("scan")
         for scans in partition_scans:
             # Determine start and end scan for partition, with 5 scans overlap
             partition_data = data_thres.loc[scans].reset_index(drop=False).copy()
@@ -1649,27 +1675,31 @@ class PHCalculations:
 
             # Build indexes
             index = {
-                dim: np.searchsorted(factors[dim], partition_data[dim]).astype(np.float32)
+                dim: np.searchsorted(factors[dim], partition_data[dim]).astype(
+                    np.float32
+                )
                 for dim in factors
             }
 
-             # Process partition
-            partition_features = self._process_partition_ph(partition_data, index, dims, persistence_threshold)
+            # Process partition
+            partition_features = self._process_partition_ph(
+                partition_data, index, dims, persistence_threshold
+            )
 
             if len(partition_features) == 0:
                 continue
 
             # Roll up within partition
             partition_features = self.roll_up_dataframe(
-                            df=partition_features,
-                            sort_by="persistence",
-                            dims=["mz", "scan_time"],
-                            tol=[
-                                self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
-                                self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
-                            ],
-                            relative=[True, False]
-                        )
+                df=partition_features,
+                sort_by="persistence",
+                dims=["mz", "scan_time"],
+                tol=[
+                    self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
+                    self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
+                ],
+                relative=[True, False],
+            )
             partition_features = partition_features.reset_index(drop=True)
 
             if len(partition_features) > 0:
@@ -1678,9 +1708,11 @@ class PHCalculations:
         # Combine results from all partitions
         if all_mass_features:
             combined_features = pd.concat(all_mass_features, ignore_index=True)
-            
+
             # Sort by persistence
-            combined_features = combined_features.sort_values(by="persistence", ascending=False).reset_index(drop=True)
+            combined_features = combined_features.sort_values(
+                by="persistence", ascending=False
+            ).reset_index(drop=True)
 
             # Remove duplicates from overlapping regions
             combined_features = self.roll_up_dataframe(
@@ -1691,7 +1723,7 @@ class PHCalculations:
                     self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
                     self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
                 ],
-                relative=[True, False]
+                relative=[True, False],
             )
 
             # resort by persistence and reset index
@@ -1714,7 +1746,7 @@ class PHCalculations:
         index_array = np.vstack([index[dim] for dim in dims]).T
         V = partition_data["intensity"].values
         resid = np.inf
-        
+
         for i in range(iterations):
             # Previous iteration
             V_prev = V.copy()
@@ -1763,13 +1795,13 @@ class PHCalculations:
 
     def _populate_mass_features(self, mass_features_df):
         """Populate the mass_features attribute from a DataFrame.
-        
+
         Parameters
         ----------
         mass_features_df : pd.DataFrame
-            DataFrame containing mass feature information. 
+            DataFrame containing mass feature information.
             Note that the order of this DataFrame will determine the order of mass features in the mass_features attribute.
-            
+
         Returns
         -------
         None, but assigns the mass_features attribute to the object.
@@ -1791,12 +1823,12 @@ class PHCalculations:
 
     def find_mass_features_ph_centroid(self, ms_level=1):
         """Find mass features within an LCMSBase object using persistent homology-type approach but with centroided data.
-        
+
         Parameters
         ----------
         ms_level : int, optional
             The MS level to use. Default is 1.
-        
+
         Raises
         ------
         ValueError
@@ -1804,7 +1836,7 @@ class PHCalculations:
 
         Returns
         -------
-        None, but assigns the mass_features attribute to the object.        
+        None, but assigns the mass_features attribute to the object.
         """
         # Check that ms_level is a key in self._ms_uprocessed
         if ms_level not in self._ms_unprocessed.keys():
@@ -1813,31 +1845,33 @@ class PHCalculations:
                 + str(ms_level)
                 + " data found, did you instantiate with parser specific to MS level?"
             )
-        
+
         # Work with reference instead of copy
         data = self._ms_unprocessed[ms_level]
-        
+
         # Calculate threshold first to avoid multiple operations
-        max_intensity = data['intensity'].max()
+        max_intensity = data["intensity"].max()
         threshold = self.parameters.lc_ms.ph_inten_min_rel * max_intensity
-        
+
         # Create single filter condition and apply to required columns only
-        valid_mask = data['intensity'].notna() & (data['intensity'] > threshold)
-        required_cols = ['mz', 'intensity', 'scan']
+        valid_mask = data["intensity"].notna() & (data["intensity"] > threshold)
+        required_cols = ["mz", "intensity", "scan"]
         data_thres = data.loc[valid_mask, required_cols].copy()
-        data_thres['persistence'] = data_thres['intensity']
+        data_thres["persistence"] = data_thres["intensity"]
 
         # Merge with required scan data
         scan_subset = self.scan_df[["scan", "scan_time"]]
-        mf_df = data_thres.merge(scan_subset, on="scan", how='inner')
-        del data_thres, scan_subset       
+        mf_df = data_thres.merge(scan_subset, on="scan", how="inner")
+        del data_thres, scan_subset
 
         # Order by scan_time and then mz to ensure features near in rt are processed together
         # It's ok that different scans are in different partitions; we will roll up later
-        mf_df = mf_df.sort_values(by=["scan_time", "mz"], ascending=[True, True]).reset_index(drop=True)
+        mf_df = mf_df.sort_values(
+            by=["scan_time", "mz"], ascending=[True, True]
+        ).reset_index(drop=True)
         partition_size = 10000
         partitions = [
-            mf_df.iloc[i:i + partition_size].reset_index(drop=True)
+            mf_df.iloc[i : i + partition_size].reset_index(drop=True)
             for i in range(0, len(mf_df), partition_size)
         ]
         del mf_df
@@ -1853,20 +1887,21 @@ class PHCalculations:
                     self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
                     self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
                 ],
-                relative=[True, False]
+                relative=[True, False],
             )
             rolled_partitions.append(rolled)
         del partitions
 
         # Run roll_up_dataframe on the rolled_up partitions to merge features near partition boundaries
 
-
         # Combine results and run a final roll-up to merge features near partition boundaries
         mf_df_final = pd.concat(rolled_partitions, ignore_index=True)
         del rolled_partitions
 
         # Reorder by persistence before final roll-up
-        mf_df_final = mf_df_final.sort_values(by="persistence", ascending=False).reset_index(drop=True)
+        mf_df_final = mf_df_final.sort_values(
+            by="persistence", ascending=False
+        ).reset_index(drop=True)
 
         mf_df_final = self.roll_up_dataframe(
             df=mf_df_final,
@@ -1876,20 +1911,25 @@ class PHCalculations:
                 self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
                 self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
             ],
-            relative=[True, False]
+            relative=[True, False],
         )
-        #reset index
+        # reset index
         mf_df_final = mf_df_final.reset_index(drop=True)
 
         # Combine rename and sort operations
-        mass_features = (mf_df_final
-                        .rename(columns={"scan": "apex_scan", "scan_time": "retention_time"})
-                        .sort_values(by="persistence", ascending=False)
-                        .reset_index(drop=True))
+        mass_features = (
+            mf_df_final.rename(
+                columns={"scan": "apex_scan", "scan_time": "retention_time"}
+            )
+            .sort_values(by="persistence", ascending=False)
+            .reset_index(drop=True)
+        )
         del mf_df_final  # Free memory
 
         # Order by persistence and reset index
-        mass_features = mass_features.sort_values(by="persistence", ascending=False).reset_index(drop=True)
+        mass_features = mass_features.sort_values(
+            by="persistence", ascending=False
+        ).reset_index(drop=True)
 
         self.mass_features = {}
         for idx, row in mass_features.iterrows():
@@ -1899,7 +1939,7 @@ class PHCalculations:
 
         if self.parameters.lc_ms.verbose_processing:
             print("Found " + str(len(mass_features)) + " initial mass features")
-    
+
     def cluster_mass_features(self, drop_children=True, sort_by="persistence"):
         """Cluster mass features
 
@@ -1940,11 +1980,7 @@ class PHCalculations:
 
         # Roll up mass features based on their proximity in the declared dimensions
         mf_df_new = self.roll_up_dataframe(
-            df=mf_df,
-            sort_by=sort_by,
-            dims=dims,
-            tol=tol,
-            relative=relative
+            df=mf_df, sort_by=sort_by, dims=dims, tol=tol, relative=relative
         )
 
         mf_df["cluster_parent"] = np.where(
