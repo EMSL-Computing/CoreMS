@@ -669,10 +669,6 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             ]
             self.mass_features[mf_id].update_mz()
 
-        # Re-process clustering if persistent homology is selected to remove duplicate mass features after adding and processing MS1 spectra
-        if self.parameters.lc_ms.peak_picking_method == "persistent homology":
-            self.cluster_mass_features(drop_children=True, sort_by="persistence")
-
     def mass_features_to_df(self):
         """Returns a pandas dataframe summarizing the mass features.
 

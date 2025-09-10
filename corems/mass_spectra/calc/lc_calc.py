@@ -1387,9 +1387,6 @@ class PHCalculations:
         -----
         This function has been adapted from the original implementation in the Deimos package: https://github.com/pnnl/deimos
         """
-        # Source number of partitions from parameters
-        n_partitions = self.parameters.lc_ms.ph_partitions
-
         # Check that ms_level is a key in self._ms_uprocessed
         if ms_level not in self._ms_unprocessed.keys():
             raise ValueError(
@@ -1407,6 +1404,7 @@ class PHCalculations:
         # Threshold data
         dims = ["mz", "scan_time"]
         threshold = self.parameters.lc_ms.ph_inten_min_rel * data.intensity.max()
+        persistence_threshold = self.parameters.lc_ms.ph_persis_min_rel * data.intensity.max()
         data_thres = data[data["intensity"] > threshold].reset_index(drop=True).copy()
 
         # Check if gridded, if not, grid
@@ -1421,14 +1419,15 @@ class PHCalculations:
 
         # Add scan_time
         data_thres = data_thres.merge(self.scan_df[["scan", "scan_time"]], on="scan")
-        # Process in chunks if requested
-        if n_partitions is not None and n_partitions > 1:
-            return self._find_mass_features_ph_partition(data_thres, dims, n_partitions, data)
+        # Process in chunks if required
+        if len(data_thres) > 10000:
+            return self._find_mass_features_ph_partition(data_thres, dims, persistence_threshold)
         else:
             # Process all at once
-            return self._find_mass_features_ph_single(data_thres, dims, data)
+            #TODO KRH: change data_orig to persistence_threshold used in _find_mass_features_ph_single
+            return self._find_mass_features_ph_single(data_thres, dims, persistence_threshold)
 
-    def _find_mass_features_ph_single(self, data_thres, dims, data_orig):
+    def _find_mass_features_ph_single(self, data_thres, dims, persistence_threshold):
         """Process all data at once (original logic)."""
         # Build factors
         factors = {
@@ -1443,7 +1442,7 @@ class PHCalculations:
         }
 
         # Smooth and process
-        mass_features_df = self._process_chunk_ph(data_thres, index, dims, data_orig)
+        mass_features_df = self._process_partition_ph(data_thres, index, dims, persistence_threshold)
 
         # Roll up within chunk to remove duplicates
         mass_features_df = self.roll_up_dataframe(
@@ -1461,25 +1460,52 @@ class PHCalculations:
         # Populate mass_features attribute
         self._populate_mass_features(mass_features_df)
 
-    def _find_mass_features_ph_partition(self, data_thres, dims, n_partitions, data_orig):
-        """Process data in time-based partitions with overlap."""
+    def _find_mass_features_ph_partition(self, data_thres, dims, persistence_threshold):
+        """Partition the persistent homology mass feature detection for large datasets.
+
+        This method splits the input data into overlapping scan partitions, processes each partition to detect mass features 
+        using persistent homology, rolls up duplicates within and across partitions, and populates the mass_features attribute.
+
+        Parameters
+        ----------
+        data_thres : pd.DataFrame
+            The thresholded input data containing mass spectrometry information.
+        dims : list
+            List of dimension names (e.g., ["mz", "scan_time"]) used for feature detection.
+        persistence_threshold : float
+            Minimum persistence value required for a detected mass feature to be retained.
+
+        Returns
+        -------
+        None
+            Populates the mass_features attribute of the object with detected mass features.
+        """
         all_mass_features = []
         
         # Split scans into partitions
-        #TODO KRH: do not let a single scan go into separate partitions (also on ph_centroid)
         unique_scans = sorted(data_thres['scan'].unique())
+        unique_scans_n = len(unique_scans)
 
-        # Calculate partition size and overlap
-        partition_size = 10000
-        num_rows = len(data_thres)
-        num_partitions = (num_rows + partition_size - 1) // partition_size
-        overlap_size = 5  # Five scans overlap
+        # Calculate partition size in scans based on goal
+        partition_size_goal = 5000
+        scans_per_partition = max(1, partition_size_goal // (len(data_thres) // unique_scans_n))
+        if scans_per_partition == 0:
+            scans_per_partition = 1
 
-        for i in range(num_partitions):
-            start_row = max(0, i * partition_size - overlap_size) if i > 0 else 0
-            end_row = min(num_rows, (i + 1) * partition_size + overlap_size)
+        # Make partitions based on scans, with overlapping in partitioned scans
+        scan_overlap = 4
+        partition_scans = []
+        for i in range(0, unique_scans_n, scans_per_partition):
+            start_idx = max(0, i - scan_overlap)
+            end_idx = min(unique_scans_n - 1, i + scans_per_partition - 1 + scan_overlap)
+            scans_group = [int(s) for s in unique_scans[start_idx:end_idx + 1]]
+            partition_scans.append(scans_group)
 
-            partition_data = data_thres.iloc[start_row:end_row].copy()
+        # Set index to scan for faster filtering
+        data_thres = data_thres.set_index('scan')
+        for scans in partition_scans:
+            # Determine start and end scan for partition, with 5 scans overlap
+            partition_data = data_thres.loc[scans].reset_index(drop=False).copy()
 
             if len(partition_data) == 0:
                 continue
@@ -1496,10 +1522,13 @@ class PHCalculations:
                 for dim in factors
             }
 
-            # Process partition
-            partition_features = self._process_partition_ph(partition_data, index, dims, data_orig)
+             # Process partition
+            partition_features = self._process_partition_ph(partition_data, index, dims, persistence_threshold)
 
-            # Roll up within partition to remove duplicates from overlap
+            if len(partition_features) == 0:
+                continue
+
+            # Roll up within partition
             partition_features = self.roll_up_dataframe(
                             df=partition_features,
                             sort_by="persistence",
@@ -1514,11 +1543,15 @@ class PHCalculations:
 
             if len(partition_features) > 0:
                 all_mass_features.append(partition_features)
+
         # Combine results from all partitions
         if all_mass_features:
             combined_features = pd.concat(all_mass_features, ignore_index=True)
             
-            # Remove duplicates from overlapping regions (this also sorts by persistence)
+            # Sort by persistence
+            combined_features = combined_features.sort_values(by="persistence", ascending=False).reset_index(drop=True)
+
+            # Remove duplicates from overlapping regions
             combined_features = self.roll_up_dataframe(
                 df=combined_features,
                 sort_by="persistence",
@@ -1538,7 +1571,7 @@ class PHCalculations:
         else:
             self.mass_features = {}
 
-    def _process_partition_ph(self, partition_data, index, dims, data_orig):
+    def _process_partition_ph(self, partition_data, index, dims, persistence_threshold):
         """Process a single partition with persistent homology."""
         # Smooth data
         iterations = self.parameters.lc_ms.ph_smooth_it
@@ -1591,9 +1624,6 @@ class PHCalculations:
         ).reset_index(drop=True)
 
         # Filter by persistence threshold
-        persistence_threshold = (
-            self.parameters.lc_ms.ph_persis_min_rel * data_orig.intensity.max()
-        )
         mass_features = mass_features.loc[
             mass_features["persistence"] > persistence_threshold, :
         ].reset_index(drop=True)
