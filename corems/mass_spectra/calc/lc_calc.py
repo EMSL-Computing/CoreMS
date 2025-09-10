@@ -1846,6 +1846,9 @@ class PHCalculations:
                         .reset_index(drop=True))
         del mf_df_final  # Free memory
 
+        # Order by persistence and reset index
+        mass_features = mass_features.sort_values(by="persistence", ascending=False).reset_index(drop=True)
+
         self.mass_features = {}
         for idx, row in mass_features.iterrows():
             row_dict = row.to_dict()
