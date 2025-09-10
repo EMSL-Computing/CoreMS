@@ -1557,10 +1557,10 @@ class PHCalculations:
                 sort_by="persistence",
                 dims=["mz", "scan_time"],
                 tol=[
-                    0,
-                    0,
+                    self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
+                    self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
                 ],
-                relative=[False, False]
+                relative=[True, False]
             )
 
             # resort by persistence and reset index
