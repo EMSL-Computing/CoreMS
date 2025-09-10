@@ -355,7 +355,6 @@ class LCCalculations:
             msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
             if all(msx_scan_df["ms_format"] == "profile"):
                 self.find_mass_features_ph(ms_level=ms_level, grid=grid)
-                self.cluster_mass_features(drop_children=True, sort_by="persistence")
             else:
                 raise ValueError(
                     "MS{} scans are not profile mode, which is required for persistent homology peak picking.".format(
@@ -438,6 +437,8 @@ class LCCalculations:
         mzs_to_extract = np.unique(mf_df["mz"].values)
         mzs_to_extract.sort()
 
+        print("here1")
+        #TODO KRH: work to make this step faster
         # Get EICs for each unique mz in mass features list
         for mz in mzs_to_extract:
             mz_max = mz + self.parameters.lc_ms.eic_tolerance_ppm * mz / 1e6
@@ -461,6 +462,7 @@ class LCCalculations:
             myEIC.eic_smoothed = smoothed_eic
             self.eics[mz] = myEIC
 
+        print("here2")
         # Get limits of mass features using EIC centroid detector and integrate
         mf_df["area"] = np.nan
         for idx, mass_feature in mf_df.iterrows():
@@ -518,13 +520,14 @@ class LCCalculations:
             else:
                 if drop_if_fail is True:
                     self.mass_features.pop(idx)
+        print("here3")
 
         if drop_duplicates:
             # Prepare mass feature dataframe
             mf_df = self.mass_features_to_df().copy()
 
             # For each mass feature, find all mass features within the clustering tolerance ppm and drop if their start and end times are within another mass feature
-            # Kepp the first mass fea
+            # Keep the first mass feature (highest persistence)
             for idx, mass_feature in mf_df.iterrows():
                 mz = mass_feature.mz
                 apex_scan = mass_feature.apex_scan
@@ -1418,7 +1421,6 @@ class PHCalculations:
 
         # Add scan_time
         data_thres = data_thres.merge(self.scan_df[["scan", "scan_time"]], on="scan")
-        
         # Process in chunks if requested
         if n_partitions is not None and n_partitions > 1:
             return self._find_mass_features_ph_partition(data_thres, dims, n_partitions, data)
@@ -1442,7 +1444,20 @@ class PHCalculations:
 
         # Smooth and process
         mass_features_df = self._process_chunk_ph(data_thres, index, dims, data_orig)
-        
+
+        # Roll up within chunk to remove duplicates
+        mass_features_df = self.roll_up_dataframe(
+            df=mass_features_df,
+            sort_by="persistence",
+            dims=["mz", "scan_time"],
+            tol=[
+                self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
+                self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
+            ],
+            relative=[True, False]
+        )
+        mass_features_df = mass_features_df.reset_index(drop=True)
+
         # Populate mass_features attribute
         self._populate_mass_features(mass_features_df)
 
@@ -1451,19 +1466,20 @@ class PHCalculations:
         all_mass_features = []
         
         # Split scans into partitions
+        #TODO KRH: do not let a single scan go into separate partitions (also on ph_centroid)
         unique_scans = sorted(data_thres['scan'].unique())
 
         # Calculate partition size and overlap
-        partition_size = len(unique_scans) // n_partitions
-        # Five scans overlap
-        overlap_size = 5
-        # Create partitions with overlap
-        for i in range(n_partitions):
-            start_idx = max(0, i * partition_size - overlap_size) if i > 0 else 0
-            end_idx = min(len(unique_scans), (i + 1) * partition_size + overlap_size)
+        partition_size = 10000
+        num_rows = len(data_thres)
+        num_partitions = (num_rows + partition_size - 1) // partition_size
+        overlap_size = 5  # Five scans overlap
 
-            partition_scans = unique_scans[start_idx:end_idx]
-            partition_data = data_thres[data_thres['scan'].isin(partition_scans)].copy()
+        for i in range(num_partitions):
+            start_row = max(0, i * partition_size - overlap_size) if i > 0 else 0
+            end_row = min(num_rows, (i + 1) * partition_size + overlap_size)
+
+            partition_data = data_thres.iloc[start_row:end_row].copy()
 
             if len(partition_data) == 0:
                 continue
@@ -1483,16 +1499,40 @@ class PHCalculations:
             # Process partition
             partition_features = self._process_partition_ph(partition_data, index, dims, data_orig)
 
+            # Roll up within partition to remove duplicates from overlap
+            partition_features = self.roll_up_dataframe(
+                            df=partition_features,
+                            sort_by="persistence",
+                            dims=["mz", "scan_time"],
+                            tol=[
+                                self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
+                                self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
+                            ],
+                            relative=[True, False]
+                        )
+            partition_features = partition_features.reset_index(drop=True)
+
             if len(partition_features) > 0:
                 all_mass_features.append(partition_features)
-
         # Combine results from all partitions
         if all_mass_features:
             combined_features = pd.concat(all_mass_features, ignore_index=True)
             
-            # Remove duplicates from overlapping regions
-            combined_features = self._deduplicate_overlapping_features(combined_features)
-            
+            # Remove duplicates from overlapping regions (this also sorts by persistence)
+            combined_features = self.roll_up_dataframe(
+                df=combined_features,
+                sort_by="persistence",
+                dims=["mz", "scan_time"],
+                tol=[
+                    0,
+                    0,
+                ],
+                relative=[False, False]
+            )
+
+            # resort by persistence and reset index
+            combined_features = combined_features.reset_index(drop=True)
+
             # Populate mass_features attribute
             self._populate_mass_features(combined_features)
         else:
@@ -1560,44 +1600,6 @@ class PHCalculations:
 
         return mass_features
 
-    def _deduplicate_overlapping_features(self, combined_features):
-        """Remove duplicate mass features from overlapping chunk regions."""
-        if len(combined_features) == 0:
-            return combined_features
-        
-        # Use clustering tolerance parameters for deduplication
-        mz_tol_rel = self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel
-        rt_tol = self.parameters.lc_ms.mass_feature_cluster_rt_tolerance
-        
-        # Sort by persistence (highest first) to keep best features
-        combined_features = combined_features.sort_values('persistence', ascending=False).reset_index(drop=True)
-        
-        # Simple deduplication: mark features as duplicates if they're too close
-        to_drop = []
-        for i in range(len(combined_features)):
-            if i in to_drop:
-                continue
-            
-            mz_i = combined_features.iloc[i]['mz']
-            rt_i = combined_features.iloc[i]['scan_time']
-            
-            for j in range(i + 1, len(combined_features)):
-                if j in to_drop:
-                    continue
-                    
-                mz_j = combined_features.iloc[j]['mz']
-                rt_j = combined_features.iloc[j]['scan_time']
-                
-                # Check if features are within tolerance
-                mz_diff_rel = abs(mz_i - mz_j) / mz_i
-                rt_diff = abs(rt_i - rt_j)
-                
-                if mz_diff_rel < mz_tol_rel and rt_diff < rt_tol:
-                    to_drop.append(j)
-        
-        # Remove duplicates
-        return combined_features.drop(index=to_drop).reset_index(drop=True)
-
     def _populate_mass_features(self, mass_features_df):
         """Populate the mass_features attribute from a DataFrame."""
         # Rename scan column to apex_scan
@@ -1615,7 +1617,6 @@ class PHCalculations:
         if self.parameters.lc_ms.verbose_processing:
             print("Found " + str(len(mass_features_df)) + " initial mass features")
 
-    
     def find_mass_features_ph_centroid(self, ms_level=1):
         """Find mass features within an LCMSBase object using persistent homology-type approach but with centroided data.
         
