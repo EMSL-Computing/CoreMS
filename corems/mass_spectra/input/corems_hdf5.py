@@ -867,7 +867,52 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
         """Load metadata and manifest from the saved collection HDF5 file."""
         with h5py.File(self.collection_hdf5_path, 'r') as f:
             self.folder_location = Path(f.attrs.get('lcms_objects_folder', ''))
-            manifest_json = f.attrs.get('manifest', '{}')
-            if isinstance(manifest_json, bytes):
-                manifest_json = manifest_json.decode('utf-8')
-            self._manifest_dict = json.loads(manifest_json)
+
+            # Call the _load_manifest function to process the manifest
+            self._manifest_dict = self._load_manifest(f)
+
+    def _load_manifest(self, hdf_handle):
+        """Load and clean the manifest from the HDF5 file."""
+        manifest_json = hdf_handle.attrs.get('manifest', '{}')
+        if isinstance(manifest_json, bytes):
+            manifest_json = manifest_json.decode('utf-8')
+        loaded_manifest = json.loads(manifest_json)
+
+        # Convert integer values for 'use_rt_alignment' back to booleans
+        def convert_back_to_bool(data):
+            if isinstance(data, dict):
+                # Process each key-value pair recursively
+                return {k: (bool(v) if k == 'use_rt_alignment' and isinstance(v, int) else convert_back_to_bool(v)) for k, v in data.items()}
+            elif isinstance(data, list):
+                # Recursively process lists
+                return [convert_back_to_bool(item) for item in data]
+            else:
+                # Return non-dict/list types unchanged
+                return data
+
+        # Clean the loaded manifest
+        return convert_back_to_bool(loaded_manifest)
+    
+    def _load_rt_alignments(self, lcms_collection):
+        """Load retention time alignments from the saved collection HDF5 file."""
+        with h5py.File(self.collection_hdf5_path, 'r') as f:
+            if "rt_alignments" in f:
+                # Set the lcms_collection 
+                lcms_collection.rt_aligned = True
+                # Iterate over the group `rt_alignments` containing datasets and add to the corresponding lcms object
+                rt_alignments_group = f["rt_alignments"]
+                for sample_idx, lcms_obj in zip(rt_alignments_group.keys(), lcms_collection):
+                    alignment_data = rt_alignments_group[sample_idx][:]
+                    scan_df = lcms_obj.scan_df
+                    scan_df["scan_time_aligned"] = alignment_data
+                    lcms_obj.scan_df = scan_df
+
+    def get_lcms_collection(self, load_raw=False, load_light=False):
+        """Get the LCMS collection from the saved HDF5 file."""
+        # First load the LCMSCollection object exactly as in the parent class
+        lcms_collection = super().get_lcms_collection(load_raw=load_raw, load_light=load_light)
+
+        # Add retention time alignments if they exist
+        self._load_rt_alignments(lcms_collection)
+
+        return lcms_collection

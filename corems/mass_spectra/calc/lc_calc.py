@@ -2566,9 +2566,7 @@ class LCMSCollectionCalculations:
         except:
             mfs_with_clusters.set_index('coll_mf_id', inplace = True)
             self.mass_features_dataframe = mfs_with_clusters
-            
-        # TODO KRH: Deal with isomers better? Pool them together and then split them out using samples with 2 as the template?
-        
+                    
     def summarize_clusters(self):
         """
         Summarize the clusters of mass features by median attributes

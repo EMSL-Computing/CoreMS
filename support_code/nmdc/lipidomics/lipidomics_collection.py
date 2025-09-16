@@ -36,7 +36,7 @@ if __name__ == "__main__":
     print("Number of total mass features: ", len(lcms_collection.mass_features_dataframe))
 
     # Align the LCMS runs between each other
-    # For now, adjusting this parameter to force alignment to run quickly for testing
+    # For now, adjusting this parameter to force alignment for testing
     lcms_collection.parameters.lcms_collection.alignment_acceptance_fraction_improved_threshold = -1
     lcms_collection.parameters.lcms_collection.alignment_acceptance_technique = ['fraction_improved']
     print("Aligning LCMS collection")
@@ -45,6 +45,7 @@ if __name__ == "__main__":
     assert lcms_collection.rt_alignments is None, "LCMS collection should not have rt_alignments yet."
     lcms_collection.align_lcms_objects()
     assert lcms_collection.rt_aligned, "LCMS collection should be marked as retention time aligned."
+    assert lcms_collection.rt_alignments is not None, "LCMS collection should have rt_alignments now."
     print("Time to align LCMS collection: ", time.time() - start_time, "seconds") 
 
     # Make some plots 
@@ -53,6 +54,7 @@ if __name__ == "__main__":
     #1.5s for 7 samples; 15s for 70 samples
 
     # Save the LCMS collection to a new location
+    print("Saving LCMS collection to test_lcms_collection_out.hdf5")
     exporter = LCMSCollectionExporter(
         out_file_path="test_lcms_collection_out",
         mass_spectra_collection=lcms_collection
@@ -60,11 +62,14 @@ if __name__ == "__main__":
     exporter.export_to_hdf5(overwrite=True)
 
     # Reload the LCMS collection from the saved location and check that we can load raw data
+    print("Reloading LCMS collection from test_lcms_collection_out.hdf5 and checking functionality")
     parser2 = ReadSavedLCMSCollection(
         collection_hdf5_path=Path("test_lcms_collection_out.hdf5"),
         cores=ncores
     )
     lcms_collection2 = parser2.get_lcms_collection(load_raw=False, load_light=True)
+    lcms_collection2.plot_alignments() 
+    assert lcms_collection2.rt_aligned, "Reloaded LCMS collection should be marked as retention time aligned." 
     lcms_collection2.load_raw_data(sample_idx=0, ms_level=1)
     assert lcms_collection2[0]._ms_unprocessed[1] is not None, "Raw data for MS1 should be loaded successfully."
     lcms_collection2.drop_raw_data(sample_idx=0, ms_level=1)
