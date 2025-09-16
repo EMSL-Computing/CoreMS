@@ -1,7 +1,7 @@
 from pathlib import Path
 import time
-from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollection
-
+from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollection, ReadSavedLCMSCollection
+from corems.mass_spectra.output.export import LCMSCollectionExporter
 
 if __name__ == "__main__":
     # Set the path to the collection of LCMS runs (previously processed)
@@ -24,12 +24,29 @@ if __name__ == "__main__":
     start_time = time.time()
     lcms_collection = parser.get_lcms_collection(load_raw=False, load_light=True)
     print("Time to load LCMS collection ", time.time() - start_time, "seconds -", len(lcms_collection), " LCMS runs and ", ncores, " cores")
-    #10s for 7 samples, 10 cores; 162s for 70 samples, 10 cores
-
     # Check and demonstrate the parsers' ability to load raw data
     lcms_collection.load_raw_data(sample_idx=0, ms_level=1)
     assert lcms_collection[0]._ms_unprocessed[1] is not None, "Raw data for MS1 should be loaded successfully."
     lcms_collection.drop_raw_data(sample_idx=0, ms_level=1)
+    #10s for 7 samples, 10 cores; 162s for 70 samples, 10 cores
+
+    # Save the LCMS collection to a new location
+    exporter = LCMSCollectionExporter(
+        out_file_path="test_lcms_collection_out",
+        mass_spectra_collection=lcms_collection
+    )
+    exporter.export_to_hdf5(overwrite=True)
+
+    # Reload the LCMS collection from the saved location and check that we can load raw data
+    parser2 = ReadSavedLCMSCollection(
+        collection_hdf5_path=Path("test_lcms_collection_out.hdf5"),
+        cores=ncores
+    )
+    lcms_collection2 = parser2.get_lcms_collection(load_raw=False, load_light=True)
+    lcms_collection2.load_raw_data(sample_idx=0, ms_level=1)
+    assert lcms_collection2[0]._ms_unprocessed[1] is not None, "Raw data for MS1 should be loaded successfully."
+    lcms_collection2.drop_raw_data(sample_idx=0, ms_level=1)
+    del parser2, lcms_collection2
 
     # Set flag to call _drop_isotopologue() when running _check_mass_features_df()
     lcms_collection.parameters.lcms_collection.drop_isotopologues = True

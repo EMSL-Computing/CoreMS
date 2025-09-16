@@ -2345,6 +2345,10 @@ class LCMSCollectionCalculations:
         This function has been adapted from the original implementation in the Deimos package:
         https://github.com/pnnl/deimos
         """
+        # Initialize rt_alignments dictionary if it doesn't exist
+        if not hasattr(self, 'rt_alignments'):
+            self.rt_alignments = {}
+        
         # Prepare the center LCMS object
         center_obj_ids = self.manifest_dataframe[
             self.manifest_dataframe["center"]
@@ -2368,6 +2372,13 @@ class LCMSCollectionCalculations:
             center_scan_df = self[center_obj_id].scan_df.copy()
             center_scan_df["scan_time_aligned"] = center_scan_df["scan_time"]
             self[center_obj_id].scan_df = center_scan_df
+            
+            # Store alignment data for center object (identity mapping)
+            center_sample_name = self.samples[center_obj_id]
+            self.rt_alignments[center_sample_name] = {
+                'adjusted_times': center_scan_df["scan_time"].values,
+                'alignment_function': None
+            }
 
             index_steps = (1, -1)
             # Run this twice, once going forward (+1 indexing) and once going backward (-1 indexing)
@@ -2403,6 +2414,11 @@ class LCMSCollectionCalculations:
                                 new_scan_info = self[i].scan_df.copy()
                                 new_scan_info["scan_time_aligned"] = new_times
                                 self[i].scan_df = new_scan_info
+                                
+                                # Store alignment data
+                                self.rt_alignments[sample_name] = {
+                                    'adjusted_times': new_times.values,
+                                }
                             else:
                                 # Set aligned retention times on scan_df for lc_obj using the original retention times
                                 new_scan_info = self[i].scan_df.copy()
@@ -2410,6 +2426,11 @@ class LCMSCollectionCalculations:
                                     "scan_time"
                                 ]
                                 self[i].scan_df = new_scan_info
+                                
+                                # Store alignment data (identity mapping)
+                                self.rt_alignments[sample_name] = {
+                                    'adjusted_times': new_scan_info["scan_time"].values,
+                                }
 
                             i += index_step
                             if i >= len(self) or i < 0:
@@ -2450,6 +2471,12 @@ class LCMSCollectionCalculations:
                     new_scan_info = self[i].scan_df.copy()
                     new_scan_info["scan_time_aligned"] = new_times
                     self[i].scan_df = new_scan_info
+                    
+                    # Store alignment data
+                    self.rt_alignments[sample_name] = {
+                        'adjusted_times': new_times.values,
+                        'alignment_function': spl
+                    }
 
                     # Get the batch that this object belongs to
                     batch = self.manifest[self.samples[i]]["batch"]
@@ -2457,15 +2484,20 @@ class LCMSCollectionCalculations:
                     for j in range(len(self)):
                         if self.manifest[self.samples[j]]["batch"] == batch:
                             if j != i:
-                                sample_name = self.samples[j]
-                                self._manifest_dict[sample_name]["use_rt_alignment"] = (
+                                sample_name_j = self.samples[j]
+                                self._manifest_dict[sample_name_j]["use_rt_alignment"] = (
                                     use_spline_alignment
                                 )
                                 new_scan_info = self[j].scan_df.copy()
-                                new_scan_info["scan_time_aligned"] = spl(
-                                    self[j].scan_df["scan_time_aligned"]
-                                )
+                                aligned_times = spl(self[j].scan_df["scan_time_aligned"])
+                                new_scan_info["scan_time_aligned"] = aligned_times
                                 self[j].scan_df = new_scan_info
+                                
+                                # Store alignment data
+                                self.rt_alignments[sample_name_j] = {
+                                    'adjusted_times': aligned_times.values,
+                                    'alignment_function': spl
+                                }
 
         # Set final mass_features_dataframe with the aligned scan_time
         center_sample_name = self.samples[center_obj_ids[0]]

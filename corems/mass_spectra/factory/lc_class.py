@@ -1455,6 +1455,9 @@ class LCMSCollection(LCMSCollectionCalculations):
         self._parameters = LCMSCollectionParameters()
         self.isotopes_dropped = False
 
+        # These attributes are set during processing
+        self.rt_alignments = {}
+
     def _reorder_lcms_objects(self):
         """
         Reorders the LCMS objects in the collection based on the order in the manifest.
