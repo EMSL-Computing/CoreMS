@@ -1002,10 +1002,10 @@ class LCMSCollectionSettings:
     alignment_hold_out_fraction: float, optional
         Hold out fraction for testing retention time alignment.
         Default is 0.3.
-    alignment_acceptance_techinque: list, optional
+    alignment_acceptance_technique: list, optional
         List of alignment acceptance techniques for retention time alignment.
         Default is ['fraction_improved', 'mean_squared_error_improved'].
-    alignment_acceptance_techinques_available: tuple, optional
+    alignment_acceptance_techniques_available: tuple, optional
         Tuple of available alignment acceptance techniques for retention time alignment.
         Default is ('fraction_improved', 'mean_squared_error_improved').
     alignment_acceptance_fraction_improved_threshold: float, optional
@@ -1032,8 +1032,8 @@ class LCMSCollectionSettings:
     mass_feature_anchor_techniques_available: tuple = ("deconvoluted_mass_spectra", "absolute_intensity")
     mass_feature_anchor_aboslute_intensity_threshold: int = 10000
     alignment_hold_out_fraction: float = 0.3
-    _alignment_acceptance_techinque: list = dataclasses.field(default_factory=lambda: ["fraction_improved", "mean_squared_error_improved"])
-    alignment_acceptance_techinques_available: tuple = ("fraction_improved", "mean_squared_error_improved")
+    _alignment_acceptance_technique: list = dataclasses.field(default_factory=lambda: ["fraction_improved", "mean_squared_error_improved"])
+    alignment_acceptance_techniques_available: tuple = ("fraction_improved", "mean_squared_error_improved")
     alignment_acceptance_fraction_improved_threshold: float = 0.5
     alignment_mz_tol_ppm: int = 5
     alignment_rt_tol: float = 0.4      
@@ -1047,13 +1047,13 @@ class LCMSCollectionSettings:
 
     def __post_init__(self):
         self.consensus_mz_tol_ppm = self.alignment_mz_tol_ppm
-        self._validate_alignment_acceptance_techinque(self.alignment_acceptance_techinque)
+        self._validate_alignment_acceptance_technique(self.alignment_acceptance_technique)
         self._validate_mass_feature_anchor_technique(self.mass_feature_anchor_technique)
 
-    def _validate_alignment_acceptance_techinque(self, techniques):
+    def _validate_alignment_acceptance_technique(self, techniques):
         for technique in techniques:
-            if technique not in self.alignment_acceptance_techinques_available:
-                raise ValueError(f"Alignment acceptance technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.alignment_acceptance_techinques_available}")
+            if technique not in self.alignment_acceptance_techniques_available:
+                raise ValueError(f"Alignment acceptance technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.alignment_acceptance_techniques_available}")
 
     def _validate_mass_feature_anchor_technique(self, techniques):
         for technique in techniques:
@@ -1061,13 +1061,13 @@ class LCMSCollectionSettings:
                 raise ValueError(f"Mass feature anchor technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.mass_feature_anchor_techniques_available}")
 
     @property
-    def alignment_acceptance_techinque(self):
-        return self._alignment_acceptance_techinque
+    def alignment_acceptance_technique(self):
+        return self._alignment_acceptance_technique
 
-    @alignment_acceptance_techinque.setter
-    def alignment_acceptance_techinque(self, value):
-        self._validate_alignment_acceptance_techinque(value)
-        self._alignment_acceptance_techinque = value
+    @alignment_acceptance_technique.setter
+    def alignment_acceptance_technique(self, value):
+        self._validate_alignment_acceptance_technique(value)
+        self._alignment_acceptance_technique = value
 
     @property
     def mass_feature_anchor_technique(self):

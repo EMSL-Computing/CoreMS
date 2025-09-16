@@ -2310,7 +2310,7 @@ class LCMSCollectionCalculations:
 
         if (
             "fraction_improved"
-            in self.parameters.lcms_collection.alignment_acceptance_techinque
+            in self.parameters.lcms_collection.alignment_acceptance_technique
         ):
             fraction_improved = np.sum(fit_diff < og_diff) / len(og_diff)
             use_spline_alignment = (
@@ -2319,11 +2319,13 @@ class LCMSCollectionCalculations:
             )
         if (
             "mean_squared_error_improved"
-            in self.parameters.lcms_collection.alignment_acceptance_techinque
+            in self.parameters.lcms_collection.alignment_acceptance_technique
         ):
             mse_og = np.mean(og_diff**2)
             mse = np.mean(fit_diff**2)
             use_spline_alignment = mse < mse_og
+            # Convert to boolean
+            use_spline_alignment = bool(use_spline_alignment)
 
         return use_spline_alignment, spl
 
@@ -2345,10 +2347,7 @@ class LCMSCollectionCalculations:
         This function has been adapted from the original implementation in the Deimos package:
         https://github.com/pnnl/deimos
         """
-        # Initialize rt_alignments dictionary if it doesn't exist
-        if not hasattr(self, 'rt_alignments'):
-            self.rt_alignments = {}
-        
+       
         # Prepare the center LCMS object
         center_obj_ids = self.manifest_dataframe[
             self.manifest_dataframe["center"]
@@ -2375,10 +2374,6 @@ class LCMSCollectionCalculations:
             
             # Store alignment data for center object (identity mapping)
             center_sample_name = self.samples[center_obj_id]
-            self.rt_alignments[center_sample_name] = {
-                'adjusted_times': center_scan_df["scan_time"].values,
-                'alignment_function': None
-            }
 
             index_steps = (1, -1)
             # Run this twice, once going forward (+1 indexing) and once going backward (-1 indexing)
@@ -2410,27 +2405,18 @@ class LCMSCollectionCalculations:
                             if use_spline_alignment:
                                 # Set new retention times on scan_df for lc_obj using the spline fitting
                                 matches_i["scan_time_fit"] = spl(matches_i["scan_time"])
-                                new_times = spl(self[i].scan_df["scan_time"])
-                                new_scan_info = self[i].scan_df.copy()
-                                new_scan_info["scan_time_aligned"] = new_times
-                                self[i].scan_df = new_scan_info
+
+                                # Add "scan_time_aligned" to LCMSObject's _scan_info dict
+                                self[i]._scan_info["scan_time_aligned"] = {k: spl(v) for k, v in self[i]._scan_info["scan_time"].items()}
+
+                                # Retrieve the new aligned times for all scans in the LCMS object
+                                new_times = [x for k, x in sorted(self[i]._scan_info["scan_time_aligned"].items())]
                                 
-                                # Store alignment data
-                                self.rt_alignments[sample_name] = {
-                                    'adjusted_times': new_times.values,
-                                }
+                                # Switch the rt_aligned flag to True
+                                self.rt_aligned = True
                             else:
                                 # Set aligned retention times on scan_df for lc_obj using the original retention times
-                                new_scan_info = self[i].scan_df.copy()
-                                new_scan_info["scan_time_aligned"] = new_scan_info[
-                                    "scan_time"
-                                ]
-                                self[i].scan_df = new_scan_info
-                                
-                                # Store alignment data (identity mapping)
-                                self.rt_alignments[sample_name] = {
-                                    'adjusted_times': new_scan_info["scan_time"].values,
-                                }
+                                self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"]
 
                             i += index_step
                             if i >= len(self) or i < 0:
@@ -2472,11 +2458,6 @@ class LCMSCollectionCalculations:
                     new_scan_info["scan_time_aligned"] = new_times
                     self[i].scan_df = new_scan_info
                     
-                    # Store alignment data
-                    self.rt_alignments[sample_name] = {
-                        'adjusted_times': new_times.values,
-                        'alignment_function': spl
-                    }
 
                     # Get the batch that this object belongs to
                     batch = self.manifest[self.samples[i]]["batch"]
@@ -2493,12 +2474,6 @@ class LCMSCollectionCalculations:
                                 new_scan_info["scan_time_aligned"] = aligned_times
                                 self[j].scan_df = new_scan_info
                                 
-                                # Store alignment data
-                                self.rt_alignments[sample_name_j] = {
-                                    'adjusted_times': aligned_times.values,
-                                    'alignment_function': spl
-                                }
-
         # Set final mass_features_dataframe with the aligned scan_time
         center_sample_name = self.samples[center_obj_ids[0]]
         self._manifest_dict[center_sample_name]["use_rt_alignment"] = False

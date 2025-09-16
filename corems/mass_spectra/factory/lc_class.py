@@ -1456,7 +1456,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         self.isotopes_dropped = False
 
         # These attributes are set during processing
-        self.rt_alignments = {}
+        self.rt_aligned = False
 
     def _reorder_lcms_objects(self):
         """
@@ -1828,3 +1828,16 @@ class LCMSCollection(LCMSCollectionCalculations):
     def raw_files(self):
         """Returns a list of raw files in the collection."""
         return [x.raw_file_location for x in self]
+    
+    @property
+    def rt_alignments(self):
+        """Returns a dictionary of retention time alignments for the collection."""
+        if self.rt_aligned:
+            _rt_alignments = {}
+            # Construct a dictionary of aligned retention times (stored on each LCMS object within the collection, not the collection itself)
+            for i, lcms_obj in enumerate(self):
+                aligned_times = [x for k, x in sorted(lcms_obj._scan_info["scan_time_aligned"].items())]
+                _rt_alignments[i] = aligned_times
+            return _rt_alignments
+        else:
+            return None

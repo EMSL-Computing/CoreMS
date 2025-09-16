@@ -1997,12 +1997,61 @@ class LCMSCollectionExporter():
                 self.out_file_path.with_suffix(".hdf5").unlink()
 
         with h5py.File(self.out_file_path.with_suffix(".hdf5"), "a") as hdf_handle:
-            # Add basic attributes to the HDF5 file
+            # Add basic attributes to the HDF5 file, always overwrite these
             timenow = str(
                     datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z")
                 )
             hdf_handle.attrs["date_utc"] = timenow
             hdf_handle.attrs["lcms_objects_folder"] = str(self.mass_spectra_collection.collection_parser.folder_location)
-            hdf_handle.attrs["manifest"] = json.dumps(self.mass_spectra_collection.collection_parser.manifest)
 
-        #TODO: save parameters
+            # Add the manifest to the HDF5 file, always overwrite this
+            hdf_handle.attrs["manifest"] = self._convert_manifest_to_json()
+
+            # Save retention time alignments if they exist, only overwrite if specified
+            self._save_rt_alignments_to_hdf5(hdf_handle, overwrite)
+
+            #TODO KRH: save parameters
+
+
+    def _save_rt_alignments_to_hdf5(self, hdf_handle, overwrite):
+        """Save retention time alignments to HDF5 file."""
+        if self.mass_spectra_collection.rt_aligned:
+            group_name = "rt_alignments"
+            # grab dictionary of rt_alignments
+            rt_alignments = self.mass_spectra_collection.rt_alignments
+
+        if rt_alignments:
+            # Check if group exists and handle overwrite logic
+            if group_name in hdf_handle:
+                if not overwrite:
+                    return
+                del hdf_handle[group_name]
+            
+            grp = hdf_handle.create_group(group_name)
+            
+            # Save each alignment as a dataset
+            for sample_idx, alignment_data in rt_alignments.items():
+                grp.create_dataset(str(sample_idx), data=alignment_data)
+    
+    def _convert_manifest_to_json(self):
+        """Clean the manifest for export to HDF5."""
+        manifest = self.mass_spectra_collection.collection_parser.manifest
+        
+        # Process the manifest to convert numpy.bool_ or bool values for the 'use_rt_alignment' key
+        def convert_bool_values(data):
+            if isinstance(data, dict):
+                # Process each key-value pair recursively
+                return {k: (int(v) if k == 'use_rt_alignment' and isinstance(v, (bool, np.bool_)) else convert_bool_values(v)) for k, v in data.items()}
+            elif isinstance(data, list):
+                # Recursively process lists
+                return [convert_bool_values(item) for item in data]
+            else:
+                # Return non-dict/list types unchanged
+                return data
+        
+        # Clean the whole manifest
+        cleaned_manifest = convert_bool_values(manifest)
+
+        # Serialize the cleaned manifest into JSON format
+        json_manifest = json.dumps(cleaned_manifest)
+        return json_manifest
