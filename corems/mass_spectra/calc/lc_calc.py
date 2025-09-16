@@ -499,7 +499,7 @@ class LCCalculations:
             self.eics[mz] = myEIC
 
         # Get limits of mass features using EIC centroid detector and integrate
-        for idx, mass_feature in mf_dict.items():
+        for idx, mass_feature in list(mf_dict.items()):
             mz = mass_feature.mz
             apex_scan = mass_feature.apex_scan
 
