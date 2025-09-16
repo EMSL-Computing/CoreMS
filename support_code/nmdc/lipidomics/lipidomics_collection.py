@@ -52,30 +52,7 @@ if __name__ == "__main__":
     lcms_collection.plot_tics(type="both")
     lcms_collection.plot_alignments()  
     #1.5s for 7 samples; 15s for 70 samples
-
-    # Save the LCMS collection to a new location
-    print("Saving LCMS collection to test_lcms_collection_out.hdf5")
-    exporter = LCMSCollectionExporter(
-        out_file_path="test_lcms_collection_out",
-        mass_spectra_collection=lcms_collection
-    )
-    exporter.export_to_hdf5(overwrite=True)
-
-    # Reload the LCMS collection from the saved location and check that we can load raw data
-    print("Reloading LCMS collection from test_lcms_collection_out.hdf5 and checking functionality")
-    parser2 = ReadSavedLCMSCollection(
-        collection_hdf5_path=Path("test_lcms_collection_out.hdf5"),
-        cores=ncores
-    )
-    lcms_collection2 = parser2.get_lcms_collection(load_raw=False, load_light=True)
-    lcms_collection2.plot_alignments() 
-    assert lcms_collection2.rt_aligned, "Reloaded LCMS collection should be marked as retention time aligned." 
-    lcms_collection2.load_raw_data(sample_idx=0, ms_level=1)
-    assert lcms_collection2[0]._ms_unprocessed[1] is not None, "Raw data for MS1 should be loaded successfully."
-    lcms_collection2.drop_raw_data(sample_idx=0, ms_level=1)
-    del parser2, lcms_collection2
-  
-    # TODO: Think about other plots that would be useful to have here for assessing the quality of the data and alignment
+    
 
     # Make consensus mass features from the consolidated mass features
     start_time = time.time()    
@@ -97,7 +74,37 @@ if __name__ == "__main__":
         'intensity', 
         'persistence'
     ]
-    lcms_collection.plot_cluster_outlier_frequency(dim_list, clu_size_thresh = 0.25)
+    # BROKEN - needs fixing
+    #lcms_collection.plot_cluster_outlier_frequency(dim_list, clu_size_thresh = 0.25)
+
+    # Save the LCMS collection to a new location
+    print("Saving LCMS collection to test_lcms_collection_out.hdf5")
+    exporter = LCMSCollectionExporter(
+        out_file_path="test_lcms_collection_out",
+        mass_spectra_collection=lcms_collection
+    )
+    exporter.export_to_hdf5(overwrite=True)
+
+    # Reload the LCMS collection from the saved location and check that we can load raw data
+    print("Reloading LCMS collection from test_lcms_collection_out.hdf5 and checking functionality")
+    parser2 = ReadSavedLCMSCollection(
+        collection_hdf5_path=Path("test_lcms_collection_out.hdf5"),
+        cores=ncores
+    )
+    lcms_collection2 = parser2.get_lcms_collection(load_raw=False, load_light=True)
+    lcms_collection2.plot_alignments() 
+    lcms_collection2.plot_consensus_mz_features() ## zoomed in 
+    lcms_collection2.plot_consensus_mz_features(xb = 10, xt = 15, yb = 500, yt = 600) ## zoomed in 
+    lcms_collection2.cluster_inspection_plot(11391)
+    #lcms_collection2.plot_cluster_outlier_frequency(dim_list, clu_size_thresh = 0.25)
+    assert "cluster" in lcms_collection2.mass_features_dataframe.columns, "Reloaded LCMS collection should have cluster assignments in mass_features_dataframe."
+    assert lcms_collection2.rt_aligned, "Reloaded LCMS collection should be marked as retention time aligned." 
+    lcms_collection2.load_raw_data(sample_idx=0, ms_level=1)
+    assert lcms_collection2[0]._ms_unprocessed[1] is not None, "Raw data for MS1 should be loaded successfully."
+    lcms_collection2.drop_raw_data(sample_idx=0, ms_level=1)
+    del parser2, lcms_collection2
+    print("Reloaded LCMS collection successfully and checked functionality, then deleted temporary objects.")
+
 
     ## WORK IN PROGRESS: temporary code for testing
     ## want to adjust function to iterate throught samples by index, not name
@@ -106,6 +113,4 @@ if __name__ == "__main__":
     lcms_collection.search_for_missing_mass_features_in_one_sample(samplename)
     print(lcms_collection._lcms[samplename].mass_features_to_df(induced_features = True))
 
-    #TODO: Add code to load and save information about chromatographic settings
-    #TODO: Add code to save and load collection to HDF5 file
     #TODO: Add code to plot a consensus mass feature

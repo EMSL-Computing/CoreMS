@@ -907,6 +907,25 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
                     scan_df["scan_time_aligned"] = alignment_data
                     lcms_obj.scan_df = scan_df
 
+    def _load_cluster_assignments(self, lcms_collection):
+        """Load cluster assignments from the saved collection HDF5 file."""
+        with h5py.File(self.collection_hdf5_path, 'r') as f:
+            if "cluster_assignments" in f:
+                # Access the group containing cluster assignments
+                cluster_grp = f["cluster_assignments"]
+                
+                # Reload index and cluster data
+                index = cluster_grp["index"][:]  # Extract index
+                index = [idx.decode('utf-8') for idx in index]  # Convert byte strings back to regular strings
+                cluster_data = cluster_grp["cluster"][:]  # Extract cluster column
+                
+                # Reassemble the DataFrame
+                cluster_df = pd.DataFrame({"cluster": cluster_data}, index=index)
+
+                # Assign cluster data back to lcms_collection.mass_features_dataframe
+                lcms_collection.mass_features_dataframe = lcms_collection.mass_features_dataframe.join(cluster_df, how='left')
+
+    
     def get_lcms_collection(self, load_raw=False, load_light=False):
         """Get the LCMS collection from the saved HDF5 file."""
         # First load the LCMSCollection object exactly as in the parent class
@@ -914,5 +933,8 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
 
         # Add retention time alignments if they exist
         self._load_rt_alignments(lcms_collection)
+
+        # Add cluster assignments if they exist
+        self._load_cluster_assignments(lcms_collection)
 
         return lcms_collection

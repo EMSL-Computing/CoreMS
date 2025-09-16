@@ -1990,8 +1990,6 @@ class LCMSCollectionExporter():
 
     def export_to_hdf5(self, overwrite = False):
         """Export the LCMS collection to an HDF5 file."""
-        # TODO: Add hdf5 export to each of the mass spectra in the collection to ensure that scan time alignment, induced mass features, and mass features into clusters are retained
-
         if overwrite:
             if self.out_file_path.with_suffix(".hdf5").exists():
                 self.out_file_path.with_suffix(".hdf5").unlink()
@@ -2009,6 +2007,9 @@ class LCMSCollectionExporter():
 
             # Save retention time alignments if they exist, only overwrite if specified
             self._save_rt_alignments_to_hdf5(hdf_handle, overwrite)
+
+            # Save cluster assignments if they exist, only overwrite if specified
+            self._save_cluster_assignments_to_hdf5(hdf_handle, overwrite)
 
             #TODO KRH: save parameters
 
@@ -2055,3 +2056,25 @@ class LCMSCollectionExporter():
         # Serialize the cleaned manifest into JSON format
         json_manifest = json.dumps(cleaned_manifest)
         return json_manifest
+    
+    def _save_cluster_assignments_to_hdf5(self, hdf_handle, overwrite):
+        """Save cluster assignments to HDF5 file."""
+        # Check if column "cluster" is present in self.mass_features_dataframe
+        if "cluster" in self.mass_spectra_collection.mass_features_dataframe.columns:
+            group_name = "cluster_assignments"
+            cluster_assignments = self.mass_spectra_collection.mass_features_dataframe[["cluster"]].copy()
+
+            # Check if group exists and handle overwrite logic
+            if group_name in hdf_handle:
+                if not overwrite:
+                    return
+                del hdf_handle[group_name]
+            
+            grp = hdf_handle.create_group(group_name)
+
+            # Save the index, converting strings to bytes
+            grp.create_dataset("index", data=cluster_assignments.index.astype(str).values.astype('S'))
+            
+            # Save the "cluster" column
+            grp.create_dataset("cluster", data=cluster_assignments["cluster"].values)
+            

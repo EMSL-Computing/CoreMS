@@ -2715,8 +2715,8 @@ class LCMSCollectionCalculations:
         fig = plt.figure()
         if show_all:
             plt.scatter(
-                df.scan_time_aligned,
-                df.mz,
+                df.scan_time_aligned_median,
+                df.mz_median,
                 c = 'tab:gray',
                 s = 1
             )
@@ -2733,9 +2733,9 @@ class LCMSCollectionCalculations:
         plt.ylabel('m/z')
         
         if xt == 'xt':
-            xt = np.ceil(np.max(df.mz))
+            xt = np.ceil(np.max(df.mz_median))
         if yt == 'yt':
-            yt = np.ceil(np.max(df.scan_time))
+            yt = np.ceil(np.max(df.scan_time_aligned_median))
         if xb == 'xb':
             xb = 0
         if yb == 'yb':
@@ -3040,9 +3040,9 @@ class LCMSCollectionCalculations:
             If cluster data haven't been added to the object yet
         """
 
-        if not hasattr(self, 'mass_features_dataframe.cluster'):
+        if "cluster" not in self.mass_features_dataframe.columns:
             raise ValueError(
-                'Cluster information is not yet added to mass_features_dataframe, must run add_consensus_mass_features() first'
+            'Cluster information is not yet added to mass_features_dataframe, must run add_consensus_mass_features() first'
             )
         
         else:
