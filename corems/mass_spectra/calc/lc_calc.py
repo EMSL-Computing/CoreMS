@@ -506,7 +506,7 @@ class LCCalculations:
             # Pull EIC data and find apex scan index
             myEIC = self.eics[mz]
             mf_dict[idx]._eic_data = myEIC
-            apex_index = np.where(myEIC.scans == apex_scan)[0][0]
+            apex_index = np.searchsorted(myEIC.scans, apex_scan)
 
             # Find left and right limits of peak using EIC centroid detector, add to EICData
             centroid_eics = self.eic_centroid_detector(
