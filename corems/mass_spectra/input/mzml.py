@@ -449,9 +449,10 @@ class MZMLSpectraParser(SpectraParserInterface):
             and mz dataframe(s), as well as lists of scan numbers, retention times, and TICs.
         """
         _, scan_df = self.run(spectra="none")  # first run it to just get scan info
-        res, scan_df = self.run(
-            scan_df=scan_df, spectra=spectra
-        )  # second run to parse data
+        if spectra != "none":
+            res, scan_df = self.run(
+                scan_df=scan_df, spectra=spectra
+            )  # second run to parse data
         lcms_obj = LCMSBase(
             self.file_location,
             self.analyzer,
@@ -459,11 +460,12 @@ class MZMLSpectraParser(SpectraParserInterface):
             self.sample_name,
             self,
         )
-        for key in res:
-            key_int = int(key.replace("ms", ""))
-            res[key] = res[key][res[key].intensity > 0]
-            res[key] = res[key].sort_values(by=["scan", "mz"]).reset_index(drop=True)
-            lcms_obj._ms_unprocessed[key_int] = res[key]
+        if spectra != "none":
+            for key in res:
+                key_int = int(key.replace("ms", ""))
+                res[key] = res[key][res[key].intensity > 0]
+                res[key] = res[key].sort_values(by=["scan", "mz"]).reset_index(drop=True)
+                lcms_obj._ms_unprocessed[key_int] = res[key]
         lcms_obj.scan_df = scan_df.set_index("scan", drop=False)
         # Check if polarity is mixed
         if len(set(scan_df.polarity)) > 1:

@@ -12,6 +12,7 @@ from corems.mass_spectra.calc.lc_calc import LCCalculations, PHCalculations, LCM
 from corems.molecular_id.search.lcms_spectral_search import LCMSSpectralSearch
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
 from corems.mass_spectra.calc.lc_calc import find_closest
+from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 
 
 class MassSpectraBase:
@@ -380,6 +381,13 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
     mass_features : dictionary of LCMSMassFeature objects
         A dictionary containing mass features for the dataset.
         Key is mass feature ID. Initialized as an empty dictionary.
+    induced_mass_features: dictionary of LCMSMassFeature objects
+        A dictionary containing mass features from a collection that don't
+        satisfy criteria for initial mass features. Key is mass feature ID.
+        Initialized as an empty dictionary.
+    missing_mass_features: pandas.DataFrame
+        A table of clusters in a given sample for which a mass feature was
+        sought and not found
     spectral_search_results : dictionary of MS2SearchResults objects
         A dictionary containing spectral search results for the dataset.
         Key is scan number : precursor mz. Initialized as an empty dictionary.
@@ -404,6 +412,9 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         Sets the scan number list from the data in the _ms dictionary.
     * plot_composite_mz_features(binsize = 1e-4, ph_int_min_thresh = 0.001, mf_plot = True, ms2_plot = True, return_fig = False)
         Generates plot of M/Z features comparing scan time vs M/Z value
+    * search_for_targeted_mass_feature(ms1df: pd.DataFrame, sample: pd.Series, tol_flag = 0)
+        Searches for mass features in specific M/Z and scan time windows that
+        were missed by the persistent homology search
     """
 
     def __init__(
@@ -424,6 +435,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         self._tic_list = []
         self.eics = {}
         self.mass_features = {}
+        self.induced_mass_features = {}
         self.spectral_search_results = {}
 
     def get_parameters_json(self):
@@ -556,7 +568,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                         ]
 
     def add_associated_ms1(
-        self, auto_process=True, use_parser=True, spectrum_mode=None
+        self, auto_process=True, use_parser=True, spectrum_mode=None, induced_features=False
     ):
         """Add MS1 spectra associated with mass features to the dataset.
 
@@ -570,6 +582,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             The spectrum mode to use for the mass spectra.  If None, method will use the spectrum mode
             from the spectra parser to ascertain the spectrum mode (this allows for mixed types).
             Defaults to None. (faster if defined, otherwise will check each scan)
+        induced_features : bool, optional
+            If True, add associated MS1 of the induced mass features instead of the primary mass features
 
         Raises
         ------
@@ -584,14 +598,23 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             raise ValueError(
                 "mass_features not set, must run find_mass_features() first"
             )
+            
+        if induced_features:
+            mf_dict = self.induced_mass_features
+        else:
+            mf_dict = self.mass_features
+
         scans_to_average = self.parameters.lc_ms.ms1_scans_to_average
+        
+        ## sketchy work around for induced mass features
+        scan_list = [
+            int(mf_dict[x].apex_scan) for x in mf_dict if int(mf_dict[x].apex_scan) != -99
+        ]
 
         if scans_to_average == 1:
             # Add to LCMSobj
             self.add_mass_spectra(
-                scan_list=[
-                    int(x) for x in self.mass_features_to_df().apex_scan.tolist()
-                ],
+                scan_list = scan_list,
                 auto_process=auto_process,
                 use_parser=use_parser,
                 spectrum_mode=spectrum_mode,
@@ -601,7 +624,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         elif (
             (scans_to_average - 1) % 2
         ) == 0:  # scans_to_average = 3, 5, 7 etc, mirror l/r around apex
-            apex_scans = list(set(self.mass_features_to_df().apex_scan.tolist()))
+            apex_scans = list(set(scan_list))
             # Check if all apex scans are profile mode, raise error if not
             if not all(self.scan_df.loc[apex_scans, "ms_format"] == "profile"):
                 raise ValueError("All apex scans must be profile mode for averaging")
@@ -683,22 +706,28 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             )
 
         # Associate the ms1 spectra with the mass features
-        for mf_id in self.mass_features:
-            self.mass_features[mf_id].mass_spectrum = self._ms[
-                self.mass_features[mf_id].apex_scan
-            ]
-            self.mass_features[mf_id].update_mz()
+        for k in mf_dict.keys():
+            ## another induced feature work around
+            if mf_dict[k].apex_scan != -99:
+                mf_dict[k].mass_spectrum = self._ms[
+                    mf_dict[k].apex_scan
+                ]
+                mf_dict[k].update_mz()
 
-        # Re-process clustering if persistent homology is selected to remove duplicate mass features after adding and processing MS1 spectra
-        if self.parameters.lc_ms.peak_picking_method == "persistent homology":
-            self.cluster_mass_features(drop_children=True, sort_by="persistence")
+        if not induced_features:
+            # Re-process clustering if persistent homology is selected to remove duplicate mass features after adding and processing MS1 spectra
+            if self.parameters.lc_ms.peak_picking_method == "persistent homology":
+                self.cluster_mass_features(drop_children=True, sort_by="persistence")
 
-    def mass_features_to_df(self):
+    def mass_features_to_df(self, induced_features = False):
         """Returns a pandas dataframe summarizing the mass features.
 
         The dataframe contains the following columns: mf_id, mz, apex_scan, scan_time, intensity,
         persistence, area, monoisotopic_mf_id, and isotopologue_type.  The index is set to mf_id (mass feature ID).
-
+        Parameters
+        -----------
+        induced_features : bool, optional
+            If True, calls the induced_mass_features dictionary. Defaults to False.
 
         Returns
         --------
@@ -739,6 +768,11 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             ]
             return "; ".join(mz_abun_str)
 
+        if induced_features:
+            mf_dict = self.induced_mass_features
+        else:
+            mf_dict = self.mass_features
+            
         cols_in_df = [
             "id",
             "_apex_scan",
@@ -754,34 +788,35 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "isotopologue_type",
             "mass_spectrum_deconvoluted_parent",
         ]
+
         df_mf_list = []
-        for mf_id in self.mass_features.keys():
+        for mf_id in mf_dict.keys():
             # Find cols_in_df that are in single_mf
             df_keys = list(
-                set(cols_in_df).intersection(self.mass_features[mf_id].__dir__())
+                set(cols_in_df).intersection(mf_dict[mf_id].__dir__())
             )
             dict_mf = {}
             for key in df_keys:
-                dict_mf[key] = getattr(self.mass_features[mf_id], key)
-            if len(self.mass_features[mf_id].ms2_scan_numbers) > 0:
+                dict_mf[key] = getattr(mf_dict[mf_id], key)
+            if len(mf_dict[mf_id].ms2_scan_numbers) > 0:
                 # Add MS2 spectra info
-                best_ms2_spectrum = self.mass_features[mf_id].best_ms2
+                best_ms2_spectrum = mf_dict[mf_id].best_ms2
                 if best_ms2_spectrum is not None:
                     dict_mf["ms2_spectrum"] = mass_spectrum_to_string(best_ms2_spectrum)
-            if len(self.mass_features[mf_id].associated_mass_features_deconvoluted) > 0:
+            if len(mf_dict[mf_id].associated_mass_features_deconvoluted) > 0:
                 dict_mf["associated_mass_features"] = ", ".join(
                     map(
                         str,
-                        self.mass_features[mf_id].associated_mass_features_deconvoluted,
+                        mf_dict[mf_id].associated_mass_features_deconvoluted,
                     )
                 )
-            if self.mass_features[mf_id]._half_height_width is not None:
-                dict_mf["half_height_width"] = self.mass_features[
+            if mf_dict[mf_id]._half_height_width is not None:
+                dict_mf["half_height_width"] = mf_dict[
                     mf_id
                 ].half_height_width
             # Check if EIC for mass feature is set
             df_mf_single = pd.DataFrame(dict_mf, index=[mf_id])
-            df_mf_single["mz"] = self.mass_features[mf_id].mz
+            df_mf_single["mz"] = mf_dict[mf_id].mz
             df_mf_list.append(df_mf_single)
         df_mf = pd.concat(df_mf_list)
 
@@ -1069,6 +1104,114 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         else:
             plt.show()
+            
+    def search_for_targeted_mass_feature(
+            self,
+            ms1df, 
+            mz_min,
+            mz_max, 
+            st_min, 
+            st_max,
+            set_id,
+            obj_idx = 0,
+            st_aligned = False
+            ):
+        """
+        Returns an LCMSMassFeature from a specific sample within a specific mass and time range. Returns an empty
+        LCMSMassFeature if no satisfactory peak is found in the given window.
+
+        Parameters
+        -----------
+        ms1df :  Pandas DataFrame
+            Dataframe containing all the possible MS1 values to consider, collected by calling _ms_unprocessed[1] on the sample.
+        mz_min : float
+            Identifies lower bound of the weights to use to find a peak.
+        mz_max : float
+            Identifies upper bound of the weights to use to find a peak.
+        st_min : float
+            Identifies lower bound of the scan times to use to find a peak.
+        st_max : float
+            Identifies upper bound of the scan times to use to find a peak.
+        set_id : str
+            Indicates string used as ID in LCMSMassFeature.
+        obj_idx : int
+            Identifies index of sample in a collection that LCMSMassFeature should be assigned to. Defaults to 0 and is not used
+            if data provided is an LCMSBase instead of an LCMSCollection.
+        st_aligned : boolean
+            Indicates whether to call scan time from scan_time or from scan_time_aligned if using a collection. Defaults to False.
+
+        Returns
+        --------
+        LCMSMassFeature
+            Object from ChromaPeak that contains data on selected MS1 peak. If no peak is found, will contain missing 
+            information and list the apex scan value as -99.
+
+        Raises
+        ------
+        Warning
+            If appropriate scan time data is not contained in ms1df.
+        """
+
+        if st_aligned == True:
+            if not 'scan_time_aligned' in ms1df.columns:
+                raise ValueError(
+                    "Aligned scan times not contained in ms1df. Merge ms1df with scan_df on 'scan' to import aligned scan times."
+                )
+        else:
+            if not 'scan_time' in ms1df.columns:
+                raise ValueError(
+                    "Scan times not contained in ms1df. Merge ms1df with scan_df on 'scan' to import scan times."
+                )
+
+        mzfit = ms1df[(
+            ms1df.mz >= mz_min
+        ) & (
+            ms1df.mz <= mz_max
+        )].reset_index(drop = True)
+                
+        if st_aligned == True:
+            mzfit_st = mzfit.scan_time_aligned
+        else:
+            mzfit_st = mzfit.scan_time
+                
+        rtfit = mzfit[(
+            mzfit_st >= st_min
+        ) & (
+            mzfit_st <= st_max
+        )]
+        
+        if len(rtfit) == 0:
+            row_dict = {
+                'apex_scan': -99,
+                'mz': np.nan,
+                'intensity': np.nan,
+                'retention_time': np.nan,
+                'persistence': np.nan,
+                'id': set_id
+            }
+        else:
+            inducedpeak = rtfit[rtfit.intensity == rtfit.intensity.max()]
+            if st_aligned == True:
+                rt_induced = inducedpeak.scan_time_aligned.values[0]
+            else:
+                rt_induced = inducedpeak.scan_time.values[0]
+
+            row_dict = {
+                'apex_scan': inducedpeak.scan.values[0],
+                'mz': inducedpeak.mz.values[0],
+                'intensity': inducedpeak.intensity.values[0],
+                'retention_time': rt_induced,
+                'persistence': np.nan,
+                'id': set_id
+            }
+
+        if self.__class__.__name__ == 'LCMSBase':
+            output = LCMSMassFeature(self, **row_dict)
+        elif self.__class__.__name__ == 'LCMSCollection':
+            output = LCMSMassFeature(self[obj_idx], **row_dict)
+            
+        return output
+
 
     def __len__(self):
         """
