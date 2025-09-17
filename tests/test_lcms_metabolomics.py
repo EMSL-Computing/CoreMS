@@ -3,6 +3,7 @@ import shutil
 import numpy as np
 
 from corems.mass_spectra.output.export import LCMSMetabolomicsExport
+from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.molecular_id.search.database_interfaces import MSPInterface
 from corems.encapsulation.factory.parameters import LCMSParameters, reset_lcms_parameters, reset_ms_parameters
 
@@ -102,6 +103,25 @@ def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
     report = exporter.to_report(molecular_metadata=metabolite_metadata_negative)
     assert report['Ion Formula'][1] == 'C24 H47 O2'
     assert report['chebi'][1] == 28866
+
+    # Reload the saved lcms object and check that mass features are still present
+    parser = ReadCoreMSHDFMassSpectra(
+        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab.corems/Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab.hdf5"
+    )
+    myLCMSobj2 = parser.get_lcms_obj()
+
+    # Check that the parameters match
+    assert myLCMSobj2.parameters == lcms_obj.parameters
+
+    # Check that the spectra parser class is the same as the original parser and that we can plot a mass spectrum using the original parser
+    assert myLCMSobj2.spectra_parser_class.__name__ == "ImportMassSpectraThermoMSFileReader"
+    myLCMSobj2.spectra_parser.get_mass_spectrum_from_scan(1, spectrum_mode="profile").plot_centroid()
+
+    # Check that the mass features dataframe is the same as the original
+    df2 = myLCMSobj2.mass_features_to_df()
+    df1 = lcms_obj.mass_features_to_df()
+    assert df2.shape == df1.shape == (130, 13)
+    myLCMSobj2.mass_features[0].plot(return_fig=False)
     
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
     shutil.rmtree(
