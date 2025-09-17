@@ -1021,63 +1021,31 @@ class LCMSExport(HighResMassSpectraExport):
     def __init__(self, out_file_path, mass_spectra):
         super().__init__(out_file_path, mass_spectra, output_type="hdf5")
 
-    def to_hdf(self, overwrite=False, save_parameters=True, parameter_format="toml"):
-        """Export the data to an HDF5.
+    def _save_mass_features_to_hdf5(self, hdf_handle, group_name = "mass_features", overwrite=False):
+        """Save the mass features to the HDF5 file.
 
         Parameters
         ----------
+        hdf_handle : h5py.File
+            The HDF5 file handle.
+        group_name : str, optional
+            The name of the group to save the mass features to. Default is 'mass_features'.
         overwrite : bool, optional
-            Whether to overwrite the output file. Default is False.
-        save_parameters : bool, optional
-            Whether to save the parameters as a separate json or toml file. Default is True.
-        parameter_format : str, optional
-            The format to save the parameters in. Default is 'toml'.
-
-        Raises
-        ------
-        ValueError
-            If parameter_format is not 'json' or 'toml'.
+            Whether to overwrite the existing group. Default is False, where existing group will be updated.
         """
-        export_profile_spectra = (
-            self.mass_spectra.parameters.lc_ms.export_profile_spectra
-        )
 
-        # Write the mass spectra data to the hdf5 file
-        super().to_hdf(overwrite=overwrite, export_raw=export_profile_spectra)
+        # Create group for each mass feature, with key as the mass feature id
+        if len(self.mass_spectra.mass_features) > 0:
+            if group_name not in hdf_handle:
+                mass_features_group = hdf_handle.create_group(group_name)
+            else:
+                mass_features_group = hdf_handle.get(group_name)
 
-        # Write scan info, ms_unprocessed, mass features, eics, and ms2_search results to the hdf5 file
-        with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
-            # Add scan_info to hdf5 file
-            if "scan_info" not in hdf_handle:
-                scan_info_group = hdf_handle.create_group("scan_info")
-                for k, v in self.mass_spectra._scan_info.items():
-                    array = np.array(list(v.values()))
-                    if array.dtype.str[0:2] == "<U":
-                        array = array.astype("S")
-                    scan_info_group.create_dataset(k, data=array)
-
-            # Add ms_unprocessed to hdf5 file
-            export_unprocessed_ms1 = (
-                self.mass_spectra.parameters.lc_ms.export_unprocessed_ms1
-            )
-            if self.mass_spectra._ms_unprocessed and export_unprocessed_ms1:
-                if "ms_unprocessed" not in hdf_handle:
-                    ms_unprocessed_group = hdf_handle.create_group("ms_unprocessed")
-                else:
-                    ms_unprocessed_group = hdf_handle.get("ms_unprocessed")
-                for k, v in self.mass_spectra._ms_unprocessed.items():
-                    array = np.array(v)
-                    ms_unprocessed_group.create_dataset(str(k), data=array)
-
-            # Add LCMS mass features to hdf5 file
-            if len(self.mass_spectra.mass_features) > 0:
-                if "mass_features" not in hdf_handle:
-                    mass_features_group = hdf_handle.create_group("mass_features")
-                else:
-                    mass_features_group = hdf_handle.get("mass_features")
-
-                # Create group for each mass feature, with key as the mass feature id
-                for k, v in self.mass_spectra.mass_features.items():
+            # Create group for each mass feature, with key as the mass feature id
+            for k, v in self.mass_spectra.mass_features.items():
+                if str(k) not in mass_features_group or overwrite:
+                    if str(k) in mass_features_group and overwrite:
+                        del mass_features_group[str(k)]
                     mass_features_group.create_group(str(k))
                     # Loop through each of the mass feature attributes and add them as attributes (if single value) or datasets (if array)
                     for k2, v2 in v.__dict__.items():
@@ -1118,32 +1086,94 @@ class LCMSExport(HighResMassSpectraExport):
                                     or isinstance(v2, np.bool_)
                                 ):
                                     mass_features_group[str(k)].attrs[str(k2)] = v2
-                                else:
-                                    raise TypeError(
-                                        f"Attribute {k2} is not an integer, float, or string and cannot be added to the hdf5 file"
-                                    )
+
+    def to_hdf(self, overwrite=False, save_parameters=True, parameter_format="toml"):
+        """Export the data to an HDF5.
+
+        Parameters
+        ----------
+        overwrite : bool, optional
+            Whether to overwrite the output file. Default is False.
+        save_parameters : bool, optional
+            Whether to save the parameters as a separate json or toml file. Default is True.
+        parameter_format : str, optional
+            The format to save the parameters in. Default is 'toml'.
+
+        Raises
+        ------
+        ValueError
+            If parameter_format is not 'json' or 'toml'.
+        """
+        export_profile_spectra = (
+            self.mass_spectra.parameters.lc_ms.export_profile_spectra
+        )
+
+        # Write the mass spectra data to the hdf5 file
+        super().to_hdf(overwrite=overwrite, export_raw=export_profile_spectra)
+
+        # Write scan info, ms_unprocessed, mass features, eics, and ms2_search results to the hdf5 file
+        with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
+            # Add scan_info to hdf5 file
+            if "scan_info" not in hdf_handle or overwrite:
+                if "scan_info" in hdf_handle and overwrite:
+                    del hdf_handle["scan_info"]
+                scan_info_group = hdf_handle.create_group("scan_info")
+                for k, v in self.mass_spectra._scan_info.items():
+                    array = np.array(list(v.values()))
+                    if array.dtype.str[0:2] == "<U":
+                        array = array.astype("S")
+                    scan_info_group.create_dataset(k, data=array)
+
+            # Add ms_unprocessed to hdf5 file
+            export_unprocessed_ms1 = (
+                self.mass_spectra.parameters.lc_ms.export_unprocessed_ms1
+            )
+            if self.mass_spectra._ms_unprocessed and export_unprocessed_ms1:
+                if "ms_unprocessed" not in hdf_handle or overwrite:
+                    if "ms_unprocessed" in hdf_handle and overwrite:
+                        del hdf_handle["ms_unprocessed"]
+                    ms_unprocessed_group = hdf_handle.create_group("ms_unprocessed")
+                else:
+                    ms_unprocessed_group = hdf_handle.get("ms_unprocessed")
+                for k, v in self.mass_spectra._ms_unprocessed.items():
+                    if str(k) not in ms_unprocessed_group or overwrite:
+                        if str(k) in ms_unprocessed_group and overwrite:
+                            del ms_unprocessed_group[str(k)]
+                        array = np.array(v)
+                        ms_unprocessed_group.create_dataset(str(k), data=array)
+
+            # Add LCMS mass features to hdf5 file
+            self._save_mass_features_to_hdf5(hdf_handle, group_name="mass_features", overwrite=overwrite)
+            self._save_mass_features_to_hdf5(hdf_handle, group_name="induced_mass_features", overwrite=overwrite)
 
             # Add EIC data to hdf5 file
             export_eics = self.mass_spectra.parameters.lc_ms.export_eics
             if len(self.mass_spectra.eics) > 0 and export_eics:
-                if "eics" not in hdf_handle:
+                if "eics" not in hdf_handle or overwrite:
+                    if "eics" in hdf_handle and overwrite:
+                        del hdf_handle["eics"]
                     eic_group = hdf_handle.create_group("eics")
                 else:
                     eic_group = hdf_handle.get("eics")
 
                 # Create group for each eic
                 for k, v in self.mass_spectra.eics.items():
-                    eic_group.create_group(str(k))
-                    eic_group[str(k)].attrs["mz"] = k
-                    # Loop through each of the attributes and add them as datasets (if array)
-                    for k2, v2 in v.__dict__.items():
-                        if v2 is not None:
-                            array = np.array(v2)
-                            eic_group[str(k)].create_dataset(str(k2), data=array)
+                    if str(k) not in eic_group or overwrite:
+                        if str(k) in eic_group and overwrite:
+                            del eic_group[str(k)]
+                        eic_group.create_group(str(k))
+                        eic_group[str(k)].attrs["mz"] = k
+                        # Loop through each of the attributes and add them as datasets (if array)
+                        for k2, v2 in v.__dict__.items():
+                            if v2 is not None:
+                                array = np.array(v2)
+                                eic_group[str(k)].create_dataset(str(k2), data=array)
 
             # Add ms2_search results to hdf5 file
             if len(self.mass_spectra.spectral_search_results) > 0:
-                if "spectral_search_results" not in hdf_handle:
+                if "spectral_search_results" not in hdf_handle or overwrite:
+                    if "spectral_search_results" in hdf_handle and overwrite:
+                        del hdf_handle["spectral_search_results"]
                     spectral_search_results = hdf_handle.create_group(
                         "spectral_search_results"
                     )
@@ -1151,48 +1181,51 @@ class LCMSExport(HighResMassSpectraExport):
                     spectral_search_results = hdf_handle.get("spectral_search_results")
                 # Create group for each search result by ms2_scan / precursor_mz
                 for k, v in self.mass_spectra.spectral_search_results.items():
-                    spectral_search_results.create_group(str(k))
-                    for k2, v2 in v.items():
-                        spectral_search_results[str(k)].create_group(str(k2))
-                        spectral_search_results[str(k)][str(k2)].attrs[
-                            "precursor_mz"
-                        ] = v2.precursor_mz
-                        spectral_search_results[str(k)][str(k2)].attrs[
-                            "query_spectrum_id"
-                        ] = v2.query_spectrum_id
-                        # Loop through each of the attributes and add them as datasets (if array)
-                        for k3, v3 in v2.__dict__.items():
-                            if v3 is not None and k3 not in [
-                                "query_spectrum",
-                                "precursor_mz",
-                                "query_spectrum_id",
-                            ]:
-                                if k3 == "query_frag_types" or k3 == "ref_frag_types":
-                                    v3 = [", ".join(x) for x in v3]
-                                if all(v3 is not None for v3 in v3):
-                                    array = np.array(v3)
-                                if array.dtype.str[0:2] == "<U":
-                                    array = array.astype("S")
-                                spectral_search_results[str(k)][str(k2)].create_dataset(
-                                    str(k3), data=array
-                                )
+                    if str(k) not in spectral_search_results or overwrite:
+                        if str(k) in spectral_search_results and overwrite:
+                            del spectral_search_results[str(k)]
+                        spectral_search_results.create_group(str(k))
+                        for k2, v2 in v.items():
+                            spectral_search_results[str(k)].create_group(str(k2))
+                            spectral_search_results[str(k)][str(k2)].attrs[
+                                "precursor_mz"
+                            ] = v2.precursor_mz
+                            spectral_search_results[str(k)][str(k2)].attrs[
+                                "query_spectrum_id"
+                            ] = v2.query_spectrum_id
+                            # Loop through each of the attributes and add them as datasets (if array)
+                            for k3, v3 in v2.__dict__.items():
+                                if v3 is not None and k3 not in [
+                                    "query_spectrum",
+                                    "precursor_mz",
+                                    "query_spectrum_id",
+                                ]:
+                                    if k3 == "query_frag_types" or k3 == "ref_frag_types":
+                                        v3 = [", ".join(x) for x in v3]
+                                    if all(v3 is not None for v3 in v3):
+                                        array = np.array(v3)
+                                    if array.dtype.str[0:2] == "<U":
+                                        array = array.astype("S")
+                                    spectral_search_results[str(k)][str(k2)].create_dataset(
+                                        str(k3), data=array
+                                    )
 
-        # Save parameters as separate json
-        if save_parameters:
-            # Check if parameter_format is valid
-            if parameter_format not in ["json", "toml"]:
-                raise ValueError("parameter_format must be 'json' or 'toml'")
+            # Save parameters as separate json
+            if save_parameters:
+                # Check if parameter_format is valid
+                if parameter_format not in ["json", "toml"]:
+                    raise ValueError("parameter_format must be 'json' or 'toml'")
 
-            if parameter_format == "json":
-                dump_lcms_settings_json(
-                    filename=self.output_file.with_suffix(".json"),
-                    lcms_obj=self.mass_spectra,
-                )
-            elif parameter_format == "toml":
-                dump_lcms_settings_toml(
-                    filename=self.output_file.with_suffix(".toml"),
-                    lcms_obj=self.mass_spectra,
-                )
+                if parameter_format == "json":
+                    dump_lcms_settings_json(
+                        filename=self.output_file.with_suffix(".json"),
+                        lcms_obj=self.mass_spectra,
+                    )
+                elif parameter_format == "toml":
+                    dump_lcms_settings_toml(
+                        filename=self.output_file.with_suffix(".toml"),
+                        lcms_obj=self.mass_spectra,
+                    )
 
 class LCMSMetabolomicsExport(LCMSExport):
     """A class to export LCMS metabolite data.
