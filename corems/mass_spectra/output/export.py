@@ -2034,6 +2034,7 @@ class LCMSCollectionExporter():
                 )
             hdf_handle.attrs["date_utc"] = timenow
             hdf_handle.attrs["lcms_objects_folder"] = str(self.mass_spectra_collection.collection_parser.folder_location)
+            hdf_handle.attrs["missing_mass_features_searched"] = self.mass_spectra_collection.missing_mass_features_searched
 
             # Add the manifest to the HDF5 file, always overwrite this
             hdf_handle.attrs["manifest"] = self._convert_manifest_to_json()
@@ -2043,6 +2044,10 @@ class LCMSCollectionExporter():
 
             # Save cluster assignments if they exist, only overwrite if specified
             self._save_cluster_assignments_to_hdf5(hdf_handle, overwrite)
+
+        # Save induced mass features onto the LCMSBase objects, only if lcms_collection.missing_mass_features_searched is True
+        if self.mass_spectra_collection.missing_mass_features_searched:
+            self._save_induced_mass_features_to_hdf5(overwrite)
 
             #TODO KRH: save parameters
 
@@ -2110,4 +2115,8 @@ class LCMSCollectionExporter():
             
             # Save the "cluster" column
             grp.create_dataset("cluster", data=cluster_assignments["cluster"].values)
-            
+    
+    def _save_induced_mass_features_to_hdf5(self, hdf_handle, overwrite):
+        """Save induced mass features onto each of the LCMSBase objects in the collection to HDF5 file."""
+        for lcms_obj in self.mass_spectra_collection:
+            print("here")

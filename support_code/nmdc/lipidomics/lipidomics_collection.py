@@ -60,11 +60,11 @@ if __name__ == "__main__":
     # THIS FUNCTION NEEDS WORK AND NEEDS MECHANISM TO EVALUATE THE RESULTS (plots? reports?)
     print("Time to roll up consensus mass features: ", time.time() - start_time, "seconds -", len(lcms_collection.mass_features_dataframe), " total mass features", ncores, " cores")   
 
-    lcms_collection.plot_mz_features_across_samples()
-    lcms_collection.plot_mz_features_per_cluster()
-    lcms_collection.plot_consensus_mz_features() ## zoomed out
-    lcms_collection.plot_consensus_mz_features(xb = 10, xt = 15, yb = 500, yt = 600) ## zoomed in 
-    lcms_collection.cluster_inspection_plot(11391)
+    #lcms_collection.plot_mz_features_across_samples()
+    #lcms_collection.plot_mz_features_per_cluster()
+    #lcms_collection.plot_consensus_mz_features() ## zoomed out
+    #lcms_collection.plot_consensus_mz_features(xb = 10, xt = 15, yb = 500, yt = 600) ## zoomed in 
+    #lcms_collection.cluster_inspection_plot(11391)
     dim_list = [
         'mz', 
         'scan_time_aligned', 
@@ -77,6 +77,20 @@ if __name__ == "__main__":
     # BROKEN - needs fixing
     #lcms_collection.plot_cluster_outlier_frequency(dim_list, clu_size_thresh = 0.25)
 
+    #TODO KRH: Add code for saving/loading induced mass features within each LCMS object, 
+    # and a helper function on the collection for after searching for induced mass features in one or more samples
+
+    ## WORK IN PROGRESS: temporary code for testing
+    ## want to adjust function to iterate throught samples by index, not name
+    ## want to be able to do that in parallel/multiprocess
+    #samplename = 'Blanch_Nat_Lip_H_11_AB_M_13_POS_23Jan18_Brandi-WCSH5801'    
+    samplename = 'Blanch_Nat_Lip_C_14_AB_O_09_POS_23Jan18_Brandi-WCSH5801' #Katherine's working sample :)
+    print(f"Searching for missing mass features in sample {samplename}")
+    lcms_collection.search_for_missing_mass_features_in_one_sample(samplename)
+    lcms_collection.missing_mass_features_searched = True #TODO toggle this automatically when you run the function to backfill missing mass features
+    print(lcms_collection._lcms[samplename].mass_features_to_df(induced_features = True))
+
+    #TODO: Add code to plot a consensus mass feature EIC
     # Save the LCMS collection to a new location
     print("Saving LCMS collection to test_lcms_collection_out.hdf5")
     exporter = LCMSCollectionExporter(
@@ -104,13 +118,3 @@ if __name__ == "__main__":
     lcms_collection2.drop_raw_data(sample_idx=0, ms_level=1)
     del parser2, lcms_collection2
     print("Reloaded LCMS collection successfully and checked functionality, then deleted temporary objects.")
-
-
-    ## WORK IN PROGRESS: temporary code for testing
-    ## want to adjust function to iterate throught samples by index, not name
-    ## want to be able to do that in parallel/multiprocess
-    samplename = 'Blanch_Nat_Lip_H_11_AB_M_13_POS_23Jan18_Brandi-WCSH5801'    
-    lcms_collection.search_for_missing_mass_features_in_one_sample(samplename)
-    print(lcms_collection._lcms[samplename].mass_features_to_df(induced_features = True))
-
-    #TODO: Add code to plot a consensus mass feature
