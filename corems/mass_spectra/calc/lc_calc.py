@@ -197,6 +197,8 @@ class LCCalculations:
                 mass_feature.calc_half_height_width()
                 mass_feature.calc_tailing_factor()
                 mass_feature.calc_dispersity_index()
+                mass_feature.calc_gaussian_similarity()
+                mass_feature.calc_noise_score()
 
     def get_average_mass_spectrum(
         self,
@@ -373,6 +375,10 @@ class LCCalculations:
                 )
         else:
             raise ValueError("Peak picking method not implemented")
+        
+        # Remove noisey mass features if designated in parameters
+        if self.parameters.lc_ms.remove_redundant_mass_features:
+            self._remove_redundant_mass_features()
 
     def integrate_mass_features(
         self, drop_if_fail=True, drop_duplicates=True, ms_level=1
@@ -417,13 +423,6 @@ class LCCalculations:
         else:
             raise ValueError(
                 "No mass features found, did you run find_mass_features() first?"
-            )
-        # Check if mass_spectrum exists on each mass feature
-        if not all(
-            [mf.mass_spectrum is not None for mf in self.mass_features.values()]
-        ):
-            raise ValueError(
-                "Mass spectrum must be associated with each mass feature, did you run add_associated_ms1() first?"
             )
 
         # Subset scan data to only include correct ms_level
@@ -1998,3 +1997,91 @@ class PHCalculations:
             }
         else:
             return cluster_daughters
+        
+    def _remove_redundant_mass_features(
+        self,
+        ) -> None:
+        """
+        Identify and remove redundant mass features that are likely contaminants based on their m/z values and scan frequency. 
+        Especially useful for HILIC data where signals do not return to baseline between peaks or for data with significant background noise.
+        
+        Contaminants are characterized by:
+        1. Similar m/z values (within ppm_tolerance)
+        2. High frequency across scan numbers (ubiquitous presence)
+    
+        Notes
+        -----
+        Depends on self.mass_features being populated, uses the parameters in self.parameters.lc_ms for tolerances (mass_feature_cluster_mz_tolerance_rel)
+        """
+        ppm_tolerance = self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel*1e6
+        min_scan_frequency = 0.1 #TODO KRH: add and remove from encapsulated parameters and remove min_absolute_scans, add parameter for n to keep in each group
+        n_retain = 3 # number of highest intensity to keep in each group, rest remove; TODO KRH: make this a parameter
+
+        df = self.mass_features_to_df()
+
+        if df.empty:
+            return pd.DataFrame()
+        # df index should be mf_id
+        if 'mf_id' not in df.columns:
+            if 'mf_id' in df.index.names:
+                df = df.reset_index()
+            else:
+                raise ValueError("DataFrame must contain 'mf_id' column or index.")
+        
+        # Sort by m/z for efficient grouping
+        df_sorted = df.sort_values('mz').reset_index(drop=True)
+        
+        # Calculate total number of unique scans for frequency calculation
+        # Calculate total possible scans (check the cluster rt tolerance and the min rt and max rt of the data)
+        total_time = self.scan_df['scan_time'].max() - self.scan_df['scan_time'].min()
+        cluster_rt_tolerance = self.parameters.lc_ms.mass_feature_cluster_rt_tolerance
+        # If the feature was detected in every possible scan (and then rolled up), it would be in this many scans
+        total_scans =  int(total_time / cluster_rt_tolerance) + 1
+
+        # Group similar m/z values using ppm tolerance
+        mz_groups = []
+        current_group = []
+        
+        for i, row in df_sorted.iterrows():
+            current_mz = row['mz']
+            
+            if not current_group:
+                # Start first group
+                current_group = [i]
+            else:
+                # Check if current m/z is within tolerance of group representative
+                group_representative_mz = df_sorted.iloc[current_group[0]]['mz']
+                ppm_diff = abs(current_mz - group_representative_mz) / group_representative_mz * 1e6
+                
+                if ppm_diff <= ppm_tolerance:
+                    # Add to current group
+                    current_group.append(i)
+                else:
+                    # Start new group, but first process current group
+                    if len(current_group) > 0:
+                        mz_groups.append(current_group)
+                    current_group = [i]
+        
+        # Don't forget the last group
+        if current_group:
+            mz_groups.append(current_group)
+        
+        # Analyze each m/z group for contaminant characteristics
+        contaminant_results = []
+        
+        for group_indices in mz_groups:
+            group_data = df_sorted.iloc[group_indices]
+            
+            # Calculate group statistics
+            unique_scans = group_data['apex_scan'].nunique()
+            scan_frequency = unique_scans / total_scans
+            
+            # Check if this group meets contaminant criteria
+            if scan_frequency >= min_scan_frequency:
+                group_data = group_data.sort_values('intensity', ascending=False)
+                representative_mf_id = group_data.iloc[0:n_retain]['mf_id'].tolist()  # Keep top n by intensity
+                non_representative_mf_id = group_data.iloc[n_retain:]['mf_id'].tolist()  # These will be removed
+
+                self.mass_features = {
+                    k: v for k, v in self.mass_features.items() if k not in non_representative_mf_id
+                }
