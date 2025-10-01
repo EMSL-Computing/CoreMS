@@ -117,6 +117,17 @@ class ReadCoreMSHDFMassSpectra(
         else:
             raise Exception("Scan number not found in HDF5 file.")
 
+    def get_mass_spectra_from_scan_list(self, scan_list):
+        """Return a list of mass spectrum data objects from a list of scan numbers."""
+        mass_spectra_list = []
+        for scan_number in scan_list:
+            if scan_number in self.scan_number_list:
+                mass_spec = self.get_mass_spectrum_from_scan(scan_number)
+                mass_spectra_list.append(mass_spec)
+            else:
+                warnings.warn(f"Scan number {scan_number} not found in HDF5 file.")
+        return mass_spectra_list
+    
     def load(self) -> None:
         """ """
         pass
