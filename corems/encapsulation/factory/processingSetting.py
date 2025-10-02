@@ -173,6 +173,10 @@ class LiquidChromatographSetting:
         Calculated as a fraction of the maximum intensity of the unprocessed profile data (mz, scan).
         Should be greater to or equal to ph_inten_min_rel.
         Called within the PH_Calculations.find_mass_features() method. Default is 0.001.
+    noise_window_factor : float, optional
+        Factor to determine noise estimation window size relative to peak width. Larger values use wider windows for noise estimation.
+        For example, a value of 2.0 uses a window size equal to twice the peak width (depending on it's start and end scans) on each side.
+        Called within the LCMSMassFeature.calc_noise_score() method. Default is 2.0.
     remove_redundant_mass_features : bool, optional
         If True, remove redundant mass features that are likely contaminants based on their m/z values and scan frequency.
         Especially useful for HILIC data where signals do not return to baseline between peaks or for data with significant background noise.
@@ -246,6 +250,9 @@ class LiquidChromatographSetting:
     eic_signal_threshold: float = 0.01
     eic_buffer_time = 1.5
     dispersity_index_window: float = 3.0  # minutes
+    noise_window_factor: float = 2.0  # times the peak width for detemining SN for EIC
+
+    # Parameters used for filtering mass features after peak picking
     remove_redundant_mass_features: bool = False
     redundant_scan_frequency_min: float = 0.1 # fraction of scans that must contain the m/z to be considered a likely noise/contaminant when using remove_redundant_mass_features
     redundant_feature_retain_n: int = 3 # number of features to retain in each group when using remove_redundant_mass_features

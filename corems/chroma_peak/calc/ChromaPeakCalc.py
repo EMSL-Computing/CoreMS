@@ -109,8 +109,9 @@ class LCMSMassFeatureCalculation:
         This function calculates the dispersity index of the mass feature and
         stores the result in the `_dispersity_index` attribute. The dispersity index is calculated as the standard
         deviation of the retention times that account for 50% of the cummulative intensity, starting from the most
-        intense point, as described in [1]. Note that this calculation is done within the integration bounds with a pad according to the window factor, where
-        the window factor is parameterized and encapsulated in the parent LCMS object (or, if not available, defaults to 2.0 minutes before and after the apex
+        intense point, as described in [1]. Note that this calculation is done within the integration bounds with
+        a pad according to the window factor, where the window factor is parameterized and encapsulated in the 
+        parent LCMS object (or, if not available, defaults to 2.0 minutes before and after the apex
 
         Returns
         -------
@@ -287,7 +288,8 @@ class LCMSMassFeatureCalculation:
         Calculate the Gaussian similarity score of the mass feature.
         
         This function fits a Gaussian curve to the EIC data and evaluates
-        the goodness of fit using R-squared. A score close to 1 indicates
+        the goodness of fit using R-squared. Note that this only uses data within 
+        the set integration bounds of the mass feature. A score close to 1 indicates
         the peak closely resembles an ideal Gaussian shape.
         
         Returns
@@ -362,22 +364,17 @@ class LCMSMassFeatureCalculation:
             # Fitting failed, assign NaN
             self._gaussian_similarity = np.nan
 
-    def calc_noise_score(self, noise_window_factor: float = 2.0):
+    def calc_noise_score(self):
         """
         Calculate the noise score of the mass feature separately for left and right sides.
         
         This function estimates the signal-to-noise ratio by comparing the peak
-        intensity to the baseline noise level in surrounding regions. By calculating
-        scores separately for left and right sides, it can detect shoulder peaks
-        and other asymmetric noise patterns.
+        intensity to the baseline noise level in surrounding regions. It calculates
+        separate scores for the left and right sides of the peak, which are stored as a tuple
+        in the `_noise_score` attribute. The noise estimation windows are encapsulated in the
+        parent LCMS object (or, if not available, defaults to twice the peak width on each side).
         
-        Parameters
-        ----------
-        noise_window_factor : float, default 2.0
-            Factor to determine noise estimation window size relative to peak width.
-            Larger values use wider windows for noise estimation.
-            For example, a value of 2.0 uses a window size equal to twice the peak width (depending on it's start and end scans) on each side.
-        
+       
         Returns
         -------
         None, stores the result in the `_noise_score` attribute as a tuple (left_score, right_score).
@@ -392,6 +389,12 @@ class LCMSMassFeatureCalculation:
             raise ValueError(
                 "EIC data are not available. Please add the EIC data first."
             )
+        
+        # Check if LCMSMassFeature has a parent LCMS object with a window factor
+        if hasattr(self, 'mass_spectrum_obj'):
+            noise_window_factor = self.mass_spectrum_obj.parameters.lc_ms.noise_window_factor
+        else:
+            noise_window_factor = 2.0  # times the peak width
         
         # Get full EIC data (not just integration bounds)
         full_time = self._eic_data.time
