@@ -75,4 +75,4 @@ if __name__ == "__main__":
 
     #TODO: Add code to load and save information about chromatographic settings
     #TODO: Add code to save and load collection to HDF5 file
-    #TODO: Generate pivot tables to collect regular and induced mass features
+    #TODO: Generate report of summarize_clusters as a table with both regular and induced mass features
