@@ -117,8 +117,27 @@ class ReadCoreMSHDFMassSpectra(
         else:
             raise Exception("Scan number not found in HDF5 file.")
 
-    def get_mass_spectra_from_scan_list(self, scan_list):
-        """Return a list of mass spectrum data objects from a list of scan numbers."""
+    def get_mass_spectra_from_scan_list(self, scan_list, spectrum_mode, auto_process=True):
+        """Return a list of mass spectrum data objects from a list of scan numbers.
+        
+        Parameters
+        ----------
+        scan_list : list
+            A list of scan numbers to retrieve mass spectra for.
+        spectrum_mode : str
+            The spectrum mode to use when retrieving the mass spectra.
+            Note that this parameter is not used for CoreMS HDF5 files, as the spectra are already processed and only 
+            centroided spectra are saved.
+        auto_process : bool
+            If True, automatically process the mass spectra when retrieving them.
+            Note that this parameter is not used for CoreMS HDF5 files, as the spectra are already processed and only 
+            centroided spectra are saved.
+        
+        Returns
+        -------
+        list
+            A list of mass spectrum data objects corresponding to the provided scan numbers.
+        """
         mass_spectra_list = []
         for scan_number in scan_list:
             if scan_number in self.scan_number_list:
