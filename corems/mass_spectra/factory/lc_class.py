@@ -701,7 +701,6 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         The dataframe contains the following columns: mf_id, mz, apex_scan, scan_time, intensity,
         persistence, area, monoisotopic_mf_id, and isotopologue_type.  The index is set to mf_id (mass feature ID).
 
-
         Returns
         --------
         pandas.DataFrame
@@ -743,17 +742,20 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         cols_in_df = [
             "id",
-            "_apex_scan",
+            "apex_scan",
             "start_scan",
             "final_scan",
-            "_retention_time",
-            "_intensity",
-            "_persistence",
-            "_area",
-            "_dispersity_index",
-            "_tailing_factor",
-            "_gaussian_similarity",
-            "_noise_score",
+            "retention_time",
+            "intensity",
+            "persistence",
+            "area",
+            "dispersity_index",
+            "normalized_dispersity_index",
+            "tailing_factor",
+            "gaussian_similarity",
+            "noise_score",
+            "noise_score_min",
+            "noise_score_max",
             "monoisotopic_mf_id",
             "isotopologue_type",
             "mass_spectrum_deconvoluted_parent",
@@ -765,8 +767,10 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 set(cols_in_df).intersection(self.mass_features[mf_id].__dir__())
             )
             dict_mf = {}
+            # Get the values for each key in df_keys from the mass feature object
             for key in df_keys:
                 dict_mf[key] = getattr(self.mass_features[mf_id], key)
+            # Special handling for mass_spectrum and associated_mass_features_deconvoluted, since they are not single values
             if len(self.mass_features[mf_id].ms2_scan_numbers) > 0:
                 # Add MS2 spectra info
                 best_ms2_spectrum = self.mass_features[mf_id].best_ms2
@@ -778,10 +782,6 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                         self.mass_features[mf_id].associated_mass_features_deconvoluted,
                     )
                 )
-            if self.mass_features[mf_id]._half_height_width is not None:
-                dict_mf["half_height_width"] = self.mass_features[
-                    mf_id
-                ].half_height_width
             # Check if EIC for mass feature is set
             df_mf_single = pd.DataFrame(dict_mf, index=[mf_id])
             df_mf_single["mz"] = self.mass_features[mf_id].mz
@@ -791,16 +791,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         # rename _area to area and id to mf_id
         df_mf = df_mf.rename(
             columns={
-                "_area": "area",
                 "id": "mf_id",
-                "_apex_scan": "apex_scan",
-                "_retention_time": "scan_time",
-                "_intensity": "intensity",
-                "_persistence": "persistence",
-                "_dispersity_index": "dispersity_index",
-                "_tailing_factor": "tailing_factor",
-                "_gaussian_similarity": "gaussian_similarity",
-                "_noise_score": "noise_score",
+                "retention_time": "scan_time",            
             }
         )
 
@@ -818,8 +810,11 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "half_height_width",
             "tailing_factor",
             "dispersity_index",
+            "normalized_dispersity_index",
             "gaussian_similarity",
             "noise_score",
+            "noise_score_min",
+            "noise_score_max",
             "monoisotopic_mf_id",
             "isotopologue_type",
             "mass_spectrum_deconvoluted_parent",
