@@ -176,7 +176,14 @@ class LiquidChromatographSetting:
     remove_redundant_mass_features : bool, optional
         If True, remove redundant mass features that are likely contaminants based on their m/z values and scan frequency.
         Especially useful for HILIC data where signals do not return to baseline between peaks or for data with significant background noise.
-        Called within the LC_Calculations.find_mass_features() method. Default is False.
+        Called within the LC_Calculations.find_mass_features() method. 
+        Default is False.
+    redundant_scan_frequency_min : float, optional
+        Minimum fraction of scans that must contain the m/z to be considered a likely noise/contaminant when using remove_redundant_mass_features.
+        Default is 0.1 (10% of scans).
+    redundant_feature_retain_n : int, optional
+        Number of features to retain in each group when using remove_redundant_mass_features.
+        Default is 3.
     mass_feature_cluster_mz_tolerance_rel : float, optional
         Relative m/z tolerance to use for clustering mass features.
         Used for both "persistent homology" and "centroided_persistent_homology" peak picking methods.
@@ -238,6 +245,11 @@ class LiquidChromatographSetting:
     peak_height_min_percent: float = 0.1
     eic_signal_threshold: float = 0.01
     eic_buffer_time = 1.5
+    dispersity_index_window: float = 3.0  # minutes
+    remove_redundant_mass_features: bool = False
+    redundant_scan_frequency_min: float = 0.1 # fraction of scans that must contain the m/z to be considered a likely noise/contaminant when using remove_redundant_mass_features
+    redundant_feature_retain_n: int = 3 # number of features to retain in each group when using remove_redundant_mass_features
+    
 
     # Parameters used for 2D peak picking
     peak_picking_method: str = "persistent homology"
@@ -252,7 +264,6 @@ class LiquidChromatographSetting:
     ph_smooth_radius_scan = 1
     ph_inten_min_rel = 0.001
     ph_persis_min_rel = 0.001
-    remove_redundant_mass_features: bool = False
 
     # Parameters used to cluster mass features
     mass_feature_cluster_mz_tolerance_rel: float = 5e-6
