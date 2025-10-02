@@ -575,8 +575,6 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         """
         if self._noise_score is None:
             return np.nan
-        if not isinstance(self._noise_score, tuple):
-            return self._noise_score
         
         left, right = self._noise_score
         # Handle NaN values
@@ -600,8 +598,6 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         """
         if self._noise_score is None:
             return np.nan
-        if not isinstance(self._noise_score, tuple):
-            return self._noise_score
         
         left, right = self._noise_score
         # Handle NaN values - nanmin ignores NaN
@@ -618,8 +614,6 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         """
         if self._noise_score is None:
             return np.nan
-        if not isinstance(self._noise_score, tuple):
-            return self._noise_score
         
         left, right = self._noise_score
         # Handle NaN values - nanmax ignores NaN
