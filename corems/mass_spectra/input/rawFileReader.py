@@ -1530,7 +1530,6 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         auto_process : bool, optional
             If True, perform peak picking and noise threshold calculation after creating the mass spectrum object. Default is True.
         """
-        #TODO KRH: refactor this so it's faster for large lists of scans
         mass_spectra = []
         for scan in scans_list:
             mass_spectrum = self.get_mass_spectrum_from_scan(
