@@ -354,7 +354,9 @@ class ReadCoreMSHDFMassSpectra(
             # Populate attributes on MassFeature object that are lists
             for key in dict_group_load[k].keys():
                 setattr(mass_feature, key, dict_group_load[k][key][:])
-
+            # Convert _noise_score from array to tuple
+                if key == "_noise_score":
+                    mass_feature._noise_score = tuple(mass_feature._noise_score)
             mass_spectra.mass_features[int(k)] = mass_feature
 
         # Associate mass features with ms1 and ms2 spectra, if available

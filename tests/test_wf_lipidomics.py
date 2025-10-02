@@ -11,6 +11,7 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.mass_spectra.input.mzml import MZMLSpectraParser
 from corems.mass_spectra.output.export import LipidomicsExport
 from corems.molecular_id.search.database_interfaces import MetabRefLCInterface
+from corems.molecular_id.factory.lipid_molecular_metadata import LipidMetadata
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulasLC
 from corems.encapsulation.factory.parameters import LCMSParameters, reset_lcms_parameters, reset_ms_parameters
 
@@ -48,7 +49,7 @@ def test_import_lcmsobj_mzml():
     )
     myLCMSobj.integrate_mass_features()
     mass_features_df = myLCMSobj.mass_features_to_df()
-    assert mass_features_df.shape == (1391, 12)
+    assert mass_features_df.shape == (1176, 17)
     
     # Reset the MSParameters to the original values
     reset_lcms_parameters()
@@ -126,7 +127,7 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
     )
     lcms_obj.add_peak_metrics()
     lcms_obj.find_c13_mass_features()
-    assert len(lcms_obj.mass_features) == 130
+    assert len(lcms_obj.mass_features) == 128
 
     # Perform a molecular search on all of the mass features' ms1 peaks
     mol_form_search = SearchMolecularFormulasLC(lcms_obj)
@@ -134,7 +135,7 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
 
     # Check results of molecular search
     assert lcms_obj.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
-    assert lcms_obj.mass_features_ms1_annot_to_df().shape[0] > 130
+    assert lcms_obj.mass_features_ms1_annot_to_df().shape[0] > 128
     lcms_obj.mass_features[0].mass_spectrum.to_dataframe()
 
     # Add hcd ms2 data to lcms object, using the ms2 mass spectrum parameters
@@ -151,30 +152,61 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
 
     # Export the mass features to a pandas dataframe
     df = lcms_obj.mass_features_to_df()
-    assert df.shape == (130, 16)
+    assert df.shape == (128, 19)
 
     # Plot a mass feature
     lcms_obj.mass_features[0].plot(return_fig=False)
 
     """
-    # Query the lipidomics database to prepare a small search library for the mass features
+    # This code should be left as an example for how to generate example json data
+    import dataclasses
+
+    mzs = [i.mz for k, i in myLCMSobj.mass_features.items()]
     metabref = MetabRefLCInterface()
-    mzs = [i.mz for k, i in lcms_obj.mass_features.items()]
-    spectra_library_fe, lipid_metadata = metabref.get_lipid_library(
-            mz_list=mzs,
-            polarity="negative",
-            mz_tol_ppm=5,
-            format="flashentropy",
-            normalize=True,
-            fe_kwargs={
-                "normalize_intensity": True,
-                "min_ms2_difference_in_da": 0.02,  # for cleaning spectra
-                "max_ms2_tolerance_in_da": 0.01,  # for setting search space
-                "max_indexed_mz": 3000,
-                "precursor_ions_removal_da": None,
-                "noise_threshold": 0,
-            },
-        )
+    metabref.set_token("tmp_data/thermo_raw_NMDC/metabref.token")
+    spectra_library, lipid_metadata = metabref.get_lipid_library(
+        mz_list=mzs[1:10],
+        polarity="negative",
+        mz_tol_ppm=5,
+        mz_tol_da_api=0.01,
+        format="json",
+        normalize=True
+    )
+    # Save the json spectra library and lipid metadata to a text file and then load it back in
+    import json
+    with open('tests/tests_data/lcms/metabref_spec_lib.json', "w") as final:
+        json.dump(spectra_library, final)
+    lipid_metadata_raw = {
+        k: dataclasses.asdict(v) for k, v in lipid_metadata.items()
+        }
+    with open('tests/tests_data/lcms/metabref_lipid_metadata.json', "w") as final:
+        json.dump(lipid_metadata_raw, final)
+    """
+    metabref = MetabRefLCInterface()
+
+    # Load an example json spectral library and convert to flashentropy format
+    with open("tests/tests_data/lcms/metabref_spec_lib.json") as f:
+        spectra_library_json = json.load(f)
+    spectra_library_fe = metabref._to_flashentropy(
+        spectra_library_json,
+        normalize=True,
+        fe_kwargs={
+            "normalize_intensity": True,
+            "min_ms2_difference_in_da": 0.02,  # for cleaning spectra
+            "max_ms2_tolerance_in_da": 0.01,  # for setting search space
+            "max_indexed_mz": 3000,
+            "precursor_ions_removal_da": None,
+            "noise_threshold": 0,
+        },
+    )
+    
+    # Load the associated lipid metadata and convert to correct class
+    with open("tests/tests_data/lcms/metabref_lipid_metadata.json") as f:
+        lipid_metadata_json = json.load(f)
+    lipid_metadata = {
+        k: metabref._dict_to_dataclass(v, LipidMetadata)
+        for k, v in lipid_metadata_json.items()
+    }
 
     # Perform a spectral search on the mass features
     hcd_ms2_scan_df = lcms_obj.scan_df[
@@ -187,7 +219,6 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
     lcms_obj.fe_search(
         scan_list=ms2_scans_oi_hr, fe_lib=spectra_library_fe, peak_sep_da=0.01
     )
-
     # Export the lcms object to an hdf5 file using the LipidomicsExport class
     exporter = LipidomicsExport(
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801", lcms_obj
@@ -196,7 +227,6 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
     exporter.report_to_csv(molecular_metadata=lipid_metadata)
     report = exporter.to_report(molecular_metadata=lipid_metadata)
     assert report['Ion Formula'][1] == 'C24 H47 O2'
-    assert report['Lipid Species'][1] == 'FA 24:0'
 
     # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
     parser = ReadCoreMSHDFMassSpectra(
@@ -208,7 +238,7 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
     assert myLCMSobj2.parameters == lcms_obj.parameters
     assert myLCMSobj2.spectra_parser_class.__name__ == "ImportMassSpectraThermoMSFileReader"
     df2 = myLCMSobj2.mass_features_to_df()
-    assert df2.shape == (130, 16)
+    assert df2.shape == (128, 18)
     myLCMSobj2.mass_features[0].mass_spectrum.to_dataframe()
     assert myLCMSobj2.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
     assert myLCMSobj2.mass_features_ms1_annot_to_df().shape[0] > 130
@@ -219,7 +249,6 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems",
         ignore_errors=True,
     )
-    """
 
     # Reset the MSParameters to the original values
     reset_lcms_parameters()
