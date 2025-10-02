@@ -69,13 +69,10 @@ if __name__ == "__main__":
     ]
     lcms_collection.plot_cluster_outlier_frequency(dim_list, clu_size_thresh = 0.25)
 
-    ## WORK IN PROGRESS: temporary code for testing
-    ## want to adjust function to iterate throught samples by index, not name
-    ## want to be able to do that in parallel/multiprocess
-    samplename = 'Blanch_Nat_Lip_H_11_AB_M_13_POS_23Jan18_Brandi-WCSH5801'    
-    lcms_collection.search_for_missing_mass_features_in_one_sample(samplename)
-    print(lcms_collection._lcms[samplename].mass_features_to_df(induced_features = True))
+    lcms_collection.search_for_missing_mass_features_in_collection()
+    print('Sample output:')
+    print(lcms_collection[0].mass_features_to_df(induced_features = True))
 
     #TODO: Add code to load and save information about chromatographic settings
     #TODO: Add code to save and load collection to HDF5 file
-    #TODO: Add code to plot a consensus mass feature
+    #TODO: Generate pivot tables to collect regular and induced mass features
