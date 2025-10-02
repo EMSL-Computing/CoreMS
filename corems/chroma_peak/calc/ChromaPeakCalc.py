@@ -109,12 +109,13 @@ class LCMSMassFeatureCalculation:
         This function calculates the dispersity index of the mass feature and
         stores the result in the `_dispersity_index` attribute. The dispersity index is calculated as the standard
         deviation of the retention times that account for 50% of the cummulative intensity, starting from the most
-        intense point, as described in [1]. Note that this calculation is done on the full EIC data, not just the data within a mass feature's
-        integration bounds.
+        intense point, as described in [1]. Note that this calculation is done within the integration bounds with a pad according to the window factor, where
+        the window factor is parameterized and encapsulated in the parent LCMS object (or, if not available, defaults to 2.0 minutes before and after the apex
 
         Returns
         -------
-        None, stores the result in the `_dispersity_index` attribute of the class.
+        None, stores the result in the `_dispersity_index` attribute of the class and the `_normalized_dispersity_index` attribute, 
+        which is the dispersity index normalized to the total time window used for the calculation (unitless, fraction of total window).
 
         Raises
         ------
@@ -127,25 +128,44 @@ class LCMSMassFeatureCalculation:
         Organic Matter with Liquid Chromatography–Ultrahigh-Resolution Mass Spectrometry."
         Environmental Science & Technology 58.7 (2024): 3267-3277.
         """
+        # Check if LCMSMassFeature has a parent LCMS object with a window factor
+        if hasattr(self, 'mass_spectrum_obj'):
+            window_min = self.mass_spectrum_obj.parameters.lc_ms.dispersity_index_window
+        else:
+            window_min = 3.0  # minutes
+
         # Check if the EIC data is available
         if self.eic_list is None:
             raise ValueError(
                 "EIC data are not available. Please add the EIC data first."
             )
+        
+        # Define start and end of the window around the apex
+        apex_rt = self.retention_time
+        full_time = self._eic_data.time
+        full_eic = self._eic_data.eic
+        left_start = apex_rt - window_min
+        right_end = apex_rt + window_min
+
+        # Extract the EIC data within the defined window
+        time_mask = (full_time >= left_start) & (full_time <= right_end)
+        eic_subset = full_eic[time_mask]
+        time_subset = full_time[time_mask]
 
         # Sort the EIC data and RT data by descending intensity
-        eic_in = self._eic_data.eic.argsort()
-        sorted_eic = self._eic_data.eic[eic_in[::-1]]
-        sorted_rt = self._eic_data.time[eic_in[::-1]]
+        sorted_eic = eic_subset[eic_subset.argsort()[::-1]]
+        sorted_rt = time_subset[eic_subset.argsort()[::-1]]
 
         # Calculate the dispersity index
         cum_sum = np.cumsum(sorted_eic) / np.sum(sorted_eic)
         rt_summ = sorted_rt[np.where(cum_sum < 0.5)]
         if len(rt_summ) > 1:
             d = np.std(rt_summ)
-            self._dispersity_index = d
+            self._dispersity_index = d #minutes
+            self._normalized_dispersity_index = d / (time_subset[-1] - time_subset[0]) #unitless (fraction of total window used)
         elif len(rt_summ) == 1:
             self._dispersity_index = 0
+            self._normalized_dispersity_index = 0
 
     def calc_fraction_height_width(self, fraction: float):
         """
@@ -266,9 +286,9 @@ class LCMSMassFeatureCalculation:
         """
         Calculate the Gaussian similarity score of the mass feature.
         
-        This function fits a Gaussian curve to the EIC data and calculates 
-        the R-squared correlation between the actual EIC and the fitted Gaussian.
-        A higher score indicates better Gaussian shape (ideal chromatographic peak).
+        This function fits a Gaussian curve to the EIC data and evaluates
+        the goodness of fit using R-squared. A score close to 1 indicates
+        the peak closely resembles an ideal Gaussian shape.
         
         Returns
         -------
@@ -290,13 +310,13 @@ class LCMSMassFeatureCalculation:
         intensity_data = np.array(self.eic_list)
         
         if len(time_data) < 4:  # Need minimum points for meaningful fit
-            self._gaussian_similarity = 0.0
+            self._gaussian_similarity = np.nan
             return
         
-        # Normalize intensities for fitting
+        # Check for valid intensity data
         max_intensity = np.max(intensity_data)
         if max_intensity == 0:
-            self._gaussian_similarity = 0.0
+            self._gaussian_similarity = np.nan
             return
         
         try:
@@ -331,32 +351,36 @@ class LCMSMassFeatureCalculation:
             ss_tot = np.sum((intensity_data - np.mean(intensity_data)) ** 2)
             
             if ss_tot == 0:
-                self._gaussian_similarity = 1.0 if ss_res == 0 else 0.0
+                self._gaussian_similarity = np.nan
             else:
                 r_squared = 1 - (ss_res / ss_tot)
-                # Ensure score is between 0 and 1
-                self._gaussian_similarity = max(0.0, min(1.0, r_squared))
+                # R² should be between 0 and 1 for reasonable fits
+                # If negative, the model is worse than the mean - treat as non-computable
+                self._gaussian_similarity = r_squared if r_squared >= 0 else np.nan
                 
         except (RuntimeError, ValueError, TypeError):
-            # Fitting failed, assign poor similarity
-            self._gaussian_similarity = 0.0
+            # Fitting failed, assign NaN
+            self._gaussian_similarity = np.nan
 
     def calc_noise_score(self, noise_window_factor: float = 2.0):
         """
-        Calculate the noise score of the mass feature.
+        Calculate the noise score of the mass feature separately for left and right sides.
         
         This function estimates the signal-to-noise ratio by comparing the peak
-        intensity to the baseline noise level in surrounding regions.
+        intensity to the baseline noise level in surrounding regions. By calculating
+        scores separately for left and right sides, it can detect shoulder peaks
+        and other asymmetric noise patterns.
         
         Parameters
         ----------
         noise_window_factor : float, default 2.0
             Factor to determine noise estimation window size relative to peak width.
             Larger values use wider windows for noise estimation.
+            For example, a value of 2.0 uses a window size equal to twice the peak width (depending on it's start and end scans) on each side.
         
         Returns
         -------
-        None, stores the result in the `_noise_score` attribute of the class.
+        None, stores the result in the `_noise_score` attribute as a tuple (left_score, right_score).
         
         Raises
         ------
@@ -371,21 +395,17 @@ class LCMSMassFeatureCalculation:
         
         # Get full EIC data (not just integration bounds)
         full_time = self._eic_data.time
-        full_eic = self._eic_data.eic_smoothed
+        full_eic = self._eic_data.eic
         
         # Get peak information
         apex_rt = self.retention_time
         peak_intensity = np.max(self.eic_list)
         
-        # Estimate peak width (use half-height width if available, otherwise estimate)
-        if hasattr(self, '_half_height_width') and self._half_height_width is not None:
-            peak_width = np.mean(self._half_height_width)
-        else:
-            # Estimate width from integration bounds
-            peak_width = self.eic_rt_list[-1] - self.eic_rt_list[0]
+        # Retrieve width from integration bounds
+        peak_width = self.eic_rt_list[-1] - self.eic_rt_list[0]
 
         # Define noise estimation windows
-        noise_window_size = peak_width * noise_window_factor
+        noise_window_size = peak_width * noise_window_factor #in minutes
         left_noise_start = apex_rt - peak_width - noise_window_size
         left_noise_end = apex_rt - peak_width
         right_noise_start = apex_rt + peak_width
@@ -398,28 +418,45 @@ class LCMSMassFeatureCalculation:
         left_noise = full_eic[left_noise_mask]
         right_noise = full_eic[right_noise_mask]
         
-        # Combine noise regions
-        noise_data = np.concatenate([left_noise, right_noise])
-        
-        if len(noise_data) == 0:
-            # No noise data available, use minimum intensity as baseline
-            baseline_intensity = np.min(full_eic)
-            noise_std = baseline_intensity * 0.1  # Rough estimate
+        # Calculate left noise score
+        if len(left_noise) == 0:
+            left_score = np.nan
         else:
-            # Calculate baseline and noise statistics
-            baseline_intensity = np.median(noise_data)  # Use median for robustness
-            noise_std = np.std(noise_data)
+            left_baseline = np.median(left_noise)
+            left_noise_std = np.std(left_noise)
             
-            # Handle case where noise_std is very small
-            if noise_std == 0:
-                noise_std = baseline_intensity * 0.01 if baseline_intensity > 0 else 1
+            if left_noise_std == 0:
+                if peak_intensity > left_baseline:
+                    left_score = 1.0
+                else:
+                    left_score = np.nan
+            else:
+                left_signal = peak_intensity - left_baseline
+                if left_signal <= 0:
+                    left_score = 0.0
+                else:
+                    left_snr = left_signal / left_noise_std
+                    left_score = min(1.0, left_snr / (left_snr + 10.0))
         
-        # Calculate signal-to-noise ratio
-        signal = peak_intensity - baseline_intensity
-        if signal <= 0 or noise_std == 0:
-            self._noise_score = 0.0
+        # Calculate right noise score
+        if len(right_noise) == 0:
+            right_score = np.nan
         else:
-            snr = signal / noise_std
-            # Convert to a 0-1 score using sigmoid-like transformation
-            # Score approaches 1 for high S/N ratios, 0 for low ones
-            self._noise_score = min(1.0, snr / (snr + 10.0))
+            right_baseline = np.median(right_noise)
+            right_noise_std = np.std(right_noise)
+            
+            if right_noise_std == 0:
+                if peak_intensity > right_baseline:
+                    right_score = 1.0
+                else:
+                    right_score = np.nan
+            else:
+                right_signal = peak_intensity - right_baseline
+                if right_signal <= 0:
+                    right_score = 0.0
+                else:
+                    right_snr = right_signal / right_noise_std
+                    right_score = min(1.0, right_snr / (right_snr + 10.0))
+        
+        # Store as tuple
+        self._noise_score = (left_score, right_score)
