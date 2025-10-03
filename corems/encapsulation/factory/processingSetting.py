@@ -187,6 +187,33 @@ class LiquidChromatographSetting:
     redundant_feature_retain_n : int, optional
         Number of features to retain in each group when using remove_redundant_mass_features.
         Default is 3.
+    remove_mass_features_by_peak_metrics : bool, optional
+        If True, remove mass features based on their peak metrics such as S/N, Gaussian similarity,
+        dispersity index, and noise score.
+        Called within the LC_Calculations.add_peak_metrics() method.
+        Default is False.
+    mass_feature_attribute_filter_dict : dict, optional
+        Dictionary specifying filtering criteria for mass feature attributes.
+        Each key is an attribute name, and each value is a dict with 'value' and 'operator' keys.
+        
+        Structure: {attribute_name: {'value': threshold, 'operator': comparison}}
+        
+        Available operators:
+        - '>' or 'greater': Keep features where attribute > threshold
+        - '<' or 'less': Keep features where attribute < threshold  
+        - '>=' or 'greater_equal': Keep features where attribute >= threshold
+        - '<=' or 'less_equal': Keep features where attribute <= threshold
+        
+        Examples: 
+        {
+            'noise_score_max': {'value': 0.5, 'operator': '>'},  # Keep if noise_score_max > 0.5
+            'dispersity_index': {'value': 0.1, 'operator': '<'},  # Keep if dispersity_index < 0.1
+            'gaussian_similarity': {'value': 0.7, 'operator': '>='}  # Keep if gaussian_similarity >= 0.7
+        }
+        
+        Available attributes include: 'noise_score', 'noise_score_min', 'noise_score_max', 
+        'gaussian_similarity', 'tailing_factor', 'dispersity_index', 'half_height_width', 'intensity'.
+        Default is {"noise_score_max": {"value": 0.8, "operator": ">="},"noise_score_min": {"value": 0.5, "operator": ">="}},
     peak_picking_method : str, optional
         Peak picking method to use. See implemented_peak_picking_methods for options.
         Default is 'persistent homology'.
@@ -314,6 +341,9 @@ class LiquidChromatographSetting:
     remove_redundant_mass_features: bool = False
     redundant_scan_frequency_min: float = 0.1
     redundant_feature_retain_n: int = 3
+    remove_mass_features_by_peak_metrics: bool = False
+    # note that this is a dictionary of dictionaries and set in __post_init__ instead of here
+    mass_feature_attribute_filter_dict: Dict = dataclasses.field(default_factory=dict)
 
     # Parameters used for 2D peak picking
     peak_picking_method: str = "persistent homology"
@@ -353,6 +383,13 @@ class LiquidChromatographSetting:
     verbose_processing: bool = True
 
     def __post_init__(self):
+        # Set default values for mass_feature_attribute_filter_dict if empty
+        if not self.mass_feature_attribute_filter_dict:
+            self.mass_feature_attribute_filter_dict = {
+                "noise_score_max": {"value": 0.8, "operator": ">="},
+                "noise_score_min": {"value": 0.5, "operator": ">="},
+            }
+        
         # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
