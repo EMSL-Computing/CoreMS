@@ -1,6 +1,3 @@
-# %% Import libs
-import sys
-
 from pathlib import Path
 
 import shutil
@@ -44,10 +41,10 @@ def test_import_lcmsobj_mzml():
         ].mass_spectrum.noise_threshold_method = "relative_abundance"
 
     myLCMSobj.find_mass_features()
+    myLCMSobj.integrate_mass_features()
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=True, spectrum_mode="centroid"
     )
-    myLCMSobj.integrate_mass_features()
     mass_features_df = myLCMSobj.mass_features_to_df()
     assert mass_features_df.shape == (1176, 17)
     
@@ -114,18 +111,17 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
 
     lcms_obj.find_mass_features()
     assert len(lcms_obj.mass_features) == 131
+    lcms_obj.integrate_mass_features(drop_if_fail=True)
+    lcms_obj.add_peak_metrics()
     lcms_obj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile"
     )
-
-    lcms_obj.integrate_mass_features(drop_if_fail=True)
     lcms_obj.deconvolute_ms1_mass_features()
 
     mass_spec_decon = lcms_obj.mass_features[1].mass_spectrum_deconvoluted
     assert len(mass_spec_decon.mspeaks) < len(
         lcms_obj.mass_features[1].mass_spectrum.mspeaks
     )
-    lcms_obj.add_peak_metrics()
     lcms_obj.find_c13_mass_features()
     assert len(lcms_obj.mass_features) == 128
 

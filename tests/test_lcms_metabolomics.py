@@ -55,28 +55,28 @@ def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
     ## peak metrics filtering settings - test the new functionality
     lcms_obj.parameters.lc_ms.remove_mass_features_by_peak_metrics = True
     lcms_obj.parameters.lc_ms.mass_feature_attribute_filter_dict = {
-        'noise_score_max': {'value': 0.1, 'operator': '>='},
-        'noise_score_min': {'value': 0.3, 'operator': '>='},
         'dispersity_index': {'value': 0.5, 'operator': '<'}
     }
 
     # Use persistent homology to find mass features in the lc-ms data
     # Find mass features, cluster, and integrate them.  Then annotate pairs of mass features that are c13 iso pairs.
     lcms_obj.find_mass_features()
-    lcms_obj.add_associated_ms1(
-        auto_process=True, use_parser=False, spectrum_mode="profile"
-    )
     lcms_obj.integrate_mass_features(drop_if_fail=True)
     
     # Record number of mass features before filtering for comparison
     num_features_before_filtering = len(lcms_obj.mass_features)
-
-    # Add peak metrics and filter mass features based on the new parameters
+        # Add peak metrics and filter mass features based on the new parameters
     lcms_obj.add_peak_metrics()
 
     # Record number of mass features after filtering for comparison    
     num_features_after_filtering = len(lcms_obj.mass_features)
-    assert num_features_after_filtering <= num_features_before_filtering
+    assert num_features_after_filtering < num_features_before_filtering
+
+    # Add associated ms1 after integration and peak shape metrics calculation and filtering
+    # This prevents adding unnecessary ms1 data for mass features that will be filtered out
+    lcms_obj.add_associated_ms1(
+        auto_process=True, use_parser=False, spectrum_mode="profile"
+    )
 
     # Add hcd ms2 data to lcms object, using the ms2 mass spectrum parameters
     og_ms_len = len(lcms_obj._ms)
