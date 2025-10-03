@@ -1082,10 +1082,10 @@ class LCCalculations:
         for mf_id in features_to_remove:
             del self.mass_features[mf_id]
         
-        # Clean up unassociated EICs
+        # Clean up unassociated EICs and ms1 data
         self._remove_unassociated_eics()
+        self._remove_unassociated_ms1_spectra()
             
-
     def _remove_unassociated_eics(self) -> None:
         """Remove EICs that are not associated with any mass features.
 
@@ -1107,6 +1107,40 @@ class LCCalculations:
 
         # Remove EICs that are not associated with any mass features
         self.eics = {mz: eic for mz, eic in self.eics.items() if mz in associated_mzs}
+    
+    def _remove_unassociated_ms1_spectra(self) -> None:
+        """Remove MS1 spectra that are not associated with any mass features.
+        This method cleans up the _ms_unprocessed attribute by removing any MS1 spectra that do not correspond to
+        any mass features currently stored in the mass_features attribute. This is useful for freeing up memory
+        and ensuring that only relevant MS1 spectra are retained.
+
+        Returns
+        -------
+        None
+        """
+        if self.mass_features is None or len(self.mass_features) == 0:
+            self._ms_unprocessed = {}
+            return
+
+        # Get the set of m/z values associated with current mass features
+        associated_ms1_scans = {mf.apex_scan for mf in self.mass_features.values()}
+        associated_ms1_scans = [int(scan) for scan in associated_ms1_scans]
+        
+        # Get keys within the _ms attribute (these are individual MassSpectrum objects)
+        current_stored_spectra = list(set(self._ms.keys()))
+        if len(current_stored_spectra) == 0:
+            return
+        current_stored_spectra = [int(scan) for scan in current_stored_spectra]
+
+        # Filter the current_stored_spectra to only ms1 scans
+        current_stored_spectra_ms1 = [ scan for scan in current_stored_spectra if scan in self.ms1_scans ]
+
+        # Remove MS1 spectra that are not associated with any mass features
+        scans_to_drop = [scan for scan in current_stored_spectra_ms1 if scan not in associated_ms1_scans]
+        for scan in scans_to_drop:
+            if scan in self._ms:
+                del self._ms[scan]
+
 class PHCalculations:
     """Methods for performing calculations related to 2D peak picking via persistent homology on LCMS data.
 
