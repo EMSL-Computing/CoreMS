@@ -148,6 +148,12 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
     _tailing_factor : float
         The tailing factor of the feature.
         > 1 indicates tailing, < 1 indicates fronting, = 1 indicates symmetrical peak.
+    _noise_score : tuple
+        The noise score of the feature, as a tuple of (left, right) scores.
+        Each score is a float, with higher values indicating better signal to noise.
+    _gaussian_similarity : float
+        The Gaussian similarity of the feature, as a float between 0 and 1.
+        1 indicates a perfect Gaussian shape, 0 indicates a non-Gaussian shape.
     _ms_deconvoluted_idx : [int]
         The indexes of the mass_spectrum attribute in the deconvoluted mass spectrum.
     is_calibrated : bool
@@ -246,7 +252,13 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         if abs(mz_diff) < 0.01:
             self._mz_exp = new_mz
 
-    def plot(self, to_plot=["EIC", "MS1", "MS2"], return_fig=True, plot_smoothed_eic = False, plot_eic_datapoints = False):
+    def plot(
+        self,
+        to_plot=["EIC", "MS1", "MS2"],
+        return_fig=True,
+        plot_smoothed_eic=False,
+        plot_eic_datapoints=False,
+    ):
         """Plot the mass feature.
 
         Parameters
@@ -305,11 +317,23 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                     "EIC data is not available, cannot plot the mass feature's EIC"
                 )
             axs[i][0].set_title("EIC", loc="left")
-            axs[i][0].plot(self._eic_data.time, self._eic_data.eic, c="tab:blue", label="EIC")
+            axs[i][0].plot(
+                self._eic_data.time, self._eic_data.eic, c="tab:blue", label="EIC"
+            )
             if plot_eic_datapoints:
-                axs[i][0].scatter(self._eic_data.time, self._eic_data.eic, c="tab:blue", label="EIC Data Points")
+                axs[i][0].scatter(
+                    self._eic_data.time,
+                    self._eic_data.eic,
+                    c="tab:blue",
+                    label="EIC Data Points",
+                )
             if plot_smoothed_eic:
-                axs[i][0].plot(self._eic_data.time, self._eic_data.eic_smoothed, c="tab:red", label="Smoothed EIC")
+                axs[i][0].plot(
+                    self._eic_data.time,
+                    self._eic_data.eic_smoothed,
+                    c="tab:red",
+                    label="Smoothed EIC",
+                )
             if self.start_scan is not None:
                 axs[i][0].fill_between(
                     self.eic_rt_list, self.eic_list, color="b", alpha=0.2
@@ -567,7 +591,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
     @property
     def noise_score(self):
         """Mean of left and right noise scores.
-        
+
         Returns
         -------
         float or np.nan
@@ -575,7 +599,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         """
         if self._noise_score is None:
             return np.nan
-        
+
         left, right = self._noise_score
         # Handle NaN values
         if np.isnan(left) and np.isnan(right):
@@ -590,7 +614,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
     @property
     def noise_score_min(self):
         """Minimum of left and right noise scores.
-        
+
         Returns
         -------
         float or np.nan
@@ -598,7 +622,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         """
         if self._noise_score is None:
             return np.nan
-        
+
         left, right = self._noise_score
         # Handle NaN values - nanmin ignores NaN
         return np.nanmin([left, right])
@@ -606,7 +630,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
     @property
     def noise_score_max(self):
         """Maximum of left and right noise scores.
-        
+
         Returns
         -------
         float or np.nan
@@ -614,39 +638,11 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         """
         if self._noise_score is None:
             return np.nan
-        
+
         left, right = self._noise_score
         # Handle NaN values - nanmax ignores NaN
         return np.nanmax([left, right])
 
-    @property
-    def is_shoulder_peak(self):
-        """Flag indicating potential shoulder peak based on asymmetric noise scores.
-        
-        A shoulder peak is indicated when one side has significantly worse noise
-        characteristics than the other, suggesting interference from an adjacent peak.
-        Default threshold is 0.3 difference between left and right scores.
-        
-        Returns
-        -------
-        bool or np.nan
-            True if likely a shoulder peak, False otherwise, or np.nan if scores unavailable.
-        """
-        threshold = 0.3
-        
-        if self._noise_score is None:
-            return np.nan
-        if not isinstance(self._noise_score, tuple):
-            return False
-        
-        left, right = self._noise_score
-        # Can't determine if either is NaN
-        if np.isnan(left) or np.isnan(right):
-            return np.nan
-        
-        # Check if difference exceeds threshold
-        return abs(left - right) > threshold
-    
     @property
     def best_ms2(self):
         """Points to the best representative MS2 mass spectrum
