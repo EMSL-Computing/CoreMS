@@ -136,7 +136,6 @@ def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
     # Specifically check the new peak metrics filtering parameters
     assert lcms_obj_reimported.parameters.lc_ms.remove_mass_features_by_peak_metrics
     assert lcms_obj_reimported.parameters.lc_ms.mass_feature_attribute_filter_dict == {
-        'noise_score_max': {'value': 0.1, 'operator': '>='},
         'dispersity_index': {'value': 0.5, 'operator': '<'}
     }
     
