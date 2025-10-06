@@ -729,6 +729,11 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         induced_features : bool, optional
             If True, calls the induced_mass_features dictionary. Defaults to False.
 
+        Raises
+        --------
+        ValueError
+            If the sample provided doesn't contain the mass feature data.        
+
         Returns
         --------
         pandas.DataFrame
