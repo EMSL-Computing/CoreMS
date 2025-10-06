@@ -522,9 +522,25 @@ class ReadCoreMSHDFMassSpectra(
         # If use_original_parser is True, instantiate the original parser and populate the LCMS object
         if use_original_parser:
             lcms_obj = self.add_original_parser(lcms_obj, raw_file_path=raw_file_path)
+        else:
+            lcms_obj.spectra_parser_class = self.__class__
 
         return lcms_obj
 
+    def get_raw_file_location(self):
+        """
+        Get the raw file location from the HDF5 file attributes.
+
+        Returns
+        -------
+        str
+            The raw file location.
+        """
+        if "original_file_location" in self.h5pydata.attrs:
+            return self.h5pydata.attrs["original_file_location"]
+        else:
+            return None
+    
     def add_original_parser(self, mass_spectra, raw_file_path=None):
         """
         Add the original parser to the mass spectra object.
@@ -536,29 +552,29 @@ class ReadCoreMSHDFMassSpectra(
         raw_file_path : str
             The location of the raw file to parse. Default is None, which attempts to get the raw file path from the HDF5 file.
         """
-        # Try to get the raw file path from the HDF5 file
-        if raw_file_path is None:
-            raw_file_path = self.h5pydata.attrs["original_file_location"]
-            # Check if og_file_location exists, if not raise an error
-            raw_file_path = self.h5pydata.attrs["original_file_location"]
-
-        raw_file_path = Path(raw_file_path)
-        if not raw_file_path.exists():
-            raise FileExistsError(
-                "File does not exist: " + str(raw_file_path),
-                ". Cannot use original parser for instatiating the lcms_obj.",
-            )
-
         # Get the original parser type
         og_parser_type = self.h5pydata.attrs["parser_type"]
 
+        # If raw_file_path is None, get it from the HDF5 file attributes
+        if raw_file_path is None:
+            raw_file_path = self.get_raw_file_location()
+            if raw_file_path is None:
+                raise ValueError(
+                    "Raw file path not found in HDF5 file attributes, cannot instantiate original parser."
+                )
+            
+        # Set the raw file path on the mass_spectra object so the parser knows where to find the raw file
+        mass_spectra.raw_file_location = raw_file_path
+
         if og_parser_type == "ImportMassSpectraThermoMSFileReader":
+            # Check that the parser can be instantiated with the raw file path
             parser = ImportMassSpectraThermoMSFileReader(raw_file_path)
         elif og_parser_type == "MZMLSpectraParser":
+            # Check that the parser can be instantiated with the raw file path
             parser = MZMLSpectraParser(raw_file_path)
 
+        # Set the spectra parser class on the mass_spectra object so the spectra_parser property can be used with the original parser
         mass_spectra.spectra_parser_class = parser.__class__
-        mass_spectra.spectra_parser = parser
 
         return mass_spectra
     
