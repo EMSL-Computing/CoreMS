@@ -541,7 +541,7 @@ class ReadCoreMSHDFMassSpectra(
         else:
             return None
     
-    def add_original_parser(self, mass_spectra, raw_file_path=None):
+    def add_original_parser(self, mass_spectra, raw_file_path=None): 
         """
         Add the original parser to the mass spectra object.
 
