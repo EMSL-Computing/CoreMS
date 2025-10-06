@@ -772,6 +772,12 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             mf_dict = self.induced_mass_features
         else:
             mf_dict = self.mass_features
+        
+        if len(mf_dict) == 0:
+            # Warn that no mass features were found, quit function
+            raise ValueError(
+                "No mass features found in dataset. Have the mass features been added? If this is part of a collection, summary data is aggregated in the attribute 'mass_features_dataframe'"
+                )
             
         cols_in_df = [
             "id",
@@ -1748,7 +1754,42 @@ class LCMSCollection(LCMSCollectionCalculations):
         # Drop the raw data
         del self[sample_idx]._ms_unprocessed[ms_level]
 
+    def collection_pivot_table(self, attribute = 'coll_mf_id'):
+        """Generate a pivot table of all regular and induced mass features in
+        a collection. Default attribute presented is the mass feature ID, also
+        prints a list of other available attributes.
 
+        Parameters
+        -----------
+        attribute : str
+            The desired attribute to be presented in the pivot table. Defaults
+            to mass feature ID
+
+        Returns
+        --------
+        pd.DataFrame
+            A DataFrame that displays one given attribute across all clusters
+            and samples in a collection
+        
+        """
+        mf_pivot = self.mass_features_dataframe.copy()
+        mf_pivot.reset_index(inplace = True)
+
+        for i in range(mf_pivot.sample_id.unique().max() + 1):
+            imf_pivot = self[i].mass_features_to_df(induced_features = True).copy()
+            imf_pivot.reset_index(inplace = True)
+            imf_pivot['sample_id'] = i
+            imf_pivot['cluster'] = np.nan
+            imf_pivot.rename(columns = {'mf_id': 'coll_mf_id'}, inplace = True)
+            for j in range(len(imf_pivot)):
+                imf_pivot.loc[j, 'cluster'] = imf_pivot.loc[j].coll_mf_id.split('_')[0][1:]
+            mf_pivot = pd.concat([mf_pivot, imf_pivot], axis = 0)
+        mf_pivot.reset_index(drop = True, inplace = True)
+        mf_pivot.cluster = mf_pivot.cluster.astype(int)
+        available_attributes = [x for x in mf_pivot.columns if x not in ['cluster', 'sample_id']]
+        print('Attributes available for pivot table:', available_attributes)
+        return mf_pivot.pivot(index = 'cluster', columns = 'sample_id', values = attribute)
+        
     @property
     def parameters(self):
         """
