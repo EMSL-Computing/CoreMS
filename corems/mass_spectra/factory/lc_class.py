@@ -85,7 +85,6 @@ class MassSpectraBase:
         # Add the spectra parser class to the object if it is not None
         if spectra_parser is not None:
             self.spectra_parser_class = spectra_parser.__class__
-            self.spectra_parser = spectra_parser
             # Check that spectra_pasrser.sample_name is same as sample_name etc, raise warning if not
             if (
                 self.sample_name is not None
@@ -115,6 +114,11 @@ class MassSpectraBase:
         self._scan_info = {}
         self._ms = {}
         self._ms_unprocessed = {}
+
+    @property
+    def spectra_parser(self):
+        """Returns an instance of the spectra parser class."""
+        return self.spectra_parser_class(self.file_location)
 
     def add_mass_spectrum(self, mass_spec):
         """Adds a mass spectrum to the dataset.
