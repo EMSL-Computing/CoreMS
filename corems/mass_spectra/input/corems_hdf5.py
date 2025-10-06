@@ -117,22 +117,24 @@ class ReadCoreMSHDFMassSpectra(
         else:
             raise Exception("Scan number not found in HDF5 file.")
 
-    def get_mass_spectra_from_scan_list(self, scan_list, spectrum_mode, auto_process=True):
+    def get_mass_spectra_from_scan_list(
+        self, scan_list, spectrum_mode, auto_process=True
+    ):
         """Return a list of mass spectrum data objects from a list of scan numbers.
-        
+
         Parameters
         ----------
         scan_list : list
             A list of scan numbers to retrieve mass spectra for.
         spectrum_mode : str
             The spectrum mode to use when retrieving the mass spectra.
-            Note that this parameter is not used for CoreMS HDF5 files, as the spectra are already processed and only 
+            Note that this parameter is not used for CoreMS HDF5 files, as the spectra are already processed and only
             centroided spectra are saved.
         auto_process : bool
             If True, automatically process the mass spectra when retrieving them.
-            Note that this parameter is not used for CoreMS HDF5 files, as the spectra are already processed and only 
+            Note that this parameter is not used for CoreMS HDF5 files, as the spectra are already processed and only
             centroided spectra are saved.
-        
+
         Returns
         -------
         list
@@ -146,7 +148,7 @@ class ReadCoreMSHDFMassSpectra(
             else:
                 warnings.warn(f"Scan number {scan_number} not found in HDF5 file.")
         return mass_spectra_list
-    
+
     def load(self) -> None:
         """ """
         pass
@@ -354,7 +356,7 @@ class ReadCoreMSHDFMassSpectra(
             # Populate attributes on MassFeature object that are lists
             for key in dict_group_load[k].keys():
                 setattr(mass_feature, key, dict_group_load[k][key][:])
-            # Convert _noise_score from array to tuple
+                # Convert _noise_score from array to tuple
                 if key == "_noise_score":
                     mass_feature._noise_score = tuple(mass_feature._noise_score)
             mass_spectra.mass_features[int(k)] = mass_feature
@@ -540,8 +542,8 @@ class ReadCoreMSHDFMassSpectra(
             return self.h5pydata.attrs["original_file_location"]
         else:
             return None
-    
-    def add_original_parser(self, mass_spectra, raw_file_path=None): 
+
+    def add_original_parser(self, mass_spectra, raw_file_path=None):
         """
         Add the original parser to the mass spectra object.
 
@@ -562,7 +564,7 @@ class ReadCoreMSHDFMassSpectra(
                 raise ValueError(
                     "Raw file path not found in HDF5 file attributes, cannot instantiate original parser."
                 )
-            
+
         # Set the raw file path on the mass_spectra object so the parser knows where to find the raw file
         mass_spectra.raw_file_location = raw_file_path
 
@@ -577,23 +579,23 @@ class ReadCoreMSHDFMassSpectra(
         mass_spectra.spectra_parser_class = parser.__class__
 
         return mass_spectra
-    
+
     def get_creation_time(self):
         """
         Raise a NotImplemented Warning, as creation time is not available in CoreMS HDF5 files and returning None.
         """
         warnings.warn(
-            "Creation time is not available in CoreMS HDF5 files, returning None." \
+            "Creation time is not available in CoreMS HDF5 files, returning None."
             "This should be accessed through the original parser.",
         )
         return None
-    
+
     def get_instrument_info(self):
         """
         Raise a NotImplemented Warning, as instrument info is not available in CoreMS HDF5 files and returning None.
         """
         warnings.warn(
-            "Instrument info is not available in CoreMS HDF5 files, returning None." \
+            "Instrument info is not available in CoreMS HDF5 files, returning None."
             "This should be accessed through the original parser.",
         )
         return None
