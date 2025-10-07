@@ -711,13 +711,13 @@ class SearchMolecularFormulaWorker:
                 return possible_formula_obj._radical_mz(ion_charge)
 
             elif ion_type == Labels.adduct_ion and adduct_atom:
-                return possible_formula._adduct_mz(ion_charge, adduct_atom)
+                return possible_formula_obj._adduct_mz(ion_charge, adduct_atom)
 
             else:
                 # will return externally calculated mz if is set, #use on Bruker Reference list import
                 # if the ion type is known the ion mass based on molecular formula ion type
                 # if ion type is unknow will return neutral mass
-                return possible_formula.mz_calc
+                return possible_formula_obj.mz_calc
 
         if formulas:
             if isinstance(formulas[0], LCMSLibRefMolecularFormula):
