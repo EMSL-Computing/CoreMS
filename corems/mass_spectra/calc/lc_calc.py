@@ -155,7 +155,15 @@ class LCCalculations:
             plot_res=False,
             apex_indexes=apex_indexes,
         )
-
+        #include_indexes is a generator of tuples (left_index, apex_index, right_index)
+        include_indexes = list(include_indexes)
+        # Add check to make sure that there are at least 1/2 of min_peak_datapoints on either side of the apex
+        indicies = [x for x in include_indexes]
+        for idx in indicies:
+            if (idx[1] - idx[0] < min_peak_datapoints / 2) or (
+                idx[2] - idx[1] < min_peak_datapoints / 2
+            ):
+                include_indexes.remove(idx)
         return include_indexes
 
     def find_nearest_scan(self, rt):
@@ -179,10 +187,17 @@ class LCCalculations:
 
         return real_scan
 
-    def add_peak_metrics(self):
+    def add_peak_metrics(self, remove_by_metrics=True):
         """Add peak metrics to the mass features.
 
         This function calculates the peak metrics for each mass feature and adds them to the mass feature objects.
+
+        Parameters
+        ----------
+        remove_by_metrics : bool, optional
+            If True, remove mass features based on their peak metrics such as S/N, Gaussian similarity,
+            dispersity index, and noise score. Default is True, which checks the setting in the processing parameters.
+            If False, peak metrics are calculated but no mass features are removed, regardless of the setting in the processing parameters.
         """
         # Check that at least some mass features have eic data
         if not any([mf._eic_data is not None for mf in self.mass_features.values()]):
@@ -197,6 +212,12 @@ class LCCalculations:
                 mass_feature.calc_half_height_width()
                 mass_feature.calc_tailing_factor()
                 mass_feature.calc_dispersity_index()
+                mass_feature.calc_gaussian_similarity()
+                mass_feature.calc_noise_score()
+        
+        # Remove mass features by peak metrics if designated in parameters
+        if self.parameters.lc_ms.remove_mass_features_by_peak_metrics and remove_by_metrics:
+            self._remove_mass_features_by_peak_metrics()
 
     def get_average_mass_spectrum(
         self,
@@ -373,6 +394,10 @@ class LCCalculations:
                 )
         else:
             raise ValueError("Peak picking method not implemented")
+        
+        # Remove noisey mass features if designated in parameters
+        if self.parameters.lc_ms.remove_redundant_mass_features:
+            self._remove_redundant_mass_features()
 
     def integrate_mass_features(
         self, drop_if_fail=True, drop_duplicates=True, ms_level=1
@@ -417,13 +442,6 @@ class LCCalculations:
         else:
             raise ValueError(
                 "No mass features found, did you run find_mass_features() first?"
-            )
-        # Check if mass_spectrum exists on each mass feature
-        if not all(
-            [mf.mass_spectrum is not None for mf in self.mass_features.values()]
-        ):
-            raise ValueError(
-                "Mass spectrum must be associated with each mass feature, did you run add_associated_ms1() first?"
             )
 
         # Subset scan data to only include correct ms_level
@@ -839,6 +857,289 @@ class LCCalculations:
 
             mass_feature.associated_mass_features_deconvoluted = mfs_associated_decon
 
+    def _remove_redundant_mass_features(
+        self,
+        ) -> None:
+        """
+        Identify and remove redundant mass features that are likely contaminants based on their m/z values and scan frequency. 
+        Especially useful for HILIC data where signals do not return to baseline between peaks or for data with significant background noise.
+        
+        Contaminants are characterized by:
+        1. Similar m/z values (within ppm_tolerance)
+        2. High frequency across scan numbers (ubiquitous presence)
+    
+        Notes
+        -----
+        Depends on self.mass_features being populated, uses the parameters in self.parameters.lc_ms for tolerances (mass_feature_cluster_mz_tolerance_rel)
+        """
+        ppm_tolerance = self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel*1e6
+        min_scan_frequency = self.parameters.lc_ms.redundant_scan_frequency_min
+        n_retain = self.parameters.lc_ms.redundant_feature_retain_n
+
+        df = self.mass_features_to_df()
+
+        if df.empty:
+            return pd.DataFrame()
+        # df index should be mf_id
+        if 'mf_id' not in df.columns:
+            if 'mf_id' in df.index.names:
+                df = df.reset_index()
+            else:
+                raise ValueError("DataFrame must contain 'mf_id' column or index.")
+        
+        # Sort by m/z for efficient grouping
+        df_sorted = df.sort_values('mz').reset_index(drop=True)
+        
+        # Calculate total number of unique scans for frequency calculation
+        # Calculate total possible scans (check the cluster rt tolerance and the min rt and max rt of the data)
+        total_time = self.scan_df['scan_time'].max() - self.scan_df['scan_time'].min()
+        cluster_rt_tolerance = self.parameters.lc_ms.mass_feature_cluster_rt_tolerance
+        # If the feature was detected in every possible scan (and then rolled up), it would be in this many scans
+        total_scans =  int(total_time / cluster_rt_tolerance) + 1
+
+        # Group similar m/z values using ppm tolerance
+        mz_groups = []
+        current_group = []
+        
+        for i, row in df_sorted.iterrows():
+            current_mz = row['mz']
+            
+            if not current_group:
+                # Start first group
+                current_group = [i]
+            else:
+                # Check if current m/z is within tolerance of group representative
+                group_representative_mz = df_sorted.iloc[current_group[0]]['mz']
+                ppm_diff = abs(current_mz - group_representative_mz) / group_representative_mz * 1e6
+                
+                if ppm_diff <= ppm_tolerance:
+                    # Add to current group
+                    current_group.append(i)
+                else:
+                    # Start new group, but first process current group
+                    if len(current_group) > 0:
+                        mz_groups.append(current_group)
+                    current_group = [i]
+        
+        # Don't forget the last group
+        if current_group:
+            mz_groups.append(current_group)
+        
+        # Analyze each m/z group for contaminant characteristics
+        
+        for group_indices in mz_groups:
+            group_data = df_sorted.iloc[group_indices]
+            
+            # Calculate group statistics
+            unique_scans = group_data['apex_scan'].nunique()
+            scan_frequency = unique_scans / total_scans
+            
+            # Check if this group meets contaminant criteria
+            if scan_frequency >= min_scan_frequency:
+                group_data = group_data.sort_values('intensity', ascending=False)
+                non_representative_mf_id = group_data.iloc[n_retain:]['mf_id'].tolist()  # These will be removed
+
+                self.mass_features = {
+                    k: v for k, v in self.mass_features.items() if k not in non_representative_mf_id
+                }
+
+    def _remove_mass_features_by_peak_metrics(self) -> None:
+        """Remove mass features based on peak metrics defined in mass_feature_attribute_filter_dict.
+        
+        This method filters mass features based on various peak shape metrics and quality indicators
+        such as noise scores, Gaussian similarity, tailing factors, dispersity index, etc.
+        
+        The filtering criteria are defined in the mass_feature_attribute_filter_dict parameter,
+        which should contain attribute names as keys and filter specifications as values.
+        
+        Filter specification format:
+        {attribute_name: {'value': threshold, 'operator': comparison}}
+        
+        Available operators:
+        - '>' or 'greater': Keep features where attribute > threshold
+        - '<' or 'less': Keep features where attribute < threshold  
+        - '>=' or 'greater_equal': Keep features where attribute >= threshold
+        - '<=' or 'less_equal': Keep features where attribute <= threshold
+        
+        Examples:
+        - {'noise_score_max': {'value': 0.5, 'operator': '>='}} - Keep features with noise_score_max >= 0.5
+        - {'dispersity_index': {'value': 0.1, 'operator': '<'}} - Keep features with dispersity_index < 0.1
+        - {'gaussian_similarity': {'value': 0.7, 'operator': '>='}} - Keep features with gaussian_similarity >= 0.7
+        
+        Returns
+        -------
+        None
+            Modifies self.mass_features in place by removing filtered features.
+            
+        Raises
+        ------
+        ValueError
+            If no mass features are found, if an invalid attribute is specified, or if filter specification is malformed.
+        """
+        if self.mass_features is None or len(self.mass_features) == 0:
+            raise ValueError("No mass features found, run find_mass_features() first")
+            
+        filter_dict = self.parameters.lc_ms.mass_feature_attribute_filter_dict
+        
+        if not filter_dict:
+            # No filtering criteria specified, return early
+            return
+            
+        verbose = self.parameters.lc_ms.verbose_processing
+        initial_count = len(self.mass_features)
+        
+        if verbose:
+            print(f"Filtering mass features using peak metrics. Initial count: {initial_count}")
+            
+        # List to collect IDs of mass features to remove
+        features_to_remove = []
+        
+        for mf_id, mass_feature in self.mass_features.items():
+            should_remove = False
+            
+            for attribute_name, filter_spec in filter_dict.items():
+                # Validate filter specification structure
+                if not isinstance(filter_spec, dict):
+                    raise ValueError(f"Filter specification for '{attribute_name}' must be a dictionary with 'value' and 'operator' keys")
+                
+                if 'value' not in filter_spec or 'operator' not in filter_spec:
+                    raise ValueError(f"Filter specification for '{attribute_name}' must contain both 'value' and 'operator' keys")
+                
+                threshold_value = filter_spec['value']
+                operator = filter_spec['operator'].lower().strip()
+                
+                # Validate operator
+                valid_operators = {'>', '<', '>=', '<=', 'greater', 'less', 'greater_equal', 'less_equal'}
+                if operator not in valid_operators:
+                    raise ValueError(f"Invalid operator '{operator}' for attribute '{attribute_name}'. Valid operators: {valid_operators}")
+                
+                # Normalize operator names
+                operator_map = {
+                    'greater': '>',
+                    'less': '<', 
+                    'greater_equal': '>=',
+                    'less_equal': '<='
+                }
+                operator = operator_map.get(operator, operator)
+                
+                # Get the attribute value from the mass feature
+                try:
+                    if hasattr(mass_feature, attribute_name):
+                        attribute_value = getattr(mass_feature, attribute_name)
+                    else:
+                        raise ValueError(f"Mass feature does not have attribute '{attribute_name}'")
+                        
+                    # Handle None values or attributes that haven't been calculated
+                    if attribute_value is None:
+                        if verbose:
+                            print(f"Warning: Mass feature {mf_id} has None value for '{attribute_name}'. Removing feature.")
+                        should_remove = True
+                        break
+                        
+                    # Handle numpy arrays (like half_height_width which returns mean)
+                    if hasattr(attribute_value, '__len__') and not isinstance(attribute_value, str):
+                        # For arrays, we use the mean or appropriate summary statistic
+                        if attribute_name == 'half_height_width':
+                            # half_height_width property already returns the mean
+                            pass
+                        else:
+                            attribute_value = float(np.mean(attribute_value))
+                    
+                    # Handle NaN values
+                    if np.isnan(float(attribute_value)):
+                        if verbose:
+                            print(f"Warning: Mass feature {mf_id} has NaN value for '{attribute_name}'. Removing feature.")
+                        should_remove = True
+                        break
+                    
+                    # Apply the threshold comparison based on operator
+                    attribute_value = float(attribute_value)
+                    threshold_value = float(threshold_value)
+                    
+                    if operator == '>' and not (attribute_value > threshold_value):
+                        should_remove = True
+                        break
+                    elif operator == '<' and not (attribute_value < threshold_value):
+                        should_remove = True
+                        break
+                    elif operator == '>=' and not (attribute_value >= threshold_value):
+                        should_remove = True
+                        break  
+                    elif operator == '<=' and not (attribute_value <= threshold_value):
+                        should_remove = True
+                        break
+                        
+                except (AttributeError, ValueError, TypeError) as e:
+                    if verbose:
+                        print(f"Error evaluating filter '{attribute_name}' for mass feature {mf_id}: {e}")
+                    should_remove = True
+                    break
+            
+            if should_remove:
+                features_to_remove.append(mf_id)
+        
+        # Remove filtered mass features
+        for mf_id in features_to_remove:
+            del self.mass_features[mf_id]
+        
+        # Clean up unassociated EICs and ms1 data
+        self._remove_unassociated_eics()
+        self._remove_unassociated_ms1_spectra()
+            
+    def _remove_unassociated_eics(self) -> None:
+        """Remove EICs that are not associated with any mass features.
+
+        This method cleans up the eics attribute by removing any EICs that do not correspond to
+        any mass features currently stored in the mass_features attribute. This is useful for
+        freeing up memory and ensuring that only relevant EICs are retained.
+
+        Returns
+        -------
+        None
+            Modifies self.eics in place by removing unassociated EICs.
+        """
+        if self.mass_features is None or len(self.mass_features) == 0:
+            self.eics = {}
+            return
+
+        # Get the set of m/z values associated with current mass features
+        associated_mzs = {mf.mz for mf in self.mass_features.values()}
+
+        # Remove EICs that are not associated with any mass features
+        self.eics = {mz: eic for mz, eic in self.eics.items() if mz in associated_mzs}
+    
+    def _remove_unassociated_ms1_spectra(self) -> None:
+        """Remove MS1 spectra that are not associated with any mass features.
+        This method cleans up the _ms_unprocessed attribute by removing any MS1 spectra that do not correspond to
+        any mass features currently stored in the mass_features attribute. This is useful for freeing up memory
+        and ensuring that only relevant MS1 spectra are retained.
+
+        Returns
+        -------
+        None
+        """
+        if self.mass_features is None or len(self.mass_features) == 0:
+            self._ms_unprocessed = {}
+            return
+
+        # Get the set of m/z values associated with current mass features
+        associated_ms1_scans = {mf.apex_scan for mf in self.mass_features.values()}
+        associated_ms1_scans = [int(scan) for scan in associated_ms1_scans]
+        
+        # Get keys within the _ms attribute (these are individual MassSpectrum objects)
+        current_stored_spectra = list(set(self._ms.keys()))
+        if len(current_stored_spectra) == 0:
+            return
+        current_stored_spectra = [int(scan) for scan in current_stored_spectra]
+
+        # Filter the current_stored_spectra to only ms1 scans
+        current_stored_spectra_ms1 = [ scan for scan in current_stored_spectra if scan in self.ms1_scans ]
+
+        # Remove MS1 spectra that are not associated with any mass features
+        scans_to_drop = [scan for scan in current_stored_spectra_ms1 if scan not in associated_ms1_scans]
+        for scan in scans_to_drop:
+            if scan in self._ms:
+                del self._ms[scan]
 
 class PHCalculations:
     """Methods for performing calculations related to 2D peak picking via persistent homology on LCMS data.

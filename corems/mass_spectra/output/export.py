@@ -1110,6 +1110,11 @@ class LCMSExport(HighResMassSpectraExport):
                                     mass_features_group[str(k)].create_dataset(
                                         str(k2), data=array
                                     )
+                                elif k2 == "_noise_score":
+                                    array = np.array(v2)
+                                    mass_features_group[str(k)].create_dataset(
+                                        str(k2), data=array
+                                    )
                                 elif (
                                     isinstance(v2, int)
                                     or isinstance(v2, float)

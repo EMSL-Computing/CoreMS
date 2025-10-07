@@ -113,95 +113,195 @@ class LiquidChromatographSetting:
     Attributes
     ----------
     scans : list or tuple, optional
-        List of select scan to average or a tuple containing the range to average. Default is (0, 1).
+        List of select scan to average or a tuple containing the range to average.
+        Default is (-1, -1).
     eic_tolerance_ppm : float, optional
-        Mass tolerance in ppm for extracted ion chromatogram peak detection. Default is 5.
+        Mass tolerance in ppm for extracted ion chromatogram peak detection.
+        Default is 5.
     correct_eic_baseline : bool, optional
-        If True, correct the baseline of the extracted ion chromatogram. Default is True.
+        If True, correct the baseline of the extracted ion chromatogram.
+        Default is True.
     smooth_window : int, optional
-        Window size for smoothing the ion chromatogram (extracted or total). Default is 5.
+        Window size for smoothing the ion chromatogram (extracted or total).
+        Default is 5.
     smooth_method : str, optional
-        Smoothing method to use. Default is 'savgol'. Other options are 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar'.
+        Smoothing method to use. See implemented_smooth_method for options.
+        Default is 'savgol'.
     implemented_smooth_method : tuple, optional
-        Smoothing methods that can be implemented. Values are ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar').
+        Smoothing methods that can be implemented.
+        Default is ('savgol', 'hanning', 'blackman', 'bartlett', 'flat', 'boxcar').
     savgol_pol_order : int, optional
-        Polynomial order for Savitzky-Golay smoothing. Default is 2.
+        Polynomial order for Savitzky-Golay smoothing.
+        Default is 2.
     consecutive_scan_min : int, optional
-        Minimum number of consecutive scans to consider for peak detection. Default is 0 for backwards compatibility, but a value of 3 is recommended.
+        Minimum number of consecutive scans to consider for peak detection.
+        Default is 0 for backwards compatibility, but a value of 3 is recommended.
     peak_height_max_percent : float, optional
-        1-100 % used for baseline detection use 0.1 for second_derivative and 10 for other methods. Default is 10.
+        1-100 % used for baseline detection use 0.1 for second_derivative and 10 for other methods.
+        Default is 10.
     peak_max_prominence_percent : float, optional
-        1-100 % used for baseline detection. Default is 1.
+        1-100 % used for baseline detection.
+        Default is 1.
     peak_derivative_threshold : float, optional
-        Threshold for defining derivative crossing. Default is 0.0005.
+        Threshold for defining derivative crossing.
+        Default is 0.0005.
     min_peak_datapoints : float, optional
-        minimum data point to define a chromatografic peak. Default is 5.
+        minimum data point to define a chromatografic peak.
+        Default is 5.
     noise_threshold_method : str, optional
-        Method for detecting noise threshold. Default is 'manual_relative_abundance'.
+        Method for detecting noise threshold.
+        Default is 'manual_relative_abundance'.
     noise_threshold_methods_implemented : tuple, optional
-        Methods for detected noise threshold that can be implemented. Default is ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative').
+        Methods for detected noise threshold that can be implemented.
+        Default is ('auto_relative_abundance', 'manual_relative_abundance', 'second_derivative').
     peak_height_min_percent : float, optional
-        0-100 % used for peak detection. Default is 0.1.
+        0-100 % used for peak detection.
+        Default is 0.1.
     eic_signal_threshold : float, optional
-        0-100 % used for extracted ion chromatogram peak detection. Default is 0.01.
+        0-100 % used for extracted ion chromatogram peak detection.
+        Default is 0.01.
     eic_buffer_time : float, optional
-        Buffer time to add to the start and end of the plot of the extracted ion chromatogram, in minutes. Default is 1.5.
+        Buffer time to add to the start and end of the plot of the extracted ion chromatogram, in minutes.
+        Default is 1.5.
+    dispersity_index_window : float, optional
+        Dispersity index window size, in minutes.
+        Default is 3.0.
+    noise_window_factor : float, optional
+        Factor to determine noise estimation window size relative to peak width.
+        Larger values use wider windows for noise estimation.
+        For example, a value of 2.0 uses a window size equal to twice the peak width
+        (depending on it's start and end scans) on each side.
+        Called within the LCMSMassFeature.calc_noise_score() method.
+        Default is 2.0.
+    remove_redundant_mass_features : bool, optional
+        If True, remove redundant mass features that are likely contaminants based on
+        their m/z values and scan frequency.
+        Especially useful for HILIC data where signals do not return to baseline between peaks
+        or for data with significant background noise.
+        Called within the LC_Calculations.find_mass_features() method.
+        Default is False.
+    redundant_scan_frequency_min : float, optional
+        Minimum fraction of scans that must contain the m/z to be considered a likely
+        noise/contaminant when using remove_redundant_mass_features.
+        Default is 0.1 (10% of scans).
+    redundant_feature_retain_n : int, optional
+        Number of features to retain in each group when using remove_redundant_mass_features.
+        Default is 3.
+    remove_mass_features_by_peak_metrics : bool, optional
+        If True, remove mass features based on their peak metrics such as S/N, Gaussian similarity,
+        dispersity index, and noise score.
+        Called within the LC_Calculations.add_peak_metrics() method.
+        Default is False.
+    mass_feature_attribute_filter_dict : dict, optional
+        Dictionary specifying filtering criteria for mass feature attributes.
+        Each key is an attribute name, and each value is a dict with 'value' and 'operator' keys.
+        
+        Structure: {attribute_name: {'value': threshold, 'operator': comparison}}
+        
+        Available operators:
+        - '>' or 'greater': Keep features where attribute > threshold
+        - '<' or 'less': Keep features where attribute < threshold  
+        - '>=' or 'greater_equal': Keep features where attribute >= threshold
+        - '<=' or 'less_equal': Keep features where attribute <= threshold
+        
+        Examples: 
+        {
+            'noise_score_max': {'value': 0.5, 'operator': '>'},  # Keep if noise_score_max > 0.5
+            'dispersity_index': {'value': 0.1, 'operator': '<'},  # Keep if dispersity_index < 0.1
+            'gaussian_similarity': {'value': 0.7, 'operator': '>='}  # Keep if gaussian_similarity >= 0.7
+        }
+        
+        Available attributes include: 'noise_score', 'noise_score_min', 'noise_score_max', 
+        'gaussian_similarity', 'tailing_factor', 'dispersity_index', 'half_height_width', 'intensity'.
+        Default is {"noise_score_max": {"value": 0.8, "operator": ">="},"noise_score_min": {"value": 0.5, "operator": ">="}},
     peak_picking_method : str, optional
-        Peak picking method to use. Default is 'persistent homology'. Other options are 'centroided_persistent_homology'.
+        Peak picking method to use. See implemented_peak_picking_methods for options.
+        Default is 'persistent homology'.
     implemented_peak_picking_methods : tuple, optional
-        Peak picking methods that can be implemented. Default is ('persistent homology', 'centroided_persistent_homology').
+        Peak picking methods that can be implemented.
+        Default is ('persistent homology', 'centroided_persistent_homology').
     ph_smooth_it : int, optional
         Number of iterations to use for smoothing prior to finding mass features.
         Used only for "persistent homology" peak picking method.
-        Called within the PHCalculations.find_mass_features_ph() method. Default is 7.
+        Called within the PHCalculations.find_mass_features_ph() method.
+        Default is 1.
     ph_smooth_radius_mz : int, optional
         Radius in m/z steps (not daltons) for smoothing prior to finding mass features.
         Used only for "persistent homology" peak picking method.
-        Called within the PHCalculations.find_mass_features_ph() method. Default is 0.
+        Called within the PHCalculations.find_mass_features_ph() method.
+        Default is 0.
     ph_smooth_radius_scan : int, optional
         Radius in scan steps for smoothing prior to finding mass features.
         Used only for "persistent homology" peak picking method.
-        Called within the PHCalculations.find_mass_features_ph() method. Default is 3.
-    ph_inten_min_rel : int, optional
+        Called within the PHCalculations.find_mass_features_ph() method.
+        Default is 1.
+    ph_inten_min_rel : float, optional
         Relative minimum intensity to use for finding mass features for persistent homology.
         Used only for "persistent homology" peak picking method.
         Calculated as a fraction of the maximum intensity of the unprocessed profile data (mz, scan).
-        Called within the PH_Calculations.find_mass_features() method. Default is 0.001.
-    ph_persis_min_rel : int, optional
+        Called within the PH_Calculations.find_mass_features() method.
+        Default is 0.001.
+    ph_persis_min_rel : float, optional
         Relative minimum persistence for retaining mass features.
         Used for both "persistent homology" and "centroided_persistent_homology" peak picking methods.
         Calculated as a fraction of the maximum intensity of the unprocessed profile data (mz, scan).
         Should be greater to or equal to ph_inten_min_rel.
-        Called within the PH_Calculations.find_mass_features() method. Default is 0.001.
+        Called within the PH_Calculations.find_mass_features() method.
+        Default is 0.001.
     mass_feature_cluster_mz_tolerance_rel : float, optional
         Relative m/z tolerance to use for clustering mass features.
-        Used for both "persistent homology" and "centroided_persistent_homology" peak picking methods.
-        Called with the PHCalculations.cluster_mass_features() and the LCCalculations.deconvolute_ms1_mass_features() methods.
-        Default is 5E-6 (5 ppm).
+        Used for both "persistent homology" and "centroided_persistent_homology"
+        peak picking methods.
+        Called with the PHCalculations.cluster_mass_features() and the
+        LCCalculations.deconvolute_ms1_mass_features() methods.
+        Default is 5e-6 (5 ppm).
     mass_feature_cluster_rt_tolerance : float, optional
         Retention time tolerance to use for clustering mass features, in minutes.
-        Used for both "persistent homology" and "centroided_persistent_homology" peak picking methods.
-        Called with the PHCalculations.cluster_mass_features() and the LCCalculations.deconvolute_ms1_mass_features() methods.
-        Default is 0.2.
+        Used for both "persistent homology" and "centroided_persistent_homology"
+        peak picking methods.
+        Called with the PHCalculations.cluster_mass_features() and the
+        LCCalculations.deconvolute_ms1_mass_features() methods.
+        Default is 0.3.
     ms1_scans_to_average : int, optional
         Number of MS1 scans to average for mass-feature associated m/zs.
-        Called within the LCMSBase.add_associated_ms1() method. Default is 1.
+        Called within the LCMSBase.add_associated_ms1() method.
+        Default is 1.
     ms1_deconvolution_corr_min : float, optional
         Minimum correlation to use for deconvoluting MS1 mass features.
         Called within the LCCalculations.deconvolute_ms1_mass_features() method.
         Default is 0.8.
     ms2_dda_rt_tolerance : float, optional
-        Retention time tolerance to use for associating MS2 spectra to mass features, in minutes. Called within the LCMSBase.add_associated_ms2_dda() method. Default is 0.15.
+        Retention time tolerance to use for associating MS2 spectra to mass features, in minutes.
+        Called within the LCMSBase.add_associated_ms2_dda() method.
+        Default is 0.15.
     ms2_dda_mz_tolerance : float, optional
-        Mass tolerance to use for associating MS2 spectra to mass features. Called within the LCMSBase.add_associated_ms2_dda() method. Default is 0.05.
+        Mass tolerance to use for associating MS2 spectra to mass features.
+        Called within the LCMSBase.add_associated_ms2_dda() method.
+        Default is 0.05.
     ms2_min_fe_score : float, optional
-        Minimum flash entropy for retaining MS2 annotations. Called within the LCMSSpectralSearch.fe_search() method. Default is 0.2.
+        Minimum flash entropy for retaining MS2 annotations.
+        Called within the LCMSSpectralSearch.fe_search() method.
+        Default is 0.2.
     search_as_lipids : bool, optional
-        If True, prepare the database for lipid searching. Called within the LCMSSpectralSearch.fe_prep_search_db() method. Default is False.
+        If True, prepare the database for lipid searching.
+        Called within the LCMSSpectralSearch.fe_prep_search_db() method.
+        Default is False.
     include_fragment_types : bool, optional
-        If True, include fragment types in the database. Called within the LCMSSpectralSearch.fe_search() and related methods. Default is False.
+        If True, include fragment types in the database.
+        Called within the LCMSSpectralSearch.fe_search() and related methods.
+        Default is False.
+    export_profile_spectra : bool, optional
+        If True, export profile spectra data.
+        Default is False.
+    export_eics : bool, optional
+        If True, export extracted ion chromatograms.
+        Default is True.
+    export_unprocessed_ms1 : bool, optional
+        If True, export unprocessed MS1 data.
+        Default is False.
     verbose_processing : bool, optional
-        If True, print verbose processing information. Default is True.
+        If True, print verbose processing information.
+        Default is True.
     """
 
     scans: list | tuple = (-1, -1)
@@ -234,6 +334,16 @@ class LiquidChromatographSetting:
     peak_height_min_percent: float = 0.1
     eic_signal_threshold: float = 0.01
     eic_buffer_time = 1.5
+    dispersity_index_window: float = 3.0  # minutes
+    noise_window_factor: float = 2.0  # times the peak width for detemining SN for EIC
+
+    # Parameters used for filtering mass features after peak picking
+    remove_redundant_mass_features: bool = False
+    redundant_scan_frequency_min: float = 0.1
+    redundant_feature_retain_n: int = 3
+    remove_mass_features_by_peak_metrics: bool = False
+    # note that this is a dictionary of dictionaries and set in __post_init__ instead of here
+    mass_feature_attribute_filter_dict: Dict = dataclasses.field(default_factory=dict)
 
     # Parameters used for 2D peak picking
     peak_picking_method: str = "persistent homology"
@@ -273,6 +383,13 @@ class LiquidChromatographSetting:
     verbose_processing: bool = True
 
     def __post_init__(self):
+        # Set default values for mass_feature_attribute_filter_dict if empty
+        if not self.mass_feature_attribute_filter_dict:
+            self.mass_feature_attribute_filter_dict = {
+                "noise_score_max": {"value": 0.8, "operator": ">="},
+                "noise_score_min": {"value": 0.5, "operator": ">="},
+            }
+        
         # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)

@@ -117,6 +117,38 @@ class ReadCoreMSHDFMassSpectra(
         else:
             raise Exception("Scan number not found in HDF5 file.")
 
+    def get_mass_spectra_from_scan_list(
+        self, scan_list, spectrum_mode, auto_process=True
+    ):
+        """Return a list of mass spectrum data objects from a list of scan numbers.
+
+        Parameters
+        ----------
+        scan_list : list
+            A list of scan numbers to retrieve mass spectra for.
+        spectrum_mode : str
+            The spectrum mode to use when retrieving the mass spectra.
+            Note that this parameter is not used for CoreMS HDF5 files, as the spectra are already processed and only
+            centroided spectra are saved.
+        auto_process : bool
+            If True, automatically process the mass spectra when retrieving them.
+            Note that this parameter is not used for CoreMS HDF5 files, as the spectra are already processed and only
+            centroided spectra are saved.
+
+        Returns
+        -------
+        list
+            A list of mass spectrum data objects corresponding to the provided scan numbers.
+        """
+        mass_spectra_list = []
+        for scan_number in scan_list:
+            if scan_number in self.scan_number_list:
+                mass_spec = self.get_mass_spectrum_from_scan(scan_number)
+                mass_spectra_list.append(mass_spec)
+            else:
+                warnings.warn(f"Scan number {scan_number} not found in HDF5 file.")
+        return mass_spectra_list
+
     def load(self) -> None:
         """ """
         pass
@@ -324,7 +356,9 @@ class ReadCoreMSHDFMassSpectra(
             # Populate attributes on MassFeature object that are lists
             for key in dict_group_load[k].keys():
                 setattr(mass_feature, key, dict_group_load[k][key][:])
-
+                # Convert _noise_score from array to tuple
+                if key == "_noise_score":
+                    mass_feature._noise_score = tuple(mass_feature._noise_score)
             mass_spectra.mass_features[int(k)] = mass_feature
 
         # Associate mass features with ms1 and ms2 spectra, if available
@@ -490,8 +524,24 @@ class ReadCoreMSHDFMassSpectra(
         # If use_original_parser is True, instantiate the original parser and populate the LCMS object
         if use_original_parser:
             lcms_obj = self.add_original_parser(lcms_obj, raw_file_path=raw_file_path)
+        else:
+            lcms_obj.spectra_parser_class = self.__class__
 
         return lcms_obj
+
+    def get_raw_file_location(self):
+        """
+        Get the raw file location from the HDF5 file attributes.
+
+        Returns
+        -------
+        str
+            The raw file location.
+        """
+        if "original_file_location" in self.h5pydata.attrs:
+            return self.h5pydata.attrs["original_file_location"]
+        else:
+            return None
 
     def add_original_parser(self, mass_spectra, raw_file_path=None):
         """
@@ -504,48 +554,48 @@ class ReadCoreMSHDFMassSpectra(
         raw_file_path : str
             The location of the raw file to parse. Default is None, which attempts to get the raw file path from the HDF5 file.
         """
-        # Try to get the raw file path from the HDF5 file
-        if raw_file_path is None:
-            raw_file_path = self.h5pydata.attrs["original_file_location"]
-            # Check if og_file_location exists, if not raise an error
-            raw_file_path = self.h5pydata.attrs["original_file_location"]
-
-        raw_file_path = Path(raw_file_path)
-        if not raw_file_path.exists():
-            raise FileExistsError(
-                "File does not exist: " + str(raw_file_path),
-                ". Cannot use original parser for instatiating the lcms_obj.",
-            )
-
         # Get the original parser type
         og_parser_type = self.h5pydata.attrs["parser_type"]
 
+        # If raw_file_path is None, get it from the HDF5 file attributes
+        if raw_file_path is None:
+            raw_file_path = self.get_raw_file_location()
+            if raw_file_path is None:
+                raise ValueError(
+                    "Raw file path not found in HDF5 file attributes, cannot instantiate original parser."
+                )
+
+        # Set the raw file path on the mass_spectra object so the parser knows where to find the raw file
+        mass_spectra.raw_file_location = raw_file_path
+
         if og_parser_type == "ImportMassSpectraThermoMSFileReader":
+            # Check that the parser can be instantiated with the raw file path
             parser = ImportMassSpectraThermoMSFileReader(raw_file_path)
         elif og_parser_type == "MZMLSpectraParser":
+            # Check that the parser can be instantiated with the raw file path
             parser = MZMLSpectraParser(raw_file_path)
 
+        # Set the spectra parser class on the mass_spectra object so the spectra_parser property can be used with the original parser
         mass_spectra.spectra_parser_class = parser.__class__
-        mass_spectra.spectra_parser = parser
 
         return mass_spectra
-    
+
     def get_creation_time(self):
         """
         Raise a NotImplemented Warning, as creation time is not available in CoreMS HDF5 files and returning None.
         """
         warnings.warn(
-            "Creation time is not available in CoreMS HDF5 files, returning None." \
+            "Creation time is not available in CoreMS HDF5 files, returning None."
             "This should be accessed through the original parser.",
         )
         return None
-    
+
     def get_instrument_info(self):
         """
         Raise a NotImplemented Warning, as instrument info is not available in CoreMS HDF5 files and returning None.
         """
         warnings.warn(
-            "Instrument info is not available in CoreMS HDF5 files, returning None." \
+            "Instrument info is not available in CoreMS HDF5 files, returning None."
             "This should be accessed through the original parser.",
         )
         return None

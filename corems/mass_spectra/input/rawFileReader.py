@@ -1515,10 +1515,34 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
 
         return res, scan_df
 
+    def get_mass_spectra_from_scan_list(
+        self, scan_list, spectrum_mode, auto_process=True
+    ):
+        """Instantiate multiple MassSpecBase objects from a list of scan numbers from the binary file.
+        
+        Parameters
+        ----------
+        scan_list : list[int]
+            A list of scan numbers to extract the mass spectra from.
+        spectrum_mode : str
+            The type of mass spectrum to extract.  Must be 'profile' or 'centroid'.
+            All scans in the list must be of the same type.
+        auto_process : bool, optional
+            If True, perform peak picking and noise threshold calculation after creating the mass spectrum object. Default is True.
+        """
+        mass_spectra = []
+        for scan in scan_list:
+            mass_spectrum = self.get_mass_spectrum_from_scan(
+                scan, spectrum_mode, auto_process=auto_process
+            )
+            mass_spectra.append(mass_spectrum)
+
+        return mass_spectra
+    
     def get_mass_spectrum_from_scan(
         self, scan_number, spectrum_mode, auto_process=True
     ):
-        """Instatiate a MassSpecBase object from a single scan number from the binary file, currently only supports profile mode.
+        """Instantiate a MassSpecBase object from a single scan number from the binary file.
 
         Parameters
         ----------

@@ -163,27 +163,47 @@ def add_mass_features(myLCMSobj, scan_translator):
     -------
     None, processes the LCMS object
     """
+    print("Finding mass features")
     myLCMSobj.find_mass_features()
-
+    print("Found ", len(myLCMSobj.mass_features), " mass features")
+    
     # Get the scan mode of the ms1 spectra
     ms1_scan_df = myLCMSobj.scan_df[myLCMSobj.scan_df.ms_level == 1]
+    
 
+    # Integrate before adding associated ms1 spectra to be able to filter by peak shape metrics?
+    print("Integrating mass features")
+    myLCMSobj.integrate_mass_features(drop_if_fail=True)
+    print("Adding peak shape metrics")
+    myLCMSobj.add_peak_metrics()
+
+
+    print("Adding associated ms1 spectra")
     if all(x == "profile" for x in ms1_scan_df.ms_format.to_list()):
         myLCMSobj.add_associated_ms1(
             auto_process=True, use_parser=False, spectrum_mode="profile"
+        )
+    # If the ms1 data are centroided and the parser if MZMLSpectraParser, set spectrum_mode to centroided but use_parser to False (mzml doesn't have resolving power anyway)
+    elif isinstance(myLCMSobj.spectra_parser, MZMLSpectraParser) and all(
+        x == "centroid" for x in ms1_scan_df.ms_format.to_list()
+    ):
+        myLCMSobj.add_associated_ms1(
+         auto_process=True, use_parser=False, spectrum_mode="centroid"
         )
     elif all(x == "centroid" for x in ms1_scan_df.ms_format.to_list()):
         myLCMSobj.add_associated_ms1(
             auto_process=True, use_parser=True, spectrum_mode="centroid"
         )
 
-    myLCMSobj.integrate_mass_features(drop_if_fail=True)
     # Count and report how many mass features are left after integration
     print("Number of mass features after integration: ", len(myLCMSobj.mass_features))
+    #filter_and_plot_mass_features(myLCMSobj)
+    print("Annotating C13 mass features")
     myLCMSobj.find_c13_mass_features()
+    print("Deconvoluting mass features")
     myLCMSobj.deconvolute_ms1_mass_features()
-    myLCMSobj.add_peak_metrics()
 
+    print("Adding associated ms2 spectra")
     scan_dictionary = load_scan_translator(scan_translator=scan_translator)
     for param_key in scan_dictionary.keys():
         scan_filter = scan_dictionary[param_key]["scan_filter"]
@@ -192,6 +212,71 @@ def add_mass_features(myLCMSobj, scan_translator):
         myLCMSobj.add_associated_ms2_dda(
             spectrum_mode="centroid", ms_params_key=param_key, scan_filter=scan_filter
         )
+
+def filter_and_plot_mass_features(myLCMSobj):
+    """Filter mass features based on peak shape metrics and plot composite feature map
+
+    Helpful for visualizing and optimizing filtering parameters
+
+    Parameters
+    ----------
+    myLCMSobj : corems LCMS object
+        LCMS object to process
+
+    Returns
+    -------
+    None, processes the LCMS object
+    """
+    # Filter mass features based on peak shape metrics
+    my_df_og = myLCMSobj.mass_features_to_df()
+    # Make mf_df with only mass features that pass the filters
+    mf_df = my_df_og[
+       # use normalized_dispersity_index, and set to less than 0.2
+        (my_df_og["noise_score_max"] > 0.8)
+        & (my_df_og["noise_score_min"] > 0.5)
+    ]
+    mf_ids_to_keep = mf_df.index.tolist()
+
+    # Make a mf_df with dropped mass features
+    mf_df_dropped = my_df_og[~my_df_og.index.isin(mf_ids_to_keep)]
+
+    # Plot 50 random "good" mass features
+    import numpy as np
+    import matplotlib.pyplot as plt
+    good_mf_dir = Path("good_mass_features")
+    # delete good_mf_dir if it exists
+    if good_mf_dir.exists():
+        import shutil
+        shutil.rmtree(good_mf_dir)
+    good_mf_dir.mkdir(exist_ok=True)
+    # save df of dropped mass features in good_mf_dir
+    mf_df.to_csv(good_mf_dir / "good_mass_features.csv", index=True)
+    for mf_id in np.random.choice(mf_ids_to_keep, min(50, len(mf_ids_to_keep)), replace=False):
+        fig = myLCMSobj.mass_features[mf_id].plot(return_fig=True, plot_smoothed_eic=True, plot_eic_datapoints=True)
+        # Add the noise_score_max and dispersity_index to the subtitle
+        fig.suptitle(f"mf_id: {mf_id}, noise_score_max: {myLCMSobj.mass_features[mf_id].noise_score_max:.2f}, dispersity_index: {myLCMSobj.mass_features[mf_id].dispersity_index:.2f}")
+        fig.savefig(good_mf_dir / f"mf_{mf_id}_good.png", dpi=300, bbox_inches="tight")
+        plt.close(fig)
+
+    # Do the same for dropped mass features
+    dropped_mf_dir = Path("dropped_mass_features")
+    # delete dropped_mf_dir if it exists
+    if dropped_mf_dir.exists():
+        import shutil
+        shutil.rmtree(dropped_mf_dir)
+    dropped_mf_dir.mkdir(exist_ok=True)
+    # save df of dropped mass features in dropped_mf_dir
+    mf_df_dropped.to_csv(dropped_mf_dir / "dropped_mass_features.csv", index=True)
+    for mf_id in np.random.choice(mf_df_dropped.index.tolist(), min(50, len(mf_df_dropped)), replace=False):
+        fig = myLCMSobj.mass_features[mf_id].plot(return_fig=True, plot_smoothed_eic=True, plot_eic_datapoints=True)
+        # Add the noise_score_max and dispersity_index to the subtitle
+        fig.suptitle(f"mf_id: {mf_id}, noise_score_max: {myLCMSobj.mass_features[mf_id].noise_score_max:.2f}, dispersity_index: {myLCMSobj.mass_features[mf_id].dispersity_index:.2f}")
+        fig.savefig(dropped_mf_dir / f"mf_{mf_id}_dropped.png", dpi=300, bbox_inches="tight")
+        plt.close(fig)
+
+    print("Number of mass features after filtering: ", len(mf_ids_to_keep), " out of ", len(my_df_og), " (", round(len(mf_ids_to_keep)/len(my_df_og)*100, 2), "% )")
+    print("Mass features filtered out due to dispersity_index >= 0.8 or noise_score_max <= 0.6")
+    
 
 
 def molecular_formula_search(myLCMSobj):
