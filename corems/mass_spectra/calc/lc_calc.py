@@ -1,8 +1,7 @@
 import numpy as np
 import pandas as pd
-import warnings
+import warnings, scipy, multiprocessing
 from ripser import ripser
-import scipy
 from scipy import sparse
 from scipy.spatial import KDTree
 from sklearn.svm import SVR
@@ -2706,12 +2705,13 @@ class LCMSCollectionCalculations:
             inputting desired boundaries on the scan time (xb, xt) and m/z values (yb, yt).
         """
         df = self.cluster_summary_dataframe.copy()
+        mfdf = self.mass_features_dataframe.copy()
 
         fig = plt.figure()
         if show_all:
             plt.scatter(
-                df.scan_time_aligned,
-                df.mz,
+                mfdf.scan_time_aligned,
+                mfdf.mz,
                 c = 'tab:gray',
                 s = 1
             )
@@ -2728,9 +2728,9 @@ class LCMSCollectionCalculations:
         plt.ylabel('m/z')
         
         if xt == 'xt':
-            xt = np.ceil(np.max(df.mz))
+            xt = np.ceil(np.max(mfdf.mz))
         if yt == 'yt':
-            yt = np.ceil(np.max(df.scan_time))
+            yt = np.ceil(np.max(mfdf.scan_time))
         if xb == 'xb':
             xb = 0
         if yb == 'yb':
@@ -3157,10 +3157,10 @@ class LCMSCollectionCalculations:
             )
 
         mfdf = self.mass_features_dataframe.copy()
-        sumdf = self.cluster_summary_dataframe.copy()
+        summarydf = self.cluster_summary_dataframe
 
-        numsamples = mfdf.sample_id.max() + 1
-        sumdf = sumdf[sumdf.sample_id_nunique > numsamples * clu_size_thresh]
+        numsamples = len(self)
+        sumdf = summarydf[summarydf.sample_id_nunique > numsamples * clu_size_thresh].reset_index(drop = True).copy()
 
         ## find the ranges for non-outlier values and add them to sumdf
         mergelist = ['cluster']
@@ -3179,7 +3179,8 @@ class LCMSCollectionCalculations:
                 ## dimension therefore can't have outliers
 
         ## add ranges to mfdf and identify mass features that fall outside the ranges
-        outdf = pd.merge(mfdf, sumdf[mergelist], on = 'cluster')
+        outdf = pd.merge(mfdf, sumdf[mergelist].dropna(), on = 'cluster')
+
         outtags = ['cluster']
         for dim in dim_list:
             dimtag = dim + '_outlier'
@@ -3206,19 +3207,108 @@ class LCMSCollectionCalculations:
         else:
             plt.show()
             
-    def search_for_missing_mass_features_in_one_sample(self, samplename, threshold = 0.5, tol_flag = 0):
+    def _search_for_targeted_mass_features_in_sample(self, obj_idx, missingdf, threshold = 0.5, tol_flag = 0, inplace = True):
+        """
+        Searches through a sample in a collection to find all missing mass
+        features across all clusters in the collection.
+        
+        Parameters
+        -----------
+        obj_idx :  int
+            Index of the sample being processed
+        missingdf : pandas DataFrame
+            DataFrame containing information about the clusters with columns:
+            'cluster', 'sample_id_nunique', 'mz_min', 'mz_max', 
+            'scan_time_aligned_min', 'scan_time_aligned_max' extracted from
+            self.cluster_summary_dataframe and 'mz_min_allowed', 
+            'mz_max_allowed', 'scan_time_aligned_min_allowed', 
+            'scan_time_aligned_max_allowed' computed in 
+            search_for_targeted_mass_features_in_collection
+        threshold :  float
+            Decimal representation of percent of sample included in a cluster 
+            before the remaining samples are searched
+        tol_flag : 0 or 1
+            Indicates whether expand cluster boundaries to search for mass 
+            features near the boundary if none are found in the given 
+            parameters. Defaults to 0 (False).
+        inplace : boolean
+            Indicates whethere to assign induced_mass_features attribute in 
+            place or to return the result when the function is run in parallel
+        """
+        
+        ## to get clusters missing data based on sample index:
+        sampledf = missingdf[
+            missingdf.missing_samples.apply(lambda x: obj_idx in x)
+        ].reset_index(drop = True).copy()
+
+        self.load_raw_data(obj_idx, 1)
+        ms1df = self[obj_idx]._ms_unprocessed[1].copy()
+        scan_df = self[obj_idx].scan_df[['scan', 'scan_time_aligned']]
+        ms1df = pd.merge(ms1df, scan_df, on = 'scan')
+
+        for i in range(len(sampledf)):
+            mz_min = sampledf.mz_min.iloc[i]
+            mz_max = sampledf.mz_max.iloc[i]
+            st_min = sampledf.scan_time_aligned_min.iloc[i]
+            st_max = sampledf.scan_time_aligned_max.iloc[i]
+            # TODO: Adjust function to input queries as tuples so we can search 
+            #       for all targeted mass features at once instead of in a loop 
+            found_feature = self[obj_idx].search_for_targeted_mass_feature(            
+                ms1df, 
+                mz_min, 
+                mz_max, 
+                st_min, 
+                st_max,
+                set_id = 'c' + str(sampledf.cluster.iloc[i]) + '_' + str(i) + '_i',
+                obj_idx = obj_idx,
+                st_aligned = True
+            )
+
+            if tol_flag == 1 and found_feature.apex_scan == -99:
+                mz_min = sampledf.mz_min_allowed.iloc[i] 
+                mz_max = sampledf.mz_max_allowed.iloc[i]
+                st_min = sampledf.sta_min_allowed.iloc[i] 
+                st_max = sampledf.sta_max_allowed.iloc[i] 
+
+                found_feature = self[obj_idx].search_for_targeted_mass_feature(            
+                    ms1df, 
+                    mz_min, 
+                    mz_max, 
+                    st_min, 
+                    st_max,
+                    set_id = 'c' + str(sampledf.cluster.iloc[i]) + '_' + str(i) + '_i',
+                    obj_idx = obj_idx,
+                    st_aligned = True
+                )
+
+            self[obj_idx].induced_mass_features[found_feature.id] = found_feature
+
+        self[obj_idx].add_associated_ms1(induced_features = True)
+        # need to set drop_if_fail to false for induced features as they will fail
+        self[obj_idx].integrate_mass_features(drop_if_fail = False, induced_features = True)
+        self[obj_idx].add_peak_metrics(induced_features = True)
+
+        if inplace == False:
+            return self[obj_idx].induced_mass_features
+    
+    def search_for_targeted_mass_features_in_collection(self, threshold = 0.5, tol_flag = 0):
         '''
-        Work in progress temporary code
-        threshold default to 0.5 --> 
-            only consider clusters that contain at least 50% of the sample
-        tol_flag default to 0 -->
-            don't check for possible mass features on the edges of the cluster
-            for sampleindex == 7, tol_flag == 1 picks up 6 more mass features
+        Iterates through a collection to find all relevant induced mass 
+        features and assigns them to the induced_mass_features attribute
+
+        Parameters
+        -----------
+        threshold :  float
+            Decimal representation of percent of sample included in a cluster 
+            before the remaining samples are searched
+        tol_flag : 0 or 1
+            Indicates whether expand cluster boundaries to search for mass 
+            features near the boundary if none are found in the given 
+            parameters. Defaults to 0 (False).
         '''
+        
         summarydf = self.cluster_summary_dataframe
         mfdf = self.mass_features_dataframe
-        sampleindex = self.samples.index(samplename)
-        self.load_raw_data(sampleindex, 1)
         
         sample_ct = len(self.samples)
         missingdf = summarydf[[
@@ -3236,63 +3326,31 @@ class LCMSCollectionCalculations:
         for c in missingdf.cluster.to_numpy():
             cludf = mfdf[mfdf.cluster == c]
             missingdf.loc[c, 'missing_samples'] = str(
-                [x for x in mfdf.sample_name.unique() if x not in cludf.sample_name.unique()]
+                [x for x in mfdf.sample_id.unique() if x not in cludf.sample_id.unique()]
             )
         missingdf['missing_samples'] = missingdf.missing_samples.apply(literal_eval)
-
-        ## to get clusters missing data based on sample name:
-        sampledf = missingdf[
-            missingdf.missing_samples.apply(lambda x: samplename in x)
-        ].reset_index(drop = True).copy()
         
-        if tol_flag == 1:
-            mz_clu_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
-            rt_clu_tol = self.parameters.lcms_collection.consensus_rt_tol
-            sampledf['mz_max_allowed'] = sampledf.mz_max + mz_clu_tol*sampledf.mz_max
-            sampledf['mz_min_allowed'] = sampledf.mz_min - mz_clu_tol*sampledf.mz_min
-            sampledf['sta_max_allowed'] = sampledf.scan_time_aligned_max + rt_clu_tol*sampledf.scan_time_aligned_max
-            sampledf['sta_min_allowed'] = sampledf.scan_time_aligned_min - rt_clu_tol*sampledf.scan_time_aligned_min
+        mz_clu_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
+        rt_clu_tol = self.parameters.lcms_collection.consensus_rt_tol
+        missingdf['mz_max_allowed'] = missingdf.mz_max + mz_clu_tol*missingdf.mz_max
+        missingdf['mz_min_allowed'] = missingdf.mz_min - mz_clu_tol*missingdf.mz_min
+        missingdf['sta_max_allowed'] = missingdf.scan_time_aligned_max + rt_clu_tol*missingdf.scan_time_aligned_max
+        missingdf['sta_min_allowed'] = missingdf.scan_time_aligned_min - rt_clu_tol*missingdf.scan_time_aligned_min
 
-        ms1df = self[sampleindex]._ms_unprocessed[1].copy()
-        scan_df = self[sampleindex].scan_df[['scan', 'scan_time_aligned']]
-        ms1df = pd.merge(ms1df, scan_df, on = 'scan')
+        if self.parameters.lcms_collection.cores == 1:
+            for i in range(sample_ct):
+                self[i]._search_for_targeted_mass_features_in_sample(i, missingdf, threshold, tol_flag)
 
-        for i in range(len(sampledf)):
-            mz_min = sampledf.mz_min.iloc[i]
-            mz_max = sampledf.mz_max.iloc[i]
-            st_min = sampledf.scan_time_aligned_min.iloc[i]
-            st_max = sampledf.scan_time_aligned_max.iloc[i]
-            found_feature = self[sampleindex].search_for_targeted_mass_feature(            
-                ms1df, 
-                mz_min, 
-                mz_max, 
-                st_min, 
-                st_max,
-                set_id = 'c' + str(sampledf.cluster.iloc[i]) + '_' + str(i) + '_i',
-                obj_idx = sampleindex,
-                st_aligned = True
+        if self.parameters.lcms_collection.cores > 1:
+            if self.parameters.lcms_collection.cores > len(self):
+                ncores = len(self)
+            else:
+                ncores = self.parameters.lcms_collection.cores
+            pool = multiprocessing.Pool(ncores)
+            mp_result = pool.starmap(
+                self._search_for_targeted_mass_features_in_sample, 
+                [(x, missingdf, threshold, tol_flag, False) for x in range(sample_ct)]
             )
 
-            if tol_flag == 1 and found_feature.apex_scan == -99:
-                mz_min = sampledf.mz_min_allowed.iloc[i] 
-                mz_max = sampledf.mz_max_allowed.iloc[i]
-                st_min = sampledf.sta_min_allowed.iloc[i] 
-                st_max = sampledf.sta_max_allowed.iloc[i] 
-
-                found_feature = self[sampleindex].search_for_targeted_mass_feature(            
-                    ms1df, 
-                    mz_min, 
-                    mz_max, 
-                    st_min, 
-                    st_max,
-                    set_id = 'c' + str(sampledf.cluster.iloc[i]) + '_' + str(i) + '_i',
-                    obj_idx = sampleindex,
-                    st_aligned = True
-                )
-        
-            self[sampleindex].induced_mass_features[found_feature.id] = found_feature
-
-        self[sampleindex].add_associated_ms1(induced_features = True)
-        # need to set drop_if_fail to false for induced features as they will fail
-        self[sampleindex].integrate_mass_features(drop_if_fail = False, induced_features = True)
-        self[sampleindex].add_peak_metrics(induced_features = True)
+            for i in range(sample_ct):
+                self[i].induced_mass_features = mp_result[i]
