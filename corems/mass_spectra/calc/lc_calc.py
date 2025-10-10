@@ -3242,6 +3242,13 @@ class LCMSCollectionCalculations:
         ].reset_index(drop = True).copy()
 
         self.load_raw_data(obj_idx, 1)
+        
+        ## print lines added to see what is coming out
+        print(self)
+        print(self[obj_idx])
+        print(self[obj_idx]._ms_unprocessed)
+        
+        ## this is the line that bugs due to _ms_unprocessed not having key 1
         ms1df = self[obj_idx]._ms_unprocessed[1].copy()
         scan_df = self[obj_idx].scan_df[['scan', 'scan_time_aligned']]
         ms1df = pd.merge(ms1df, scan_df, on = 'scan')
@@ -3339,7 +3346,7 @@ class LCMSCollectionCalculations:
 
         if self.parameters.lcms_collection.cores == 1:
             for i in range(sample_ct):
-                self[i]._search_for_targeted_mass_features_in_sample(i, missingdf, threshold, tol_flag)
+                self._search_for_targeted_mass_features_in_sample(i, missingdf, threshold, tol_flag)
 
         if self.parameters.lcms_collection.cores > 1:
             if self.parameters.lcms_collection.cores > len(self):

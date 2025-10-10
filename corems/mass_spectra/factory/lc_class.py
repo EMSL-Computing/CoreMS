@@ -1462,6 +1462,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         # These attributes are generally set by the parser during instantiation of this class
         self._lcms = {}
         self._combined_mass_features = None
+        self._combined_induced_mass_features = None
         self.consensus_mass_features = {}
         self._parameters = LCMSCollectionParameters()
         self.isotopes_dropped = False
@@ -1481,12 +1482,14 @@ class LCMSCollection(LCMSCollectionCalculations):
     def __len__(self):
         return len(self.samples)
     
-    def _prepare_lcms_mass_features_for_combination(self, lcms_obj):
+    def _prepare_lcms_mass_features_for_combination(self, lcms_obj, induced_features = False):
         """
         Prepares the mass features in the LCMS objects in the collection for combination.
-        """
+        """        
+        if induced_features == True:
+            mf_df = lcms_obj.mass_features_to_df(induced_features = True)
         # Check if lcms_obj has attribute light_mf_df
-        if hasattr(lcms_obj, "light_mf_df"):
+        elif hasattr(lcms_obj, "light_mf_df"):
             mf_df = lcms_obj.light_mf_df
         else:
             mf_df = lcms_obj.mass_features_to_df()
@@ -1505,21 +1508,24 @@ class LCMSCollection(LCMSCollectionCalculations):
         
         return mf_df
        
-    def _combine_mass_features(self):
+    def _combine_mass_features(self, induced_features = False):
         """
         Concatenates the mass features from all the LCMS objects in the collection.
 
         Returns
         --------
-        None, sets the _combined_mass_features attribute.
+        None, sets the _combined_mass_features or _combined_induced_mass_feature attribute.
         """
-
+        print('starting fxn')
         if self.parameters.lcms_collection.cores == 1:
             # Prepare mass features for combination sequentially
             mf_df_list = []
+            ct = 0
             for lcms_obj in self:
-                mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj)
+                print('starting sample', ct)
+                mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj, induced_features)
                 mf_df_list.append(mf_df)
+                ct += 1
 
         if self.parameters.lcms_collection.cores > 1:
             # Parallelize the mass feature preparation
@@ -1528,20 +1534,26 @@ class LCMSCollection(LCMSCollectionCalculations):
             else:
                 ncores = self.parameters.lcms_collection.cores
             pool = multiprocessing.Pool(ncores)
-            mf_df_list = pool.starmap(self._prepare_lcms_mass_features_for_combination, [(lcms_obj,) for lcms_obj in self])
+            mf_df_list = pool.starmap(
+                self._prepare_lcms_mass_features_for_combination, 
+                [(lcms_obj, induced_features) for lcms_obj in self]
+            )
 
         combined_mass_features = pd.concat(mf_df_list)
-
+        print('df concatted')
         # Move coll_mf_id, sample_name, and sample_id to front
         cols = combined_mass_features.columns.tolist()
         top_cols = ["coll_mf_id", "sample_name", "sample_id", "mz", "scan_time_aligned"]
         cols = [x for x in top_cols + [col for col in cols if col not in top_cols] if x in cols]
         combined_mass_features = combined_mass_features[cols]
-
+        print('df formatted')
         # Make coll_mf_id the index
         combined_mass_features = combined_mass_features.set_index("coll_mf_id")
-
-        self._combined_mass_features = combined_mass_features
+        print('df index set')
+        if induced_features == True:
+            self._combined_induced_mass_features = combined_mass_features
+        else:
+            self._combined_mass_features = combined_mass_features
 
     def _check_mass_features_df(self):
         """Checks if the mass features dataframe has expected columns.  If not, adds them.
