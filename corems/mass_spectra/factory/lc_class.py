@@ -871,6 +871,10 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                         annot_df["Index"] == self.mass_features[mf_id].ms1_peak.index
                     ].copy()
 
+                    # If there are more than 1 row, remove any rows without a molecular formula
+                    if len(annot_df) > 1:
+                        annot_df = annot_df[~annot_df["Molecular Formula"].isna()]
+
                     # Remove the index column and add column for mf_id
                     annot_df = annot_df.drop(columns=["Index"])
                     annot_df["mf_id"] = mf_id
