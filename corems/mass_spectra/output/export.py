@@ -1053,11 +1053,17 @@ class LCMSExport(HighResMassSpectraExport):
                 for k, v in self.mass_spectra._scan_info.items():
                     array = np.array(list(v.values()))
                     if array.dtype.str[0:2] == "<U":
-                        # Use variable-length UTF-8 strings instead of fixed-length byte strings
+                        # Convert Unicode strings to UTF-8 encoded bytes first
+                        string_data = [str(item) for item in array]
                         string_dtype = h5py.string_dtype(encoding='utf-8')
-                        scan_info_group.create_dataset(k, data=array, dtype=string_dtype, compression="gzip", compression_opts=9)
+                        scan_info_group.create_dataset(k, data=string_data, dtype=string_dtype, compression="gzip", compression_opts=9, chunks=True)
                     else:
-                        scan_info_group.create_dataset(k, data=array, compression="gzip", compression_opts=9)
+                        # Apply data type optimization for numeric data
+                        if array.dtype == np.float64:
+                            array = array.astype(np.float32)
+                        elif array.dtype == np.int64:
+                            array = array.astype(np.int32)
+                        scan_info_group.create_dataset(k, data=array, compression="gzip", compression_opts=9, chunks=True)
 
             # Add ms_unprocessed to hdf5 file
             export_unprocessed_ms1 = (
@@ -1076,11 +1082,12 @@ class LCMSExport(HighResMassSpectraExport):
                     elif array.dtype == np.float64:
                         array = array.astype(np.float32)
                     elif array.dtype.str[0:2] == "<U":
-                        # Use variable-length UTF-8 strings for string data
+                        # Convert Unicode strings to UTF-8 encoded strings
+                        string_data = [str(item) for item in array]
                         string_dtype = h5py.string_dtype(encoding='utf-8')
-                        ms_unprocessed_group.create_dataset(str(k), data=array, dtype=string_dtype, compression="gzip", compression_opts=9)
+                        ms_unprocessed_group.create_dataset(str(k), data=string_data, dtype=string_dtype, compression="gzip", compression_opts=9, chunks=True)
                         continue
-                    ms_unprocessed_group.create_dataset(str(k), data=array, compression="gzip", compression_opts=9)
+                    ms_unprocessed_group.create_dataset(str(k), data=array, compression="gzip", compression_opts=9, chunks=True)
 
             # Add LCMS mass features to hdf5 file
             if len(self.mass_spectra.mass_features) > 0:
@@ -1109,7 +1116,7 @@ class LCMSExport(HighResMassSpectraExport):
                                     if array.dtype == np.int64:
                                         array = array.astype(np.int32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array, compression="gzip", compression_opts=9
+                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
                                     )
                                 elif k2 == "_half_height_width":
                                     array = np.array(v2)
@@ -1117,7 +1124,7 @@ class LCMSExport(HighResMassSpectraExport):
                                     if array.dtype == np.float64:
                                         array = array.astype(np.float32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array, compression="gzip", compression_opts=9
+                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
                                     )
                                 elif k2 == "_ms_deconvoluted_idx":
                                     array = np.array(v2)
@@ -1125,7 +1132,7 @@ class LCMSExport(HighResMassSpectraExport):
                                     if array.dtype == np.int64:
                                         array = array.astype(np.int32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array, compression="gzip", compression_opts=9
+                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
                                     )
                                 elif k2 == "associated_mass_features_deconvoluted":
                                     array = np.array(v2)
@@ -1133,7 +1140,7 @@ class LCMSExport(HighResMassSpectraExport):
                                     if array.dtype == np.int64:
                                         array = array.astype(np.int32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array, compression="gzip", compression_opts=9
+                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
                                     )
                                 elif k2 == "_noise_score":
                                     array = np.array(v2)
@@ -1141,7 +1148,7 @@ class LCMSExport(HighResMassSpectraExport):
                                     if array.dtype == np.float64:
                                         array = array.astype(np.float32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array, compression="gzip", compression_opts=9
+                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
                                     )
                                 elif (
                                     isinstance(v2, int)
@@ -1183,11 +1190,12 @@ class LCMSExport(HighResMassSpectraExport):
                             elif array.dtype == np.float64:
                                 array = array.astype(np.float32)
                             elif array.dtype.str[0:2] == "<U":
-                                # Use variable-length UTF-8 strings for string data
+                                # Convert Unicode strings to UTF-8 encoded strings
+                                string_data = [str(item) for item in array]
                                 string_dtype = h5py.string_dtype(encoding='utf-8')
-                                eic_group[str(k)].create_dataset(str(k2), data=array, dtype=string_dtype, compression="gzip", compression_opts=9)
+                                eic_group[str(k)].create_dataset(str(k2), data=string_data, dtype=string_dtype, compression="gzip", compression_opts=9, chunks=True)
                                 continue
-                            eic_group[str(k)].create_dataset(str(k2), data=array, compression="gzip", compression_opts=9)
+                            eic_group[str(k)].create_dataset(str(k2), data=array, compression="gzip", compression_opts=9, chunks=True)
 
             # Add ms2_search results to hdf5 file
             if len(self.mass_spectra.spectral_search_results) > 0:
@@ -1220,17 +1228,10 @@ class LCMSExport(HighResMassSpectraExport):
                                 if all(v3 is not None for v3 in v3):
                                     array = np.array(v3)
                                 if array.dtype.str[0:2] == "<U":
-                                    # Use variable-length UTF-8 strings instead of fixed-length byte strings
-                                    string_dtype = h5py.string_dtype(encoding='utf-8')
-                                    spectral_search_results[str(k)][str(k2)].create_dataset(
-                                        str(k3), data=array, dtype=string_dtype, compression="gzip", compression_opts=9
-                                    )
-                                else:
-                                    spectral_search_results[str(k)][str(k2)].create_dataset(
-                                        str(k3), data=array, compression="gzip", compression_opts=9
-                                    )
-
-        # Save parameters as separate json
+                                    array = array.astype("S")
+                                spectral_search_results[str(k)][str(k2)].create_dataset(
+                                    str(k3), data=array
+                                )
         if save_parameters:
             # Check if parameter_format is valid
             if parameter_format not in ["json", "toml"]:
