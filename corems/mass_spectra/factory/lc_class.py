@@ -1516,46 +1516,49 @@ class LCMSCollection(LCMSCollectionCalculations):
         --------
         None, sets the _combined_mass_features or _combined_induced_mass_feature attribute.
         """
-        print('starting fxn')
-        if self.parameters.lcms_collection.cores == 1:
-            # Prepare mass features for combination sequentially
-            mf_df_list = []
-            ct = 0
-            for lcms_obj in self:
-                print('starting sample', ct)
-                mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj, induced_features)
-                mf_df_list.append(mf_df)
-                ct += 1
 
-        if self.parameters.lcms_collection.cores > 1:
-            # Parallelize the mass feature preparation
-            if self.parameters.lcms_collection.cores > len(self):
-                ncores = len(self)
-            else:
-                ncores = self.parameters.lcms_collection.cores
-            pool = multiprocessing.Pool(ncores)
-            mf_df_list = pool.starmap(
-                self._prepare_lcms_mass_features_for_combination, 
-                [(lcms_obj, induced_features) for lcms_obj in self]
-            )
+        ## TODO: See why this function runs slower on multiprocessing,
+        ## especially for induced features
+        ## has only been considered so far on ~20 samples
+#        if self.parameters.lcms_collection.cores == 1:
+#            # Prepare mass features for combination sequentially
+#            mf_df_list = []
+#            for lcms_obj in self:
+#                mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj, induced_features)
+#                mf_df_list.append(mf_df)
+
+#        if self.parameters.lcms_collection.cores > 1:
+#            # Parallelize the mass feature preparation
+#            if self.parameters.lcms_collection.cores > len(self):
+#                ncores = len(self)
+#            else:
+#                ncores = self.parameters.lcms_collection.cores
+#            pool = multiprocessing.Pool(ncores)
+#            mf_df_list = pool.starmap(
+#                self._prepare_lcms_mass_features_for_combination, 
+#                [(lcms_obj, induced_features) for lcms_obj in self]
+#            )
+
+        # Prepare mass features for combination sequentially
+        mf_df_list = []
+        for lcms_obj in self:
+            mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj, induced_features)
+            mf_df_list.append(mf_df)
 
         combined_mass_features = pd.concat(mf_df_list)
-        print('df concatted')
         # Move coll_mf_id, sample_name, and sample_id to front
         cols = combined_mass_features.columns.tolist()
         top_cols = ["coll_mf_id", "sample_name", "sample_id", "mz", "scan_time_aligned"]
         cols = [x for x in top_cols + [col for col in cols if col not in top_cols] if x in cols]
         combined_mass_features = combined_mass_features[cols]
-        print('df formatted')
         # Make coll_mf_id the index
         combined_mass_features = combined_mass_features.set_index("coll_mf_id")
-        print('df index set')
         if induced_features == True:
             self._combined_induced_mass_features = combined_mass_features
         else:
             self._combined_mass_features = combined_mass_features
 
-    def _check_mass_features_df(self):
+    def _check_mass_features_df(self, induced_features = False):
         """Checks if the mass features dataframe has expected columns.  If not, adds them.
         
         Returns
@@ -1565,16 +1568,22 @@ class LCMSCollection(LCMSCollectionCalculations):
 
         Notes
         ------
-        If scan_time_aligned is not in the _combined_mass_features, tries to add it.
+        If scan_time_aligned is not in the _combined_mass_features or 
+        _combined_induced_mass_features, tries to add it.
 
-        """  
+        """
+        
+        if induced_features:
+            cmf_df = self._combined_induced_mass_features
+        else:
+            cmf_df = self._combined_mass_features
         # Check if parameters are set to drop isotopologues and drop if so
         if self.parameters.lcms_collection.drop_isotopologues:
             if not self.isotopes_dropped:
                 self._drop_isotopologues()
         # Check if scan_time_aligned is in combined_mass_features, try to add if not
-        if self._combined_mass_features is not None and "scan_time_aligned" not in self._combined_mass_features.columns:
-            cmb_mf = self._combined_mass_features.copy()
+        if cmf_df is not None and "scan_time_aligned" not in cmf_df.columns:
+            cmb_mf = cmf_df.copy()
             cmb_mf = cmb_mf.reset_index(drop=False)
             lcms_aligned = [True for x in self if "scan_time_aligned" in x.scan_df.columns]
             if len(lcms_aligned) == len(self):
@@ -1590,8 +1599,11 @@ class LCMSCollection(LCMSCollectionCalculations):
                 cmb_mf_merged = cmb_mf.merge(scan_time_aligned_df, on=["apex_scan", "sample_name"])
                 cmb_mf_mergd = cmb_mf_merged.set_index("coll_mf_id")
                 # Merge scan_time_aligned_df with combined_mass_features on apex_scan and sample_name
-                self._combined_mass_features = cmb_mf_mergd
- 
+                if induced_features:
+                    self._combined_induced_mass_features = cmb_mf_mergd
+                else:
+                    self._combined_mass_features = cmb_mf_merged
+    
     def plot_tics(self, ms_level=1, type = "raw", plot_legend=False):
         """Plots the TICs for all the LCMS objects in the collection.
         
@@ -1789,22 +1801,25 @@ class LCMSCollection(LCMSCollectionCalculations):
             and samples in a collection
         
         """
+        
         mf_pivot = self.mass_features_dataframe.copy()
         mf_pivot.reset_index(inplace = True)
-
-        for i in range(mf_pivot.sample_id.unique().max() + 1):
-            imf_pivot = self[i].mass_features_to_df(induced_features = True).copy()
-            imf_pivot.reset_index(inplace = True)
-            imf_pivot['sample_id'] = i
-            imf_pivot['cluster'] = np.nan
-            imf_pivot.rename(columns = {'mf_id': 'coll_mf_id'}, inplace = True)
-            for j in range(len(imf_pivot)):
-                imf_pivot.loc[j, 'cluster'] = imf_pivot.loc[j].coll_mf_id.split('_')[0][1:]
-            mf_pivot = pd.concat([mf_pivot, imf_pivot], axis = 0)
+        imf_pivot = self.induced_mass_features_dataframe.copy()
+        imf_pivot.reset_index(inplace = True)
+        for j in range(len(imf_pivot)):
+            imf_pivot.loc[j, 'cluster'] = int(imf_pivot.loc[j].coll_mf_id.split('_')[1][1:])
+        mf_pivot = pd.concat([mf_pivot, imf_pivot], axis = 0)
         mf_pivot.reset_index(drop = True, inplace = True)
-        mf_pivot.cluster = mf_pivot.cluster.astype(int)
-        available_attributes = [x for x in mf_pivot.columns if x not in ['cluster', 'sample_id']]
-        print('Attributes available for pivot table:', available_attributes)
+        mf_pivot['cluster'] = mf_pivot['cluster'].astype(int)
+
+        print(
+            'Attributes available for pivot table:\n',
+            [x for x in mf_pivot.columns if x not in ['cluster', 'sample_id']]
+        )
+        print(
+            '\nAttributes that have no value for induced mass features:\n',
+            imf_pivot.columns[imf_pivot.isna().all()].tolist()            
+        )
         return mf_pivot.pivot(index = 'cluster', columns = 'sample_id', values = attribute)
         
     @property
@@ -1830,7 +1845,7 @@ class LCMSCollection(LCMSCollectionCalculations):
     def mass_features_dataframe(self):
         self._check_mass_features_df()
         return self._combined_mass_features
-    
+
     @mass_features_dataframe.setter
     def mass_features_dataframe(self, df):
         # Check that the dataframe has the expected columns
@@ -1844,6 +1859,25 @@ class LCMSCollection(LCMSCollectionCalculations):
         if not df.index.is_unique:
             raise ValueError("coll_mf_id must be unique")
         self._combined_mass_features = df
+
+    @property
+    def induced_mass_features_dataframe(self):
+        self._check_mass_features_df(induced_features = True)
+        return self._combined_induced_mass_features
+
+    @induced_mass_features_dataframe.setter
+    def induced_mass_features_dataframe(self, df):
+        # Check that the dataframe has the expected columns
+        expected_cols = ["sample_name", "sample_id", "mz", "scan_time"]
+        if not all([col in df.columns for col in expected_cols]):
+            raise ValueError(f"Expected columns not found in dataframe: {expected_cols}")
+        
+        # Check that coll_mf_id is the index and it is unique
+        if df.index.name != "coll_mf_id":
+            raise ValueError("coll_mf_id must be the index of the dataframe")
+        if not df.index.is_unique:
+            raise ValueError("coll_mf_id must be unique")
+        self._combined_induced_mass_features = df    
     
     @property
     def cluster_summary_dataframe(self):

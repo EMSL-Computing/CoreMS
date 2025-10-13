@@ -3244,9 +3244,9 @@ class LCMSCollectionCalculations:
         self.load_raw_data(obj_idx, 1)
         
         ## print lines added to see what is coming out
-        print(self)
-        print(self[obj_idx])
-        print(self[obj_idx]._ms_unprocessed)
+#        print(self)
+#        print(self[obj_idx])
+#        print(self[obj_idx]._ms_unprocessed)
         
         ## this is the line that bugs due to _ms_unprocessed not having key 1
         ms1df = self[obj_idx]._ms_unprocessed[1].copy()
@@ -3361,3 +3361,8 @@ class LCMSCollectionCalculations:
 
             for i in range(sample_ct):
                 self[i].induced_mass_features = mp_result[i]
+                
+        self._combine_mass_features(induced_features = True)
+        
+        for sample_name in self.samples:
+            self._lcms[sample_name].mass_features = {}
