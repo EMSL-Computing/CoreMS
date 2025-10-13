@@ -70,9 +70,8 @@ if __name__ == "__main__":
     lcms_collection.plot_cluster_outlier_frequency(dim_list, clu_size_thresh = 0.25)
 
     lcms_collection.search_for_missing_mass_features_in_collection()
-    print('Sample output:')
-    print(lcms_collection[0].mass_features_to_df(induced_features = True))
-
+    lcms_collection.collection_pivot_table(attribute = 'mz')
+    
     #TODO: Add code to load and save information about chromatographic settings
     #TODO: Add code to save and load collection to HDF5 file
     #TODO: Generate report of summarize_clusters as a table with both regular and induced mass features
