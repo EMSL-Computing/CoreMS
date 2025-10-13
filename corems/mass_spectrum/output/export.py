@@ -394,7 +394,9 @@ class HighResMassSpecExport(Thread):
                 raw_ms_dataset = scan_group.create_dataset(
                     "raw_ms", data=mz_abun_array, dtype="f8"
                 )
-
+            else:
+                #  create empy dataset for missing raw data
+                raw_ms_dataset = scan_group.create_dataset("raw_ms", dtype="f8")
 
             raw_ms_dataset.attrs["MassSpecAttrs"] = json.dumps(dict_ms_attrs)
 
