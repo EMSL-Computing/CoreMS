@@ -71,6 +71,12 @@ def msp_file_location():
 def postgres_database():
     """Returns the location of the postgres database for the tests"""
     # Change this if running locally or the DB is running in a different location
-    # return "" ## sqlite3 database (local)
-    # return "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp" ## Docker install, e.g. local
-    return "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"  ## Git CI/CD Build Pipeline
+    # Try to use postgres first (for CI/CD), fall back to sqlite3 (local)
+    import socket
+    try:
+        # Test if postgres hostname is reachable
+        socket.gethostbyname('postgres')
+        return "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"  ## Git CI/CD Build Pipeline
+    except socket.gaierror:
+        # Fall back to sqlite3 for local testing when postgres is not available
+        return "" ## sqlite3 database (local)

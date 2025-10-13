@@ -394,19 +394,28 @@ class HighResMassSpecExport(Thread):
                 raw_ms_dataset = scan_group.create_dataset(
                     "raw_ms", data=mz_abun_array, dtype="f8"
                 )
+                
+                # Add metadata to the raw_ms dataset when it exists
+                raw_ms_dataset.attrs["MassSpecAttrs"] = json.dumps(dict_ms_attrs)
+
+                if isinstance(mass_spectrum, MassSpecfromFreq):
+                    raw_ms_dataset.attrs["TransientSetting"] = json.dumps(
+                        setting_dicts.get("TransientSetting"),
+                        sort_keys=False,
+                        indent=4,
+                        separators=(",", ": "),
+                    )
             else:
-                #  create empy dataset for missing raw data
-                raw_ms_dataset = scan_group.create_dataset("raw_ms", dtype="f8")
-
-            raw_ms_dataset.attrs["MassSpecAttrs"] = json.dumps(dict_ms_attrs)
-
-            if isinstance(mass_spectrum, MassSpecfromFreq):
-                raw_ms_dataset.attrs["TransientSetting"] = json.dumps(
-                    setting_dicts.get("TransientSetting"),
-                    sort_keys=False,
-                    indent=4,
-                    separators=(",", ": "),
-                )
+                # For centroided data, store metadata directly on the scan group
+                scan_group.attrs["MassSpecAttrs"] = json.dumps(dict_ms_attrs)
+                
+                if isinstance(mass_spectrum, MassSpecfromFreq):
+                    scan_group.attrs["TransientSetting"] = json.dumps(
+                        setting_dicts.get("TransientSetting"),
+                        sort_keys=False,
+                        indent=4,
+                        separators=(",", ": "),
+                    )
 
         else:
             scan_group = hdf_handle.get(group_key)
