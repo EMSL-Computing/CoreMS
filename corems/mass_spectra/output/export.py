@@ -1053,8 +1053,11 @@ class LCMSExport(HighResMassSpectraExport):
                 for k, v in self.mass_spectra._scan_info.items():
                     array = np.array(list(v.values()))
                     if array.dtype.str[0:2] == "<U":
-                        array = array.astype("S")
-                    scan_info_group.create_dataset(k, data=array)
+                        # Use variable-length UTF-8 strings instead of fixed-length byte strings
+                        string_dtype = h5py.string_dtype(encoding='utf-8')
+                        scan_info_group.create_dataset(k, data=array, dtype=string_dtype, compression="gzip", compression_opts=9)
+                    else:
+                        scan_info_group.create_dataset(k, data=array, compression="gzip", compression_opts=9)
 
             # Add ms_unprocessed to hdf5 file
             export_unprocessed_ms1 = (
@@ -1067,7 +1070,17 @@ class LCMSExport(HighResMassSpectraExport):
                     ms_unprocessed_group = hdf_handle.get("ms_unprocessed")
                 for k, v in self.mass_spectra._ms_unprocessed.items():
                     array = np.array(v)
-                    ms_unprocessed_group.create_dataset(str(k), data=array)
+                    # Apply data type optimization and compression
+                    if array.dtype == np.int64:
+                        array = array.astype(np.int32)
+                    elif array.dtype == np.float64:
+                        array = array.astype(np.float32)
+                    elif array.dtype.str[0:2] == "<U":
+                        # Use variable-length UTF-8 strings for string data
+                        string_dtype = h5py.string_dtype(encoding='utf-8')
+                        ms_unprocessed_group.create_dataset(str(k), data=array, dtype=string_dtype, compression="gzip", compression_opts=9)
+                        continue
+                    ms_unprocessed_group.create_dataset(str(k), data=array, compression="gzip", compression_opts=9)
 
             # Add LCMS mass features to hdf5 file
             if len(self.mass_spectra.mass_features) > 0:
@@ -1164,7 +1177,17 @@ class LCMSExport(HighResMassSpectraExport):
                     for k2, v2 in v.__dict__.items():
                         if v2 is not None:
                             array = np.array(v2)
-                            eic_group[str(k)].create_dataset(str(k2), data=array)
+                            # Apply data type optimization and compression
+                            if array.dtype == np.int64:
+                                array = array.astype(np.int32)
+                            elif array.dtype == np.float64:
+                                array = array.astype(np.float32)
+                            elif array.dtype.str[0:2] == "<U":
+                                # Use variable-length UTF-8 strings for string data
+                                string_dtype = h5py.string_dtype(encoding='utf-8')
+                                eic_group[str(k)].create_dataset(str(k2), data=array, dtype=string_dtype, compression="gzip", compression_opts=9)
+                                continue
+                            eic_group[str(k)].create_dataset(str(k2), data=array, compression="gzip", compression_opts=9)
 
             # Add ms2_search results to hdf5 file
             if len(self.mass_spectra.spectral_search_results) > 0:
@@ -1197,10 +1220,15 @@ class LCMSExport(HighResMassSpectraExport):
                                 if all(v3 is not None for v3 in v3):
                                     array = np.array(v3)
                                 if array.dtype.str[0:2] == "<U":
-                                    array = array.astype("S")
-                                spectral_search_results[str(k)][str(k2)].create_dataset(
-                                    str(k3), data=array
-                                )
+                                    # Use variable-length UTF-8 strings instead of fixed-length byte strings
+                                    string_dtype = h5py.string_dtype(encoding='utf-8')
+                                    spectral_search_results[str(k)][str(k2)].create_dataset(
+                                        str(k3), data=array, dtype=string_dtype, compression="gzip", compression_opts=9
+                                    )
+                                else:
+                                    spectral_search_results[str(k)][str(k2)].create_dataset(
+                                        str(k3), data=array, compression="gzip", compression_opts=9
+                                    )
 
         # Save parameters as separate json
         if save_parameters:
