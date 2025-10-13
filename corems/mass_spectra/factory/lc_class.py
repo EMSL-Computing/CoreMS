@@ -1577,7 +1577,6 @@ class LCMSCollection(LCMSCollectionCalculations):
             cmf_df = self._combined_induced_mass_features
         else:
             cmf_df = self._combined_mass_features
-        print('checking if _combined_mass_features is set', cmf_df)
         # Check if parameters are set to drop isotopologues and drop if so
         if self.parameters.lcms_collection.drop_isotopologues:
             if not self.isotopes_dropped:
