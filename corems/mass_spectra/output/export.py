@@ -1092,28 +1092,43 @@ class LCMSExport(HighResMassSpectraExport):
                             ]:
                                 if k2 == "ms2_scan_numbers":
                                     array = np.array(v2)
+                                    # Convert int64 to int32
+                                    if array.dtype == np.int64:
+                                        array = array.astype(np.int32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array
+                                        str(k2), data=array, compression="gzip", compression_opts=9
                                     )
                                 elif k2 == "_half_height_width":
                                     array = np.array(v2)
+                                    # Convert float64 to float32
+                                    if array.dtype == np.float64:
+                                        array = array.astype(np.float32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array
+                                        str(k2), data=array, compression="gzip", compression_opts=9
                                     )
                                 elif k2 == "_ms_deconvoluted_idx":
                                     array = np.array(v2)
+                                    # Convert int64 to int32
+                                    if array.dtype == np.int64:
+                                        array = array.astype(np.int32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array
+                                        str(k2), data=array, compression="gzip", compression_opts=9
                                     )
                                 elif k2 == "associated_mass_features_deconvoluted":
                                     array = np.array(v2)
+                                    # Convert int64 to int32
+                                    if array.dtype == np.int64:
+                                        array = array.astype(np.int32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array
+                                        str(k2), data=array, compression="gzip", compression_opts=9
                                     )
                                 elif k2 == "_noise_score":
                                     array = np.array(v2)
+                                    # Convert float64 to float32
+                                    if array.dtype == np.float64:
+                                        array = array.astype(np.float32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array
+                                        str(k2), data=array, compression="gzip", compression_opts=9
                                     )
                                 elif (
                                     isinstance(v2, int)
@@ -1122,6 +1137,11 @@ class LCMSExport(HighResMassSpectraExport):
                                     or isinstance(v2, np.integer)
                                     or isinstance(v2, np.bool_)
                                 ):
+                                    # Convert numpy types to smaller precision for storage
+                                    if isinstance(v2, np.int64):
+                                        v2 = np.int32(v2)
+                                    elif isinstance(v2, np.float64):
+                                        v2 = np.float32(v2)
                                     mass_features_group[str(k)].attrs[str(k2)] = v2
                                 else:
                                     raise TypeError(
