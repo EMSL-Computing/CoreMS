@@ -1553,7 +1553,6 @@ class LCMSCollection(LCMSCollectionCalculations):
         combined_mass_features = combined_mass_features[cols]
         # Make coll_mf_id the index
         combined_mass_features = combined_mass_features.set_index("coll_mf_id")
-        print('line 1556, _combine_mass_features', combined_mass_features)
         if induced_features == True:
             self._combined_induced_mass_features = combined_mass_features
         else:
@@ -1600,7 +1599,6 @@ class LCMSCollection(LCMSCollectionCalculations):
                 scan_time_aligned_df = scan_time_aligned_df.rename(columns={"scan": "apex_scan"})
                 cmb_mf_merged = cmb_mf.merge(scan_time_aligned_df, on=["apex_scan", "sample_name"])
                 cmb_mf_merged = cmb_mf_merged.set_index("coll_mf_id")
-                print('line 1603, _check_mass_features_df', cmb_mf_merged)
                 # Merge scan_time_aligned_df with combined_mass_features on apex_scan and sample_name
                 if induced_features:
                     self._combined_induced_mass_features = cmb_mf_merged
@@ -1691,7 +1689,6 @@ class LCMSCollection(LCMSCollectionCalculations):
 
         cmb_mf_df2 = pd.concat([cmb_monos, cmb_nomonos, cmb_decon_parent])
         cmb_mf_df2 = cmb_mf_df2[~cmb_mf_df2.index.duplicated(keep='first')]
-        print('line 1694, _drop_isotopologues', cmb_mf_df2)
         self.isotopes_dropped = True
         self._combined_mass_features = cmb_mf_df2
     
@@ -1861,7 +1858,6 @@ class LCMSCollection(LCMSCollectionCalculations):
             raise ValueError("coll_mf_id must be the index of the dataframe")
         if not df.index.is_unique:
             raise ValueError("coll_mf_id must be unique")
-        print('line 1864, mass_features_dataframe', df)
         self._combined_mass_features = df
 
     @property
