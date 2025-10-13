@@ -299,6 +299,12 @@ class LiquidChromatographSetting:
     export_unprocessed_ms1 : bool, optional
         If True, export unprocessed MS1 data.
         Default is False.
+    export_only_relevant_mass_spectra : bool, optional
+        If True, export only mass spectra associated with detected mass features:
+        specifically the apex MS1 scan for each mass feature and the best MS2 scan
+        for each mass feature (if available). If False, export all mass spectra.
+        This parameter reduces HDF5 file size by excluding non-feature spectra.
+        Default is False (backwards compatible - exports all spectra).
     verbose_processing : bool, optional
         If True, print verbose processing information.
         Default is True.
@@ -378,6 +384,7 @@ class LiquidChromatographSetting:
     export_profile_spectra: bool = False
     export_eics: bool = True
     export_unprocessed_ms1: bool = False
+    export_only_relevant_mass_spectra: bool = False
 
     # Parameters used for verbose processing
     verbose_processing: bool = True

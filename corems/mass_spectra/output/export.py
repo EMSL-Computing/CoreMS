@@ -1042,8 +1042,59 @@ class LCMSExport(HighResMassSpectraExport):
             self.mass_spectra.parameters.lc_ms.export_profile_spectra
         )
 
-        # Write the mass spectra data to the hdf5 file
-        super().to_hdf(overwrite=overwrite, export_raw=export_profile_spectra)
+        # Parameterized export: all spectra (default) or only relevant spectra
+        export_only_relevant = self.mass_spectra.parameters.lc_ms.export_only_relevant_mass_spectra
+        if export_only_relevant:
+            relevant_scan_numbers = set()
+            # Add MS1 spectra associated with mass features (apex scans) and best MS2 spectra
+            for mass_feature in self.mass_spectra.mass_features.values():
+                relevant_scan_numbers.add(mass_feature.apex_scan)
+                if mass_feature.best_ms2 is not None:
+                    relevant_scan_numbers.add(mass_feature.best_ms2.scan_number)
+        if overwrite:
+            if self.output_file.with_suffix(".hdf5").exists():
+                self.output_file.with_suffix(".hdf5").unlink()
+
+        with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
+            if not hdf_handle.attrs.get("date_utc"):
+                # Set metadata for all mass spectra
+                timenow = str(
+                    datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z")
+                )
+                hdf_handle.attrs["date_utc"] = timenow
+                hdf_handle.attrs["filename"] = self.mass_spectra.file_location.name
+                hdf_handle.attrs["data_structure"] = "mass_spectra"
+                hdf_handle.attrs["analyzer"] = self.mass_spectra.analyzer
+                hdf_handle.attrs["instrument_label"] = (
+                    self.mass_spectra.instrument_label
+                )
+                hdf_handle.attrs["sample_name"] = self.mass_spectra.sample_name
+                hdf_handle.attrs["polarity"] = self.mass_spectra.polarity
+                hdf_handle.attrs["parser_type"] = (
+                    self.mass_spectra.spectra_parser_class.__name__
+                )
+                hdf_handle.attrs["original_file_location"] = (
+                    self.mass_spectra.file_location._str
+                )
+
+            if "mass_spectra" not in hdf_handle:
+                mass_spectra_group = hdf_handle.create_group("mass_spectra")
+            else:
+                mass_spectra_group = hdf_handle.get("mass_spectra")
+
+            # Export logic based on parameter
+            for mass_spectrum in self.mass_spectra:
+                if export_only_relevant:
+                    if mass_spectrum.scan_number in relevant_scan_numbers:
+                        group_key = str(int(mass_spectrum.scan_number))
+                        self.add_mass_spectrum_to_hdf5(
+                            hdf_handle, mass_spectrum, group_key, mass_spectra_group, export_profile_spectra
+                        )
+                else:
+                    group_key = str(int(mass_spectrum.scan_number))
+                    self.add_mass_spectrum_to_hdf5(
+                        hdf_handle, mass_spectrum, group_key, mass_spectra_group, export_profile_spectra
+                    )
 
         # Write scan info, ms_unprocessed, mass features, eics, and ms2_search results to the hdf5 file
         with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
@@ -1197,7 +1248,7 @@ class LCMSExport(HighResMassSpectraExport):
                                 continue
                             eic_group[str(k)].create_dataset(str(k2), data=array, compression="gzip", compression_opts=9, chunks=True)
 
-            # Add ms2_search results to hdf5 file
+            # Add ms2_search results to hdf5 file (parameterized)
             if len(self.mass_spectra.spectral_search_results) > 0:
                 if "spectral_search_results" not in hdf_handle:
                     spectral_search_results = hdf_handle.create_group(
@@ -1207,6 +1258,9 @@ class LCMSExport(HighResMassSpectraExport):
                     spectral_search_results = hdf_handle.get("spectral_search_results")
                 # Create group for each search result by ms2_scan / precursor_mz
                 for k, v in self.mass_spectra.spectral_search_results.items():
+                    # If parameter is set, only export spectral search results for relevant scans
+                    if export_only_relevant and k not in relevant_scan_numbers:
+                        continue
                     spectral_search_results.create_group(str(k))
                     for k2, v2 in v.items():
                         spectral_search_results[str(k)].create_group(str(k2))
