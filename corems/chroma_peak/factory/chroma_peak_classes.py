@@ -140,12 +140,20 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
     _eic_data : EIC_Data
         The EIC data object associated with the feature.
     _dispersity_index : float
-        The dispersity index of the feature.
+        The dispersity index of the feature, in minutes.
+    _normalized_dispersity_index : float
+        The normalized dispersity index of the feature (unitless, fraction of total window used to calculate dispersity index).
     _half_height_width : numpy.ndarray
         The half height width of the feature (in minutes, as an array of min and max values).
     _tailing_factor : float
         The tailing factor of the feature.
         > 1 indicates tailing, < 1 indicates fronting, = 1 indicates symmetrical peak.
+    _noise_score : tuple
+        The noise score of the feature, as a tuple of (left, right) scores.
+        Each score is a float, with higher values indicating better signal to noise.
+    _gaussian_similarity : float
+        The Gaussian similarity of the feature, as a float between 0 and 1.
+        1 indicates a perfect Gaussian shape, 0 indicates a non-Gaussian shape.
     _ms_deconvoluted_idx : [int]
         The indexes of the mass_spectrum attribute in the deconvoluted mass spectrum.
     is_calibrated : bool
@@ -201,8 +209,12 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         self._persistence: float = persistence
         self._eic_data: EIC_Data = None
         self._dispersity_index: float = None
+        self._normalized_dispersity_index: float = None
         self._half_height_width: np.ndarray = None
         self._ms_deconvoluted_idx = None
+        self._tailing_factor: float = None
+        self._noise_score: tuple = None
+        self._gaussian_similarity: float = None
 
         # Additional attributes
         self.monoisotopic_mf_id = None
@@ -240,7 +252,13 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         if abs(mz_diff) < 0.01:
             self._mz_exp = new_mz
 
-    def plot(self, to_plot=["EIC", "MS1", "MS2"], return_fig=True, plot_smoothed_eic = False, plot_eic_datapoints = False):
+    def plot(
+        self,
+        to_plot=["EIC", "MS1", "MS2"],
+        return_fig=True,
+        plot_smoothed_eic=False,
+        plot_eic_datapoints=False,
+    ):
         """Plot the mass feature.
 
         Parameters
@@ -299,11 +317,23 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                     "EIC data is not available, cannot plot the mass feature's EIC"
                 )
             axs[i][0].set_title("EIC", loc="left")
-            axs[i][0].plot(self._eic_data.time, self._eic_data.eic, c="tab:blue", label="EIC")
+            axs[i][0].plot(
+                self._eic_data.time, self._eic_data.eic, c="tab:blue", label="EIC"
+            )
             if plot_eic_datapoints:
-                axs[i][0].scatter(self._eic_data.time, self._eic_data.eic, c="tab:blue", label="EIC Data Points")
+                axs[i][0].scatter(
+                    self._eic_data.time,
+                    self._eic_data.eic,
+                    c="tab:blue",
+                    label="EIC Data Points",
+                )
             if plot_smoothed_eic:
-                axs[i][0].plot(self._eic_data.time, self._eic_data.eic_smoothed, c="tab:red", label="Smoothed EIC")
+                axs[i][0].plot(
+                    self._eic_data.time,
+                    self._eic_data.eic_smoothed,
+                    c="tab:red",
+                    label="Smoothed EIC",
+                )
             if self.start_scan is not None:
                 axs[i][0].fill_between(
                     self.eic_rt_list, self.eic_list, color="b", alpha=0.2
@@ -549,9 +579,69 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         self._dispersity_index = value
 
     @property
+    def normalized_dispersity_index(self):
+        """Normalized dispersity index of the mass feature, unitless (fraction of total window used)"""
+        return self._normalized_dispersity_index
+
+    @property
     def half_height_width(self):
         """Half height width of the mass feature, average of min and max values, in minutes"""
         return np.mean(self._half_height_width)
+
+    @property
+    def noise_score(self):
+        """Mean of left and right noise scores.
+
+        Returns
+        -------
+        float or np.nan
+            Mean noise score, or np.nan if both sides are np.nan.
+        """
+        if self._noise_score is None:
+            return np.nan
+
+        left, right = self._noise_score
+        # Handle NaN values
+        if np.isnan(left) and np.isnan(right):
+            return np.nan
+        elif np.isnan(left):
+            return right
+        elif np.isnan(right):
+            return left
+        else:
+            return (left + right) / 2.0
+
+    @property
+    def noise_score_min(self):
+        """Minimum of left and right noise scores.
+
+        Returns
+        -------
+        float or np.nan
+            Minimum noise score, or np.nan if both sides are np.nan.
+        """
+        if self._noise_score is None:
+            return np.nan
+
+        left, right = self._noise_score
+        # Handle NaN values - nanmin ignores NaN
+        return np.nanmin([left, right])
+
+    @property
+    def noise_score_max(self):
+        """Maximum of left and right noise scores.
+
+        Returns
+        -------
+        float or np.nan
+            Maximum noise score, or np.nan if both sides are np.nan.
+        """
+        if self._noise_score is None:
+            return np.nan
+
+        left, right = self._noise_score
+        # Handle NaN values - nanmax ignores NaN
+        return np.nanmax([left, right])
 
     @property
     def best_ms2(self):

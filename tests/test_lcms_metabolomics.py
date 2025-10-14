@@ -6,6 +6,7 @@ from corems.mass_spectra.output.export import LCMSMetabolomicsExport
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.molecular_id.search.database_interfaces import MSPInterface
 from corems.encapsulation.factory.parameters import LCMSParameters, reset_lcms_parameters, reset_ms_parameters
+from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 
 
 def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
@@ -52,13 +53,31 @@ def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
     lcms_obj.parameters.lc_ms.export_eics = True
     lcms_obj.parameters.lc_ms.export_profile_spectra = True
 
+    ## peak metrics filtering settings - test the new functionality
+    lcms_obj.parameters.lc_ms.remove_mass_features_by_peak_metrics = True
+    lcms_obj.parameters.lc_ms.mass_feature_attribute_filter_dict = {
+        'dispersity_index': {'value': 0.5, 'operator': '<'}
+    }
+
     # Use persistent homology to find mass features in the lc-ms data
     # Find mass features, cluster, and integrate them.  Then annotate pairs of mass features that are c13 iso pairs.
     lcms_obj.find_mass_features()
+    lcms_obj.integrate_mass_features(drop_if_fail=True)
+    
+    # Record number of mass features before filtering for comparison
+    num_features_before_filtering = len(lcms_obj.mass_features)
+        # Add peak metrics and filter mass features based on the new parameters
+    lcms_obj.add_peak_metrics()
+
+    # Record number of mass features after filtering for comparison    
+    num_features_after_filtering = len(lcms_obj.mass_features)
+    assert num_features_after_filtering < num_features_before_filtering
+
+    # Add associated ms1 after integration and peak shape metrics calculation and filtering
+    # This prevents adding unnecessary ms1 data for mass features that will be filtered out
     lcms_obj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile"
     )
-    lcms_obj.integrate_mass_features(drop_if_fail=True)
 
     # Add hcd ms2 data to lcms object, using the ms2 mass spectrum parameters
     og_ms_len = len(lcms_obj._ms)
@@ -94,6 +113,7 @@ def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
     lcms_obj.fe_search(
         scan_list=ms2_scans_oi_hr, fe_lib=msp_negative, peak_sep_da=0.01
     )
+
     # Export the lcms object to an hdf5 file using the LipidomicsExport class
     exporter = LCMSMetabolomicsExport(
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab", lcms_obj
@@ -112,6 +132,12 @@ def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
 
     # Check that the parameters match
     assert myLCMSobj2.parameters == lcms_obj.parameters
+
+    # Specifically check the new peak metrics filtering parameters
+    assert myLCMSobj2.parameters.lc_ms.remove_mass_features_by_peak_metrics
+    assert myLCMSobj2.parameters.lc_ms.mass_feature_attribute_filter_dict == {
+        'dispersity_index': {'value': 0.5, 'operator': '<'}
+    }
 
     # Check that the spectra parser class is the same as the original parser and that we can plot a mass spectrum using the original parser
     assert myLCMSobj2.spectra_parser_class.__name__ == "ImportMassSpectraThermoMSFileReader"

@@ -1,8 +1,7 @@
 import numpy as np
 import pandas as pd
-import warnings
+import warnings, scipy, multiprocessing
 from ripser import ripser
-import scipy
 from scipy import sparse
 from scipy.spatial import KDTree
 from sklearn.svm import SVR
@@ -162,7 +161,15 @@ class LCCalculations:
             plot_res=False,
             apex_indexes=apex_indexes,
         )
-
+        #include_indexes is a generator of tuples (left_index, apex_index, right_index)
+        include_indexes = list(include_indexes)
+        # Add check to make sure that there are at least 1/2 of min_peak_datapoints on either side of the apex
+        indicies = [x for x in include_indexes]
+        for idx in indicies:
+            if (idx[1] - idx[0] < min_peak_datapoints / 2) or (
+                idx[2] - idx[1] < min_peak_datapoints / 2
+            ):
+                include_indexes.remove(idx)
         return include_indexes
 
     def find_nearest_scan(self, rt):
@@ -186,10 +193,19 @@ class LCCalculations:
 
         return real_scan
 
-    def add_peak_metrics(self, induced_features = False):
+    def add_peak_metrics(self, remove_by_metrics=True, induced_features=False):
         """Add peak metrics to the mass features.
 
         This function calculates the peak metrics for each mass feature and adds them to the mass feature objects.
+
+        Parameters
+        ----------
+        remove_by_metrics : bool, optional
+            If True, remove mass features based on their peak metrics such as S/N, Gaussian similarity,
+            dispersity index, and noise score. Default is True, which checks the setting in the processing parameters.
+            If False, peak metrics are calculated but no mass features are removed, regardless of the setting in the processing parameters.
+        induced_features : bool, optional
+            Whether the mass features to be integrated were induced. Default is False.
         """
         # Check that at least some mass features have eic data
         if induced_features:
@@ -209,6 +225,12 @@ class LCCalculations:
                 mass_feature.calc_half_height_width()
                 mass_feature.calc_tailing_factor()
                 mass_feature.calc_dispersity_index()
+                mass_feature.calc_gaussian_similarity()
+                mass_feature.calc_noise_score()
+        
+        # Remove mass features by peak metrics if designated in parameters
+        if self.parameters.lc_ms.remove_mass_features_by_peak_metrics and remove_by_metrics:
+            self._remove_mass_features_by_peak_metrics()
 
     def get_average_mass_spectrum(
         self,
@@ -385,6 +407,10 @@ class LCCalculations:
                 )
         else:
             raise ValueError("Peak picking method not implemented")
+        
+        # Remove noisey mass features if designated in parameters
+        if self.parameters.lc_ms.remove_redundant_mass_features:
+            self._remove_redundant_mass_features()
 
     def integrate_mass_features(
         self, drop_if_fail=True, drop_duplicates=True, ms_level=1, induced_features=False
@@ -449,12 +475,6 @@ class LCCalculations:
             if len(mf_dict) == 0:
                 raise ValueError(
                     "No mass features found, did you run find_mass_features() first?"
-                )
-            if not all(
-                [mf.mass_spectrum is not None for mf in mf_dict.values()]
-            ):
-                raise ValueError(
-                    "Mass spectrum must be associated with each mass feature, did you run add_associated_ms1() first?"
                 )
 
         # Subset scan data to only include correct ms_level
@@ -872,6 +892,289 @@ class LCCalculations:
 
             mass_feature.associated_mass_features_deconvoluted = mfs_associated_decon
 
+    def _remove_redundant_mass_features(
+        self,
+        ) -> None:
+        """
+        Identify and remove redundant mass features that are likely contaminants based on their m/z values and scan frequency. 
+        Especially useful for HILIC data where signals do not return to baseline between peaks or for data with significant background noise.
+        
+        Contaminants are characterized by:
+        1. Similar m/z values (within ppm_tolerance)
+        2. High frequency across scan numbers (ubiquitous presence)
+    
+        Notes
+        -----
+        Depends on self.mass_features being populated, uses the parameters in self.parameters.lc_ms for tolerances (mass_feature_cluster_mz_tolerance_rel)
+        """
+        ppm_tolerance = self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel*1e6
+        min_scan_frequency = self.parameters.lc_ms.redundant_scan_frequency_min
+        n_retain = self.parameters.lc_ms.redundant_feature_retain_n
+
+        df = self.mass_features_to_df()
+
+        if df.empty:
+            return pd.DataFrame()
+        # df index should be mf_id
+        if 'mf_id' not in df.columns:
+            if 'mf_id' in df.index.names:
+                df = df.reset_index()
+            else:
+                raise ValueError("DataFrame must contain 'mf_id' column or index.")
+        
+        # Sort by m/z for efficient grouping
+        df_sorted = df.sort_values('mz').reset_index(drop=True)
+        
+        # Calculate total number of unique scans for frequency calculation
+        # Calculate total possible scans (check the cluster rt tolerance and the min rt and max rt of the data)
+        total_time = self.scan_df['scan_time'].max() - self.scan_df['scan_time'].min()
+        cluster_rt_tolerance = self.parameters.lc_ms.mass_feature_cluster_rt_tolerance
+        # If the feature was detected in every possible scan (and then rolled up), it would be in this many scans
+        total_scans =  int(total_time / cluster_rt_tolerance) + 1
+
+        # Group similar m/z values using ppm tolerance
+        mz_groups = []
+        current_group = []
+        
+        for i, row in df_sorted.iterrows():
+            current_mz = row['mz']
+            
+            if not current_group:
+                # Start first group
+                current_group = [i]
+            else:
+                # Check if current m/z is within tolerance of group representative
+                group_representative_mz = df_sorted.iloc[current_group[0]]['mz']
+                ppm_diff = abs(current_mz - group_representative_mz) / group_representative_mz * 1e6
+                
+                if ppm_diff <= ppm_tolerance:
+                    # Add to current group
+                    current_group.append(i)
+                else:
+                    # Start new group, but first process current group
+                    if len(current_group) > 0:
+                        mz_groups.append(current_group)
+                    current_group = [i]
+        
+        # Don't forget the last group
+        if current_group:
+            mz_groups.append(current_group)
+        
+        # Analyze each m/z group for contaminant characteristics
+        
+        for group_indices in mz_groups:
+            group_data = df_sorted.iloc[group_indices]
+            
+            # Calculate group statistics
+            unique_scans = group_data['apex_scan'].nunique()
+            scan_frequency = unique_scans / total_scans
+            
+            # Check if this group meets contaminant criteria
+            if scan_frequency >= min_scan_frequency:
+                group_data = group_data.sort_values('intensity', ascending=False)
+                non_representative_mf_id = group_data.iloc[n_retain:]['mf_id'].tolist()  # These will be removed
+
+                self.mass_features = {
+                    k: v for k, v in self.mass_features.items() if k not in non_representative_mf_id
+                }
+
+    def _remove_mass_features_by_peak_metrics(self) -> None:
+        """Remove mass features based on peak metrics defined in mass_feature_attribute_filter_dict.
+        
+        This method filters mass features based on various peak shape metrics and quality indicators
+        such as noise scores, Gaussian similarity, tailing factors, dispersity index, etc.
+        
+        The filtering criteria are defined in the mass_feature_attribute_filter_dict parameter,
+        which should contain attribute names as keys and filter specifications as values.
+        
+        Filter specification format:
+        {attribute_name: {'value': threshold, 'operator': comparison}}
+        
+        Available operators:
+        - '>' or 'greater': Keep features where attribute > threshold
+        - '<' or 'less': Keep features where attribute < threshold  
+        - '>=' or 'greater_equal': Keep features where attribute >= threshold
+        - '<=' or 'less_equal': Keep features where attribute <= threshold
+        
+        Examples:
+        - {'noise_score_max': {'value': 0.5, 'operator': '>='}} - Keep features with noise_score_max >= 0.5
+        - {'dispersity_index': {'value': 0.1, 'operator': '<'}} - Keep features with dispersity_index < 0.1
+        - {'gaussian_similarity': {'value': 0.7, 'operator': '>='}} - Keep features with gaussian_similarity >= 0.7
+        
+        Returns
+        -------
+        None
+            Modifies self.mass_features in place by removing filtered features.
+            
+        Raises
+        ------
+        ValueError
+            If no mass features are found, if an invalid attribute is specified, or if filter specification is malformed.
+        """
+        if self.mass_features is None or len(self.mass_features) == 0:
+            raise ValueError("No mass features found, run find_mass_features() first")
+            
+        filter_dict = self.parameters.lc_ms.mass_feature_attribute_filter_dict
+        
+        if not filter_dict:
+            # No filtering criteria specified, return early
+            return
+            
+        verbose = self.parameters.lc_ms.verbose_processing
+        initial_count = len(self.mass_features)
+        
+        if verbose:
+            print(f"Filtering mass features using peak metrics. Initial count: {initial_count}")
+            
+        # List to collect IDs of mass features to remove
+        features_to_remove = []
+        
+        for mf_id, mass_feature in self.mass_features.items():
+            should_remove = False
+            
+            for attribute_name, filter_spec in filter_dict.items():
+                # Validate filter specification structure
+                if not isinstance(filter_spec, dict):
+                    raise ValueError(f"Filter specification for '{attribute_name}' must be a dictionary with 'value' and 'operator' keys")
+                
+                if 'value' not in filter_spec or 'operator' not in filter_spec:
+                    raise ValueError(f"Filter specification for '{attribute_name}' must contain both 'value' and 'operator' keys")
+                
+                threshold_value = filter_spec['value']
+                operator = filter_spec['operator'].lower().strip()
+                
+                # Validate operator
+                valid_operators = {'>', '<', '>=', '<=', 'greater', 'less', 'greater_equal', 'less_equal'}
+                if operator not in valid_operators:
+                    raise ValueError(f"Invalid operator '{operator}' for attribute '{attribute_name}'. Valid operators: {valid_operators}")
+                
+                # Normalize operator names
+                operator_map = {
+                    'greater': '>',
+                    'less': '<', 
+                    'greater_equal': '>=',
+                    'less_equal': '<='
+                }
+                operator = operator_map.get(operator, operator)
+                
+                # Get the attribute value from the mass feature
+                try:
+                    if hasattr(mass_feature, attribute_name):
+                        attribute_value = getattr(mass_feature, attribute_name)
+                    else:
+                        raise ValueError(f"Mass feature does not have attribute '{attribute_name}'")
+                        
+                    # Handle None values or attributes that haven't been calculated
+                    if attribute_value is None:
+                        if verbose:
+                            print(f"Warning: Mass feature {mf_id} has None value for '{attribute_name}'. Removing feature.")
+                        should_remove = True
+                        break
+                        
+                    # Handle numpy arrays (like half_height_width which returns mean)
+                    if hasattr(attribute_value, '__len__') and not isinstance(attribute_value, str):
+                        # For arrays, we use the mean or appropriate summary statistic
+                        if attribute_name == 'half_height_width':
+                            # half_height_width property already returns the mean
+                            pass
+                        else:
+                            attribute_value = float(np.mean(attribute_value))
+                    
+                    # Handle NaN values
+                    if np.isnan(float(attribute_value)):
+                        if verbose:
+                            print(f"Warning: Mass feature {mf_id} has NaN value for '{attribute_name}'. Removing feature.")
+                        should_remove = True
+                        break
+                    
+                    # Apply the threshold comparison based on operator
+                    attribute_value = float(attribute_value)
+                    threshold_value = float(threshold_value)
+                    
+                    if operator == '>' and not (attribute_value > threshold_value):
+                        should_remove = True
+                        break
+                    elif operator == '<' and not (attribute_value < threshold_value):
+                        should_remove = True
+                        break
+                    elif operator == '>=' and not (attribute_value >= threshold_value):
+                        should_remove = True
+                        break  
+                    elif operator == '<=' and not (attribute_value <= threshold_value):
+                        should_remove = True
+                        break
+                        
+                except (AttributeError, ValueError, TypeError) as e:
+                    if verbose:
+                        print(f"Error evaluating filter '{attribute_name}' for mass feature {mf_id}: {e}")
+                    should_remove = True
+                    break
+            
+            if should_remove:
+                features_to_remove.append(mf_id)
+        
+        # Remove filtered mass features
+        for mf_id in features_to_remove:
+            del self.mass_features[mf_id]
+        
+        # Clean up unassociated EICs and ms1 data
+        self._remove_unassociated_eics()
+        self._remove_unassociated_ms1_spectra()
+            
+    def _remove_unassociated_eics(self) -> None:
+        """Remove EICs that are not associated with any mass features.
+
+        This method cleans up the eics attribute by removing any EICs that do not correspond to
+        any mass features currently stored in the mass_features attribute. This is useful for
+        freeing up memory and ensuring that only relevant EICs are retained.
+
+        Returns
+        -------
+        None
+            Modifies self.eics in place by removing unassociated EICs.
+        """
+        if self.mass_features is None or len(self.mass_features) == 0:
+            self.eics = {}
+            return
+
+        # Get the set of m/z values associated with current mass features
+        associated_mzs = {mf.mz for mf in self.mass_features.values()}
+
+        # Remove EICs that are not associated with any mass features
+        self.eics = {mz: eic for mz, eic in self.eics.items() if mz in associated_mzs}
+    
+    def _remove_unassociated_ms1_spectra(self) -> None:
+        """Remove MS1 spectra that are not associated with any mass features.
+        This method cleans up the _ms_unprocessed attribute by removing any MS1 spectra that do not correspond to
+        any mass features currently stored in the mass_features attribute. This is useful for freeing up memory
+        and ensuring that only relevant MS1 spectra are retained.
+
+        Returns
+        -------
+        None
+        """
+        if self.mass_features is None or len(self.mass_features) == 0:
+            self._ms_unprocessed = {}
+            return
+
+        # Get the set of m/z values associated with current mass features
+        associated_ms1_scans = {mf.apex_scan for mf in self.mass_features.values()}
+        associated_ms1_scans = [int(scan) for scan in associated_ms1_scans]
+        
+        # Get keys within the _ms attribute (these are individual MassSpectrum objects)
+        current_stored_spectra = list(set(self._ms.keys()))
+        if len(current_stored_spectra) == 0:
+            return
+        current_stored_spectra = [int(scan) for scan in current_stored_spectra]
+
+        # Filter the current_stored_spectra to only ms1 scans
+        current_stored_spectra_ms1 = [ scan for scan in current_stored_spectra if scan in self.ms1_scans ]
+
+        # Remove MS1 spectra that are not associated with any mass features
+        scans_to_drop = [scan for scan in current_stored_spectra_ms1 if scan not in associated_ms1_scans]
+        for scan in scans_to_drop:
+            if scan in self._ms:
+                del self._ms[scan]
 
 class PHCalculations:
     """Methods for performing calculations related to 2D peak picking via persistent homology on LCMS data.
@@ -2711,12 +3014,13 @@ class LCMSCollectionCalculations:
             inputting desired boundaries on the scan time (xb, xt) and m/z values (yb, yt).
         """
         df = self.cluster_summary_dataframe.copy()
+        mfdf = self.mass_features_dataframe.copy()
 
         fig = plt.figure()
         if show_all:
             plt.scatter(
-                df.scan_time_aligned_median,
-                df.mz_median,
+                mfdf.scan_time_aligned,
+                mfdf.mz,
                 c = 'tab:gray',
                 s = 1
             )
@@ -2733,9 +3037,9 @@ class LCMSCollectionCalculations:
         plt.ylabel('m/z')
         
         if xt == 'xt':
-            xt = np.ceil(np.max(df.mz_median))
+            xt = np.ceil(np.max(mfdf.mz))
         if yt == 'yt':
-            yt = np.ceil(np.max(df.scan_time_aligned_median))
+            yt = np.ceil(np.max(mfdf.scan_time))
         if xb == 'xb':
             xb = 0
         if yb == 'yb':
@@ -3162,10 +3466,10 @@ class LCMSCollectionCalculations:
             )
 
         mfdf = self.mass_features_dataframe.copy()
-        sumdf = self.cluster_summary_dataframe.copy()
+        summarydf = self.cluster_summary_dataframe
 
-        numsamples = mfdf.sample_id.max() + 1
-        sumdf = sumdf[sumdf.sample_id_nunique > numsamples * clu_size_thresh]
+        numsamples = len(self)
+        sumdf = summarydf[summarydf.sample_id_nunique > numsamples * clu_size_thresh].reset_index(drop = True).copy()
 
         ## find the ranges for non-outlier values and add them to sumdf
         mergelist = ['cluster']
@@ -3184,7 +3488,8 @@ class LCMSCollectionCalculations:
                 ## dimension therefore can't have outliers
 
         ## add ranges to mfdf and identify mass features that fall outside the ranges
-        outdf = pd.merge(mfdf, sumdf[mergelist], on = 'cluster')
+        outdf = pd.merge(mfdf, sumdf[mergelist].dropna(), on = 'cluster')
+
         outtags = ['cluster']
         for dim in dim_list:
             dimtag = dim + '_outlier'
@@ -3211,19 +3516,108 @@ class LCMSCollectionCalculations:
         else:
             plt.show()
             
-    def search_for_missing_mass_features_in_one_sample(self, samplename, threshold = 0.5, tol_flag = 0):
+    def _search_for_targeted_mass_features_in_sample(self, obj_idx, missingdf, threshold = 0.5, tol_flag = 0, inplace = True):
+        """
+        Searches through a sample in a collection to find all missing mass
+        features across all clusters in the collection.
+        
+        Parameters
+        -----------
+        obj_idx :  int
+            Index of the sample being processed
+        missingdf : pandas DataFrame
+            DataFrame containing information about the clusters with columns:
+            'cluster', 'sample_id_nunique', 'mz_min', 'mz_max', 
+            'scan_time_aligned_min', 'scan_time_aligned_max' extracted from
+            self.cluster_summary_dataframe and 'mz_min_allowed', 
+            'mz_max_allowed', 'scan_time_aligned_min_allowed', 
+            'scan_time_aligned_max_allowed' computed in 
+            search_for_targeted_mass_features_in_collection
+        threshold :  float
+            Decimal representation of percent of sample included in a cluster 
+            before the remaining samples are searched
+        tol_flag : 0 or 1
+            Indicates whether expand cluster boundaries to search for mass 
+            features near the boundary if none are found in the given 
+            parameters. Defaults to 0 (False).
+        inplace : boolean
+            Indicates whethere to assign induced_mass_features attribute in 
+            place or to return the result when the function is run in parallel
+        """
+        
+        ## to get clusters missing data based on sample index:
+        sampledf = missingdf[
+            missingdf.missing_samples.apply(lambda x: obj_idx in x)
+        ].reset_index(drop = True).copy()
+
+        self.load_raw_data(obj_idx, 1)
+        ms1df = self[obj_idx]._ms_unprocessed[1].copy()
+        scan_df = self[obj_idx].scan_df[['scan', 'scan_time_aligned']]
+        ms1df = pd.merge(ms1df, scan_df, on = 'scan')
+
+        for i in range(len(sampledf)):
+            mz_min = sampledf.mz_min.iloc[i]
+            mz_max = sampledf.mz_max.iloc[i]
+            st_min = sampledf.scan_time_aligned_min.iloc[i]
+            st_max = sampledf.scan_time_aligned_max.iloc[i]
+            # TODO: Adjust function to input queries as tuples so we can search 
+            #       for all targeted mass features at once instead of in a loop 
+            found_feature = self[obj_idx].search_for_targeted_mass_feature(            
+                ms1df, 
+                mz_min, 
+                mz_max, 
+                st_min, 
+                st_max,
+                set_id = 'c' + str(sampledf.cluster.iloc[i]) + '_' + str(i) + '_i',
+                obj_idx = obj_idx,
+                st_aligned = True
+            )
+
+            if tol_flag == 1 and found_feature.apex_scan == -99:
+                mz_min = sampledf.mz_min_allowed.iloc[i] 
+                mz_max = sampledf.mz_max_allowed.iloc[i]
+                st_min = sampledf.sta_min_allowed.iloc[i] 
+                st_max = sampledf.sta_max_allowed.iloc[i] 
+
+                found_feature = self[obj_idx].search_for_targeted_mass_feature(            
+                    ms1df, 
+                    mz_min, 
+                    mz_max, 
+                    st_min, 
+                    st_max,
+                    set_id = 'c' + str(sampledf.cluster.iloc[i]) + '_' + str(i) + '_i',
+                    obj_idx = obj_idx,
+                    st_aligned = True
+                )
+
+            self[obj_idx].induced_mass_features[found_feature.id] = found_feature
+
+        self[obj_idx].add_associated_ms1(induced_features = True)
+        # need to set drop_if_fail to false for induced features as they will fail
+        self[obj_idx].integrate_mass_features(drop_if_fail = False, induced_features = True)
+        self[obj_idx].add_peak_metrics(induced_features = True)
+
+        if inplace == False:
+            return self[obj_idx].induced_mass_features
+    
+    def search_for_targeted_mass_features_in_collection(self, threshold = 0.5, tol_flag = 0):
         '''
-        Work in progress temporary code
-        threshold default to 0.5 --> 
-            only consider clusters that contain at least 50% of the sample
-        tol_flag default to 0 -->
-            don't check for possible mass features on the edges of the cluster
-            for sampleindex == 7, tol_flag == 1 picks up 6 more mass features
+        Iterates through a collection to find all relevant induced mass 
+        features and assigns them to the induced_mass_features attribute
+
+        Parameters
+        -----------
+        threshold :  float
+            Decimal representation of percent of sample included in a cluster 
+            before the remaining samples are searched
+        tol_flag : 0 or 1
+            Indicates whether expand cluster boundaries to search for mass 
+            features near the boundary if none are found in the given 
+            parameters. Defaults to 0 (False).
         '''
+        
         summarydf = self.cluster_summary_dataframe
         mfdf = self.mass_features_dataframe
-        sampleindex = self.samples.index(samplename)
-        self.load_raw_data(sampleindex, 1)
         
         sample_ct = len(self.samples)
         missingdf = summarydf[[
@@ -3241,63 +3635,31 @@ class LCMSCollectionCalculations:
         for c in missingdf.cluster.to_numpy():
             cludf = mfdf[mfdf.cluster == c]
             missingdf.loc[c, 'missing_samples'] = str(
-                [x for x in mfdf.sample_name.unique() if x not in cludf.sample_name.unique()]
+                [x for x in mfdf.sample_id.unique() if x not in cludf.sample_id.unique()]
             )
         missingdf['missing_samples'] = missingdf.missing_samples.apply(literal_eval)
-
-        ## to get clusters missing data based on sample name:
-        sampledf = missingdf[
-            missingdf.missing_samples.apply(lambda x: samplename in x)
-        ].reset_index(drop = True).copy()
         
-        if tol_flag == 1:
-            mz_clu_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
-            rt_clu_tol = self.parameters.lcms_collection.consensus_rt_tol
-            sampledf['mz_max_allowed'] = sampledf.mz_max + mz_clu_tol*sampledf.mz_max
-            sampledf['mz_min_allowed'] = sampledf.mz_min - mz_clu_tol*sampledf.mz_min
-            sampledf['sta_max_allowed'] = sampledf.scan_time_aligned_max + rt_clu_tol*sampledf.scan_time_aligned_max
-            sampledf['sta_min_allowed'] = sampledf.scan_time_aligned_min - rt_clu_tol*sampledf.scan_time_aligned_min
+        mz_clu_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
+        rt_clu_tol = self.parameters.lcms_collection.consensus_rt_tol
+        missingdf['mz_max_allowed'] = missingdf.mz_max + mz_clu_tol*missingdf.mz_max
+        missingdf['mz_min_allowed'] = missingdf.mz_min - mz_clu_tol*missingdf.mz_min
+        missingdf['sta_max_allowed'] = missingdf.scan_time_aligned_max + rt_clu_tol*missingdf.scan_time_aligned_max
+        missingdf['sta_min_allowed'] = missingdf.scan_time_aligned_min - rt_clu_tol*missingdf.scan_time_aligned_min
 
-        ms1df = self[sampleindex]._ms_unprocessed[1].copy()
-        scan_df = self[sampleindex].scan_df[['scan', 'scan_time_aligned']]
-        ms1df = pd.merge(ms1df, scan_df, on = 'scan')
+        if self.parameters.lcms_collection.cores == 1:
+            for i in range(sample_ct):
+                self[i]._search_for_targeted_mass_features_in_sample(i, missingdf, threshold, tol_flag)
 
-        for i in range(len(sampledf)):
-            mz_min = sampledf.mz_min.iloc[i]
-            mz_max = sampledf.mz_max.iloc[i]
-            st_min = sampledf.scan_time_aligned_min.iloc[i]
-            st_max = sampledf.scan_time_aligned_max.iloc[i]
-            found_feature = self[sampleindex].search_for_targeted_mass_feature(            
-                ms1df, 
-                mz_min, 
-                mz_max, 
-                st_min, 
-                st_max,
-                set_id = 'c' + str(sampledf.cluster.iloc[i]) + '_' + str(i) + '_i',
-                obj_idx = sampleindex,
-                st_aligned = True
+        if self.parameters.lcms_collection.cores > 1:
+            if self.parameters.lcms_collection.cores > len(self):
+                ncores = len(self)
+            else:
+                ncores = self.parameters.lcms_collection.cores
+            pool = multiprocessing.Pool(ncores)
+            mp_result = pool.starmap(
+                self._search_for_targeted_mass_features_in_sample, 
+                [(x, missingdf, threshold, tol_flag, False) for x in range(sample_ct)]
             )
 
-            if tol_flag == 1 and found_feature.apex_scan == -99:
-                mz_min = sampledf.mz_min_allowed.iloc[i] 
-                mz_max = sampledf.mz_max_allowed.iloc[i]
-                st_min = sampledf.sta_min_allowed.iloc[i] 
-                st_max = sampledf.sta_max_allowed.iloc[i] 
-
-                found_feature = self[sampleindex].search_for_targeted_mass_feature(            
-                    ms1df, 
-                    mz_min, 
-                    mz_max, 
-                    st_min, 
-                    st_max,
-                    set_id = 'c' + str(sampledf.cluster.iloc[i]) + '_' + str(i) + '_i',
-                    obj_idx = sampleindex,
-                    st_aligned = True
-                )
-        
-            self[sampleindex].induced_mass_features[found_feature.id] = found_feature
-
-        self[sampleindex].add_associated_ms1(induced_features = True)
-        # need to set drop_if_fail to false for induced features as they will fail
-        self[sampleindex].integrate_mass_features(drop_if_fail = False, induced_features = True)
-        self[sampleindex].add_peak_metrics(induced_features = True)
+            for i in range(sample_ct):
+                self[i].induced_mass_features = mp_result[i]
