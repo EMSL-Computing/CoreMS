@@ -327,6 +327,31 @@ class MZMLSpectraParser(SpectraParserInterface):
         MassSpecProfile | MassSpecCentroid
             The MassSpecProfile or MassSpecCentroid object containing the parsed mass spectrum.
         """
+        # Use the batch function and return the first result
+        result_list = self.get_mass_spectra_from_scan_list(
+            [scan_number], spectrum_mode, auto_process
+        )
+        return result_list[0] if result_list else None
+
+    def get_mass_spectra_from_scan_list(
+        self, scan_list, spectrum_mode, auto_process=True
+    ):
+        """Instatiate mass spectrum objects from the mzML file.
+
+        Parameters
+        ----------
+        scan_list : list of int
+            The scan numbers to be parsed.
+        spectrum_mode : str
+            The type of spectrum to instantiate.  Must be'profile' or 'centroid'.
+        auto_process : bool, optional
+            If True, process the mass spectrum. Default is True.
+
+        Returns
+        -------
+        list of MassSpecProfile | MassSpecCentroid
+            List of MassSpecProfile or MassSpecCentroid objects containing the parsed mass spectra.
+        """
 
         def set_metadata(
             scan_number: int,
@@ -364,51 +389,56 @@ class MZMLSpectraParser(SpectraParserInterface):
         # Open file
         data = self.load()
 
-        # Pluck out individual scan mz and intensity
-        spec = data[scan_number]
+        mass_spectrum_objects = []
+        
+        for scan_number in scan_list:
+            # Pluck out individual scan mz and intensity
+            spec = data[scan_number]
 
-        # Get polarity
-        if spec["negative scan"] is not None:
-            polarity = -1
-        elif spec["positive scan"] is not None:
-            polarity = 1
+            # Get polarity
+            if spec["negative scan"] is not None:
+                polarity = -1
+            elif spec["positive scan"] is not None:
+                polarity = 1
 
-        # Get mass spectrum
-        if spectrum_mode == "profile":
-            # Check if profile
-            if not spec.get("MS:1000128"):
-                raise ValueError("spectrum is not profile")
-            data_dict = {
-                Labels.mz: spec.mz,
-                Labels.abundance: spec.i,
-            }
-            d_params = set_metadata(
-                scan_number,
-                polarity,
-                self.file_location,
-                label=Labels.simulated_profile,
-            )
-            mass_spectrum_obj = mass_spectrum_obj = MassSpecProfile(
-                data_dict, d_params, auto_process=auto_process
-            )
-        elif spectrum_mode == "centroid":
-            # Check if centroided
-            if not spec.get("MS:1000127"):
-                raise ValueError("spectrum is not centroided")
-            data_dict = {
-                Labels.mz: spec.mz,
-                Labels.abundance: spec.i,
-                Labels.rp: [np.nan] * len(spec.mz),
-                Labels.s2n: [np.nan] * len(spec.i),
-            }
-            d_params = set_metadata(
-                scan_number, polarity, self.file_location, label=Labels.corems_centroid
-            )
-            mass_spectrum_obj = MassSpecCentroid(
-                data_dict, d_params, auto_process=auto_process
-            )
+            # Get mass spectrum
+            if spectrum_mode == "profile":
+                # Check if profile
+                if not spec.get("MS:1000128"):
+                    raise ValueError("spectrum is not profile")
+                data_dict = {
+                    Labels.mz: spec.mz,
+                    Labels.abundance: spec.i,
+                }
+                d_params = set_metadata(
+                    scan_number,
+                    polarity,
+                    self.file_location,
+                    label=Labels.simulated_profile,
+                )
+                mass_spectrum_obj = MassSpecProfile(
+                    data_dict, d_params, auto_process=auto_process
+                )
+            elif spectrum_mode == "centroid":
+                # Check if centroided
+                if not spec.get("MS:1000127"):
+                    raise ValueError("spectrum is not centroided")
+                data_dict = {
+                    Labels.mz: spec.mz,
+                    Labels.abundance: spec.i,
+                    Labels.rp: [np.nan] * len(spec.mz),
+                    Labels.s2n: [np.nan] * len(spec.i),
+                }
+                d_params = set_metadata(
+                    scan_number, polarity, self.file_location, label=Labels.corems_centroid
+                )
+                mass_spectrum_obj = MassSpecCentroid(
+                    data_dict, d_params, auto_process=auto_process
+                )
+            
+            mass_spectrum_objects.append(mass_spectrum_obj)
 
-        return mass_spectrum_obj
+        return mass_spectrum_objects
 
     def get_mass_spectra_obj(self):
         """Instatiate a MassSpectraBase object from the mzML file.

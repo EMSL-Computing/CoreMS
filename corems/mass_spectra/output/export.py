@@ -1110,6 +1110,11 @@ class LCMSExport(HighResMassSpectraExport):
                                     mass_features_group[str(k)].create_dataset(
                                         str(k2), data=array
                                     )
+                                elif k2 == "_noise_score":
+                                    array = np.array(v2)
+                                    mass_features_group[str(k)].create_dataset(
+                                        str(k2), data=array
+                                    )
                                 elif (
                                     isinstance(v2, int)
                                     or isinstance(v2, float)
@@ -1572,8 +1577,20 @@ class LCMSMetabolomicsExport(LCMSExport):
             ]
         ]
 
-        # Reorder rows by "Mass Feature ID"
-        mf_report = mf_report.sort_values("Mass Feature ID")
+        # Reorder rows by "Mass Feature ID", then "Entropy Similarity" (descending), then "Confidence Score" (descending)
+        if "Entropy Similarity" in mf_report.columns:
+            mf_report = mf_report.sort_values(
+                by=["Mass Feature ID", "Entropy Similarity", "Confidence Score"],
+                ascending=[True, False, False],
+            )
+        elif "Confidence Score" in mf_report.columns:
+             mf_report = mf_report.sort_values(
+                by=["Mass Feature ID", "Confidence Score"],
+                ascending=[True, False],
+            )
+        # If neither "Entropy Similarity" nor "Confidence Score" are in the columns, just sort by "Mass Feature ID"
+        else:
+            mf_report = mf_report.sort_values("Mass Feature ID")
 
         # Reset index
         mf_report = mf_report.reset_index(drop=True)
