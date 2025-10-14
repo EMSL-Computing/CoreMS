@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from corems.encapsulation.factory.parameters import LCMSParameters, LCMSCollectionParameters
 from corems.mass_spectra.calc.lc_calc import LCCalculations, PHCalculations, LCMSCollectionCalculations
 from corems.molecular_id.search.lcms_spectral_search import LCMSSpectralSearch
-from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
+from corems.mass_spectrum.input.numpyArray import ms_from_array_profile, ms_from_array_centroid
 from corems.mass_spectra.calc.lc_calc import find_closest
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 
@@ -249,15 +249,41 @@ class MassSpectraBase:
             # Prepare the ms_df for parsing
             ms_df = self._ms_unprocessed[ms_level].copy().set_index("scan", drop=False)
 
-        for scan in scan_list:
-            ms = None
+        if use_parser:
+            # Use batch function to get all mass spectra at once
             if spectrum_mode is None:
-                # get spectrum mode from _scan_info
-                spectrum_mode_scan = self.scan_df.loc[scan, "ms_format"]
+                # get spectrum mode from _scan_info for each scan
+                spectrum_modes = [self.scan_df.loc[scan, "ms_format"] for scan in scan_list]
+                spectrum_mode_batch = spectrum_modes[0] if len(set(spectrum_modes)) == 1 else None
             else:
-                spectrum_mode_scan = spectrum_mode
-            # Instantiate the mass spectrum object using the parser or the unprocessed data
-            if not use_parser:
+                spectrum_mode_batch = spectrum_mode
+            
+            ms_list = self.spectra_parser.get_mass_spectra_from_scan_list(
+                scan_list=scan_list,
+                spectrum_mode=spectrum_mode_batch,
+                auto_process=False,
+            )
+            
+            # Process each mass spectrum
+            for i, scan in enumerate(scan_list):
+                ms = ms_list[i] if i < len(ms_list) else None
+                if ms is not None:
+                    if ms_params is not None:
+                        ms.parameters = ms_params
+                    ms.scan_number = scan
+                    if auto_process:
+                        ms.process_mass_spec()
+                    self.add_mass_spectrum(ms)
+        else:
+            # Original non-parser logic remains unchanged
+            for scan in scan_list:
+                ms = None
+                if spectrum_mode is None:
+                    # get spectrum mode from _scan_info
+                    spectrum_mode_scan = self.scan_df.loc[scan, "ms_format"]
+                else:
+                    spectrum_mode_scan = spectrum_mode
+                
                 my_ms_df = ms_df.loc[scan]
                 if spectrum_mode_scan == "profile":
                     # Check this - it might be better to use the MassSpectrumProfile class to instantiate the mass spectrum
@@ -269,24 +295,24 @@ class MassSpectraBase:
                         auto_process=False,
                     )
                 else:
-                    raise ValueError(
-                        "Only profile mode is supported for unprocessed data"
+                   ms = ms_from_array_centroid(
+                        mz = my_ms_df.mz,
+                        abundance = my_ms_df.intensity,
+                        rp = [np.nan] * len(my_ms_df.mz),
+                        s2n = [np.nan] * len(my_ms_df.mz),
+                        dataname = self.file_location,
+                        polarity=polarity,
+                        auto_process=False,
                     )
-            if use_parser:
-                ms = self.spectra_parser.get_mass_spectrum_from_scan(
-                    scan_number=scan,
-                    spectrum_mode=spectrum_mode_scan,
-                    auto_process=False,
-                )
 
-            # Set the mass spectrum parameters, auto-process if auto_process is True, and add to the dataset
-            if ms is not None:
-                if ms_params is not None:
-                    ms.parameters = ms_params
-                ms.scan_number = scan
-                if auto_process:
-                    ms.process_mass_spec()
-                self.add_mass_spectrum(ms)
+                # Set the mass spectrum parameters, auto-process if auto_process is True, and add to the dataset
+                if ms is not None:
+                    if ms_params is not None:
+                        ms.parameters = ms_params
+                    ms.scan_number = scan
+                    if auto_process:
+                        ms.process_mass_spec()
+                    self.add_mass_spectrum(ms)
 
     def get_time_of_scan_id(self, scan):
         """Returns the scan time for the specified scan number.
@@ -775,15 +801,20 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             
         cols_in_df = [
             "id",
-            "_apex_scan",
+            "apex_scan",
             "start_scan",
             "final_scan",
-            "_retention_time",
-            "_intensity",
-            "_persistence",
-            "_area",
-            "_dispersity_index",
-            "_tailing_factor",
+            "retention_time",
+            "intensity",
+            "persistence",
+            "area",
+            "dispersity_index",
+            "normalized_dispersity_index",
+            "tailing_factor",
+            "gaussian_similarity",
+            "noise_score",
+            "noise_score_min",
+            "noise_score_max",
             "monoisotopic_mf_id",
             "isotopologue_type",
             "mass_spectrum_deconvoluted_parent",
@@ -796,6 +827,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 set(cols_in_df).intersection(mf_dict[mf_id].__dir__())
             )
             dict_mf = {}
+            # Get the values for each key in df_keys from the mass feature object
             for key in df_keys:
                 dict_mf[key] = getattr(mf_dict[mf_id], key)
             if len(mf_dict[mf_id].ms2_scan_numbers) > 0:
@@ -823,14 +855,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         # rename _area to area and id to mf_id
         df_mf = df_mf.rename(
             columns={
-                "_area": "area",
                 "id": "mf_id",
-                "_apex_scan": "apex_scan",
-                "_retention_time": "scan_time",
-                "_intensity": "intensity",
-                "_persistence": "persistence",
-                "_dispersity_index": "dispersity_index",
-                "_tailing_factor": "tailing_factor",
+                "retention_time": "scan_time",            
             }
         )
 
@@ -848,6 +874,11 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "half_height_width",
             "tailing_factor",
             "dispersity_index",
+            "normalized_dispersity_index",
+            "gaussian_similarity",
+            "noise_score",
+            "noise_score_min",
+            "noise_score_max",
             "monoisotopic_mf_id",
             "isotopologue_type",
             "mass_spectrum_deconvoluted_parent",
@@ -899,6 +930,10 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                     annot_df = annot_df[
                         annot_df["Index"] == self.mass_features[mf_id].ms1_peak.index
                     ].copy()
+
+                    # If there are more than 1 row, remove any rows without a molecular formula
+                    if len(annot_df) > 1:
+                        annot_df = annot_df[~annot_df["Molecular Formula"].isna()]
 
                     # Remove the index column and add column for mf_id
                     annot_df = annot_df.drop(columns=["Index"])

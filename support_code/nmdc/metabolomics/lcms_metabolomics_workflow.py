@@ -220,16 +220,16 @@ def run_lcms_metabolomics_workflow_batch(
 
 if __name__ == "__main__":
     # Set input variables to run
-    msp_file_path = "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/metams/data/databases/20250407_gnps_curated.msp"
+    msp_file_path = "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/metams/test_data/test_lcms_metab_data/20250407_database.msp"
     # msp_file_path = "/Users/heal742/LOCAL/corems_dev/corems/tests/tests_data/lcms/test_db.msp"
     file_dir = Path(
-        "/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_lcms_metab_test_data/centroid"
+        "/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_massive/_bioscales_lcms/problem"
     )
     params_toml = Path(
-        "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lcms_metabolomics_corems_params.toml"
+        "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/_bioscales_lcms_metabolomics/metadata/bioscales_hilic_corems.toml"
     )
     scan_translator = Path(
-        "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lcms_metabolomics_scan_translator.toml"
+        "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/_bioscales_lcms_metabolomics/metadata/bioscales_scan_translator.toml"
     )
     out_dir = Path("tmp_data/__lcms_metab_test_data_250509")
     verbose = True

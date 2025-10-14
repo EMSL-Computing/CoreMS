@@ -10,6 +10,7 @@ from s3path import S3Path
 
 from corems.encapsulation.factory.parameters import default_parameters
 from corems.transient.factory.TransientClasses import Transient
+from corems.mass_spectra.input.brukerSolarix_utils import get_scan_attributes
 
 
 class ReadBrukerSolarix(object):
@@ -83,6 +84,8 @@ class ReadBrukerSolarix(object):
                 else:
                     # get scan attributes
                     self.scan_attr = d_directory_location / "scan.xml"
+                    self.imaging_info_attr = d_directory_location / "ImagingInfo.xml"
+    
 
         except:
             raise FileExistsError(
@@ -102,22 +105,8 @@ class ReadBrukerSolarix(object):
             a dictionary with scan number as key and rt and tic as values
         """
 
-        from bs4 import BeautifulSoup
+        return get_scan_attributes(self.scan_attr, self.imaging_info_attr)
 
-        try:
-            soup = BeautifulSoup(self.scan_attr.open(), "xml")
-        except:
-            raise FileNotFoundError(
-                "Dataset does not appear to contain a 'scan.xml' file or it is misformated"
-            )
-
-        list_rt = [float(rt.text) for rt in soup.find_all("minutes")]
-        list_tic = [float(tic.text) for tic in soup.find_all("tic")]
-        list_scan = [int(scan.text) for scan in soup.find_all("count")]
-
-        dict_scan_rt_tic = dict(zip(list_scan, zip(list_rt, list_tic)))
-
-        return dict_scan_rt_tic
 
     def get_transient(self, scan_number=1):
         """Function to get the transient data and parameters from a Bruker Solarix .d folder.
@@ -150,14 +139,13 @@ class ReadBrukerSolarix(object):
         output_parameters = deepcopy(default_parameters(self.d_directory_location))
 
         if self.transient_data_path.name == "ser":
-            if self.scan_attr.exists():
-                dict_scan_rt_tic = self.get_scan_attr()
+            dict_scan_rt_tic = self.get_scan_attr()
 
-                output_parameters["scan_number"] = scan_number
+            output_parameters["scan_number"] = scan_number
 
-                output_parameters["rt"] = dict_scan_rt_tic.get(scan_number)[0]
+            output_parameters["rt"] = dict_scan_rt_tic.get(scan_number)[0]
 
-                output_parameters["tic"] = dict_scan_rt_tic.get(scan_number)[1]
+            output_parameters["tic"] = dict_scan_rt_tic.get(scan_number)[1]
 
         output_parameters["analyzer"] = "ICR"
 
@@ -200,7 +188,7 @@ class ReadBrukerSolarix(object):
 
             else:
                 databin = self.transient_data_path.open("rb")
-
+                
             databin.seek((scan - 1) * 4 * data_points)
             # read scan data and parse to 32int struct
             data = frombuffer(databin.read(4 * data_points), dtype=dt)

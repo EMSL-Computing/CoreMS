@@ -1,5 +1,7 @@
 import numpy as np
 from bisect import bisect_left
+from scipy.optimize import curve_fit
+
 
 __author__ = "Yuri E. Corilo"
 __date__ = "March 11, 2020"
@@ -107,11 +109,14 @@ class LCMSMassFeatureCalculation:
         This function calculates the dispersity index of the mass feature and
         stores the result in the `_dispersity_index` attribute. The dispersity index is calculated as the standard
         deviation of the retention times that account for 50% of the cummulative intensity, starting from the most
-        intense point, as described in [1].
+        intense point, as described in [1]. Note that this calculation is done within the integration bounds with
+        a pad according to the window factor, where the window factor is parameterized and encapsulated in the
+        parent LCMS object (or, if not available, defaults to 2.0 minutes before and after the apex
 
         Returns
         -------
-        None, stores the result in the `_dispersity_index` attribute of the class.
+        None, stores the result in the `_dispersity_index` attribute of the class and the `_normalized_dispersity_index` attribute,
+        which is the dispersity index normalized to the total time window used for the calculation (unitless, fraction of total window).
 
         Raises
         ------
@@ -124,25 +129,46 @@ class LCMSMassFeatureCalculation:
         Organic Matter with Liquid Chromatography–Ultrahigh-Resolution Mass Spectrometry."
         Environmental Science & Technology 58.7 (2024): 3267-3277.
         """
+        # Check if LCMSMassFeature has a parent LCMS object with a window factor
+        if hasattr(self, "mass_spectrum_obj"):
+            window_min = self.mass_spectrum_obj.parameters.lc_ms.dispersity_index_window
+        else:
+            window_min = 3.0  # minutes
+
         # Check if the EIC data is available
         if self.eic_list is None:
             raise ValueError(
                 "EIC data are not available. Please add the EIC data first."
             )
 
+        # Define start and end of the window around the apex
+        apex_rt = self.retention_time
+        full_time = self._eic_data.time
+        full_eic = self._eic_data.eic
+        left_start = apex_rt - window_min
+        right_end = apex_rt + window_min
+
+        # Extract the EIC data within the defined window
+        time_mask = (full_time >= left_start) & (full_time <= right_end)
+        eic_subset = full_eic[time_mask]
+        time_subset = full_time[time_mask]
+
         # Sort the EIC data and RT data by descending intensity
-        eic_in = self.eic_list.argsort()
-        sorted_eic = self.eic_list[eic_in[::-1]]
-        sorted_rt = self.eic_rt_list[eic_in[::-1]]
+        sorted_eic = eic_subset[eic_subset.argsort()[::-1]]
+        sorted_rt = time_subset[eic_subset.argsort()[::-1]]
 
         # Calculate the dispersity index
         cum_sum = np.cumsum(sorted_eic) / np.sum(sorted_eic)
         rt_summ = sorted_rt[np.where(cum_sum < 0.5)]
         if len(rt_summ) > 1:
             d = np.std(rt_summ)
-            self._dispersity_index = d
+            self._dispersity_index = d  # minutes
+            self._normalized_dispersity_index = d / (
+                time_subset[-1] - time_subset[0]
+            )  # unitless (fraction of total window used)
         elif len(rt_summ) == 1:
             self._dispersity_index = 0
+            self._normalized_dispersity_index = 0
 
     def calc_fraction_height_width(self, fraction: float):
         """
@@ -258,3 +284,192 @@ class LCMSMassFeatureCalculation:
             )
 
             self._tailing_factor = tailing_factor
+
+    def calc_gaussian_similarity(self):
+        """
+        Calculate the Gaussian similarity score of the mass feature.
+
+        This function fits a Gaussian curve to the EIC data and evaluates
+        the goodness of fit using R-squared. Note that this only uses data within
+        the set integration bounds of the mass feature. A score close to 1 indicates
+        the peak closely resembles an ideal Gaussian shape.
+
+        Returns
+        -------
+        None, stores the result in the `_gaussian_similarity` attribute of the class.
+
+        Raises
+        ------
+        ValueError
+            If the EIC data are not available.
+        """
+        # Check if the EIC data is available
+        if self.eic_list is None:
+            raise ValueError(
+                "EIC data are not available. Please add the EIC data first."
+            )
+
+        # Get EIC data within integration bounds
+        time_data = np.array(self.eic_rt_list)
+        intensity_data = np.array(self.eic_list)
+
+        if len(time_data) < 4:  # Need minimum points for meaningful fit
+            self._gaussian_similarity = np.nan
+            return
+
+        # Check for valid intensity data
+        max_intensity = np.max(intensity_data)
+        if max_intensity == 0:
+            self._gaussian_similarity = np.nan
+            return
+
+        try:
+            # Define Gaussian function
+            def gaussian(x, amplitude, mean, stddev, baseline):
+                return (
+                    amplitude * np.exp(-((x - mean) ** 2) / (2 * stddev**2)) + baseline
+                )
+
+            # Initial parameter estimates
+            amplitude_init = max_intensity
+            mean_init = time_data[np.argmax(intensity_data)]
+            stddev_init = (time_data[-1] - time_data[0]) / 6  # Rough estimate
+            baseline_init = np.min(intensity_data)
+
+            # Fit Gaussian curve
+            popt, _ = curve_fit(
+                gaussian,
+                time_data,
+                intensity_data,
+                p0=[amplitude_init, mean_init, stddev_init, baseline_init],
+                maxfev=1000,
+                bounds=(
+                    [0, time_data[0], 0, 0],  # Lower bounds
+                    [np.inf, time_data[-1], np.inf, max_intensity],  # Upper bounds
+                ),
+            )
+
+            # Calculate fitted values
+            fitted_intensities = gaussian(time_data, *popt)
+
+            # Calculate R-squared (coefficient of determination)
+            ss_res = np.sum((intensity_data - fitted_intensities) ** 2)
+            ss_tot = np.sum((intensity_data - np.mean(intensity_data)) ** 2)
+
+            if ss_tot == 0:
+                self._gaussian_similarity = np.nan
+            else:
+                r_squared = 1 - (ss_res / ss_tot)
+                # R² should be between 0 and 1 for reasonable fits
+                # If negative, the model is worse than the mean - treat as non-computable
+                self._gaussian_similarity = r_squared if r_squared >= 0 else np.nan
+
+        except (RuntimeError, ValueError, TypeError):
+            # Fitting failed, assign NaN
+            self._gaussian_similarity = np.nan
+
+    def calc_noise_score(self):
+        """
+        Calculate the noise score of the mass feature separately for left and right sides.
+
+        This function estimates the signal-to-noise ratio by comparing the peak
+        intensity to the baseline noise level in surrounding regions. It calculates
+        separate scores for the left and right sides of the peak, which are stored as a tuple
+        in the `_noise_score` attribute. The noise estimation windows are encapsulated in the
+        parent LCMS object (or, if not available, defaults to twice the peak width on each side).
+
+
+        Returns
+        -------
+        None, stores the result in the `_noise_score` attribute as a tuple (left_score, right_score).
+
+        Raises
+        ------
+        ValueError
+            If the EIC data are not available.
+        """
+        # Check if the EIC data is available
+        if self.eic_list is None:
+            raise ValueError(
+                "EIC data are not available. Please add the EIC data first."
+            )
+
+        # Check if LCMSMassFeature has a parent LCMS object with a window factor
+        if hasattr(self, "mass_spectrum_obj"):
+            noise_window_factor = (
+                self.mass_spectrum_obj.parameters.lc_ms.noise_window_factor
+            )
+        else:
+            noise_window_factor = 2.0  # times the peak width
+
+        # Get full EIC data (not just integration bounds)
+        full_time = self._eic_data.time
+        full_eic = self._eic_data.eic
+
+        # Get peak information
+        apex_rt = self.retention_time
+        peak_intensity = np.max(self.eic_list)
+
+        # Retrieve width from integration bounds
+        peak_width = self.eic_rt_list[-1] - self.eic_rt_list[0]
+
+        # Define noise estimation windows
+        noise_window_size = peak_width * noise_window_factor  # in minutes
+        left_noise_start = apex_rt - peak_width - noise_window_size
+        left_noise_end = apex_rt - peak_width
+        right_noise_start = apex_rt + peak_width
+        right_noise_end = apex_rt + peak_width + noise_window_size
+
+        # Extract noise regions
+        left_noise_mask = (full_time >= left_noise_start) & (
+            full_time <= left_noise_end
+        )
+        right_noise_mask = (full_time >= right_noise_start) & (
+            full_time <= right_noise_end
+        )
+
+        left_noise = full_eic[left_noise_mask]
+        right_noise = full_eic[right_noise_mask]
+
+        # Calculate left noise score
+        if len(left_noise) == 0:
+            left_score = np.nan
+        else:
+            left_baseline = np.median(left_noise)
+            left_noise_std = np.std(left_noise)
+
+            if left_noise_std == 0:
+                if peak_intensity > left_baseline:
+                    left_score = 1.0
+                else:
+                    left_score = np.nan
+            else:
+                left_signal = peak_intensity - left_baseline
+                if left_signal <= 0:
+                    left_score = 0.0
+                else:
+                    left_snr = left_signal / left_noise_std
+                    left_score = min(1.0, left_snr / (left_snr + 10.0))
+
+        # Calculate right noise score
+        if len(right_noise) == 0:
+            right_score = np.nan
+        else:
+            right_baseline = np.median(right_noise)
+            right_noise_std = np.std(right_noise)
+
+            if right_noise_std == 0:
+                if peak_intensity > right_baseline:
+                    right_score = 1.0
+                else:
+                    right_score = np.nan
+            else:
+                right_signal = peak_intensity - right_baseline
+                if right_signal <= 0:
+                    right_score = 0.0
+                else:
+                    right_snr = right_signal / right_noise_std
+                    right_score = min(1.0, right_snr / (right_snr + 10.0))
+
+        # Store as tuple
+        self._noise_score = (left_score, right_score)
