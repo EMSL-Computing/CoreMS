@@ -536,8 +536,6 @@ class ReadCoreMSHDFMassSpectra(
             lcms_obj = self.add_original_parser(lcms_obj, raw_file_path=raw_file_path)
         else:
             lcms_obj.spectra_parser_class = self.__class__
-        else:
-            lcms_obj.spectra_parser_class = self.__class__
 
         return lcms_obj
 

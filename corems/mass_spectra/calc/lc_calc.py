@@ -193,7 +193,7 @@ class LCCalculations:
 
         return real_scan
 
-    def add_peak_metrics(self, induced_features = False):
+    def add_peak_metrics(self, remove_by_metrics=True, induced_features=False):
         """Add peak metrics to the mass features.
 
         This function calculates the peak metrics for each mass feature and adds them to the mass feature objects.
@@ -204,6 +204,8 @@ class LCCalculations:
             If True, remove mass features based on their peak metrics such as S/N, Gaussian similarity,
             dispersity index, and noise score. Default is True, which checks the setting in the processing parameters.
             If False, peak metrics are calculated but no mass features are removed, regardless of the setting in the processing parameters.
+        induced_features : bool, optional
+            Whether the mass features to be integrated were induced. Default is False.
         """
         # Check that at least some mass features have eic data
         if induced_features:
@@ -473,12 +475,6 @@ class LCCalculations:
             if len(mf_dict) == 0:
                 raise ValueError(
                     "No mass features found, did you run find_mass_features() first?"
-                )
-            if not all(
-                [mf.mass_spectrum is not None for mf in mf_dict.values()]
-            ):
-                raise ValueError(
-                    "Mass spectrum must be associated with each mass feature, did you run add_associated_ms1() first?"
                 )
 
         # Subset scan data to only include correct ms_level
