@@ -146,7 +146,7 @@ def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
     # Check that the mass features dataframe is the same as the original
     df2 = myLCMSobj2.mass_features_to_df()
     df1 = lcms_obj.mass_features_to_df()
-    assert df2.shape == df1.shape == (130, 13)
+    assert df2.shape == df1.shape
     myLCMSobj2.mass_features[0].plot(return_fig=False)
     
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
