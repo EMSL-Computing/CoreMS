@@ -1539,7 +1539,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         if "scan_time_aligned" in lcms_obj.scan_df.columns:
             scan_df = lcms_obj.scan_df[["scan", "scan_time_aligned"]].copy()
             scan_df = scan_df.rename(columns={"scan": "apex_scan"})
-            mf_df = mf_df.merge(scan_df, left_on="apex_scan", right_index=True)
+            mf_df = mf_df.merge(scan_df, on="apex_scan")
         
         return mf_df
        
@@ -1817,7 +1817,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         # Drop the raw data
         del self[sample_idx]._ms_unprocessed[ms_level]
 
-    def collection_pivot_table(self, attribute = 'coll_mf_id'):
+    def collection_pivot_table(self, attribute = 'coll_mf_id', verbose = True):
         """Generate a pivot table of all regular and induced mass features in
         a collection. Default attribute presented is the mass feature ID, also
         prints a list of other available attributes.
@@ -1827,6 +1827,9 @@ class LCMSCollection(LCMSCollectionCalculations):
         attribute : str
             The desired attribute to be presented in the pivot table. Defaults
             to mass feature ID
+        verbose : boolean
+            Print out all the possible values the fill the pivot table and list
+            attributes that are not collected for induced mass features
 
         Returns
         --------
@@ -1846,16 +1849,82 @@ class LCMSCollection(LCMSCollectionCalculations):
         mf_pivot.reset_index(drop = True, inplace = True)
         mf_pivot['cluster'] = mf_pivot['cluster'].astype(int)
 
-        print(
-            'Attributes available for pivot table:\n',
-            [x for x in mf_pivot.columns if x not in ['cluster', 'sample_id']]
-        )
-        print(
-            '\nAttributes that have no value for induced mass features:\n',
-            imf_pivot.columns[imf_pivot.isna().all()].tolist()            
-        )
+        if verbose:
+            print(
+                'Attributes available for pivot table:\n',
+                [x for x in mf_pivot.columns if x not in ['cluster', 'sample_id', 'mf_id', 'partition_idx', 'idx']]
+            )
+            print(
+                '\nAttributes that have no value for induced mass features:\n',
+                imf_pivot.columns[imf_pivot.isna().all()].tolist()            
+            )
         return mf_pivot.pivot(index = 'cluster', columns = 'sample_id', values = attribute)
+
+    def collection_consensus_report(self, how = 'intensity'):
+        """Generate a consensus report of all regular and induced mass features 
+        in a collection. Default is to select feature of highest intensity in
+        a cluster and report back all the attributes.
+
+        Parameters
+        -----------
+        how : str
+            The preferred method to report back the consensus information.
+            Option 'intensity' assigns peak of highest intensity in each 
+            cluster as the representative consensus feaature and reports data
+            on that peak. Option 'means' reports the mean values for available 
+            attributes by cluster.
+
+        Returns
+        --------
+        pd.DataFrame
+            A DataFrame that displays all attributes for each cluster in a 
+            collection based on either the peak of highest intensity or means
+            across all data in a cluster
         
+        """
+        mf_df = self.mass_features_dataframe.copy()
+        mf_df.reset_index(inplace = True)
+        imf_df = self.induced_mass_features_dataframe.copy()
+        imf_df.reset_index(inplace = True)
+        for j in range(len(imf_df)):
+            imf_df.loc[j, 'cluster'] = int(imf_df.loc[j].coll_mf_id.split('_')[1][1:])
+        mf_df = pd.concat([mf_df, imf_df], axis = 0)
+        mf_df.reset_index(drop = True, inplace = True)
+        mf_df['cluster'] = mf_df['cluster'].astype(int)
+        
+        if how == 'intensity':
+            int_table = self.collection_pivot_table(attribute = 'intensity', verbose = False).idxmax(axis = 1)
+            id_list = []
+            for i in range(len(int_table)):
+                id_list.append(
+                    mf_df[
+                        (mf_df.sample_id == int_table[i]) & (mf_df.cluster == int_table.index[i])
+                    ].coll_mf_id.values[0]
+                )
+            return mf_df[mf_df.coll_mf_id.isin(id_list)].sort_values(by = 'cluster').set_index('cluster')
+
+        elif how == 'means':
+            mean_table = (
+                mf_df.groupby("cluster").agg({
+                    'mz': 'mean',
+                    'intensity': 'mean',
+                    'persistence': 'mean',
+                    'area': 'mean',
+                    'half_height_width': 'mean',
+                    'tailing_factor': 'mean',
+                    'dispersity_index': 'mean',
+                    'normalized_dispersity_index': 'mean',
+                    'noise_score': 'mean',
+                    'noise_score_min': 'mean',
+                    'noise_score_max': 'mean',
+                    'scan_time_aligned': 'mean'
+                }).reset_index()
+            )
+            return mean_table.sort_values(by = 'cluster').set_index('cluster')
+
+        else:
+            print("Define 'how' argument as either 'intensity' or 'means'")
+
     @property
     def parameters(self):
         """
