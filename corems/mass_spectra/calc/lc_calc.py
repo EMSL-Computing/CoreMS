@@ -3539,6 +3539,8 @@ class LCMSCollectionCalculations:
             Indicates whethere to assign induced_mass_features attribute in 
             place or to return the result when the function is run in parallel
         """
+        ## retrieve the cluster/deature dictionary to record induced features
+        cluster_dict = self.cluster_feature_dictionary
         
         ## to get clusters missing data based on sample index:
         sampledf = missingdf[
@@ -3563,14 +3565,15 @@ class LCMSCollectionCalculations:
             st_min = sampledf.scan_time_aligned_min.iloc[i]
             st_max = sampledf.scan_time_aligned_max.iloc[i]
             # TODO: Adjust function to input queries as tuples so we can search 
-            #       for all targeted mass features at once instead of in a loop 
+            #       for all targeted mass features at once instead of in a loop
+            set_id = 'c' + str(sampledf.cluster.iloc[i]) + '_' + str(i) + '_i'
             found_feature = self[obj_idx].search_for_targeted_mass_feature(            
                 ms1df, 
                 mz_min, 
                 mz_max, 
                 st_min, 
                 st_max,
-                set_id = 'c' + str(sampledf.cluster.iloc[i]) + '_' + str(i) + '_i',
+                set_id,
                 obj_idx = obj_idx,
                 st_aligned = True
             )
@@ -3587,13 +3590,13 @@ class LCMSCollectionCalculations:
                     mz_max, 
                     st_min, 
                     st_max,
-                    set_id = 'c' + str(sampledf.cluster.iloc[i]) + '_' + str(i) + '_i',
+                    set_id,
                     obj_idx = obj_idx,
                     st_aligned = True
                 )
 
             self[obj_idx].induced_mass_features[found_feature.id] = found_feature
-
+            cluster_dict[sampledf.cluster.iloc[i]] += [set_id]
         self[obj_idx].add_associated_ms1(induced_features = True)
         # need to set drop_if_fail to false for induced features as they will fail
         self[obj_idx].integrate_mass_features(drop_if_fail = False, induced_features = True)

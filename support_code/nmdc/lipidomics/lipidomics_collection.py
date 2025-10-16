@@ -71,6 +71,9 @@ if __name__ == "__main__":
 
     lcms_collection.search_for_missing_mass_features_in_collection()
     lcms_collection.collection_pivot_table(attribute = 'mz')
+    lcms_collection.collection_consensus_report(how = 'intensity')
+    lcms_collection.collection_consensus_report(how = 'mean')
+    lcms_collection.collection_consensus_report(how = 'median')
     
     #TODO: Add code to load and save information about chromatographic settings
     #TODO: Add code to save and load collection to HDF5 file

@@ -1880,8 +1880,8 @@ class LCMSCollection(LCMSCollectionCalculations):
             The preferred method to report back the consensus information.
             Option 'intensity' assigns peak of highest intensity in each 
             cluster as the representative consensus feaature and reports data
-            on that peak. Option 'means' reports the mean values for available 
-            attributes by cluster, and option 'medians' is the same but reports
+            on that peak. Option 'mean' reports the mean values for available 
+            attributes by cluster, and option 'median' is the same but reports
             median values.
 
         Returns
@@ -1913,7 +1913,7 @@ class LCMSCollection(LCMSCollectionCalculations):
                 )
             return mf_df[mf_df.coll_mf_id.isin(id_list)].sort_values(by = 'cluster').set_index('cluster')
 
-        elif how == 'means' or how == 'medians':
+        elif how == 'mean' or how == 'median':
             ## will have to go back and check mf_df.dtypes to see what ends up on list
             ## this format removes int columns like 'sample_id' and 'cluster'
             l = mf_df.select_dtypes(include='float64').columns.tolist()
@@ -1929,7 +1929,7 @@ class LCMSCollection(LCMSCollectionCalculations):
             return df.sort_values(by = 'cluster').set_index('cluster')
 
         else:
-            print("Define 'how' argument as either 'intensity' or 'means'")
+            print("Assign 'how' argument as either 'intensity', 'mean', or 'median'")
 
     @property
     def parameters(self):
@@ -2026,3 +2026,12 @@ class LCMSCollection(LCMSCollectionCalculations):
     def raw_files(self):
         """Returns a list of raw files in the collection."""
         return [x.raw_file_location for x in self]
+    
+    @property
+    def cluster_feature_dictionary(self):
+        """Generates a dictionary with clusters for keys and mass feature IDs as entries"""
+        df = self.mass_features_dataframe
+        cluster_dict = {}
+        for c in range(df.cluster.max()):    
+            cluster_dict[c] = df[df.cluster == 0].index.tolist()
+        return cluster_dict
