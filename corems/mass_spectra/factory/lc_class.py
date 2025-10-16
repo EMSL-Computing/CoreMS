@@ -903,7 +903,16 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         # reset index to mf_id
         df_mf = df_mf.set_index("mf_id")
         df_mf.index.name = "mf_id"
-
+        
+        if 'half_height_width' in df_mf.columns:
+            df_mf["half_height_width"] = df_mf["half_height_width"].astype('float64')
+        if 'tailing_factor' in df_mf.columns:
+            df_mf["tailing_factor"] = df_mf["tailing_factor"].astype('float64')
+        if 'dispersity_index' in df_mf.columns:
+            df_mf["dispersity_index"] = df_mf["dispersity_index"].astype('float64')
+        if 'normalized_dispersity_index' in df_mf.columns:
+            df_mf["normalized_dispersity_index"] = df_mf["normalized_dispersity_index"].astype('float64')
+        
         return df_mf
 
     def mass_features_ms1_annot_to_df(self):
@@ -1872,7 +1881,8 @@ class LCMSCollection(LCMSCollectionCalculations):
             Option 'intensity' assigns peak of highest intensity in each 
             cluster as the representative consensus feaature and reports data
             on that peak. Option 'means' reports the mean values for available 
-            attributes by cluster.
+            attributes by cluster, and option 'medians' is the same but reports
+            median values.
 
         Returns
         --------
@@ -1880,8 +1890,8 @@ class LCMSCollection(LCMSCollectionCalculations):
             A DataFrame that displays all attributes for each cluster in a 
             collection based on either the peak of highest intensity or means
             across all data in a cluster
-        
         """
+        
         mf_df = self.mass_features_dataframe.copy()
         mf_df.reset_index(inplace = True)
         imf_df = self.induced_mass_features_dataframe.copy()
@@ -1903,24 +1913,20 @@ class LCMSCollection(LCMSCollectionCalculations):
                 )
             return mf_df[mf_df.coll_mf_id.isin(id_list)].sort_values(by = 'cluster').set_index('cluster')
 
-        elif how == 'means':
-            mean_table = (
-                mf_df.groupby("cluster").agg({
-                    'mz': 'mean',
-                    'intensity': 'mean',
-                    'persistence': 'mean',
-                    'area': 'mean',
-                    'half_height_width': 'mean',
-                    'tailing_factor': 'mean',
-                    'dispersity_index': 'mean',
-                    'normalized_dispersity_index': 'mean',
-                    'noise_score': 'mean',
-                    'noise_score_min': 'mean',
-                    'noise_score_max': 'mean',
-                    'scan_time_aligned': 'mean'
-                }).reset_index()
-            )
-            return mean_table.sort_values(by = 'cluster').set_index('cluster')
+        elif how == 'means' or how == 'medians':
+            ## will have to go back and check mf_df.dtypes to see what ends up on list
+            ## this format removes int columns like 'sample_id' and 'cluster'
+            l = mf_df.select_dtypes(include='float64').columns.tolist()
+            ## for some reason, the following 4 items get saved as floats instead of ints
+            ## can either leave this or track down how they're recorded and fix it at the source
+            ## possible they're recorded as ints for regular mass features and floats for induced, making the column default to the more general
+            l = [x for x in l if x not in ['scan_time', 'apex_scan', 'partition_idx', 'idx']]
+            agg_dict = {k: [how] for k in l}
+            agg_dict['sample_id'] = ['nunique']
+
+            df = (mf_df.groupby("cluster").agg(agg_dict).reset_index())
+
+            return df.sort_values(by = 'cluster').set_index('cluster')
 
         else:
             print("Define 'how' argument as either 'intensity' or 'means'")
