@@ -8,6 +8,7 @@ from threading import Thread
 
 import h5py
 import toml
+import numpy as np
 from numpy import NaN, empty
 from pandas import DataFrame
 
@@ -386,28 +387,36 @@ class HighResMassSpecExport(Thread):
 
             # If there is raw data (from profile data) save it
             if not mass_spectrum.is_centroid and export_raw:
-                mz_abun_array = empty(shape=(2, len(mass_spectrum.abundance_profile)))
+                mz_abun_array = empty(shape=(2, len(mass_spectrum.abundance_profile)), dtype=np.float32)
 
                 mz_abun_array[0] = mass_spectrum.abundance_profile
                 mz_abun_array[1] = mass_spectrum.mz_exp_profile
 
                 raw_ms_dataset = scan_group.create_dataset(
-                    "raw_ms", data=mz_abun_array, dtype="f8"
+                    "raw_ms", data=mz_abun_array, dtype="f4", compression="gzip", compression_opts=9, chunks=True, shuffle=True, fletcher32=True
                 )
+                
+                # Add metadata to the raw_ms dataset when it exists
+                raw_ms_dataset.attrs["MassSpecAttrs"] = json.dumps(dict_ms_attrs)
 
+                if isinstance(mass_spectrum, MassSpecfromFreq):
+                    raw_ms_dataset.attrs["TransientSetting"] = json.dumps(
+                        setting_dicts.get("TransientSetting"),
+                        sort_keys=False,
+                        indent=4,
+                        separators=(",", ": "),
+                    )
             else:
-                #  create empy dataset for missing raw data
-                raw_ms_dataset = scan_group.create_dataset("raw_ms", dtype="f8")
-
-            raw_ms_dataset.attrs["MassSpecAttrs"] = json.dumps(dict_ms_attrs)
-
-            if isinstance(mass_spectrum, MassSpecfromFreq):
-                raw_ms_dataset.attrs["TransientSetting"] = json.dumps(
-                    setting_dicts.get("TransientSetting"),
-                    sort_keys=False,
-                    indent=4,
-                    separators=(",", ": "),
-                )
+                # For centroided data, store metadata directly on the scan group
+                scan_group.attrs["MassSpecAttrs"] = json.dumps(dict_ms_attrs)
+                
+                if isinstance(mass_spectrum, MassSpecfromFreq):
+                    scan_group.attrs["TransientSetting"] = json.dumps(
+                        setting_dicts.get("TransientSetting"),
+                        sort_keys=False,
+                        indent=4,
+                        separators=(",", ": "),
+                    )
 
         else:
             scan_group = hdf_handle.get(group_key)
@@ -417,8 +426,17 @@ class HighResMassSpecExport(Thread):
 
         timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
 
+        # Convert list_results to numpy array and optimize data types
+        array_results = np.array(list_results)
+        
+        # Apply data type optimization for numeric columns
+        if array_results.dtype == np.float64:
+            array_results = array_results.astype(np.float32)
+        elif array_results.dtype == np.int64:
+            array_results = array_results.astype(np.int32)
+        
         processed_dset = scan_group.create_dataset(
-            index_processed_data, data=list_results
+            index_processed_data, data=array_results, compression="gzip", compression_opts=9, chunks=True, shuffle=True, fletcher32=True
         )
 
         processed_dset.attrs["date_utc"] = timenow

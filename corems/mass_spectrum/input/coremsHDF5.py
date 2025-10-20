@@ -65,8 +65,8 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         scan_label = self.scans[scan_index]
 
-        # Check if the "raw_ms" group in the scan is empty
-        if self.h5pydata[scan_label]["raw_ms"].shape is not None:
+        # Check if the "raw_ms" dataset exists and has data
+        if "raw_ms" in self.h5pydata[scan_label] and self.h5pydata[scan_label]["raw_ms"].shape is not None:
             mz_profile = self.h5pydata[scan_label]["raw_ms"][0]
 
             abundance_profile = self.h5pydata[scan_label]["raw_ms"][1]
@@ -387,13 +387,25 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         {'key1': 'value1', 'key2': 'value2'}
         """
         scan_label = self.scans[scan_index]
-        try:
-            json.loads(self.h5pydata[scan_label]["raw_ms"].attrs[attr_group])[attr_str]
-        except KeyError:
-            attr_str = attr_str.replace("baseline", "baselise")
-        return json.loads(self.h5pydata[scan_label]["raw_ms"].attrs[attr_group])[
-            attr_str
-        ]
+        
+        # First try to get from raw_ms dataset attributes (backward compatibility)
+        if "raw_ms" in self.h5pydata[scan_label] and attr_group in self.h5pydata[scan_label]["raw_ms"].attrs:
+            try:
+                return json.loads(self.h5pydata[scan_label]["raw_ms"].attrs[attr_group])[attr_str]
+            except KeyError:
+                attr_str = attr_str.replace("baseline", "baselise")
+                return json.loads(self.h5pydata[scan_label]["raw_ms"].attrs[attr_group])[attr_str]
+        
+        # If not found in raw_ms, try to get from scan group attributes (new format)
+        elif attr_group in self.h5pydata[scan_label].attrs:
+            try:
+                return json.loads(self.h5pydata[scan_label].attrs[attr_group])[attr_str]
+            except KeyError:
+                attr_str = attr_str.replace("baseline", "baselise")
+                return json.loads(self.h5pydata[scan_label].attrs[attr_group])[attr_str]
+        
+        else:
+            raise KeyError(f"Attribute group '{attr_group}' not found in either raw_ms dataset or scan group for scan {scan_label}")
 
     def get_output_parameters(self, polarity, scan_index=0):
         """
