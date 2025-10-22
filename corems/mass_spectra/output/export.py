@@ -1206,6 +1206,8 @@ class LCMSExport(HighResMassSpectraExport):
                                     or isinstance(v2, float)
                                     or isinstance(v2, str)
                                     or isinstance(v2, np.integer)
+                                    or isinstance(v2, np.float32)
+                                    or isinstance(v2, np.float64)
                                     or isinstance(v2, np.bool_)
                                 ):
                                     # Convert numpy types to smaller precision for storage
