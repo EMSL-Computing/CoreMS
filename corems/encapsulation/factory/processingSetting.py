@@ -1122,7 +1122,7 @@ class LCMSCollectionSettings:
         Default is ('deconvoluted_mass_spectra', 'absolute_intensity', 'relative_intensity').
     mass_feature_anchor_absolute_intensity_threshold: int, optional
         Absolute intensity threshold for mass feature anchor for retention time alignment.
-        Used when mass_feature_anchor_technique includes 'absolute_intensity'.
+        Used when mass_feature_anchor_technique includes 'relative_intensity'.
         Default is 10000.
     mass_feature_anchor_relative_intensity_threshold: float, optional
         Relative intensity threshold (0-1) for mass feature anchor for retention time alignment.
@@ -1159,7 +1159,7 @@ class LCMSCollectionSettings:
     drop_isotopologues: bool = False
 
     # Settings for doing mass feature alignment
-    _mass_feature_anchor_technique: list = dataclasses.field(default_factory=lambda: ["absolute_intensity"])
+    _mass_feature_anchor_technique: list = dataclasses.field(default_factory=lambda: ["relative_intensity"])
     mass_feature_anchor_techniques_available: tuple = ("deconvoluted_mass_spectra", "absolute_intensity", "relative_intensity")
     mass_feature_anchor_absolute_intensity_threshold: int = 10000
     mass_feature_anchor_relative_intensity_threshold: float = 0.6

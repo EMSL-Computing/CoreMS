@@ -3348,7 +3348,7 @@ class LCMSCollectionCalculations:
             If cluster data haven't been added to the object yet
         """
 
-        if not hasattr(self, 'mass_features_dataframe.cluster'):
+        if 'cluster' not in self.mass_features_dataframe.columns:
             raise ValueError(
                 'Cluster information is not yet added to mass_features_dataframe, must run add_consensus_mass_features() first'
             )
@@ -3482,24 +3482,27 @@ class LCMSCollectionCalculations:
             mintag = dim + '_outmin'
             mergelist.append(maxtag)
             mergelist.append(mintag)
-            sumdf[maxtag] = None
-            sumdf[mintag] = None
-            for i in range(len(sumdf)):
-                sumdf.loc[i, mintag] = sumdf[dim + '_mean'].iloc[i] - 3*sumdf[dim + '_std'].iloc[i]
-                sumdf.loc[i, maxtag] = sumdf[dim + '_mean'].iloc[i] + 3*sumdf[dim + '_std'].iloc[i]
-                ## If NaN shows up anywhere in dim_min, dim_max calculations, value is set to NaN and it's 
-                ## not flagged. This happens when there's not enough values to compute median/std for that 
-                ## dimension therefore can't have outliers
+            # Calculate outlier thresholds using vectorized operations
+            sumdf[mintag] = sumdf[dim + '_mean'] - 3*sumdf[dim + '_std']
+            sumdf[maxtag] = sumdf[dim + '_mean'] + 3*sumdf[dim + '_std']
+            ## If NaN shows up anywhere in dim_min, dim_max calculations, value is set to NaN and it's 
+            ## not flagged. This happens when there's not enough values to compute median/std for that 
+            ## dimension therefore can't have outliers
 
         ## add ranges to mfdf and identify mass features that fall outside the ranges
-        outdf = pd.merge(mfdf, sumdf[mergelist].dropna(), on = 'cluster')
+        # Merge without dropping NaN - we'll handle it per-dimension
+        outdf = pd.merge(mfdf, sumdf[mergelist], on = 'cluster')
 
         outtags = ['cluster']
         for dim in dim_list:
             dimtag = dim + '_outlier'
             outtags.append(dimtag)
+            maxtag = dim + '_outmax'
+            mintag = dim + '_outmin'
+            # Only flag as outlier if thresholds are valid (not NaN)
             outdf[dimtag] = np.where(
-                ((outdf[dim] > outdf[dim + '_outmax'])) | ((outdf[dim] < outdf[dim + '_outmin'])), 
+                (outdf[maxtag].notna() & outdf[mintag].notna()) &
+                (((outdf[dim] > outdf[maxtag])) | ((outdf[dim] < outdf[mintag]))), 
                 True, 
                 False
             )
