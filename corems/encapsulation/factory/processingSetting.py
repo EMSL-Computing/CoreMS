@@ -1116,13 +1116,20 @@ class LCMSCollectionSettings:
         Default is True.
     mass_feature_anchor_technique: list, optional
         List of mass feature anchor techniques for retention time alignment. 
-        Default is ['deconvoluted_mass_spectra'].
+        Default is ['absolute_intensity'].
     mass_feature_anchor_techniques_available: tuple, optional
         Tuple of available mass feature anchor techniques for retention time alignment.
-        Default is ('deconvoluted_mass_spectra', 'absolute_intensity').
-    mass_feature_anchor_aboslute_intensity_threshold: int, optional
+        Default is ('deconvoluted_mass_spectra', 'absolute_intensity', 'relative_intensity').
+    mass_feature_anchor_absolute_intensity_threshold: int, optional
         Absolute intensity threshold for mass feature anchor for retention time alignment.
+        Used when mass_feature_anchor_technique includes 'absolute_intensity'.
         Default is 10000.
+    mass_feature_anchor_relative_intensity_threshold: float, optional
+        Relative intensity threshold (0-1) for mass feature anchor for retention time alignment.
+        Removes the lower fraction of mass features by intensity from consideration.
+        For example, 0.6 removes the lower 60% of intensity features.
+        Used when mass_feature_anchor_technique includes 'relative_intensity'.
+        Default is 0.6.
     alignment_hold_out_fraction: float, optional
         Hold out fraction for testing retention time alignment.
         Default is 0.3.
@@ -1153,8 +1160,9 @@ class LCMSCollectionSettings:
 
     # Settings for doing mass feature alignment
     _mass_feature_anchor_technique: list = dataclasses.field(default_factory=lambda: ["absolute_intensity"])
-    mass_feature_anchor_techniques_available: tuple = ("deconvoluted_mass_spectra", "absolute_intensity")
-    mass_feature_anchor_aboslute_intensity_threshold: int = 10000
+    mass_feature_anchor_techniques_available: tuple = ("deconvoluted_mass_spectra", "absolute_intensity", "relative_intensity")
+    mass_feature_anchor_absolute_intensity_threshold: int = 10000
+    mass_feature_anchor_relative_intensity_threshold: float = 0.6
     alignment_hold_out_fraction: float = 0.3
     _alignment_acceptance_techinque: list = dataclasses.field(default_factory=lambda: ["fraction_improved", "mean_squared_error_improved"])
     alignment_acceptance_techinques_available: tuple = ("fraction_improved", "mean_squared_error_improved")

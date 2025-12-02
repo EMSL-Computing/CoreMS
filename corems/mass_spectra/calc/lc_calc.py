@@ -2563,9 +2563,18 @@ class LCMSCollectionCalculations:
             "absolute_intensity"
             in self.parameters.lcms_collection.mass_feature_anchor_technique
         ):
-            # Drop features that have an absolute_intensity lower than the threshold
-            threshold = self.parameters.lcms_collection.mass_feature_anchor_aboslute_intensity_threshold
-            mf_df = mf_df[mf_df["absolute_intensity"] > threshold]
+            # Drop features that have an intensity lower than the threshold
+            threshold = self.parameters.lcms_collection.mass_feature_anchor_absolute_intensity_threshold
+            mf_df = mf_df[mf_df["intensity"] > threshold]
+
+        if (
+            "relative_intensity"
+            in self.parameters.lcms_collection.mass_feature_anchor_technique
+        ):
+            # Drop features in the lower fraction of intensities
+            threshold_quantile = self.parameters.lcms_collection.mass_feature_anchor_relative_intensity_threshold
+            intensity_threshold = mf_df["intensity"].quantile(threshold_quantile)
+            mf_df = mf_df[mf_df["intensity"] >= intensity_threshold]
 
         return mf_df
 
