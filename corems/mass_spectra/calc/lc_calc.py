@@ -2385,7 +2385,7 @@ class LCMSCollectionCalculations:
         This function has been adapted from the original implementation in the Deimos package:
         https://github.com/pnnl/deimos
         """
-        if mf_c is None or mf_i is None:
+        if mf_c is None or mf_i is None or len(mf_c.index) < 1 or len(mf_i.index) < 1:
             return None, None
 
         # Prepare dataframes

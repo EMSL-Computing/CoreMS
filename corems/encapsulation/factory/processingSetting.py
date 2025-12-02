@@ -1152,7 +1152,7 @@ class LCMSCollectionSettings:
     drop_isotopologues: bool = False
 
     # Settings for doing mass feature alignment
-    _mass_feature_anchor_technique: list = dataclasses.field(default_factory=lambda: ["deconvoluted_mass_spectra"])
+    _mass_feature_anchor_technique: list = dataclasses.field(default_factory=lambda: ["absolute_intensity"])
     mass_feature_anchor_techniques_available: tuple = ("deconvoluted_mass_spectra", "absolute_intensity")
     mass_feature_anchor_aboslute_intensity_threshold: int = 10000
     alignment_hold_out_fraction: float = 0.3

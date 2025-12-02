@@ -126,6 +126,11 @@ class MassSpectraBase:
     @property
     def spectra_parser(self):
         """Returns an instance of the spectra parser class."""
+        # Check if a file exists at the raw_file_location
+        if not Path(self.raw_file_location).exists():
+            raise FileNotFoundError(
+                f"Raw file not found at location: {self.raw_file_location}, update raw_file_location property to point to correct location."
+            )        
         return self.spectra_parser_class(self.raw_file_location)
 
     @property
@@ -1825,6 +1830,65 @@ class LCMSCollection(LCMSCollectionCalculations):
 
         # Drop the raw data
         del self[sample_idx]._ms_unprocessed[ms_level]
+
+    def update_raw_file_locations(self, new_raw_folder):
+        """Update the raw file locations for all LCMS objects in the collection.
+        
+        This method updates the path to the original raw data files (.raw, .mzML, etc.)
+        that were used to create the processed HDF5 files stored in .corems folders.
+        
+        Parameters
+        -----------
+        new_raw_folder : str or Path
+            The new folder location containing the raw data files (.raw, .mzML, etc.).
+            The method will look for raw files with the same base name as each sample.
+            
+        Raises
+        -------
+        FileNotFoundError
+            If the new raw folder does not exist.
+        FileNotFoundError
+            If a raw file for a sample is not found in the new folder.
+            
+        Returns
+        --------
+        None, but updates the raw_file_location for each LCMS object in the collection.
+        
+        Examples
+        --------
+        If raw files were moved from /old/path/ to /new/path/:
+        >>> lcms_collection.update_raw_file_locations("/new/path/")
+        """
+        from pathlib import Path
+        
+        if isinstance(new_raw_folder, str):
+            new_raw_folder = Path(new_raw_folder)
+        
+        if not new_raw_folder.exists():
+            raise FileNotFoundError(f"Raw data folder does not exist: {new_raw_folder}")
+        
+        # Common raw file extensions
+        raw_extensions = ['.raw', '.mzML', '.mzml']
+        
+        for sample_name in self.samples:
+            lcms_obj = self._lcms[sample_name]
+            
+            # Try to find the raw file with common extensions
+            new_raw_file = None
+            for ext in raw_extensions:
+                candidate = new_raw_folder / f"{sample_name}{ext}"
+                if candidate.exists():
+                    new_raw_file = candidate
+                    break
+            
+            if new_raw_file is None:
+                raise FileNotFoundError(
+                    f"Raw file for sample '{sample_name}' not found in {new_raw_folder}. "
+                    f"Tried extensions: {', '.join(raw_extensions)}"
+                )
+            
+            # Update the raw file location
+            lcms_obj.raw_file_location = new_raw_file
 
     def collection_pivot_table(self, attribute = 'coll_mf_id', verbose = True):
         """Generate a pivot table of all regular and induced mass features in
