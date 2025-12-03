@@ -2132,6 +2132,5 @@ class LCMSCollection(LCMSCollectionCalculations):
     def cluster_feature_dictionary(self):
         """Generates a dictionary with clusters for keys and mass feature IDs as entries"""
         df = self.mass_features_dataframe
-        # Use groupby for much better performance than iterating through all clusters
         cluster_dict = df.groupby('cluster').apply(lambda x: x.index.tolist()).to_dict()
         return cluster_dict

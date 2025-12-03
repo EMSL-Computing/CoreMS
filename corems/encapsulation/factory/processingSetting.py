@@ -1153,6 +1153,14 @@ class LCMSCollectionSettings:
         Retention time tolerance for consensus mass feature alignment, in minutes. Default is 0.2.
     consensus_partition_size: int, optional
         Partition size for consensus mass feature alignment. Default is 5000.
+    consensus_min_sample_fraction : float, optional
+        Minimum fraction of samples (0-1) that must contain a cluster.
+        Used for filtering consensus features and for gap-filling threshold.
+        Default is 0.5 (50%). Higher values focus on more prevalent features.
+    gap_fill_expand_on_miss : bool, optional
+        If True, expands search window using consensus_mz_tol_ppm and consensus_rt_tol
+        when no peak is found in the initial cluster boundaries during gap-filling.
+        Default is False.
     """
     # Settings for general processing
     cores = 1
@@ -1175,7 +1183,10 @@ class LCMSCollectionSettings:
     consensus_rt_tol = 0.3
     consensus_partition_size = 10000
     filter_consensus_mass_features = True
-    consensus_min_sample_fraction = 0.2
+    consensus_min_sample_fraction = 0.5
+
+    # Gap-filling settings
+    gap_fill_expand_on_miss: bool = True
 
     def __post_init__(self):
         self.consensus_mz_tol_ppm = self.alignment_mz_tol_ppm

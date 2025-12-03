@@ -3664,7 +3664,7 @@ class LCMSCollectionCalculations:
         if not inplace:
             return self[obj_idx].induced_mass_features
     
-    def fill_missing_cluster_features(self, min_cluster_presence=0.5, expand_on_miss=False):
+    def fill_missing_cluster_features(self):
         """
         Gap-filling for consensus mass features across collection samples.
         
@@ -3679,15 +3679,11 @@ class LCMSCollectionCalculations:
 
         Parameters
         ----------
-        min_cluster_presence : float, optional
-            Minimum fraction of samples (0-1) that must contain a cluster before
-            gap-filling is attempted for remaining samples. Default is 0.5 (50%).
-            Higher values focus on more prevalent features; lower values attempt
-            gap-filling for more sparse features.
-        expand_on_miss : bool, optional
-            If True, expands search window using consensus_mz_tol_ppm and 
-            consensus_rt_tol when no peak is found in the initial cluster boundaries.
-            Default is False.
+        None
+            Uses parameters from self.parameters.lcms_collection:
+            - consensus_min_sample_fraction: Minimum fraction of samples (0-1) that must contain
+              a cluster before gap-filling is attempted
+            - gap_fill_expand_on_miss: If True, expands search window when no peak is found
             
         Returns
         -------
@@ -3719,9 +3715,13 @@ class LCMSCollectionCalculations:
                 "cluster_summary_dataframe not found. Must run add_consensus_mass_features() first."
             )
         
+        # Get parameters from settings
+        min_cluster_presence = self.parameters.lcms_collection.consensus_min_sample_fraction
+        expand_on_miss = self.parameters.lcms_collection.gap_fill_expand_on_miss
+        
         # Validate parameters
         if not 0 <= min_cluster_presence <= 1:
-            raise ValueError("min_cluster_presence must be between 0 and 1")
+            raise ValueError("consensus_min_sample_fraction must be between 0 and 1")
         
         summarydf = self.cluster_summary_dataframe
         mfdf = self.mass_features_dataframe
