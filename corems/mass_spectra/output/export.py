@@ -1031,15 +1031,125 @@ class LCMSExport(HighResMassSpectraExport):
         group_name : str, optional
             The name of the group to save the mass features to. Default is 'mass_features'.
         overwrite : bool, optional
-            Whether to overwrite the existing group. Default is False, where existing group will be updated.
-        """
+            Whether to overwrite the output file. Default is False.
+        save_parameters : bool, optional
+            Whether to save the parameters as a separate json or toml file. Default is True.
+        parameter_format : str, optional
+            The format to save the parameters in. Default is 'toml'.
 
-        # Create group for each mass feature, with key as the mass feature id
-        if len(self.mass_spectra.mass_features) > 0:
+        Raises
+        ------
+        ValueError
+            If parameter_format is not 'json' or 'toml'.
+        """
+        export_profile_spectra = (
+            self.mass_spectra.parameters.lc_ms.export_profile_spectra
+        )
+
+        # Parameterized export: all spectra (default) or only relevant spectra
+        export_only_relevant = self.mass_spectra.parameters.lc_ms.export_only_relevant_mass_spectra
+        if export_only_relevant:
+            relevant_scan_numbers = set()
+            # Add MS1 spectra associated with mass features (apex scans) and best MS2 spectra
+            for mass_feature in self.mass_spectra.mass_features.values():
+                relevant_scan_numbers.add(mass_feature.apex_scan)
+                if mass_feature.best_ms2 is not None:
+                    relevant_scan_numbers.add(mass_feature.best_ms2.scan_number)
+        if overwrite:
+            if self.output_file.with_suffix(".hdf5").exists():
+                self.output_file.with_suffix(".hdf5").unlink()
+
+        with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
+            if not hdf_handle.attrs.get("date_utc"):
+                # Set metadata for all mass spectra
+                timenow = str(
+                    datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z")
+                )
+                hdf_handle.attrs["date_utc"] = timenow
+                hdf_handle.attrs["filename"] = self.mass_spectra.file_location.name
+                hdf_handle.attrs["data_structure"] = "mass_spectra"
+                hdf_handle.attrs["analyzer"] = self.mass_spectra.analyzer
+                hdf_handle.attrs["instrument_label"] = (
+                    self.mass_spectra.instrument_label
+                )
+                hdf_handle.attrs["sample_name"] = self.mass_spectra.sample_name
+                hdf_handle.attrs["polarity"] = self.mass_spectra.polarity
+                hdf_handle.attrs["parser_type"] = (
+                    self.mass_spectra.spectra_parser_class.__name__
+                )
+                hdf_handle.attrs["original_file_location"] = (
+                    self.mass_spectra.file_location._str
+                )
+
             if group_name not in hdf_handle:
-                mass_features_group = hdf_handle.create_group(group_name)
+                mass_spectra_group = hdf_handle.create_group(group_name)
             else:
-                mass_features_group = hdf_handle.get(group_name)
+                mass_spectra_group = hdf_handle.get(group_name)
+
+            # Export logic based on parameter
+            for mass_spectrum in self.mass_spectra:
+                if export_only_relevant:
+                    if mass_spectrum.scan_number in relevant_scan_numbers:
+                        group_key = str(int(mass_spectrum.scan_number))
+                        self.add_mass_spectrum_to_hdf5(
+                            hdf_handle, mass_spectrum, group_key, mass_spectra_group, export_profile_spectra
+                        )
+                else:
+                    group_key = str(int(mass_spectrum.scan_number))
+                    self.add_mass_spectrum_to_hdf5(
+                        hdf_handle, mass_spectrum, group_key, mass_spectra_group, export_profile_spectra
+                    )
+
+        # Write scan info, ms_unprocessed, mass features, eics, and ms2_search results to the hdf5 file
+        with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
+            # Add scan_info to hdf5 file
+            if "scan_info" not in hdf_handle:
+                scan_info_group = hdf_handle.create_group("scan_info")
+                for k, v in self.mass_spectra._scan_info.items():
+                    array = np.array(list(v.values()))
+                    if array.dtype.str[0:2] == "<U":
+                        # Convert Unicode strings to UTF-8 encoded bytes first
+                        string_data = [str(item) for item in array]
+                        string_dtype = h5py.string_dtype(encoding='utf-8')
+                        scan_info_group.create_dataset(k, data=string_data, dtype=string_dtype, compression="gzip", compression_opts=9, chunks=True)
+                    else:
+                        # Apply data type optimization for numeric data
+                        if array.dtype == np.float64:
+                            array = array.astype(np.float32)
+                        elif array.dtype == np.int64:
+                            array = array.astype(np.int32)
+                        scan_info_group.create_dataset(k, data=array, compression="gzip", compression_opts=9, chunks=True)
+
+            # Add ms_unprocessed to hdf5 file
+            export_unprocessed_ms1 = (
+                self.mass_spectra.parameters.lc_ms.export_unprocessed_ms1
+            )
+            if self.mass_spectra._ms_unprocessed and export_unprocessed_ms1:
+                if "ms_unprocessed" not in hdf_handle:
+                    ms_unprocessed_group = hdf_handle.create_group("ms_unprocessed")
+                else:
+                    ms_unprocessed_group = hdf_handle.get("ms_unprocessed")
+                for k, v in self.mass_spectra._ms_unprocessed.items():
+                    array = np.array(v)
+                    # Apply data type optimization and compression
+                    if array.dtype == np.int64:
+                        array = array.astype(np.int32)
+                    elif array.dtype == np.float64:
+                        array = array.astype(np.float32)
+                    elif array.dtype.str[0:2] == "<U":
+                        # Convert Unicode strings to UTF-8 encoded strings
+                        string_data = [str(item) for item in array]
+                        string_dtype = h5py.string_dtype(encoding='utf-8')
+                        ms_unprocessed_group.create_dataset(str(k), data=string_data, dtype=string_dtype, compression="gzip", compression_opts=9, chunks=True)
+                        continue
+                    ms_unprocessed_group.create_dataset(str(k), data=array, compression="gzip", compression_opts=9, chunks=True)
+
+            # Add LCMS mass features to hdf5 file
+            if len(self.mass_spectra.mass_features) > 0:
+                if "mass_features" not in hdf_handle:
+                    mass_features_group = hdf_handle.create_group("mass_features")
+                else:
+                    mass_features_group = hdf_handle.get("mass_features")
 
             # Create group for each mass feature, with key as the mass feature id
             for k, v in self.mass_spectra.mass_features.items():
@@ -1060,36 +1170,58 @@ class LCMSExport(HighResMassSpectraExport):
                             ]:
                                 if k2 == "ms2_scan_numbers":
                                     array = np.array(v2)
+                                    # Convert int64 to int32
+                                    if array.dtype == np.int64:
+                                        array = array.astype(np.int32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array
+                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
                                     )
                                 elif k2 == "_half_height_width":
                                     array = np.array(v2)
+                                    # Convert float64 to float32
+                                    if array.dtype == np.float64:
+                                        array = array.astype(np.float32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array
+                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
                                     )
                                 elif k2 == "_ms_deconvoluted_idx":
                                     array = np.array(v2)
+                                    # Convert int64 to int32
+                                    if array.dtype == np.int64:
+                                        array = array.astype(np.int32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array
+                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
                                     )
                                 elif k2 == "associated_mass_features_deconvoluted":
                                     array = np.array(v2)
+                                    # Convert int64 to int32
+                                    if array.dtype == np.int64:
+                                        array = array.astype(np.int32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array
+                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
                                     )
                                 elif k2 == "_noise_score":
                                     array = np.array(v2)
+                                    # Convert float64 to float32
+                                    if array.dtype == np.float64:
+                                        array = array.astype(np.float32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array
+                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
                                     )
                                 elif (
                                     isinstance(v2, int)
                                     or isinstance(v2, float)
                                     or isinstance(v2, str)
                                     or isinstance(v2, np.integer)
+                                    or isinstance(v2, np.float32)
+                                    or isinstance(v2, np.float64)
                                     or isinstance(v2, np.bool_)
                                 ):
+                                    # Convert numpy types to smaller precision for storage
+                                    if isinstance(v2, np.int64):
+                                        v2 = np.int32(v2)
+                                    elif isinstance(v2, np.float64):
+                                        v2 = np.float32(v2)
                                     mass_features_group[str(k)].attrs[str(k2)] = v2
 
     def to_hdf(self, overwrite=False, save_parameters=True, parameter_format="toml"):
@@ -1172,9 +1304,20 @@ class LCMSExport(HighResMassSpectraExport):
                         for k2, v2 in v.__dict__.items():
                             if v2 is not None:
                                 array = np.array(v2)
-                                eic_group[str(k)].create_dataset(str(k2), data=array)
+                                # Apply data type optimization and compression
+                            if array.dtype == np.int64:
+                                array = array.astype(np.int32)
+                            elif array.dtype == np.float64:
+                                array = array.astype(np.float32)
+                            elif array.dtype.str[0:2] == "<U":
+                                # Convert Unicode strings to UTF-8 encoded strings
+                                string_data = [str(item) for item in array]
+                                string_dtype = h5py.string_dtype(encoding='utf-8')
+                                eic_group[str(k)].create_dataset(str(k2), data=string_data, dtype=string_dtype, compression="gzip", compression_opts=9, chunks=True)
+                                continue
+                            eic_group[str(k)].create_dataset(str(k2), data=array, compression="gzip", compression_opts=9, chunks=True)
 
-            # Add ms2_search results to hdf5 file
+            # Add ms2_search results to hdf5 file (parameterized)
             if len(self.mass_spectra.spectral_search_results) > 0:
                 if "spectral_search_results" not in hdf_handle or overwrite:
                     if "spectral_search_results" in hdf_handle and overwrite:
@@ -1186,6 +1329,7 @@ class LCMSExport(HighResMassSpectraExport):
                     spectral_search_results = hdf_handle.get("spectral_search_results")
                 # Create group for each search result by ms2_scan / precursor_mz
                 for k, v in self.mass_spectra.spectral_search_results.items():
+                    #TODO KRH: Fix to handle if export_only_relevant and k not in relevant_scan_numbers: continue!
                     if str(k) not in spectral_search_results or overwrite:
                         if str(k) in spectral_search_results and overwrite:
                             del spectral_search_results[str(k)]

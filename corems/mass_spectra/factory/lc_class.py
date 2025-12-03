@@ -126,6 +126,11 @@ class MassSpectraBase:
     @property
     def spectra_parser(self):
         """Returns an instance of the spectra parser class."""
+        # Check if a file exists at the raw_file_location
+        if not Path(self.raw_file_location).exists():
+            raise FileNotFoundError(
+                f"Raw file not found at location: {self.raw_file_location}, update raw_file_location property to point to correct location."
+            )        
         return self.spectra_parser_class(self.raw_file_location)
 
     @property
@@ -755,6 +760,11 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         induced_features : bool, optional
             If True, calls the induced_mass_features dictionary. Defaults to False.
 
+        Raises
+        --------
+        ValueError
+            If the sample provided doesn't contain the mass feature data.        
+
         Returns
         --------
         pandas.DataFrame
@@ -798,6 +808,12 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             mf_dict = self.induced_mass_features
         else:
             mf_dict = self.mass_features
+        
+        if len(mf_dict) == 0:
+            # Warn that no mass features were found, quit function
+            raise ValueError(
+                "No mass features found in dataset. Have the mass features been added? If this is part of a collection, summary data is aggregated in the attribute 'mass_features_dataframe'"
+                )
             
         cols_in_df = [
             "id",
@@ -892,7 +908,16 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         # reset index to mf_id
         df_mf = df_mf.set_index("mf_id")
         df_mf.index.name = "mf_id"
-
+        
+        if 'half_height_width' in df_mf.columns:
+            df_mf["half_height_width"] = df_mf["half_height_width"].astype('float64')
+        if 'tailing_factor' in df_mf.columns:
+            df_mf["tailing_factor"] = df_mf["tailing_factor"].astype('float64')
+        if 'dispersity_index' in df_mf.columns:
+            df_mf["dispersity_index"] = df_mf["dispersity_index"].astype('float64')
+        if 'normalized_dispersity_index' in df_mf.columns:
+            df_mf["normalized_dispersity_index"] = df_mf["normalized_dispersity_index"].astype('float64')
+        
         return df_mf
 
     def mass_features_ms1_annot_to_df(self):
@@ -1140,6 +1165,106 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         else:
             plt.show()
             
+    def search_for_targeted_mass_features_batch(
+            self,
+            ms1df,
+            mz_mins,
+            mz_maxs,
+            st_mins,
+            st_maxs,
+            set_ids,
+            obj_idx=0,
+            st_aligned=False
+            ):
+        """
+        Returns multiple LCMSMassFeatures from a specific sample within specific mass and time ranges.
+        Vectorized batch version of search_for_targeted_mass_feature for improved performance.
+
+        Parameters
+        -----------
+        ms1df : pd.DataFrame
+            Dataframe containing all the possible MS1 values to consider, collected by calling _ms_unprocessed[1] on the sample.
+        mz_mins : np.ndarray
+            Array of lower bounds of m/z values to use to find peaks.
+        mz_maxs : np.ndarray
+            Array of upper bounds of m/z values to use to find peaks.
+        st_mins : np.ndarray
+            Array of lower bounds of scan times to use to find peaks.
+        st_maxs : np.ndarray
+            Array of upper bounds of scan times to use to find peaks.
+        set_ids : np.ndarray or list
+            Array of strings used as IDs in LCMSMassFeatures.
+        obj_idx : int
+            Identifies index of sample in a collection. Defaults to 0.
+        st_aligned : bool
+            Whether to use scan_time_aligned or scan_time. Defaults to False.
+
+        Returns
+        --------
+        dict
+            Dictionary mapping set_id to LCMSMassFeature objects.
+
+        Raises
+        ------
+        ValueError
+            If appropriate scan time data is not contained in ms1df or if array lengths don't match.
+        """
+        # Validate inputs
+        n_features = len(mz_mins)
+        if not all(len(arr) == n_features for arr in [mz_maxs, st_mins, st_maxs, set_ids]):
+            raise ValueError("All input arrays must have the same length")
+
+        # Validate scan time column
+        time_col = 'scan_time_aligned' if st_aligned else 'scan_time'
+        if time_col not in ms1df.columns:
+            raise ValueError(f"{time_col} not contained in ms1df")
+
+        # Pre-extract columns for faster access
+        mz_vals = ms1df.mz.values
+        st_vals = ms1df[time_col].values
+        scan_vals = ms1df.scan.values
+        intensity_vals = ms1df.intensity.values
+
+        # Process all features
+        results = {}
+        for i in range(n_features):
+            # Vectorized filtering
+            mask = (
+                (mz_vals >= mz_mins[i]) & (mz_vals <= mz_maxs[i]) &
+                (st_vals >= st_mins[i]) & (st_vals <= st_maxs[i])
+            )
+            
+            if not mask.any():
+                row_dict = {
+                    'apex_scan': -99,
+                    'mz': np.nan,
+                    'intensity': np.nan,
+                    'retention_time': np.nan,
+                    'persistence': np.nan,
+                    'id': set_ids[i]
+                }
+            else:
+                # Find max intensity within filtered region
+                filtered_intensities = intensity_vals[mask]
+                max_idx = np.argmax(filtered_intensities)
+                
+                # Get indices of filtered data
+                filtered_indices = np.where(mask)[0]
+                peak_idx = filtered_indices[max_idx]
+                
+                row_dict = {
+                    'apex_scan': scan_vals[peak_idx],
+                    'mz': mz_vals[peak_idx],
+                    'intensity': intensity_vals[peak_idx],
+                    'retention_time': st_vals[peak_idx],
+                    'persistence': np.nan,
+                    'id': set_ids[i]
+                }
+
+            results[set_ids[i]] = LCMSMassFeature(self, **row_dict)
+
+        return results
+
     def search_for_targeted_mass_feature(
             self,
             ms1df, 
@@ -1186,66 +1311,18 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         Warning
             If appropriate scan time data is not contained in ms1df.
         """
-
-        if st_aligned == True:
-            if not 'scan_time_aligned' in ms1df.columns:
-                raise ValueError(
-                    "Aligned scan times not contained in ms1df. Merge ms1df with scan_df on 'scan' to import aligned scan times."
-                )
-        else:
-            if not 'scan_time' in ms1df.columns:
-                raise ValueError(
-                    "Scan times not contained in ms1df. Merge ms1df with scan_df on 'scan' to import scan times."
-                )
-
-        mzfit = ms1df[(
-            ms1df.mz >= mz_min
-        ) & (
-            ms1df.mz <= mz_max
-        )].reset_index(drop = True)
-                
-        if st_aligned == True:
-            mzfit_st = mzfit.scan_time_aligned
-        else:
-            mzfit_st = mzfit.scan_time
-                
-        rtfit = mzfit[(
-            mzfit_st >= st_min
-        ) & (
-            mzfit_st <= st_max
-        )]
-        
-        if len(rtfit) == 0:
-            row_dict = {
-                'apex_scan': -99,
-                'mz': np.nan,
-                'intensity': np.nan,
-                'retention_time': np.nan,
-                'persistence': np.nan,
-                'id': set_id
-            }
-        else:
-            inducedpeak = rtfit[rtfit.intensity == rtfit.intensity.max()]
-            if st_aligned == True:
-                rt_induced = inducedpeak.scan_time_aligned.values[0]
-            else:
-                rt_induced = inducedpeak.scan_time.values[0]
-
-            row_dict = {
-                'apex_scan': inducedpeak.scan.values[0],
-                'mz': inducedpeak.mz.values[0],
-                'intensity': inducedpeak.intensity.values[0],
-                'retention_time': rt_induced,
-                'persistence': np.nan,
-                'id': set_id
-            }
-
-        if self.__class__.__name__ == 'LCMSBase':
-            output = LCMSMassFeature(self, **row_dict)
-        elif self.__class__.__name__ == 'LCMSCollection':
-            output = LCMSMassFeature(self[obj_idx], **row_dict)
-            
-        return output
+        # Convert single feature to arrays and call batch method
+        results = self.search_for_targeted_mass_features_batch(
+            ms1df,
+            np.array([mz_min]),
+            np.array([mz_max]),
+            np.array([st_min]),
+            np.array([st_max]),
+            [set_id],
+            obj_idx=obj_idx,
+            st_aligned=st_aligned
+        )
+        return results[set_id]
 
 
     def __len__(self):
@@ -1486,6 +1563,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         # These attributes are generally set by the parser during instantiation of this class
         self._lcms = {}
         self._combined_mass_features = None
+        self._combined_induced_mass_features = None
         self.consensus_mass_features = {}
         self._parameters = LCMSCollectionParameters()
         self.isotopes_dropped = False
@@ -1509,12 +1587,14 @@ class LCMSCollection(LCMSCollectionCalculations):
     def __len__(self):
         return len(self.samples)
     
-    def _prepare_lcms_mass_features_for_combination(self, lcms_obj):
+    def _prepare_lcms_mass_features_for_combination(self, lcms_obj, induced_features = False):
         """
         Prepares the mass features in the LCMS objects in the collection for combination.
-        """
+        """        
+        if induced_features == True:
+            mf_df = lcms_obj.mass_features_to_df(induced_features = True)
         # Check if lcms_obj has attribute light_mf_df
-        if hasattr(lcms_obj, "light_mf_df"):
+        elif hasattr(lcms_obj, "light_mf_df"):
             mf_df = lcms_obj.light_mf_df
         else:
             mf_df = lcms_obj.mass_features_to_df()
@@ -1529,49 +1609,61 @@ class LCMSCollection(LCMSCollectionCalculations):
         if "scan_time_aligned" in lcms_obj.scan_df.columns:
             scan_df = lcms_obj.scan_df[["scan", "scan_time_aligned"]].copy()
             scan_df = scan_df.rename(columns={"scan": "apex_scan"})
-            mf_df = mf_df.merge(scan_df, left_on="apex_scan", right_index=True)
+            mf_df = mf_df.merge(scan_df, on="apex_scan")
         
         return mf_df
        
-    def _combine_mass_features(self):
+    def _combine_mass_features(self, induced_features = False):
         """
         Concatenates the mass features from all the LCMS objects in the collection.
 
         Returns
         --------
-        None, sets the _combined_mass_features attribute.
+        None, sets the _combined_mass_features or _combined_induced_mass_feature attribute.
         """
 
-        if self.parameters.lcms_collection.cores == 1:
-            # Prepare mass features for combination sequentially
-            mf_df_list = []
-            for lcms_obj in self:
-                mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj)
-                mf_df_list.append(mf_df)
+        ## TODO: See why this function runs slower on multiprocessing,
+        ## especially for induced features
+        ## has only been considered so far on ~20 samples
+#        if self.parameters.lcms_collection.cores == 1:
+#            # Prepare mass features for combination sequentially
+#            mf_df_list = []
+#            for lcms_obj in self:
+#                mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj, induced_features)
+#                mf_df_list.append(mf_df)
 
-        if self.parameters.lcms_collection.cores > 1:
-            # Parallelize the mass feature preparation
-            if self.parameters.lcms_collection.cores > len(self):
-                ncores = len(self)
-            else:
-                ncores = self.parameters.lcms_collection.cores
-            pool = multiprocessing.Pool(ncores)
-            mf_df_list = pool.starmap(self._prepare_lcms_mass_features_for_combination, [(lcms_obj,) for lcms_obj in self])
+#        if self.parameters.lcms_collection.cores > 1:
+#            # Parallelize the mass feature preparation
+#            if self.parameters.lcms_collection.cores > len(self):
+#                ncores = len(self)
+#            else:
+#                ncores = self.parameters.lcms_collection.cores
+#            pool = multiprocessing.Pool(ncores)
+#            mf_df_list = pool.starmap(
+#                self._prepare_lcms_mass_features_for_combination, 
+#                [(lcms_obj, induced_features) for lcms_obj in self]
+#            )
+
+        # Prepare mass features for combination sequentially
+        mf_df_list = []
+        for lcms_obj in self:
+            mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj, induced_features)
+            mf_df_list.append(mf_df)
 
         combined_mass_features = pd.concat(mf_df_list)
-
         # Move coll_mf_id, sample_name, and sample_id to front
         cols = combined_mass_features.columns.tolist()
         top_cols = ["coll_mf_id", "sample_name", "sample_id", "mz", "scan_time_aligned"]
         cols = [x for x in top_cols + [col for col in cols if col not in top_cols] if x in cols]
         combined_mass_features = combined_mass_features[cols]
-
         # Make coll_mf_id the index
         combined_mass_features = combined_mass_features.set_index("coll_mf_id")
+        if induced_features == True:
+            self._combined_induced_mass_features = combined_mass_features
+        else:
+            self._combined_mass_features = combined_mass_features
 
-        self._combined_mass_features = combined_mass_features
-
-    def _check_mass_features_df(self):
+    def _check_mass_features_df(self, induced_features = False):
         """Checks if the mass features dataframe has expected columns.  If not, adds them.
         
         Returns
@@ -1581,16 +1673,22 @@ class LCMSCollection(LCMSCollectionCalculations):
 
         Notes
         ------
-        If scan_time_aligned is not in the _combined_mass_features, tries to add it.
+        If scan_time_aligned is not in the _combined_mass_features or 
+        _combined_induced_mass_features, tries to add it.
 
-        """  
+        """
+        
+        if induced_features:
+            cmf_df = self._combined_induced_mass_features
+        else:
+            cmf_df = self._combined_mass_features
         # Check if parameters are set to drop isotopologues and drop if so
         if self.parameters.lcms_collection.drop_isotopologues:
             if not self.isotopes_dropped:
                 self._drop_isotopologues()
         # Check if scan_time_aligned is in combined_mass_features, try to add if not
-        if self._combined_mass_features is not None and "scan_time_aligned" not in self._combined_mass_features.columns:
-            cmb_mf = self._combined_mass_features.copy()
+        if cmf_df is not None and "scan_time_aligned" not in cmf_df.columns:
+            cmb_mf = cmf_df.copy()
             cmb_mf = cmb_mf.reset_index(drop=False)
             lcms_aligned = [True for x in self if "scan_time_aligned" in x.scan_df.columns]
             if len(lcms_aligned) == len(self):
@@ -1604,10 +1702,13 @@ class LCMSCollection(LCMSCollectionCalculations):
                 # Rename scan to apex_scan
                 scan_time_aligned_df = scan_time_aligned_df.rename(columns={"scan": "apex_scan"})
                 cmb_mf_merged = cmb_mf.merge(scan_time_aligned_df, on=["apex_scan", "sample_name"])
-                cmb_mf_mergd = cmb_mf_merged.set_index("coll_mf_id")
+                cmb_mf_merged = cmb_mf_merged.set_index("coll_mf_id")
                 # Merge scan_time_aligned_df with combined_mass_features on apex_scan and sample_name
-                self._combined_mass_features = cmb_mf_mergd
- 
+                if induced_features:
+                    self._combined_induced_mass_features = cmb_mf_merged
+                else:
+                    self._combined_mass_features = cmb_mf_merged
+    
     def plot_tics(self, ms_level=1, type = "raw", plot_legend=False):
         """Plots the TICs for all the LCMS objects in the collection.
         
@@ -1692,7 +1793,6 @@ class LCMSCollection(LCMSCollectionCalculations):
 
         cmb_mf_df2 = pd.concat([cmb_monos, cmb_nomonos, cmb_decon_parent])
         cmb_mf_df2 = cmb_mf_df2[~cmb_mf_df2.index.duplicated(keep='first')]
-
         self.isotopes_dropped = True
         self._combined_mass_features = cmb_mf_df2
     
@@ -1787,6 +1887,170 @@ class LCMSCollection(LCMSCollectionCalculations):
         # Drop the raw data
         del self[sample_idx]._ms_unprocessed[ms_level]
 
+    def update_raw_file_locations(self, new_raw_folder):
+        """Update the raw file locations for all LCMS objects in the collection.
+        
+        This method updates the path to the original raw data files (.raw, .mzML, etc.)
+        that were used to create the processed HDF5 files stored in .corems folders.
+        
+        Parameters
+        -----------
+        new_raw_folder : str or Path
+            The new folder location containing the raw data files (.raw, .mzML, etc.).
+            The method will look for raw files with the same base name as each sample.
+            
+        Raises
+        -------
+        FileNotFoundError
+            If the new raw folder does not exist.
+        FileNotFoundError
+            If a raw file for a sample is not found in the new folder.
+            
+        Returns
+        --------
+        None, but updates the raw_file_location for each LCMS object in the collection.
+        
+        Examples
+        --------
+        If raw files were moved from /old/path/ to /new/path/:
+        >>> lcms_collection.update_raw_file_locations("/new/path/")
+        """
+        from pathlib import Path
+        
+        if isinstance(new_raw_folder, str):
+            new_raw_folder = Path(new_raw_folder)
+        
+        if not new_raw_folder.exists():
+            raise FileNotFoundError(f"Raw data folder does not exist: {new_raw_folder}")
+        
+        # Common raw file extensions
+        raw_extensions = ['.raw', '.mzML', '.mzml']
+        
+        for sample_name in self.samples:
+            lcms_obj = self._lcms[sample_name]
+            
+            # Try to find the raw file with common extensions
+            new_raw_file = None
+            for ext in raw_extensions:
+                candidate = new_raw_folder / f"{sample_name}{ext}"
+                if candidate.exists():
+                    new_raw_file = candidate
+                    break
+            
+            if new_raw_file is None:
+                raise FileNotFoundError(
+                    f"Raw file for sample '{sample_name}' not found in {new_raw_folder}. "
+                    f"Tried extensions: {', '.join(raw_extensions)}"
+                )
+            
+            # Update the raw file location
+            lcms_obj.raw_file_location = new_raw_file
+
+    def collection_pivot_table(self, attribute = 'coll_mf_id', verbose = True):
+        """Generate a pivot table of all regular and induced mass features in
+        a collection. Default attribute presented is the mass feature ID, also
+        prints a list of other available attributes.
+
+        Parameters
+        -----------
+        attribute : str
+            The desired attribute to be presented in the pivot table. Defaults
+            to mass feature ID
+        verbose : boolean
+            Print out all the possible values the fill the pivot table and list
+            attributes that are not collected for induced mass features
+
+        Returns
+        --------
+        pd.DataFrame
+            A DataFrame that displays one given attribute across all clusters
+            and samples in a collection
+        
+        """
+        
+        mf_pivot = self.mass_features_dataframe.copy()
+        mf_pivot.reset_index(inplace = True)
+        imf_pivot = self.induced_mass_features_dataframe.copy()
+        imf_pivot.reset_index(inplace = True)
+        # Cluster column already extracted by induced_mass_features_dataframe property
+        mf_pivot = pd.concat([mf_pivot, imf_pivot], axis = 0)
+        mf_pivot.reset_index(drop = True, inplace = True)
+        mf_pivot['cluster'] = mf_pivot['cluster'].astype(int)
+
+        if verbose:
+            print(
+                'Attributes available for pivot table:\n',
+                [x for x in mf_pivot.columns if x not in ['cluster', 'sample_id', 'mf_id', 'partition_idx', 'idx']]
+            )
+            print(
+                '\nAttributes that have no value for induced mass features:\n',
+                imf_pivot.columns[imf_pivot.isna().all()].tolist()            
+            )
+        return mf_pivot.pivot(index = 'cluster', columns = 'sample_id', values = attribute)
+
+    def collection_consensus_report(self, how = 'intensity'):
+        """Generate a consensus report of all regular and induced mass features 
+        in a collection. Default is to select feature of highest intensity in
+        a cluster and report back all the attributes.
+
+        Parameters
+        -----------
+        how : str
+            The preferred method to report back the consensus information.
+            Option 'intensity' assigns peak of highest intensity in each 
+            cluster as the representative consensus feaature and reports data
+            on that peak. Option 'mean' reports the mean values for available 
+            attributes by cluster, and option 'median' is the same but reports
+            median values.
+
+        Returns
+        --------
+        pd.DataFrame
+            A DataFrame that displays all attributes for each cluster in a 
+            collection based on either the peak of highest intensity or means
+            across all data in a cluster
+        """
+        
+        mf_df = self.mass_features_dataframe.copy()
+        mf_df.reset_index(inplace = True)
+        imf_df = self.induced_mass_features_dataframe.copy()
+        imf_df.reset_index(inplace = True)
+        # Cluster column already extracted by induced_mass_features_dataframe property
+        mf_df = pd.concat([mf_df, imf_df], axis = 0)
+        mf_df.reset_index(drop = True, inplace = True)
+        mf_df['cluster'] = mf_df['cluster'].astype(int)
+        
+        # If how == intensity, find the sample with highest intensity in each cluster and return that mass feature's data
+        if how == 'intensity':
+            int_table = self.collection_pivot_table(attribute = 'intensity', verbose = False).idxmax(axis = 1)
+            id_list = []
+            for i in range(len(int_table)):
+                id_list.append(
+                    mf_df[
+                        (mf_df.sample_id == int_table.iloc[i]) & (mf_df.cluster == int_table.index[i])
+                    ].coll_mf_id.values[0]
+                )
+            return mf_df[mf_df.coll_mf_id.isin(id_list)].sort_values(by = 'cluster').set_index('cluster')
+
+        # If how == mean or median, group by cluster and calculate mean or median for each attribute
+        elif how == 'mean' or how == 'median':
+            #TODO KRH: Clean up this section
+            ## will have to go back and check mf_df.dtypes to see what ends up on list
+            ## this format removes int columns like 'sample_id' and 'cluster'
+            l = mf_df.select_dtypes(include='float64').columns.tolist()
+            ## for some reason, the following 4 items get saved as floats instead of ints
+            ## can either leave this or track down how they're recorded and fix it at the source
+            ## possible they're recorded as ints for regular mass features and floats for induced, making the column default to the more general
+            l = [x for x in l if x not in ['scan_time', 'apex_scan', 'partition_idx', 'idx']]
+            agg_dict = {k: [how] for k in l}
+            agg_dict['sample_id'] = ['nunique']
+
+            df = (mf_df.groupby("cluster").agg(agg_dict).reset_index())
+
+            return df.sort_values(by = 'cluster').set_index('cluster')
+
+        else:
+            print("Assign 'how' argument as either 'intensity', 'mean', or 'median'")
 
     @property
     def parameters(self):
@@ -1811,7 +2075,7 @@ class LCMSCollection(LCMSCollectionCalculations):
     def mass_features_dataframe(self):
         self._check_mass_features_df()
         return self._combined_mass_features
-    
+
     @mass_features_dataframe.setter
     def mass_features_dataframe(self, df):
         # Check that the dataframe has the expected columns
@@ -1825,6 +2089,36 @@ class LCMSCollection(LCMSCollectionCalculations):
         if not df.index.is_unique:
             raise ValueError("coll_mf_id must be unique")
         self._combined_mass_features = df
+
+    @property
+    def induced_mass_features_dataframe(self):
+        self._check_mass_features_df(induced_features = True)
+        if self._combined_induced_mass_features is not None and len(self._combined_induced_mass_features) > 0:
+            # Extract cluster ID from coll_mf_id if not already present
+            if 'cluster' not in self._combined_induced_mass_features.columns:
+                imf_df = self._combined_induced_mass_features.copy()
+                imf_df = imf_df.reset_index(drop=False)
+                # Extract cluster ID from coll_mf_id format: "sample_id_cCluster_idx_i"
+                imf_df['cluster'] = imf_df['coll_mf_id'].apply(
+                    lambda x: int(x.split('_')[1][1:])
+                )
+                imf_df = imf_df.set_index('coll_mf_id')
+                self._combined_induced_mass_features = imf_df
+        return self._combined_induced_mass_features
+
+    @induced_mass_features_dataframe.setter
+    def induced_mass_features_dataframe(self, df):
+        # Check that the dataframe has the expected columns
+        expected_cols = ["sample_name", "sample_id", "mz", "scan_time"]
+        if not all([col in df.columns for col in expected_cols]):
+            raise ValueError(f"Expected columns not found in dataframe: {expected_cols}")
+        
+        # Check that coll_mf_id is the index and it is unique
+        if df.index.name != "coll_mf_id":
+            raise ValueError("coll_mf_id must be the index of the dataframe")
+        if not df.index.is_unique:
+            raise ValueError("coll_mf_id must be unique")
+        self._combined_induced_mass_features = df    
     
     @property
     def cluster_summary_dataframe(self):
@@ -1846,21 +2140,6 @@ class LCMSCollection(LCMSCollectionCalculations):
         return pd.DataFrame(self._manifest_dict).T
 
     @property
-    def consensus_mass_feature_dataframe(self):
-        df = self.mass_features_dataframe
-        #TODO KRH: build this out
-
-        # Check if mass features are clustered 
-        if 'cluster' not in df.columns:
-            return None
-        else:
-            # Group by cluster and summarize median mz, median scan_time, min max and median intensity, and count
-            cluster_summary = df.groupby('cluster').agg({'mz': 'median', 'scan_time': 'median', 'intensity': ['min', 'max', 'median'], 'mf_id': 'count'})
-
-            # Clean up column names
-            cluster_summary.columns = ['_'.join(col).strip() for col in cluster_summary.columns.values]
-
-    @property
     def raw_files(self):
         """Returns a list of raw files in the collection."""
         return [x.raw_file_location for x in self]
@@ -1877,3 +2156,10 @@ class LCMSCollection(LCMSCollectionCalculations):
             return _rt_alignments
         else:
             return None
+    
+    @property
+    def cluster_feature_dictionary(self):
+        """Generates a dictionary with clusters for keys and mass feature IDs as entries"""
+        df = self.mass_features_dataframe
+        cluster_dict = df.groupby('cluster').apply(lambda x: x.index.tolist()).to_dict()
+        return cluster_dict
