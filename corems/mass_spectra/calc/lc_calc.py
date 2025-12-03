@@ -8,6 +8,7 @@ from sklearn.svm import SVR
 from sklearn.cluster import AgglomerativeClustering
 import matplotlib.pyplot as plt
 from ast import literal_eval
+from tqdm import tqdm
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 from corems.mass_spectra.calc import SignalProcessing as sp
@@ -459,16 +460,12 @@ class LCCalculations:
             mf_dict = self.induced_mass_features
             if len(mf_dict) == 0:
                 raise ValueError(
-                    "No mass features found, did you run search_for_targeted_mass_feature() first?"
+                    "No induced mass features found, did you run fill_missing_cluster_features() first?"
                 )
-            if not any(
-                [mf.mass_spectrum is not None for mf in mf_dict.values()]
-            ):
-                raise ValueError(
-                    "Mass spectrum must be associated with induced mass features, did you run add_associated_ms1() first?"
-                )
-            ## remove not found induced mass features
-            mf_dict = {k:v for k, v in mf_dict.items() if v.mass_spectrum is not None}
+
+            ## remove not found induced mass features by mz <= 0 (-99 indicator)
+            # also remove any where mz is nan
+            mf_dict = {k:v for k, v in mf_dict.items() if v.mz > 0 and not np.isnan(v.mz)}
 
         else:
             mf_dict = self.mass_features
@@ -3523,120 +3520,214 @@ class LCMSCollectionCalculations:
         else:
             plt.show()
             
-    def _search_for_targeted_mass_features_in_sample(self, obj_idx, missingdf, threshold = 0.5, tol_flag = 0, inplace = True):
+    def _search_for_targeted_mass_features_in_sample(self, obj_idx, missingdf, cluster_dict, expand_on_miss=False, inplace=True):
         """
-        Searches through a sample in a collection to find all missing mass
-        features across all clusters in the collection.
+        Helper method to search for missing mass features in a single sample.
+        
+        Internal method called by fill_missing_cluster_features() to perform
+        gap-filling for one sample in the collection.
         
         Parameters
-        -----------
-        obj_idx :  int
+        ----------
+        obj_idx : int
             Index of the sample being processed
-        missingdf : pandas DataFrame
-            DataFrame containing information about the clusters with columns:
+        missingdf : pd.DataFrame
+            DataFrame containing cluster information with columns:
             'cluster', 'sample_id_nunique', 'mz_min', 'mz_max', 
-            'scan_time_aligned_min', 'scan_time_aligned_max' extracted from
-            self.cluster_summary_dataframe and 'mz_min_allowed', 
+            'scan_time_aligned_min', 'scan_time_aligned_max', 'mz_min_allowed', 
             'mz_max_allowed', 'scan_time_aligned_min_allowed', 
-            'scan_time_aligned_max_allowed' computed in 
-            search_for_targeted_mass_features_in_collection
-        threshold :  float
-            Decimal representation of percent of sample included in a cluster 
-            before the remaining samples are searched
-        tol_flag : 0 or 1
-            Indicates whether expand cluster boundaries to search for mass 
-            features near the boundary if none are found in the given 
-            parameters. Defaults to 0 (False).
-        inplace : boolean
-            Indicates whethere to assign induced_mass_features attribute in 
-            place or to return the result when the function is run in parallel
+            'scan_time_aligned_max_allowed', 'missing_samples'
+        cluster_dict : dict
+            Pre-computed cluster feature dictionary to avoid recomputation
+        expand_on_miss : bool
+            If True, expands search window when no peak found initially
+        inplace : bool
+            If True, assigns induced_mass_features in place. If False, returns the
+            induced features dictionary (for multiprocessing)
+            
+        Returns
+        -------
+        dict or None
+            If inplace=False, returns dictionary of induced mass features.
+            Otherwise returns None and updates object in place.
         """
-        ## retrieve the cluster/deature dictionary to record induced features
-        cluster_dict = self.cluster_feature_dictionary
+        ## Use the pre-computed cluster dictionary passed as parameter
         
         ## to get clusters missing data based on sample index:
         sampledf = missingdf[
             missingdf.missing_samples.apply(lambda x: obj_idx in x)
         ].reset_index(drop = True).copy()
 
+        # Skip if no missing features for this sample
+        if len(sampledf) == 0:
+            if not inplace:
+                return {}
+            return
+
         self.load_raw_data(obj_idx, 1)
-        
-        ## print lines added to see what is coming out
-#        print(self)
-#        print(self[obj_idx])
-#        print(self[obj_idx]._ms_unprocessed)
-        
+               
         ## this is the line that bugs due to _ms_unprocessed not having key 1
         ms1df = self[obj_idx]._ms_unprocessed[1].copy()
         scan_df = self[obj_idx].scan_df[['scan', 'scan_time_aligned']]
         ms1df = pd.merge(ms1df, scan_df, on = 'scan')
 
-        for i in range(len(sampledf)):
-            mz_min = sampledf.mz_min.iloc[i]
-            mz_max = sampledf.mz_max.iloc[i]
-            st_min = sampledf.scan_time_aligned_min.iloc[i]
-            st_max = sampledf.scan_time_aligned_max.iloc[i]
-            # TODO: Adjust function to input queries as tuples so we can search 
-            #       for all targeted mass features at once instead of in a loop
-            set_id = 'c' + str(sampledf.cluster.iloc[i]) + '_' + str(i) + '_i'
-            found_feature = self[obj_idx].search_for_targeted_mass_feature(            
-                ms1df, 
-                mz_min, 
-                mz_max, 
-                st_min, 
-                st_max,
-                set_id,
-                obj_idx = obj_idx,
-                st_aligned = True
+        # Pre-extract all values from sampledf to avoid repeated .iloc calls
+        clusters = sampledf.cluster.values
+        mz_mins = sampledf.mz_min.values
+        mz_maxs = sampledf.mz_max.values
+        st_mins = sampledf.scan_time_aligned_min.values
+        st_maxs = sampledf.scan_time_aligned_max.values
+        
+        if expand_on_miss:
+            mz_mins_allowed = sampledf.mz_min_allowed.values
+            mz_maxs_allowed = sampledf.mz_max_allowed.values
+            st_mins_allowed = sampledf.sta_min_allowed.values
+            st_maxs_allowed = sampledf.sta_max_allowed.values
+
+        # Pre-filter ms1df to reduce search space
+        mz_global_min = mz_mins.min()
+        mz_global_max = mz_maxs.max()
+        st_global_min = st_mins.min()
+        st_global_max = st_maxs.max()
+        
+        if expand_on_miss:
+            mz_global_min = min(mz_global_min, mz_mins_allowed.min())
+            mz_global_max = max(mz_global_max, mz_maxs_allowed.max())
+            st_global_min = min(st_global_min, st_mins_allowed.min())
+            st_global_max = max(st_global_max, st_maxs_allowed.max())
+        
+        ms1df_filtered = ms1df[
+            (ms1df.mz >= mz_global_min) & 
+            (ms1df.mz <= mz_global_max) &
+            (ms1df.scan_time_aligned >= st_global_min) &
+            (ms1df.scan_time_aligned <= st_global_max)
+        ].copy()
+
+        # Generate set_ids for all features
+        set_ids = [f'c{clusters[i]}_{i}_i' for i in range(len(sampledf))]
+        
+        # Use batch method to process all features at once
+        if expand_on_miss:
+            # First try with normal bounds
+            peaks_dict = self[obj_idx].search_for_targeted_mass_features_batch(
+                ms1df_filtered,
+                mz_mins,
+                mz_maxs,
+                st_mins,
+                st_maxs,
+                set_ids,
+                obj_idx=obj_idx,
+                st_aligned=True
             )
-
-            if tol_flag == 1 and found_feature.apex_scan == -99:
-                mz_min = sampledf.mz_min_allowed.iloc[i] 
-                mz_max = sampledf.mz_max_allowed.iloc[i]
-                st_min = sampledf.sta_min_allowed.iloc[i] 
-                st_max = sampledf.sta_max_allowed.iloc[i] 
-
-                found_feature = self[obj_idx].search_for_targeted_mass_feature(            
-                    ms1df, 
-                    mz_min, 
-                    mz_max, 
-                    st_min, 
-                    st_max,
-                    set_id,
-                    obj_idx = obj_idx,
-                    st_aligned = True
+            
+            # Retry failed features with expanded bounds
+            failed_indices = [i for i, sid in enumerate(set_ids) if peaks_dict[sid].apex_scan == -99]
+            if failed_indices:
+                failed_ids = [set_ids[i] for i in failed_indices]
+                retry_peaks = self[obj_idx].search_for_targeted_mass_features_batch(
+                    ms1df_filtered,
+                    mz_mins_allowed[failed_indices],
+                    mz_maxs_allowed[failed_indices],
+                    st_mins_allowed[failed_indices],
+                    st_maxs_allowed[failed_indices],
+                    failed_ids,
+                    obj_idx=obj_idx,
+                    st_aligned=True
                 )
+                peaks_dict.update(retry_peaks)
+        else:
+            peaks_dict = self[obj_idx].search_for_targeted_mass_features_batch(
+                ms1df_filtered,
+                mz_mins,
+                mz_maxs,
+                st_mins,
+                st_maxs,
+                set_ids,
+                obj_idx=obj_idx,
+                st_aligned=True
+            )
+        
+        # Assign peaks to induced_mass_features and cluster_dict
+        for i in range(len(sampledf)):
+            peak = peaks_dict[set_ids[i]]
+            self[obj_idx].induced_mass_features[peak.id] = peak
+            cluster_dict[clusters[i]] += [set_ids[i]]
 
-            self[obj_idx].induced_mass_features[found_feature.id] = found_feature
-            cluster_dict[sampledf.cluster.iloc[i]] += [set_id]
-        self[obj_idx].add_associated_ms1(induced_features = True)
-        # need to set drop_if_fail to false for induced features as they will fail
+        # TODO KRH: Let's try to avoid these steps unless asked for by parameters to pick up speed
+        if False:
+            self[obj_idx].add_associated_ms1(induced_features = True)
+            # need to set drop_if_fail to false for induced features as they will fail
+            self[obj_idx].add_peak_metrics(induced_features = True)
+            
         self[obj_idx].integrate_mass_features(drop_if_fail = False, induced_features = True)
-        self[obj_idx].add_peak_metrics(induced_features = True)
 
-        if inplace == False:
+        if not inplace:
             return self[obj_idx].induced_mass_features
     
-    def search_for_targeted_mass_features_in_collection(self, threshold = 0.5, tol_flag = 0):
-        '''
-        Iterates through a collection to find all relevant induced mass 
-        features and assigns them to the induced_mass_features attribute
+    def fill_missing_cluster_features(self, min_cluster_presence=0.5, expand_on_miss=False):
+        """
+        Gap-filling for consensus mass features across collection samples.
+        
+        For clusters present in multiple samples but missing from others, searches
+        raw MS1 data to find peaks in expected m/z and retention time windows. This
+        creates "induced" mass features for peaks that exist in the data but weren't
+        detected in the initial peak detection.
+        
+        Must be run after add_consensus_mass_features(). Results are accessible via
+        induced_mass_features_dataframe property and included in collection_pivot_table
+        and collection_consensus_report outputs.
 
         Parameters
-        -----------
-        threshold :  float
-            Decimal representation of percent of sample included in a cluster 
-            before the remaining samples are searched
-        tol_flag : 0 or 1
-            Indicates whether expand cluster boundaries to search for mass 
-            features near the boundary if none are found in the given 
-            parameters. Defaults to 0 (False).
-        '''
+        ----------
+        min_cluster_presence : float, optional
+            Minimum fraction of samples (0-1) that must contain a cluster before
+            gap-filling is attempted for remaining samples. Default is 0.5 (50%).
+            Higher values focus on more prevalent features; lower values attempt
+            gap-filling for more sparse features.
+        expand_on_miss : bool, optional
+            If True, expands search window using consensus_mz_tol_ppm and 
+            consensus_rt_tol when no peak is found in the initial cluster boundaries.
+            Default is False.
+            
+        Returns
+        -------
+        None
+            Updates induced_mass_features attribute for each LCMSBase object and
+            combines them into induced_mass_features_dataframe.
+            
+        Raises
+        ------
+        ValueError
+            If cluster_summary_dataframe is not set (must run add_consensus_mass_features first).
+            
+        Notes
+        -----
+        - Loads raw MS1 data for each sample, which may be memory intensive
+        - Induced features are integrated and metrics calculated automatically
+        - Processing can be parallelized using parameters.lcms_collection.cores
+        
+        See Also
+        --------
+        add_consensus_mass_features : Creates consensus features before gap-filling
+        collection_pivot_table : Includes both regular and induced features
+        collection_consensus_report : Reports on complete feature matrix
+        """
+        
+        # Validate prerequisites
+        if not hasattr(self, 'cluster_summary_dataframe') or self.cluster_summary_dataframe is None:
+            raise ValueError(
+                "cluster_summary_dataframe not found. Must run add_consensus_mass_features() first."
+            )
+        
+        # Validate parameters
+        if not 0 <= min_cluster_presence <= 1:
+            raise ValueError("min_cluster_presence must be between 0 and 1")
         
         summarydf = self.cluster_summary_dataframe
         mfdf = self.mass_features_dataframe
         
         sample_ct = len(self.samples)
+        # Identify clusters present in sufficient samples but not all samples
         missingdf = summarydf[[
             'cluster', 
             'sample_id_nunique', 
@@ -3645,8 +3736,14 @@ class LCMSCollectionCalculations:
             'scan_time_aligned_min', 
             'scan_time_aligned_max'
         ]]
-        missingdf = missingdf[missingdf.sample_id_nunique > threshold*(sample_ct)]
+        missingdf = missingdf[missingdf.sample_id_nunique > min_cluster_presence * sample_ct]
         missingdf = missingdf[missingdf.sample_id_nunique != sample_ct]
+        
+        # Check if there are any clusters to gap-fill
+        if len(missingdf) == 0:
+            print(f"No clusters found requiring gap-filling with min_cluster_presence={min_cluster_presence}")
+            print(f"All clusters are either present in all samples or below the {min_cluster_presence*100:.0f}% threshold.")
+            return
 
         missingdf['missing_samples'] = None
         for c in missingdf.cluster.to_numpy():
@@ -3656,16 +3753,21 @@ class LCMSCollectionCalculations:
             )
         missingdf['missing_samples'] = missingdf.missing_samples.apply(literal_eval)
         
+        # Calculate expanded search windows for expand_on_miss option
         mz_clu_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
         rt_clu_tol = self.parameters.lcms_collection.consensus_rt_tol
-        missingdf['mz_max_allowed'] = missingdf.mz_max + mz_clu_tol*missingdf.mz_max
-        missingdf['mz_min_allowed'] = missingdf.mz_min - mz_clu_tol*missingdf.mz_min
-        missingdf['sta_max_allowed'] = missingdf.scan_time_aligned_max + rt_clu_tol*missingdf.scan_time_aligned_max
-        missingdf['sta_min_allowed'] = missingdf.scan_time_aligned_min - rt_clu_tol*missingdf.scan_time_aligned_min
+        missingdf['mz_max_allowed'] = missingdf.mz_max + mz_clu_tol * missingdf.mz_max
+        missingdf['mz_min_allowed'] = missingdf.mz_min - mz_clu_tol * missingdf.mz_min
+        missingdf['sta_max_allowed'] = missingdf.scan_time_aligned_max + rt_clu_tol * missingdf.scan_time_aligned_max
+        missingdf['sta_min_allowed'] = missingdf.scan_time_aligned_min - rt_clu_tol * missingdf.scan_time_aligned_min
 
+        # Compute cluster dictionary once to avoid recomputing for each sample
+        cluster_dict = self.cluster_feature_dictionary
+        
+        # Process each sample to search for missing features
         if self.parameters.lcms_collection.cores == 1:
-            for i in range(sample_ct):
-                self._search_for_targeted_mass_features_in_sample(i, missingdf, threshold, tol_flag)
+            for i in tqdm(range(sample_ct), desc="Gap-filling samples", unit="sample"):
+                self._search_for_targeted_mass_features_in_sample(i, missingdf, cluster_dict, expand_on_miss)
 
         if self.parameters.lcms_collection.cores > 1:
             if self.parameters.lcms_collection.cores > len(self):
@@ -3675,10 +3777,10 @@ class LCMSCollectionCalculations:
             pool = multiprocessing.Pool(ncores)
             mp_result = pool.starmap(
                 self._search_for_targeted_mass_features_in_sample, 
-                [(x, missingdf, threshold, tol_flag, False) for x in range(sample_ct)]
+                [(x, missingdf, cluster_dict, expand_on_miss, False) for x in range(sample_ct)]
             )
 
-            for i in range(sample_ct):
+            for i in tqdm(range(sample_ct), desc="Collecting gap-filled features", unit="sample"):
                 self[i].induced_mass_features = mp_result[i]
                 
         self._combine_mass_features(induced_features = True)

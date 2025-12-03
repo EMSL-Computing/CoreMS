@@ -1165,6 +1165,106 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         else:
             plt.show()
             
+    def search_for_targeted_mass_features_batch(
+            self,
+            ms1df,
+            mz_mins,
+            mz_maxs,
+            st_mins,
+            st_maxs,
+            set_ids,
+            obj_idx=0,
+            st_aligned=False
+            ):
+        """
+        Returns multiple LCMSMassFeatures from a specific sample within specific mass and time ranges.
+        Vectorized batch version of search_for_targeted_mass_feature for improved performance.
+
+        Parameters
+        -----------
+        ms1df : pd.DataFrame
+            Dataframe containing all the possible MS1 values to consider, collected by calling _ms_unprocessed[1] on the sample.
+        mz_mins : np.ndarray
+            Array of lower bounds of m/z values to use to find peaks.
+        mz_maxs : np.ndarray
+            Array of upper bounds of m/z values to use to find peaks.
+        st_mins : np.ndarray
+            Array of lower bounds of scan times to use to find peaks.
+        st_maxs : np.ndarray
+            Array of upper bounds of scan times to use to find peaks.
+        set_ids : np.ndarray or list
+            Array of strings used as IDs in LCMSMassFeatures.
+        obj_idx : int
+            Identifies index of sample in a collection. Defaults to 0.
+        st_aligned : bool
+            Whether to use scan_time_aligned or scan_time. Defaults to False.
+
+        Returns
+        --------
+        dict
+            Dictionary mapping set_id to LCMSMassFeature objects.
+
+        Raises
+        ------
+        ValueError
+            If appropriate scan time data is not contained in ms1df or if array lengths don't match.
+        """
+        # Validate inputs
+        n_features = len(mz_mins)
+        if not all(len(arr) == n_features for arr in [mz_maxs, st_mins, st_maxs, set_ids]):
+            raise ValueError("All input arrays must have the same length")
+
+        # Validate scan time column
+        time_col = 'scan_time_aligned' if st_aligned else 'scan_time'
+        if time_col not in ms1df.columns:
+            raise ValueError(f"{time_col} not contained in ms1df")
+
+        # Pre-extract columns for faster access
+        mz_vals = ms1df.mz.values
+        st_vals = ms1df[time_col].values
+        scan_vals = ms1df.scan.values
+        intensity_vals = ms1df.intensity.values
+
+        # Process all features
+        results = {}
+        for i in range(n_features):
+            # Vectorized filtering
+            mask = (
+                (mz_vals >= mz_mins[i]) & (mz_vals <= mz_maxs[i]) &
+                (st_vals >= st_mins[i]) & (st_vals <= st_maxs[i])
+            )
+            
+            if not mask.any():
+                row_dict = {
+                    'apex_scan': -99,
+                    'mz': np.nan,
+                    'intensity': np.nan,
+                    'retention_time': np.nan,
+                    'persistence': np.nan,
+                    'id': set_ids[i]
+                }
+            else:
+                # Find max intensity within filtered region
+                filtered_intensities = intensity_vals[mask]
+                max_idx = np.argmax(filtered_intensities)
+                
+                # Get indices of filtered data
+                filtered_indices = np.where(mask)[0]
+                peak_idx = filtered_indices[max_idx]
+                
+                row_dict = {
+                    'apex_scan': scan_vals[peak_idx],
+                    'mz': mz_vals[peak_idx],
+                    'intensity': intensity_vals[peak_idx],
+                    'retention_time': st_vals[peak_idx],
+                    'persistence': np.nan,
+                    'id': set_ids[i]
+                }
+
+            results[set_ids[i]] = LCMSMassFeature(self, **row_dict)
+
+        return results
+
     def search_for_targeted_mass_feature(
             self,
             ms1df, 
@@ -1211,66 +1311,18 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         Warning
             If appropriate scan time data is not contained in ms1df.
         """
-
-        if st_aligned == True:
-            if not 'scan_time_aligned' in ms1df.columns:
-                raise ValueError(
-                    "Aligned scan times not contained in ms1df. Merge ms1df with scan_df on 'scan' to import aligned scan times."
-                )
-        else:
-            if not 'scan_time' in ms1df.columns:
-                raise ValueError(
-                    "Scan times not contained in ms1df. Merge ms1df with scan_df on 'scan' to import scan times."
-                )
-
-        mzfit = ms1df[(
-            ms1df.mz >= mz_min
-        ) & (
-            ms1df.mz <= mz_max
-        )].reset_index(drop = True)
-                
-        if st_aligned == True:
-            mzfit_st = mzfit.scan_time_aligned
-        else:
-            mzfit_st = mzfit.scan_time
-                
-        rtfit = mzfit[(
-            mzfit_st >= st_min
-        ) & (
-            mzfit_st <= st_max
-        )]
-        
-        if len(rtfit) == 0:
-            row_dict = {
-                'apex_scan': -99,
-                'mz': np.nan,
-                'intensity': np.nan,
-                'retention_time': np.nan,
-                'persistence': np.nan,
-                'id': set_id
-            }
-        else:
-            inducedpeak = rtfit[rtfit.intensity == rtfit.intensity.max()]
-            if st_aligned == True:
-                rt_induced = inducedpeak.scan_time_aligned.values[0]
-            else:
-                rt_induced = inducedpeak.scan_time.values[0]
-
-            row_dict = {
-                'apex_scan': inducedpeak.scan.values[0],
-                'mz': inducedpeak.mz.values[0],
-                'intensity': inducedpeak.intensity.values[0],
-                'retention_time': rt_induced,
-                'persistence': np.nan,
-                'id': set_id
-            }
-
-        if self.__class__.__name__ == 'LCMSBase':
-            output = LCMSMassFeature(self, **row_dict)
-        elif self.__class__.__name__ == 'LCMSCollection':
-            output = LCMSMassFeature(self[obj_idx], **row_dict)
-            
-        return output
+        # Convert single feature to arrays and call batch method
+        results = self.search_for_targeted_mass_features_batch(
+            ms1df,
+            np.array([mz_min]),
+            np.array([mz_max]),
+            np.array([st_min]),
+            np.array([st_max]),
+            [set_id],
+            obj_idx=obj_idx,
+            st_aligned=st_aligned
+        )
+        return results[set_id]
 
 
     def __len__(self):
@@ -2072,21 +2124,6 @@ class LCMSCollection(LCMSCollectionCalculations):
         return pd.DataFrame(self._manifest_dict).T
 
     @property
-    def consensus_mass_feature_dataframe(self):
-        df = self.mass_features_dataframe
-        #TODO KRH: build this out
-
-        # Check if mass features are clustered 
-        if 'cluster' not in df.columns:
-            return None
-        else:
-            # Group by cluster and summarize median mz, median scan_time, min max and median intensity, and count
-            cluster_summary = df.groupby('cluster').agg({'mz': 'median', 'scan_time': 'median', 'intensity': ['min', 'max', 'median'], 'mf_id': 'count'})
-
-            # Clean up column names
-            cluster_summary.columns = ['_'.join(col).strip() for col in cluster_summary.columns.values]
-
-    @property
     def raw_files(self):
         """Returns a list of raw files in the collection."""
         return [x.raw_file_location for x in self]
@@ -2095,7 +2132,6 @@ class LCMSCollection(LCMSCollectionCalculations):
     def cluster_feature_dictionary(self):
         """Generates a dictionary with clusters for keys and mass feature IDs as entries"""
         df = self.mass_features_dataframe
-        cluster_dict = {}
-        for c in range(df.cluster.max()):    
-            cluster_dict[c] = df[df.cluster == 0].index.tolist()
+        # Use groupby for much better performance than iterating through all clusters
+        cluster_dict = df.groupby('cluster').apply(lambda x: x.index.tolist()).to_dict()
         return cluster_dict
