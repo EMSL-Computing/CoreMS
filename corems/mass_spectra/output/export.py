@@ -1031,128 +1031,26 @@ class LCMSExport(HighResMassSpectraExport):
         group_name : str, optional
             The name of the group to save the mass features to. Default is 'mass_features'.
         overwrite : bool, optional
-            Whether to overwrite the output file. Default is False.
-        save_parameters : bool, optional
-            Whether to save the parameters as a separate json or toml file. Default is True.
-        parameter_format : str, optional
-            The format to save the parameters in. Default is 'toml'.
-
-        Raises
-        ------
-        ValueError
-            If parameter_format is not 'json' or 'toml'.
+            Whether to overwrite the group if it exists. Default is False.
         """
-        export_profile_spectra = (
-            self.mass_spectra.parameters.lc_ms.export_profile_spectra
-        )
+        # Determine which mass features to save based on group_name
+        if group_name == "induced_mass_features":
+            if len(self.mass_spectra.induced_mass_features) == 0:
+                return  # No induced mass features to save
+            mass_features_dict = self.mass_spectra.induced_mass_features
+        else:
+            if len(self.mass_spectra.mass_features) == 0:
+                return  # No mass features to save
+            mass_features_dict = self.mass_spectra.mass_features
 
-        # Parameterized export: all spectra (default) or only relevant spectra
-        export_only_relevant = self.mass_spectra.parameters.lc_ms.export_only_relevant_mass_spectra
-        if export_only_relevant:
-            relevant_scan_numbers = set()
-            # Add MS1 spectra associated with mass features (apex scans) and best MS2 spectra
-            for mass_feature in self.mass_spectra.mass_features.values():
-                relevant_scan_numbers.add(mass_feature.apex_scan)
-                if mass_feature.best_ms2 is not None:
-                    relevant_scan_numbers.add(mass_feature.best_ms2.scan_number)
-        if overwrite:
-            if self.output_file.with_suffix(".hdf5").exists():
-                self.output_file.with_suffix(".hdf5").unlink()
+        # Add LCMS mass features to hdf5 file
+        if group_name not in hdf_handle:
+            mass_features_group = hdf_handle.create_group(group_name)
+        else:
+            mass_features_group = hdf_handle.get(group_name)
 
-        with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
-            if not hdf_handle.attrs.get("date_utc"):
-                # Set metadata for all mass spectra
-                timenow = str(
-                    datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z")
-                )
-                hdf_handle.attrs["date_utc"] = timenow
-                hdf_handle.attrs["filename"] = self.mass_spectra.file_location.name
-                hdf_handle.attrs["data_structure"] = "mass_spectra"
-                hdf_handle.attrs["analyzer"] = self.mass_spectra.analyzer
-                hdf_handle.attrs["instrument_label"] = (
-                    self.mass_spectra.instrument_label
-                )
-                hdf_handle.attrs["sample_name"] = self.mass_spectra.sample_name
-                hdf_handle.attrs["polarity"] = self.mass_spectra.polarity
-                hdf_handle.attrs["parser_type"] = (
-                    self.mass_spectra.spectra_parser_class.__name__
-                )
-                hdf_handle.attrs["original_file_location"] = (
-                    self.mass_spectra.file_location._str
-                )
-
-            if group_name not in hdf_handle:
-                mass_spectra_group = hdf_handle.create_group(group_name)
-            else:
-                mass_spectra_group = hdf_handle.get(group_name)
-
-            # Export logic based on parameter
-            for mass_spectrum in self.mass_spectra:
-                if export_only_relevant:
-                    if mass_spectrum.scan_number in relevant_scan_numbers:
-                        group_key = str(int(mass_spectrum.scan_number))
-                        self.add_mass_spectrum_to_hdf5(
-                            hdf_handle, mass_spectrum, group_key, mass_spectra_group, export_profile_spectra
-                        )
-                else:
-                    group_key = str(int(mass_spectrum.scan_number))
-                    self.add_mass_spectrum_to_hdf5(
-                        hdf_handle, mass_spectrum, group_key, mass_spectra_group, export_profile_spectra
-                    )
-
-        # Write scan info, ms_unprocessed, mass features, eics, and ms2_search results to the hdf5 file
-        with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
-            # Add scan_info to hdf5 file
-            if "scan_info" not in hdf_handle:
-                scan_info_group = hdf_handle.create_group("scan_info")
-                for k, v in self.mass_spectra._scan_info.items():
-                    array = np.array(list(v.values()))
-                    if array.dtype.str[0:2] == "<U":
-                        # Convert Unicode strings to UTF-8 encoded bytes first
-                        string_data = [str(item) for item in array]
-                        string_dtype = h5py.string_dtype(encoding='utf-8')
-                        scan_info_group.create_dataset(k, data=string_data, dtype=string_dtype, compression="gzip", compression_opts=9, chunks=True)
-                    else:
-                        # Apply data type optimization for numeric data
-                        if array.dtype == np.float64:
-                            array = array.astype(np.float32)
-                        elif array.dtype == np.int64:
-                            array = array.astype(np.int32)
-                        scan_info_group.create_dataset(k, data=array, compression="gzip", compression_opts=9, chunks=True)
-
-            # Add ms_unprocessed to hdf5 file
-            export_unprocessed_ms1 = (
-                self.mass_spectra.parameters.lc_ms.export_unprocessed_ms1
-            )
-            if self.mass_spectra._ms_unprocessed and export_unprocessed_ms1:
-                if "ms_unprocessed" not in hdf_handle:
-                    ms_unprocessed_group = hdf_handle.create_group("ms_unprocessed")
-                else:
-                    ms_unprocessed_group = hdf_handle.get("ms_unprocessed")
-                for k, v in self.mass_spectra._ms_unprocessed.items():
-                    array = np.array(v)
-                    # Apply data type optimization and compression
-                    if array.dtype == np.int64:
-                        array = array.astype(np.int32)
-                    elif array.dtype == np.float64:
-                        array = array.astype(np.float32)
-                    elif array.dtype.str[0:2] == "<U":
-                        # Convert Unicode strings to UTF-8 encoded strings
-                        string_data = [str(item) for item in array]
-                        string_dtype = h5py.string_dtype(encoding='utf-8')
-                        ms_unprocessed_group.create_dataset(str(k), data=string_data, dtype=string_dtype, compression="gzip", compression_opts=9, chunks=True)
-                        continue
-                    ms_unprocessed_group.create_dataset(str(k), data=array, compression="gzip", compression_opts=9, chunks=True)
-
-            # Add LCMS mass features to hdf5 file
-            if len(self.mass_spectra.mass_features) > 0:
-                if "mass_features" not in hdf_handle:
-                    mass_features_group = hdf_handle.create_group("mass_features")
-                else:
-                    mass_features_group = hdf_handle.get("mass_features")
-
-            # Create group for each mass feature, with key as the mass feature id
-            for k, v in self.mass_spectra.mass_features.items():
+        # Create group for each mass feature, with key as the mass feature id
+        for k, v in mass_features_dict.items():
                 if str(k) not in mass_features_group or overwrite:
                     if str(k) in mass_features_group and overwrite:
                         del mass_features_group[str(k)]
@@ -2166,24 +2064,102 @@ class LipidomicsExport(LCMSMetabolomicsExport):
         return report
 
         
-class LCMSCollectionExporter():
-    """A class to export an LCMS collection.
+class LCMSCollectionExport():
+    """A class to export an LCMS collection to HDF5 format.
 
-    This class provides methods to export lipidomics data to various formats and summarize the lipid report.
+    This class provides methods to export collection-level data from multi-sample LC-MS
+    experiments to HDF5 files. It handles the export of metadata, retention time alignments,
+    cluster assignments, and induced mass features (gap-filled features) across the collection.
+
+    The exporter is designed to work with LCMSCollection objects and complements the individual
+    LCMSExport class by focusing on collection-wide data rather than individual sample data.
 
     Parameters
     ----------
     out_file_path : str | Path
-        The output file path, do not include the file extension.
-    mass_spectra_collection : object
-        The high resolution mass spectra collection object.
+        The output file path, do not include the file extension. The .hdf5 extension
+        will be added automatically.
+    mass_spectra_collection : LCMSCollection
+        The LCMS collection object containing multiple LCMS samples with processed mass features,
+        alignments, and clustering information.
+
+    Attributes
+    ----------
+    out_file_path : Path
+        The output file path as a Path object.
+    mass_spectra_collection : LCMSCollection
+        The LCMS collection object to be exported.
+
+    Methods
+    -------
+    export_to_hdf5(overwrite=False)
+        Export the LCMS collection to an HDF5 file with collection-level data.
+
+    Notes
+    -----
+    This class exports collection-level data including:
+    - Sample manifest (metadata about all samples in the collection)
+    - Retention time alignment data (if RT alignment has been performed)
+    - Cluster assignments (consensus mass feature groupings across samples)
+    - Induced mass features (gap-filled features saved to individual LCMS object HDF5 files)
+
+    Individual sample data (mass spectra, mass features, EICs, etc.) should be exported
+    separately using the LCMSExport class for each LCMS object in the collection.
+
+    Examples
+    --------
+    Export a collection after clustering and gap-filling:
+
+    >>> from corems.mass_spectra.output.export import LCMSCollectionExporter
+    >>> exporter = LCMSCollectionExporter("my_collection", lcms_collection)
+    >>> exporter.export_to_hdf5(overwrite=True)
+
+    The resulting HDF5 file will contain collection-level metadata and can be used
+    to reconstruct the collection state for further analysis.
+
+    See Also
+    --------
+    LCMSExport : Export individual LCMS objects to HDF5
+    LCMSCollection : The collection object being exported
     """
     def __init__(self, out_file_path, mass_spectra_collection):
         self.out_file_path = Path(out_file_path)
         self.mass_spectra_collection = mass_spectra_collection
 
     def export_to_hdf5(self, overwrite = False):
-        """Export the LCMS collection to an HDF5 file."""
+        """Export the LCMS collection to an HDF5 file.
+        
+        This method saves the collection-level data to an HDF5 file, including:
+        - Basic metadata (date, folder location, gap-filling status)
+        - Sample manifest
+        - Retention time alignments (if available)
+        - Cluster assignments (if available)
+        - Induced mass features for each LCMS object (if gap-filling was performed)
+        
+        Individual LCMS objects in the collection are not exported by this method.
+        Use LCMSExport for exporting individual LCMS objects.
+        
+        Parameters
+        ----------
+        overwrite : bool, optional
+            If True, overwrites the output file if it already exists and replaces
+            existing groups within the HDF5 file. If False, appends new data to
+            existing file without overwriting existing groups. Default is False.
+            
+        Notes
+        -----
+        The HDF5 file structure includes:
+        - Attributes: date_utc, lcms_objects_folder, missing_mass_features_searched, manifest
+        - Groups: rt_alignments, cluster_assignments (if available)
+        
+        Induced mass features are saved to the individual LCMS object HDF5 files
+        within the .corems folder structure, not in the collection-level HDF5 file.
+        
+        Examples
+        --------
+        >>> exporter = LCMSCollectionExporter("my_collection", lcms_collection)
+        >>> exporter.export_to_hdf5(overwrite=True)
+        """
         if overwrite:
             if self.out_file_path.with_suffix(".hdf5").exists():
                 self.out_file_path.with_suffix(".hdf5").unlink()
@@ -2212,9 +2188,13 @@ class LCMSCollectionExporter():
 
             #TODO KRH: save parameters
 
-
     def _save_rt_alignments_to_hdf5(self, hdf_handle, overwrite):
         """Save retention time alignments to HDF5 file."""
+        # If no rt_alignments, return early
+        if not self.mass_spectra_collection.rt_aligned:
+            return
+        
+        # If rt_alignments exist, save them
         if self.mass_spectra_collection.rt_aligned:
             group_name = "rt_alignments"
             # grab dictionary of rt_alignments
