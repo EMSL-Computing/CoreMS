@@ -580,13 +580,13 @@ class ReadCoreMSHDFMassSpectra(
 
         if og_parser_type == "ImportMassSpectraThermoMSFileReader":
             # Check that the parser can be instantiated with the raw file path
-            parser = ImportMassSpectraThermoMSFileReader(raw_file_path)
+            parser_class = ImportMassSpectraThermoMSFileReader
         elif og_parser_type == "MZMLSpectraParser":
             # Check that the parser can be instantiated with the raw file path
-            parser = MZMLSpectraParser(raw_file_path)
+            parser_class = MZMLSpectraParser
 
         # Set the spectra parser class on the mass_spectra object so the spectra_parser property can be used with the original parser
-        mass_spectra.spectra_parser_class = parser.__class__
+        mass_spectra.spectra_parser_class = parser_class
 
         return mass_spectra
 
@@ -787,7 +787,7 @@ class ReadCoreMSHDFMassSpectraCollection:
                 ncores = self._cores
             # Create a pool of workers (one for each core or sample, whichever is smaller)
             pool = multiprocessing.Pool(ncores)
-            # Load the LCMS objects in parallel - do not instantiate the original parser by default
+            # Load the LCMS objects in parallel
             use_original_parser = True
             args = [(sample, load_raw, load_light, use_original_parser) for sample in samples]
             lcms_objs = pool.starmap(self.get_lcms_obj, args)
@@ -795,9 +795,9 @@ class ReadCoreMSHDFMassSpectraCollection:
                 lcms_coll._lcms[sample_name] = lcms_obj
 
         elif self._cores == 1:
-            # Load the LCMS objects sequentially - do not instantiate the original parser by default
+            # Load the LCMS objects sequentially
             for sample_name in samples:
-                lcms_coll._lcms[sample_name] = self.get_lcms_obj(sample_name, load_raw=load_raw, load_light=load_light, use_original_parser=False)
+                lcms_coll._lcms[sample_name] = self.get_lcms_obj(sample_name, load_raw=load_raw, load_light=load_light, use_original_parser=True)
 
         else:
             raise ValueError("Number of cores must be greater than 0 and set on the ReadCoreMSHDFMassSpectraCollection object.")

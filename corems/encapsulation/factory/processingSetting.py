@@ -1116,13 +1116,20 @@ class LCMSCollectionSettings:
         Default is True.
     mass_feature_anchor_technique: list, optional
         List of mass feature anchor techniques for retention time alignment. 
-        Default is ['deconvoluted_mass_spectra'].
+        Default is ['absolute_intensity'].
     mass_feature_anchor_techniques_available: tuple, optional
         Tuple of available mass feature anchor techniques for retention time alignment.
-        Default is ('deconvoluted_mass_spectra', 'absolute_intensity').
-    mass_feature_anchor_aboslute_intensity_threshold: int, optional
+        Default is ('deconvoluted_mass_spectra', 'absolute_intensity', 'relative_intensity').
+    mass_feature_anchor_absolute_intensity_threshold: int, optional
         Absolute intensity threshold for mass feature anchor for retention time alignment.
+        Used when mass_feature_anchor_technique includes 'relative_intensity'.
         Default is 10000.
+    mass_feature_anchor_relative_intensity_threshold: float, optional
+        Relative intensity threshold (0-1) for mass feature anchor for retention time alignment.
+        Removes the lower fraction of mass features by intensity from consideration.
+        For example, 0.6 removes the lower 60% of intensity features.
+        Used when mass_feature_anchor_technique includes 'relative_intensity'.
+        Default is 0.6.
     alignment_hold_out_fraction: float, optional
         Hold out fraction for testing retention time alignment.
         Default is 0.3.
@@ -1146,15 +1153,24 @@ class LCMSCollectionSettings:
         Retention time tolerance for consensus mass feature alignment, in minutes. Default is 0.2.
     consensus_partition_size: int, optional
         Partition size for consensus mass feature alignment. Default is 5000.
+    consensus_min_sample_fraction : float, optional
+        Minimum fraction of samples (0-1) that must contain a cluster.
+        Used for filtering consensus features and for gap-filling threshold.
+        Default is 0.5 (50%). Higher values focus on more prevalent features.
+    gap_fill_expand_on_miss : bool, optional
+        If True, expands search window using consensus_mz_tol_ppm and consensus_rt_tol
+        when no peak is found in the initial cluster boundaries during gap-filling.
+        Default is False.
     """
     # Settings for general processing
     cores = 1
     drop_isotopologues: bool = False
 
     # Settings for doing mass feature alignment
-    _mass_feature_anchor_technique: list = dataclasses.field(default_factory=lambda: ["deconvoluted_mass_spectra"])
-    mass_feature_anchor_techniques_available: tuple = ("deconvoluted_mass_spectra", "absolute_intensity")
-    mass_feature_anchor_aboslute_intensity_threshold: int = 10000
+    _mass_feature_anchor_technique: list = dataclasses.field(default_factory=lambda: ["relative_intensity"])
+    mass_feature_anchor_techniques_available: tuple = ("deconvoluted_mass_spectra", "absolute_intensity", "relative_intensity")
+    mass_feature_anchor_absolute_intensity_threshold: int = 10000
+    mass_feature_anchor_relative_intensity_threshold: float = 0.6
     alignment_hold_out_fraction: float = 0.3
     _alignment_acceptance_techinque: list = dataclasses.field(default_factory=lambda: ["fraction_improved", "mean_squared_error_improved"])
     alignment_acceptance_techinques_available: tuple = ("fraction_improved", "mean_squared_error_improved")
@@ -1167,7 +1183,10 @@ class LCMSCollectionSettings:
     consensus_rt_tol = 0.3
     consensus_partition_size = 10000
     filter_consensus_mass_features = True
-    consensus_min_sample_fraction = 0.2
+    consensus_min_sample_fraction = 0.5
+
+    # Gap-filling settings
+    gap_fill_expand_on_miss: bool = True
 
     def __post_init__(self):
         self.consensus_mz_tol_ppm = self.alignment_mz_tol_ppm
