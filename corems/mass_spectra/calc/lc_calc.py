@@ -7,7 +7,6 @@ from scipy.spatial import KDTree
 from sklearn.svm import SVR
 from sklearn.cluster import AgglomerativeClustering
 import matplotlib.pyplot as plt
-from ast import literal_eval
 from tqdm import tqdm
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
@@ -2783,6 +2782,59 @@ class LCMSCollectionCalculations:
         new_scan_info["scan_time_aligned"] = new_scan_info["scan_time"]
 
     def add_consensus_mass_features(self):
+        """
+        Create consensus mass features by clustering aligned features across samples.
+        
+        This method clusters mass features from all samples in the collection based on
+        their m/z and aligned retention time proximity. Features that cluster together
+        across samples are assigned a common cluster ID, creating consensus features
+        that represent the same compound detected across multiple samples.
+        
+        The clustering process:
+        1. Partitions features by m/z to avoid large sparse matrices and enable parallelization
+        2. Clusters features within each partition using hierarchical clustering
+        3. Merges partition-boundary clusters that represent the same feature
+        4. Filters out clusters not present in minimum fraction of samples
+        
+        Must be run after align_lcms_objects(). Results are stored in the 
+        mass_features_dataframe with a 'cluster' column added.
+        
+        Parameters
+        ----------
+        None
+            Uses parameters from self.parameters.lcms_collection:
+            - consensus_mz_tol_ppm: m/z tolerance for clustering (ppm)
+            - consensus_rt_tol: retention time tolerance for clustering (minutes)
+            - consensus_partition_size: target partition size for managing memory and parallelization
+            - consensus_min_sample_fraction: minimum fraction of samples a cluster
+              must appear in to be retained (0-1)
+            - cores: number of CPU cores to use for parallel partition processing
+            
+        Returns
+        -------
+        None
+            Updates self.mass_features_dataframe in place by adding 'cluster' column
+            and filtering to retain only clusters meeting minimum sample presence.
+            
+        Raises
+        ------
+        ValueError
+            If mass features have not been aligned (run align_lcms_objects() first).
+            
+        Notes
+        -----
+        - Partitioning prevents memory issues with large sparse distance matrices
+        - Each partition is processed in parallel (up to cores limit)
+        - Clusters not meeting consensus_min_sample_fraction are automatically removed
+        - Access cluster_summary_dataframe property for summary statistics
+        - Use fill_missing_cluster_features() for gap-filling after clustering
+        
+        See Also
+        --------
+        align_lcms_objects : Aligns retention times before consensus clustering
+        cluster_summary_dataframe : Property that generates summary statistics for clusters
+        fill_missing_cluster_features : Gap-fill missing features in clusters
+        """
         # Get the combined mass features from all LCMS objects, keep the original index as a separate column
         combined_mfs = self.mass_features_dataframe.copy()
         combined_mfs["coll_mf_id"] = combined_mfs.index
@@ -2869,18 +2921,124 @@ class LCMSCollectionCalculations:
             mfs_with_clusters.set_index('coll_mf_id', inplace = True)
             self.mass_features_dataframe = mfs_with_clusters
             
+        # Filter out clusters that don't meet minimum sample fraction
+        self._filter_clusters_by_sample_presence()
+            
         # TODO KRH: Deal with isomers better? Pool them together and then split them out using samples with 2 as the template?
+    
+    def _filter_clusters_by_sample_presence(self):
+        """
+        Filter out clusters that don't meet the minimum sample fraction threshold.
+        
+        Removes clusters (and their associated mass features) from the mass_features_dataframe
+        if they don't appear in at least consensus_min_sample_fraction of samples.
+        
+        This is called automatically at the end of add_consensus_mass_features().
+        
+        Returns
+        -------
+        None
+            Updates self.mass_features_dataframe in place by removing clusters that don't
+            meet the minimum sample presence threshold.
+        """
+        if self.mass_features_dataframe is None or len(self.mass_features_dataframe) == 0:
+            return
+        
+        min_sample_fraction = self.parameters.lcms_collection.consensus_min_sample_fraction
+        
+        # Validate parameter
+        if not 0 <= min_sample_fraction <= 1:
+            raise ValueError("consensus_min_sample_fraction must be between 0 and 1")
+        
+        # Calculate minimum number of samples required
+        total_samples = len(self.samples)
+        min_samples_required = min_sample_fraction * total_samples
+        
+        # Count unique samples per cluster
+        cluster_sample_counts = (
+            self.mass_features_dataframe.groupby('cluster')['sample_id']
+            .nunique()
+            .reset_index(name='sample_count')
+        )
+        
+        # Identify clusters to keep
+        clusters_to_keep = cluster_sample_counts[
+            cluster_sample_counts['sample_count'] > min_samples_required
+        ]['cluster'].values
+        
+        # Filter mass features dataframe
+        self.mass_features_dataframe = self.mass_features_dataframe[
+            self.mass_features_dataframe['cluster'].isin(clusters_to_keep)
+        ]
         
     def summarize_clusters(self):
         """
-        Summarize the clusters of mass features by median attributes
+        Generate summary statistics for consensus mass feature clusters.
+        
+        Computes aggregate statistics (median, mean, std, min, max) for each cluster
+        across all samples. Combines both regular mass features and induced mass features
+        (from gap-filling) when available to provide complete cluster statistics.
+        
+        Must be run after add_consensus_mass_features() which creates the cluster assignments.
+        Results are stored in cluster_summary_dataframe property and used by plotting methods.
+        
+        Parameters
+        ----------
+        None
+            Operates on self.mass_features_dataframe and self.induced_mass_features_dataframe.
+            Both must contain 'cluster' column.
+            
+        Returns
+        -------
+        :obj:`~pandas.DataFrame` or None
+            DataFrame with one row per cluster containing summary statistics:
+            - cluster: cluster ID
+            - mz_{median,mean,std,max,min}: m/z statistics
+            - scan_time_aligned_{median,mean,std,max,min}: aligned RT statistics
+            - half_height_width_{median,mean,std,max,min}: peak width statistics
+            - tailing_factor_{median,mean,std,max,min}: peak shape statistics
+            - dispersity_index_{median,mean,std,max,min}: peak quality statistics
+            - sample_id_nunique: number of unique samples containing the cluster
+            - intensity_{max,median,mean,std,min}: intensity statistics
+            - persistence_{max,median,mean,std,min}: persistence statistics
+            
+            Returns None if mass_features_dataframe is empty.
+            
+        Notes
+        -----
+        - Summary DataFrame is automatically stored in cluster_summary_dataframe property
+        - Includes both regular and induced (gap-filled) mass features when available
+        - Used by plotting methods: plot_consensus_mz_features, plot_mz_features_per_cluster
+        - Sample count (sample_id_nunique) indicates cluster prevalence across samples
+        - Filters applied by consensus_min_sample_fraction affect which clusters appear
+        
+        See Also
+        --------
+        add_consensus_mass_features : Creates clusters before summarization
+        fill_missing_cluster_features : Creates induced mass features via gap-filling
+        plot_consensus_mz_features : Visualizes cluster summaries
+        plot_mz_features_per_cluster : Shows cluster size distribution
         """
         # First check if there are minimum columns in the features dataframe
         if len(self.mass_features_dataframe.columns) < 1:
             return None
 
+        # Combine regular and induced mass features
+        mf_df = self.mass_features_dataframe.copy()
+        mf_df = mf_df.reset_index(drop=False)
+        
+        # Check if induced mass features are available and combine them
+        if self.induced_mass_features_dataframe is not None and len(self.induced_mass_features_dataframe) > 0:
+            imf_df = self.induced_mass_features_dataframe.copy()
+            imf_df = imf_df.reset_index(drop=False)
+            # Cluster column already extracted by induced_mass_features_dataframe property
+            # Combine regular and induced features
+            mf_df = pd.concat([mf_df, imf_df], axis=0)
+            mf_df = mf_df.reset_index(drop=True)
+            mf_df['cluster'] = mf_df['cluster'].astype(int)
+
         summary_df = (
-            self.mass_features_dataframe.groupby("cluster")
+            mf_df.groupby("cluster")
             .agg(
                 {
                     "mz": ["median", "mean", "std", "max", "min"],
@@ -3745,13 +3903,13 @@ class LCMSCollectionCalculations:
             print(f"All clusters are either present in all samples or below the {min_cluster_presence*100:.0f}% threshold.")
             return
 
-        missingdf['missing_samples'] = None
+        # Find which samples are missing for each cluster
+        missing_samples_list = []
         for c in missingdf.cluster.to_numpy():
             cludf = mfdf[mfdf.cluster == c]
-            missingdf.loc[c, 'missing_samples'] = str(
-                [x for x in mfdf.sample_id.unique() if x not in cludf.sample_id.unique()]
-            )
-        missingdf['missing_samples'] = missingdf.missing_samples.apply(literal_eval)
+            missing = [x for x in mfdf.sample_id.unique() if x not in cludf.sample_id.unique()]
+            missing_samples_list.append(missing)
+        missingdf['missing_samples'] = missing_samples_list
         
         # Calculate expanded search windows for expand_on_miss option
         mz_clu_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6

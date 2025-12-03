@@ -198,6 +198,7 @@ def add_mass_features(myLCMSobj, scan_translator):
     # Count and report how many mass features are left after integration
     print("Number of mass features after integration: ", len(myLCMSobj.mass_features))
     #filter_and_plot_mass_features(myLCMSobj)
+    """
     print("Annotating C13 mass features")
     myLCMSobj.find_c13_mass_features()
     print("Deconvoluting mass features")
@@ -212,6 +213,7 @@ def add_mass_features(myLCMSobj, scan_translator):
         myLCMSobj.add_associated_ms2_dda(
             spectrum_mode="centroid", ms_params_key=param_key, scan_filter=scan_filter
         )
+    """
 
 def filter_and_plot_mass_features(myLCMSobj):
     """Filter mass features based on peak shape metrics and plot composite feature map
@@ -627,7 +629,7 @@ def run_lipid_workflow(
     params_toml,
     scan_translator=None,
     verbose=True,
-    ms1_molecular_search=True,
+    ms1_molecular_search=False, # whether to do ms1 molecular search
     cores=1,
 ):
     """Run lipidomics workflow
@@ -713,11 +715,11 @@ def run_lipid_workflow(
 
 if __name__ == "__main__":
     # Set input variables to run
-    cores = 1
-    file_dir = Path("/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_blanchard_lipidomics/mini_collection_test")
-    out_dir = Path("/Users/heal742/Library/CloudStorage/OneDrive-PNNL/Documents/_DMS_data/_NMDC/_blanchard_lipidomics/mini_collection_test_out")
+    cores = 5
+    file_dir = Path("/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/mini_collection_test")
+    out_dir = Path("/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/mini_collection_test_out2")
     params_toml = Path(
-        "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lipidomics_corems_params.toml"
+        "/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/blanchard_collection_params.toml"
     )
     verbose = True
     scan_translator = Path("tmp_data/thermo_raw_collection/scan_translator.toml")

@@ -1968,8 +1968,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         mf_pivot.reset_index(inplace = True)
         imf_pivot = self.induced_mass_features_dataframe.copy()
         imf_pivot.reset_index(inplace = True)
-        for j in range(len(imf_pivot)):
-            imf_pivot.loc[j, 'cluster'] = int(imf_pivot.loc[j].coll_mf_id.split('_')[1][1:])
+        # Cluster column already extracted by induced_mass_features_dataframe property
         mf_pivot = pd.concat([mf_pivot, imf_pivot], axis = 0)
         mf_pivot.reset_index(drop = True, inplace = True)
         mf_pivot['cluster'] = mf_pivot['cluster'].astype(int)
@@ -2012,24 +2011,26 @@ class LCMSCollection(LCMSCollectionCalculations):
         mf_df.reset_index(inplace = True)
         imf_df = self.induced_mass_features_dataframe.copy()
         imf_df.reset_index(inplace = True)
-        for j in range(len(imf_df)):
-            imf_df.loc[j, 'cluster'] = int(imf_df.loc[j].coll_mf_id.split('_')[1][1:])
+        # Cluster column already extracted by induced_mass_features_dataframe property
         mf_df = pd.concat([mf_df, imf_df], axis = 0)
         mf_df.reset_index(drop = True, inplace = True)
         mf_df['cluster'] = mf_df['cluster'].astype(int)
         
+        # If how == intensity, find the sample with highest intensity in each cluster and return that mass feature's data
         if how == 'intensity':
             int_table = self.collection_pivot_table(attribute = 'intensity', verbose = False).idxmax(axis = 1)
             id_list = []
             for i in range(len(int_table)):
                 id_list.append(
                     mf_df[
-                        (mf_df.sample_id == int_table[i]) & (mf_df.cluster == int_table.index[i])
+                        (mf_df.sample_id == int_table.iloc[i]) & (mf_df.cluster == int_table.index[i])
                     ].coll_mf_id.values[0]
                 )
             return mf_df[mf_df.coll_mf_id.isin(id_list)].sort_values(by = 'cluster').set_index('cluster')
 
+        # If how == mean or median, group by cluster and calculate mean or median for each attribute
         elif how == 'mean' or how == 'median':
+            #TODO KRH: Clean up this section
             ## will have to go back and check mf_df.dtypes to see what ends up on list
             ## this format removes int columns like 'sample_id' and 'cluster'
             l = mf_df.select_dtypes(include='float64').columns.tolist()
@@ -2088,6 +2089,17 @@ class LCMSCollection(LCMSCollectionCalculations):
     @property
     def induced_mass_features_dataframe(self):
         self._check_mass_features_df(induced_features = True)
+        if self._combined_induced_mass_features is not None and len(self._combined_induced_mass_features) > 0:
+            # Extract cluster ID from coll_mf_id if not already present
+            if 'cluster' not in self._combined_induced_mass_features.columns:
+                imf_df = self._combined_induced_mass_features.copy()
+                imf_df = imf_df.reset_index(drop=False)
+                # Extract cluster ID from coll_mf_id format: "sample_id_cCluster_idx_i"
+                imf_df['cluster'] = imf_df['coll_mf_id'].apply(
+                    lambda x: int(x.split('_')[1][1:])
+                )
+                imf_df = imf_df.set_index('coll_mf_id')
+                self._combined_induced_mass_features = imf_df
         return self._combined_induced_mass_features
 
     @induced_mass_features_dataframe.setter
