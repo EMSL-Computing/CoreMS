@@ -1,15 +1,10 @@
 from pathlib import Path
 import time
-import cProfile
-import pstats
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollection, ReadSavedLCMSCollection
-from corems.mass_spectra.output.export import LCMSCollectionExporter
+from corems.mass_spectra.output.export import LCMSCollectionExport
 
 if __name__ == "__main__":
-    # Start profiling everything
-    profiler = cProfile.Profile()
-    profiler.enable()
-    
+   
     # Set the path to the collection of LCMS runs (previously processed)
     collection_path = Path("/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/mini_collection_test_out2")
     # Path to manifest file
@@ -30,21 +25,12 @@ if __name__ == "__main__":
     start_time = time.time()
     lcms_collection = parser.get_lcms_collection(load_raw=False, load_light=True)
     print("Time to load LCMS collection ", time.time() - start_time, "seconds -", len(lcms_collection), " LCMS runs and ", ncores, " cores")
-    #10s for 7 samples, 10 cores; 162s for 70 samples, 10 cores
 
-    # Update raw file locations if needed
+    # Update raw file locations (optionally, but common)
+    og_file_location = lcms_collection[0].raw_file_location
     lcms_collection.update_raw_file_locations(
         new_raw_folder = "/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/mini_collection_test2"
-        )
-    
-    """
-    # Check and demonstrate the parsers' ability to load raw data
-    lcms_collection.load_raw_data(sample_idx=0, ms_level=1)
-    assert lcms_collection[0]._ms_unprocessed[1] is not None, "Raw data for MS1 should be loaded successfully."
-    lcms_collection.drop_raw_data(sample_idx=0, ms_level=1)
-    #10s for 7 samples, 10 cores; 162s for 70 samples, 10 cores
-
-    """
+        )   
     print("Number of total mass features: ", len(lcms_collection.mass_features_dataframe))
 
     # Align the LCMS runs between each other
@@ -66,9 +52,27 @@ if __name__ == "__main__":
     """
 
     # Make consensus mass features from the consolidated mass features
+    print("Generating consensus mass features across the LCMS collection")
     start_time = time.time()    
     lcms_collection.add_consensus_mass_features()
     print("Time to generate consensus mass features: ", time.time() - start_time, "seconds -", len(lcms_collection.mass_features_dataframe), " total mass features", ncores, " cores")   
+
+    # Check save and load functionality for LCMSCollection
+    print("Saving and re-loading LCMS collection to test save/load functionality")
+    exporter = LCMSCollectionExport(
+        out_file_path="/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/collection",
+        mass_spectra_collection=lcms_collection)
+    exporter.export_to_hdf5()
+    reader = ReadSavedLCMSCollection(
+        collection_hdf5_path="/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/collection.hdf5",
+        cores=ncores)
+    lcms_collection2 = reader.get_lcms_collection(load_raw=False, load_light=True)
+    assert len(lcms_collection2) == len(lcms_collection), "Re-loaded LCMS collection should have the same number of samples."
+    assert len(lcms_collection2.mass_features_dataframe) == len(lcms_collection.mass_features_dataframe), "Re-loaded LCMS collection should have the same number of mass features."
+    assert str(lcms_collection2[0].raw_file_location) == str(lcms_collection[0].raw_file_location), "Re-loaded LCMS collection should have the same raw file locations."
+    assert lcms_collection2.rt_aligned == lcms_collection.rt_aligned and lcms_collection.rt_aligned, "Both LCMS collections should be marked as retention time aligned."
+    assert "cluster" in lcms_collection2.mass_features_dataframe.columns, "Re-loaded LCMS collection mass features should have cluster assignments."
+    print("Completed save and re-load of LCMS collection")
 
     """    # Make some more plots
     lcms_collection.plot_mz_features_across_samples()

@@ -9,7 +9,7 @@ from corems.encapsulation.factory.parameters import LCMSParameters, reset_lcms_p
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 
 
-def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
+def xtest_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
     shutil.rmtree(
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems",

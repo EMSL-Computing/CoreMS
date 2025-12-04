@@ -959,6 +959,9 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
                 # Assign cluster data back to lcms_collection.mass_features_dataframe
                 lcms_collection.mass_features_dataframe = lcms_collection.mass_features_dataframe.join(cluster_df, how='left')
 
+                # Drop rows with NaN cluster values
+                lcms_collection.mass_features_dataframe.dropna(subset=['cluster'], inplace=True)
+
     def get_lcms_collection(self, load_raw=False, load_light=False):
         """Get the LCMS collection from the saved HDF5 file."""
         # First load the LCMSCollection object exactly as in the parent class
