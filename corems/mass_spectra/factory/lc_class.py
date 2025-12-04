@@ -1559,6 +1559,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         self.collection_location = collection_location
         self._manifest_dict = manifest
         self.collection_parser = collection_parser
+        self.raw_files_relocated = False
 
         # These attributes are generally set by the parser during instantiation of this class
         self._lcms = {}
@@ -1943,8 +1944,9 @@ class LCMSCollection(LCMSCollectionCalculations):
                     f"Tried extensions: {', '.join(raw_extensions)}"
                 )
             
-            # Update the raw file location
+            # Update the raw file location and set flag that raw files have been relocated
             lcms_obj.raw_file_location = new_raw_file
+        self.raw_files_relocated = True
 
     def collection_pivot_table(self, attribute = 'coll_mf_id', verbose = True):
         """Generate a pivot table of all regular and induced mass features in

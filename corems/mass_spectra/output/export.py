@@ -2182,6 +2182,10 @@ class LCMSCollectionExport():
             # Save cluster assignments if they exist, only overwrite if specified
             self._save_cluster_assignments_to_hdf5(hdf_handle, overwrite)
 
+        # Save new raw file locations to each LCMS object's HDF5 file if needed
+        if hasattr(self.mass_spectra_collection, 'raw_files_relocated') and self.mass_spectra_collection.raw_files_relocated:
+            self._update_raw_file_locations_in_hdf5()
+
         # Save induced mass features onto the LCMSBase objects, only if lcms_collection.missing_mass_features_searched is True
         if self.mass_spectra_collection.missing_mass_features_searched:
             self._save_induced_mass_features_to_hdf5(overwrite)
@@ -2256,6 +2260,25 @@ class LCMSCollectionExport():
             
             # Save the "cluster" column
             grp.create_dataset("cluster", data=cluster_assignments["cluster"].values)
+    
+    def _update_raw_file_locations_in_hdf5(self):
+        """Update raw file locations in each LCMS object's HDF5 file.
+        
+        This method updates the 'original_file_location' attribute in each LCMS object's
+        HDF5 file to reflect the new raw file location after files have been relocated.
+        """
+        for lcms_obj in self.mass_spectra_collection:
+            # Get the HDF5 file path for this LCMS object
+            hdf5_path = lcms_obj.file_location.with_suffix('.hdf5')
+            
+            if hdf5_path.exists():
+                with h5py.File(hdf5_path, 'a') as hdf_handle:
+                    # Update the original_file_location attribute
+                    if 'original_file_location' in hdf_handle.attrs:
+                        hdf_handle.attrs['original_file_location'] = str(lcms_obj.raw_file_location)
+                    # If the attribute does not exist, create it
+                    else:
+                        hdf_handle.attrs.create('original_file_location', str(lcms_obj.raw_file_location))
     
     def _save_induced_mass_features_to_hdf5(self, hdf_handle, overwrite):
         """Save induced mass features onto each of the LCMSBase objects in the collection to HDF5 file."""
