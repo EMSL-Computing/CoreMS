@@ -164,7 +164,7 @@ def test_priorityAssignment(mass_spectrum_ftms, postgres_database):
     # Run the molecular formula search on the mass spectrum object and check the percentage of assigned peaks
     assignOx = OxygenPriorityAssignment(mass_spectrum_ftms)
     assignOx.run()
-    assert mass_spectrum_ftms.percentile_assigned()[0] > 15
+    assert mass_spectrum_ftms.percentage_assigned()[0] > 15
 
     # Test the HeteroatomsClassification class
     mass_spectrum_by_classes = HeteroatomsClassification(mass_spectrum_ftms)
