@@ -25,7 +25,6 @@
 - Execution     
   - [Jupyter Notebook and Docker containers](#docker-stack)  
   - [Example for FT-ICR Data Processing](#simple-script-example)  
-  - [Python Examples](examples/scripts)
   - [Jupyter Notebook Examples](examples/notebooks)  
 - Sibling Projects    
     - [EnviroMS](https://github.com/EMSL-Computing/EnviroMS)  
@@ -254,7 +253,7 @@ If you don't have docker installed, the easiest way is to [install docker for de
 
 ## Example for FT-ICR Data Processing
 
-More examples can be found under the directory examples/scripts, examples/notebooks
+More examples can be found in the [examples/notebooks](examples/notebooks) directory
 
 - Basic functionality example
 
