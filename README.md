@@ -151,7 +151,7 @@ As an open source project, CoreMS welcomes contributions of all forms. Before co
 - Calculated ICR Resolving Power based on magnetic field (B), and transient time(T)
 
 ### LC-MS Signal Processing, Molecular Formula Search and Assignment, and Spectral Similarity Searches
-See walkthough in [this notebook](examples/notebooks/LCMS_data_walkthrough.ipynb)
+See walkthrough in [this notebook](examples/notebooks/LCMS_Tutorial.ipynb)
 - Two dimensional (m/z and retention time) peak picking using persistent homology
 - Smoothing, cetroid detection, and integration of extracted ion chromatograms
 - Peak shape metric calculations including half peak height, tailing factor, and dispersity index
