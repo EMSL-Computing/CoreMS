@@ -55,6 +55,7 @@ test-notebooks:
     - python3 -m pip install -r requirements.txt
     - python3 -m pip install jupyter nbconvert
     - python3 -m pip install psycopg2
+    - python3 -m pip install -e .
     - export PYTHONNET_RUNTIME=coreclr
     - cd examples && python3 test_notebooks.py
   
