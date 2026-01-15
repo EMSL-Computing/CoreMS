@@ -35,6 +35,8 @@ build/
 .coverage
 neg_esi_srfa_1ppm_test.csv
 neg_esi_srfa_1ppm_test.xlsx
+srfa_results.csv
+srfa_results.json
 tests/tests_data/ftms/ESFA_100k_9767-13548_chB.A_re_pc_Averaged1min.h5
 NEG_ESI_SRFA_CoreMS.csv
 NEG_ESI_SRFA_CoreMS.hdf5
