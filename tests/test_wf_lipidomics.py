@@ -228,6 +228,12 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
     parser = ReadCoreMSHDFMassSpectra(
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems/Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.hdf5"
     )
+    
+    # Check that creation_time was saved and can be retrieved
+    creation_time = parser.get_original_creation_time()
+    assert creation_time is not None
+    assert creation_time.year == 2018  # Based on the filename date
+    
     myLCMSobj2 = parser.get_lcms_obj()
 
     # Check that the parameters match

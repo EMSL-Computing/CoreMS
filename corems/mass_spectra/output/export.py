@@ -993,6 +993,15 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 hdf_handle.attrs["original_file_location"] = (
                     self.mass_spectra.file_location._str
                 )
+                
+                # Save creation time from original parser if available
+                try:
+                    if hasattr(self.mass_spectra, 'spectra_parser') and self.mass_spectra.spectra_parser is not None:
+                        creation_time = self.mass_spectra.spectra_parser.get_creation_time()
+                        if creation_time is not None:
+                            hdf_handle.attrs["creation_time"] = creation_time.isoformat()
+                except Exception:
+                    pass  # If creation time cannot be retrieved, skip it
 
             if "mass_spectra" not in hdf_handle:
                 mass_spectra_group = hdf_handle.create_group("mass_spectra")

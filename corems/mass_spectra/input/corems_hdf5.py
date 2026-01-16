@@ -103,9 +103,22 @@ def create_manifest_from_folder(
             print(f"Warning: HDF5 file not found for {sample_name}, skipping.")
             continue
         
-        # Get file creation time from the HDF5 file
-        creation_timestamp = hdf5_file.stat().st_mtime
-        creation_time = datetime.datetime.fromtimestamp(creation_timestamp)
+        # Get creation time using the ReadCoreMSHDFMassSpectra method
+        try:
+            # Use context manager to ensure file is properly closed
+            with ReadCoreMSHDFMassSpectra(str(hdf5_file)) as parser:
+                # Use the get_original_creation_time() method which checks HDF5 attrs first,
+                # then falls back to original parser if needed
+                creation_time = parser.get_original_creation_time()
+                
+                # Skip sample if creation time unavailable
+                if creation_time is None:
+                    print(f"Warning: Could not get original creation time for {sample_name}, skipping.")
+                    continue
+            
+        except Exception as e:
+            print(f"Warning: Error getting creation time for {sample_name}: {e}, skipping.")
+            continue
         
         sample_data.append({
             'sample_name': sample_name,
@@ -266,6 +279,21 @@ class ReadCoreMSHDFMassSpectra(
             self.parameters_location = [x for x in add_files if x.suffix == ".toml"][0]
         else:
             self.parameters_location = None
+    
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit - closes the HDF5 file."""
+        if hasattr(self, 'h5pydata') and self.h5pydata is not None:
+            self.h5pydata.close()
+        return False
+    
+    def close(self):
+        """Explicitly close the HDF5 file."""
+        if hasattr(self, 'h5pydata') and self.h5pydata is not None:
+            self.h5pydata.close()
 
     def get_mass_spectrum_from_scan(self, scan_number):
         """Return mass spectrum data object from scan number."""
@@ -745,15 +773,75 @@ class ReadCoreMSHDFMassSpectra(
 
         return mass_spectra
 
+    def get_original_creation_time(self):
+        """
+        Get the creation time of the original raw data file.
+        
+        First checks if creation_time is saved in the HDF5 file attributes.
+        If not found, attempts to instantiate the original parser and get the creation time.
+        
+        Returns
+        -------
+        datetime
+            The creation time of the original raw data file, or None if not available.
+        """
+        # Check if creation_time is saved in HDF5 attributes
+        if "creation_time" in self.h5pydata.attrs:
+            from datetime import datetime
+            return datetime.fromisoformat(self.h5pydata.attrs["creation_time"])
+        
+        # Fall back to using original parser to get creation time
+        try:
+            # Get the original parser type and raw file path
+            og_parser_type = self.h5pydata.attrs.get("parser_type")
+            raw_file_path = self.get_raw_file_location()
+            
+            if og_parser_type is None or raw_file_path is None:
+                warnings.warn(
+                    "Cannot retrieve creation time: parser_type or original_file_location not found in HDF5 attributes."
+                )
+                return None
+            
+            # Check if raw file exists
+            from pathlib import Path
+            if not Path(raw_file_path).exists():
+                warnings.warn(
+                    f"Cannot retrieve creation time: original raw file not found at {raw_file_path}"
+                )
+                return None
+            
+            # Instantiate the original parser
+            if og_parser_type == "ImportMassSpectraThermoMSFileReader":
+                parser = ImportMassSpectraThermoMSFileReader(raw_file_path)
+            elif og_parser_type == "MZMLSpectraParser":
+                parser = MZMLSpectraParser(raw_file_path)
+            else:
+                warnings.warn(
+                    f"Unknown parser type: {og_parser_type}, cannot retrieve creation time."
+                )
+                return None
+            
+            # Get creation time from parser
+            return parser.get_creation_time()
+            
+        except Exception as e:
+            warnings.warn(
+                f"Failed to retrieve creation time from original parser: {e}"
+            )
+            return None
+    
     def get_creation_time(self):
         """
-        Raise a NotImplemented Warning, as creation time is not available in CoreMS HDF5 files and returning None.
+        Get the creation time of the original raw data file.
+        
+        This is an alias for get_original_creation_time() for backward compatibility.
+        
+        Returns
+        -------
+        datetime
+            The creation time of the original raw data file, or None if not available.
         """
-        warnings.warn(
-            "Creation time is not available in CoreMS HDF5 files, returning None."
-            "This should be accessed through the original parser.",
-        )
-        return None
+        return self.get_original_creation_time()
 
     def get_instrument_info(self):
         """
@@ -932,12 +1020,12 @@ class ReadCoreMSHDFMassSpectraCollection:
             If True, only load the parameters, mass features, and scan info are initially loaded for each lcms object. Default is True.   
         """
         hdf5_file = self.folder_location / f"{sample_name}.corems/{sample_name}.hdf5"
-        parser = ReadCoreMSHDFMassSpectra(hdf5_file)
-        lcms_obj = parser.get_lcms_obj(load_raw=load_raw, load_light=load_light, use_original_parser=use_original_parser, raw_file_path=raw_file_path)
-        if load_light:
-            mf_df = lcms_obj.mass_features_to_df()
-            lcms_obj.mass_features = {}
-            lcms_obj.light_mf_df = mf_df
+        with ReadCoreMSHDFMassSpectra(hdf5_file) as parser:
+            lcms_obj = parser.get_lcms_obj(load_raw=load_raw, load_light=load_light, use_original_parser=use_original_parser, raw_file_path=raw_file_path)
+            if load_light:
+                mf_df = lcms_obj.mass_features_to_df()
+                lcms_obj.mass_features = {}
+                lcms_obj.light_mf_df = mf_df
         return lcms_obj
 
     def get_lcms_collection(self, load_raw = False, load_light = True, use_original_parser = True) -> LCMSCollection:
