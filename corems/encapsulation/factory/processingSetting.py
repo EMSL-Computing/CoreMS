@@ -1187,6 +1187,15 @@ class LCMSCollectionSettings:
 
     # Gap-filling settings
     gap_fill_expand_on_miss: bool = True
+    
+    # Consensus mass feature visualization parameters
+    consensus_representative_metric: str = 'intensity'
+    consensus_representative_metrics_available: tuple = ('intensity', 'persistence', 'area')
+    """
+    Metric used to determine the most representative sample for a consensus mass feature.
+    Options: 'intensity', 'persistence', 'area', or any column in mass_features_dataframe.
+    Default is 'intensity'.
+    """
 
     def __post_init__(self):
         self.consensus_mz_tol_ppm = self.alignment_mz_tol_ppm

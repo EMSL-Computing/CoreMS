@@ -3068,7 +3068,8 @@ class LCMSCollectionCalculations:
             if col != "cluster"
         ]
         summary_df = summary_df.rename(columns={"cluster_": "cluster"})
-        summary_df = summary_df.reset_index(drop=True)
+        # Set cluster as the index for easy lookup
+        summary_df = summary_df.set_index('cluster')
         return summary_df
 
     def plot_mz_features_per_cluster(self, return_fig = False):
@@ -3234,6 +3235,72 @@ class LCMSCollectionCalculations:
             return fig
         else:
             plt.show()
+    
+    def get_most_representative_sample_for_cluster(self, cluster_id, representative_metric=None):
+        """
+        Get the most representative sample for a given cluster based on a metric.
+        
+        Parameters
+        ----------
+        cluster_id : int
+            The cluster ID to find the representative sample for.
+        representative_metric : str, optional
+            The metric to use to determine the most representative sample.
+            If None, uses the value from self.parameters.lcms_collection.consensus_representative_metric.
+            Options: 'intensity', 'persistence', or any column in mass_features_dataframe.
+            Default is None.
+            
+        Returns
+        -------
+        dict
+            Dictionary containing:
+            - 'sample_id': The sample ID of the most representative sample
+            - 'sample_name': The sample name of the most representative sample
+            - 'mf_id': The mass feature ID (coll_mf_id) in the collection
+            - representative_metric: The value of the metric for this mass feature
+        
+        Raises
+        ------
+        ValueError
+            If cluster_id is not found or if representative_metric is not a valid column.
+        """
+        # Use default from parameters if not specified
+        if representative_metric is None:
+            representative_metric = self.parameters.lcms_collection.consensus_representative_metric
+        
+        # Get all mass features in this cluster
+        cluster_mfs = self.mass_features_dataframe[
+            self.mass_features_dataframe['cluster'] == cluster_id
+        ].copy()
+        
+        if len(cluster_mfs) == 0:
+            # Try to provide helpful error message
+            available_clusters = self.mass_features_dataframe['cluster'].unique()
+            raise ValueError(
+                f"Cluster {cluster_id} not found in mass_features_dataframe. "
+                f"Available clusters: {sorted(available_clusters[:10].tolist())}... "
+                f"(showing first 10 of {len(available_clusters)} total clusters)"
+            )
+        
+        # Check if metric exists
+        if representative_metric not in cluster_mfs.columns:
+            raise ValueError(
+                f"Metric '{representative_metric}' not found. Available columns: {cluster_mfs.columns.tolist()}"
+            )
+        
+        # Find the mass feature with the highest value for the metric
+        max_idx = cluster_mfs[representative_metric].idxmax()
+        representative_mf = cluster_mfs.loc[max_idx]
+        
+        # Get sample name from sample_id
+        sample_name = self.samples[representative_mf['sample_id']]
+        
+        return {
+            'sample_id': representative_mf['sample_id'],
+            'sample_name': sample_name,
+            'mf_id': max_idx,
+            representative_metric: representative_mf[representative_metric]
+        }
         
     def add_sparse_distance_matrix(self, features):
         if features is None:
