@@ -3950,5 +3950,8 @@ class LCMSCollectionCalculations:
                 
         self._combine_mass_features(induced_features = True)
         
+        # Mark that gap-filling has been performed
+        self.missing_mass_features_searched = True
+        
         for sample_name in self.samples:
             self._lcms[sample_name].mass_features = {}

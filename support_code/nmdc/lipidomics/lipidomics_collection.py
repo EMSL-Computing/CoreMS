@@ -57,12 +57,18 @@ if __name__ == "__main__":
     lcms_collection.add_consensus_mass_features()
     print("Time to generate consensus mass features: ", time.time() - start_time, "seconds -", len(lcms_collection.mass_features_dataframe), " total mass features", ncores, " cores")   
 
+    # Gap fill missing cluster features BEFORE saving
+    start_time = time.time()
+    lcms_collection.fill_missing_cluster_features()
+    print("Time to gap fill missing cluster features: ", time.time() - start_time, "seconds, using", ncores, " cores")
+
     # Check save and load functionality for LCMSCollection
     print("Saving and re-loading LCMS collection to test save/load functionality")
+    print(f"Before saving: missing_mass_features_searched = {lcms_collection.missing_mass_features_searched}")
     exporter = LCMSCollectionExport(
         out_file_path="/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/collection",
         mass_spectra_collection=lcms_collection)
-    exporter.export_to_hdf5(save_parameters=True, parameter_format="toml")
+    exporter.export_to_hdf5(overwrite=True, save_parameters=True, parameter_format="toml")
     
     # Reload the collection
     reader = ReadSavedLCMSCollection(
@@ -83,6 +89,30 @@ if __name__ == "__main__":
     assert lcms_collection2.parameters.lcms_collection.alignment_acceptance_technique == ['fraction_improved'], \
         f"Re-loaded technique parameter should be ['fraction_improved'], got {lcms_collection2.parameters.lcms_collection.alignment_acceptance_technique}"
     
+    # Verify induced mass features were saved and loaded correctly
+    assert lcms_collection2.missing_mass_features_searched, "Re-loaded collection should have missing_mass_features_searched=True"
+    
+    # Count induced mass features in both collections
+    original_induced_count = sum([len(lcms_obj.induced_mass_features) for lcms_obj in lcms_collection])
+    reloaded_induced_count = sum([len(lcms_obj.induced_mass_features) for lcms_obj in lcms_collection2])
+    assert reloaded_induced_count == original_induced_count, \
+        f"Re-loaded induced mass features count mismatch: {reloaded_induced_count} vs {original_induced_count}"
+    
+    # Verify at least one sample has induced mass features
+    assert reloaded_induced_count > 0, "Collection should have some induced mass features after gap filling"
+    
+    # Verify a few induced mass features have the correct attributes
+    for lcms_idx, lcms_obj in enumerate(lcms_collection2):
+        if len(lcms_obj.induced_mass_features) > 0:
+            # Get first induced mass feature
+            first_mf_id = list(lcms_obj.induced_mass_features.keys())[0]
+            first_mf = lcms_obj.induced_mass_features[first_mf_id]
+            # Verify it has the expected attributes
+            assert hasattr(first_mf, 'mz'), "Induced mass feature should have mz attribute"
+            assert hasattr(first_mf, 'intensity'), "Induced mass feature should have intensity attribute"
+            assert hasattr(first_mf, 'apex_scan'), "Induced mass feature should have apex_scan attribute"
+            break
+    
     """# Make some more plots
     lcms_collection.plot_mz_features_across_samples()
     lcms_collection.plot_mz_features_per_cluster()
@@ -102,15 +132,10 @@ if __name__ == "__main__":
     lcms_collection.plot_cluster_outlier_frequency(dim_list, clu_size_thresh = 0.25)
     """
     
-    # Gap fill missing cluster features
-    start_time = time.time()
-    lcms_collection.fill_missing_cluster_features()
-    print("Time to gap fill missing cluster features: ", time.time() - start_time, "seconds, using", ncores, " cores")
-
+    # Create pivot tables and reports
     results = lcms_collection.collection_pivot_table()
     results1 = lcms_collection.collection_pivot_table(attribute = 'intensity')
     results2 = lcms_collection.collection_consensus_report(how = 'intensity')
     results3 = lcms_collection.collection_consensus_report(how = 'median')
         
-    #TODO: Add code to save and load collection to HDF5 file
-    #TODO: Add code to deal with annotations of features in the collection context
+    #TODO KRH: Add code to deal with annotations of features in the collection context

@@ -919,6 +919,7 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
         """Load metadata and manifest from the saved collection HDF5 file."""
         with h5py.File(self.collection_hdf5_path, 'r') as f:
             self.folder_location = Path(f.attrs.get('lcms_objects_folder', ''))
+            self.missing_mass_features_searched = f.attrs.get('missing_mass_features_searched', False)
 
             # Call the _load_manifest function to process the manifest
             self._manifest_dict = self._load_manifest(f)
@@ -984,6 +985,9 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
         """Get the LCMS collection from the saved HDF5 file."""
         # First load the LCMSCollection object exactly as in the parent class
         lcms_collection = super().get_lcms_collection(load_raw=load_raw, load_light=load_light)
+        
+        # Set the missing_mass_features_searched flag from saved metadata
+        lcms_collection.missing_mass_features_searched = self.missing_mass_features_searched
 
         # Load parameters if a parameters file exists
         if self.parameters_location:
@@ -994,6 +998,9 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
 
         # Add cluster assignments if they exist
         self._load_cluster_assignments(lcms_collection)
+        
+        # Load induced mass features if they exist
+        self._load_induced_mass_features(lcms_collection)
 
         return lcms_collection
     
@@ -1010,3 +1017,71 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
             load_and_set_toml_parameters_lcms_collection(lcms_collection, self.parameters_location)
         else:
             warnings.warn(f"Unknown parameter file format: {self.parameters_location.suffix}. Skipping parameter loading.")
+    
+    def _load_induced_mass_features(self, lcms_collection):
+        """Load induced mass features from the saved collection HDF5 file.
+        
+        Induced mass features are gap-filled features that exist at the collection level.
+        This method loads them from the collection HDF5 file with all their attributes
+        and datasets, and distributes them to individual LCMS objects.
+        
+        Parameters
+        ----------
+        lcms_collection : LCMSCollection
+            The LCMS collection object to populate with induced mass features.
+        """
+        with h5py.File(self.collection_hdf5_path, 'r') as f:
+            if "induced_mass_features" not in f:
+                return
+            
+            # Access the top-level induced mass features group
+            imf_group = f["induced_mass_features"]
+            
+            # Iterate through each sample's induced mass features
+            for sample_idx in imf_group.keys():
+                lcms_obj = lcms_collection[int(sample_idx)]
+                sample_group = imf_group[sample_idx]
+                
+                # Load each mass feature for this sample
+                for mf_id_str in sample_group.keys():
+                    mf_group = sample_group[mf_id_str]
+                    
+                    # The mf_id in HDF5 is stored as the collection ID (e.g., 'c10006_422_i' or '0_c10006_422_i')
+                    # Extract the integer ID - it's the second-to-last part when split by '_'
+                    # Format: sample_id_cCluster_mf_id_i
+                    parts = mf_id_str.split('_')
+                    # Find the part that's a number (should be second-to-last before 'i')
+                    mf_id = int(parts[-2]) if len(parts) > 1 else int(mf_id_str)
+                    
+                    # Instantiate the LCMSMassFeature object with required attributes
+                    mass_feature = LCMSMassFeature(
+                        lcms_obj,
+                        mz=mf_group.attrs["_mz_exp"],
+                        retention_time=mf_group.attrs["_retention_time"],
+                        intensity=mf_group.attrs["_intensity"],
+                        apex_scan=mf_group.attrs["_apex_scan"],
+                        persistence=mf_group.attrs.get("_persistence", 0),
+                        id=mf_id,
+                    )
+                    
+                    # Populate additional attributes from HDF5 attributes
+                    for key in mf_group.attrs.keys() - {
+                        "_mz_exp",
+                        "_mz_cal",
+                        "_retention_time",
+                        "_intensity",
+                        "_apex_scan",
+                        "_persistence",
+                    }:
+                        setattr(mass_feature, key, mf_group.attrs[key])
+                    
+                    # Populate attributes from HDF5 datasets (arrays)
+                    for key in mf_group.keys():
+                        setattr(mass_feature, key, mf_group[key][:])
+                        # Convert _noise_score from array to tuple
+                        if key == "_noise_score":
+                            mass_feature._noise_score = tuple(mass_feature._noise_score)
+                    
+                    # Add to the LCMS object's induced_mass_features dictionary
+                    lcms_obj.induced_mass_features[mf_id] = mass_feature
+

@@ -1023,33 +1023,21 @@ class LCMSExport(HighResMassSpectraExport):
     def __init__(self, out_file_path, mass_spectra):
         super().__init__(out_file_path, mass_spectra, output_type="hdf5")
 
-    def _save_mass_features_to_hdf5(self, hdf_handle, group_name = "mass_features", overwrite=False):
-        """Save the mass features to the HDF5 file.
-
+    @staticmethod
+    def _save_mass_features_dict_to_hdf5(mass_features_dict, mass_features_group, overwrite=False):
+        """Save a dictionary of mass features to an HDF5 group.
+        
+        This is a helper method that can be reused by different export classes.
+        
         Parameters
         ----------
-        hdf_handle : h5py.File
-            The HDF5 file handle.
-        group_name : str, optional
-            The name of the group to save the mass features to. Default is 'mass_features'.
+        mass_features_dict : dict
+            Dictionary of mass features to save, keyed by mass feature ID.
+        mass_features_group : h5py.Group
+            The HDF5 group to save the mass features to.
         overwrite : bool, optional
-            Whether to overwrite the group if it exists. Default is False.
+            Whether to overwrite existing mass features. Default is False.
         """
-        # Determine which mass features to save based on group_name
-        if group_name == "induced_mass_features":
-            if len(self.mass_spectra.induced_mass_features) == 0:
-                return  # No induced mass features to save
-            mass_features_dict = self.mass_spectra.induced_mass_features
-        else:
-            if len(self.mass_spectra.mass_features) == 0:
-                return  # No mass features to save
-            mass_features_dict = self.mass_spectra.mass_features
-
-        # Add LCMS mass features to hdf5 file
-        if group_name not in hdf_handle:
-            mass_features_group = hdf_handle.create_group(group_name)
-        else:
-            mass_features_group = hdf_handle.get(group_name)
 
         # Create group for each mass feature, with key as the mass feature id
         for k, v in mass_features_dict.items():
@@ -1123,6 +1111,37 @@ class LCMSExport(HighResMassSpectraExport):
                                     elif isinstance(v2, np.float64):
                                         v2 = np.float32(v2)
                                     mass_features_group[str(k)].attrs[str(k2)] = v2
+    
+    def _save_mass_features_to_hdf5(self, hdf_handle, group_name = "mass_features", overwrite=False):
+        """Save the mass features to the HDF5 file.
+
+        Parameters
+        ----------
+        hdf_handle : h5py.File
+            The HDF5 file handle.
+        group_name : str, optional
+            The name of the group to save the mass features to. Default is 'mass_features'.
+        overwrite : bool, optional
+            Whether to overwrite the group if it exists. Default is False.
+        """
+        # Determine which mass features to save based on group_name
+        if group_name == "induced_mass_features":
+            if len(self.mass_spectra.induced_mass_features) == 0:
+                return  # No induced mass features to save
+            mass_features_dict = self.mass_spectra.induced_mass_features
+        else:
+            if len(self.mass_spectra.mass_features) == 0:
+                return  # No mass features to save
+            mass_features_dict = self.mass_spectra.mass_features
+
+        # Add LCMS mass features to hdf5 file
+        if group_name not in hdf_handle:
+            mass_features_group = hdf_handle.create_group(group_name)
+        else:
+            mass_features_group = hdf_handle.get(group_name)
+        
+        # Use the static helper method to save the mass features
+        self._save_mass_features_dict_to_hdf5(mass_features_dict, mass_features_group, overwrite)
 
     def to_hdf(self, overwrite=False, save_parameters=True, parameter_format="toml"):
         """Export the data to an HDF5.
@@ -2297,7 +2316,42 @@ class LCMSCollectionExport():
                     else:
                         hdf_handle.attrs.create('original_file_location', str(lcms_obj.raw_file_location))
     
-    def _save_induced_mass_features_to_hdf5(self, hdf_handle, overwrite):
-        """Save induced mass features onto each of the LCMSBase objects in the collection to HDF5 file."""
-        for lcms_obj in self.mass_spectra_collection:
-            print("here")
+    def _save_induced_mass_features_to_hdf5(self, overwrite):
+        """Save induced mass features to the collection HDF5 file.
+        
+        Induced mass features are gap-filled features that only exist at the collection level.
+        They are saved with full detail (all attributes and datasets) in the collection HDF5 file
+        and distributed to individual LCMS objects when the collection is loaded.
+        
+        Parameters
+        ----------
+        overwrite : bool
+            If True, overwrites existing induced mass features group. If False, skips if group exists.
+        """
+        # Open the collection HDF5 file to save induced mass features
+        with h5py.File(self.out_file_path.with_suffix(".hdf5"), "a") as hdf_handle:
+            group_name = "induced_mass_features"
+            
+            # Check if group exists and handle overwrite logic
+            if group_name in hdf_handle:
+                if not overwrite:
+                    return
+                del hdf_handle[group_name]
+            
+            # Create top-level group for induced mass features
+            imf_group = hdf_handle.create_group(group_name)
+            
+            # Iterate through each LCMS object and save its induced mass features
+            for lcms_idx, lcms_obj in enumerate(self.mass_spectra_collection):
+                if len(lcms_obj.induced_mass_features) == 0:
+                    continue
+                
+                # Create a subgroup for this sample's induced mass features
+                sample_group = imf_group.create_group(str(lcms_idx))
+                
+                # Use the static helper method from LCMSExport to save the mass features
+                LCMSExport._save_mass_features_dict_to_hdf5(
+                    lcms_obj.induced_mass_features, 
+                    sample_group, 
+                    overwrite=overwrite
+                )
