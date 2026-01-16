@@ -86,7 +86,21 @@ Compare different noise thresholding methods for peak detection:
 
 ---
 
-### 6. Setting_MSParameters.ipynb
+### 6. ResolvingPowerFilter_ICR.ipynb
+**Filtering peaks based on resolving power**
+
+Compare different approaches to resolving power-based peak filtering for FT-ICR MS:
+- Theoretical resolving power filtering using instrumental parameters
+- Mean resolving power filtering using statistical methods
+- Understanding limitations of theoretical vs. real-world performance
+- Choosing the appropriate filtering method for quality control
+
+**Data Format:** Bruker Solarix `.d` files  
+**Recommended For:** FT-ICR MS users, data quality control, method optimization
+
+---
+
+### 7. Setting_MSParameters.ipynb
 **Configuring global parameters in CoreMS**
 
 Understand how to control data processing behavior:
