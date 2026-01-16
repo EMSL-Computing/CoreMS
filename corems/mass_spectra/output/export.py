@@ -21,6 +21,8 @@ from corems.encapsulation.output import parameter_to_dict
 from corems.encapsulation.output.parameter_to_json import (
     dump_lcms_settings_json,
     dump_lcms_settings_toml,
+    dump_lcms_collection_settings_json,
+    dump_lcms_collection_settings_toml,
 )
 from corems.mass_spectrum.output.export import HighResMassSpecExport
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
@@ -2126,7 +2128,7 @@ class LCMSCollectionExport():
         self.out_file_path = Path(out_file_path)
         self.mass_spectra_collection = mass_spectra_collection
 
-    def export_to_hdf5(self, overwrite = False):
+    def export_to_hdf5(self, overwrite = False, save_parameters=True, parameter_format="toml"):
         """Export the LCMS collection to an HDF5 file.
         
         This method saves the collection-level data to an HDF5 file, including:
@@ -2190,7 +2192,22 @@ class LCMSCollectionExport():
         if self.mass_spectra_collection.missing_mass_features_searched:
             self._save_induced_mass_features_to_hdf5(overwrite)
 
-            #TODO KRH: save parameters
+        # Save collection-level parameters as separate file
+        if save_parameters:
+            # Check if parameter_format is valid
+            if parameter_format not in ["json", "toml"]:
+                raise ValueError("parameter_format must be 'json' or 'toml'")
+
+            if parameter_format == "json":
+                dump_lcms_collection_settings_json(
+                    filename=self.out_file_path.with_suffix(".json"),
+                    lcms_collection=self.mass_spectra_collection,
+                )
+            elif parameter_format == "toml":
+                dump_lcms_collection_settings_toml(
+                    filename=self.out_file_path.with_suffix(".toml"),
+                    lcms_collection=self.mass_spectra_collection,
+                )
 
     def _save_rt_alignments_to_hdf5(self, hdf_handle, overwrite):
         """Save retention time alignments to HDF5 file."""

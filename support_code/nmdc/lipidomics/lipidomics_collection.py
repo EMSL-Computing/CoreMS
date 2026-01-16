@@ -62,19 +62,28 @@ if __name__ == "__main__":
     exporter = LCMSCollectionExport(
         out_file_path="/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/collection",
         mass_spectra_collection=lcms_collection)
-    exporter.export_to_hdf5()
+    exporter.export_to_hdf5(save_parameters=True, parameter_format="toml")
+    
+    # Reload the collection
     reader = ReadSavedLCMSCollection(
         collection_hdf5_path="/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/collection.hdf5",
         cores=ncores)
     lcms_collection2 = reader.get_lcms_collection(load_raw=False, load_light=True)
+    
+    # Verify basic collection structure
     assert len(lcms_collection2) == len(lcms_collection), "Re-loaded LCMS collection should have the same number of samples."
     assert len(lcms_collection2.mass_features_dataframe) == len(lcms_collection.mass_features_dataframe), "Re-loaded LCMS collection should have the same number of mass features."
     assert str(lcms_collection2[0].raw_file_location) == str(lcms_collection[0].raw_file_location), "Re-loaded LCMS collection should have the same raw file locations."
     assert lcms_collection2.rt_aligned == lcms_collection.rt_aligned and lcms_collection.rt_aligned, "Both LCMS collections should be marked as retention time aligned."
     assert "cluster" in lcms_collection2.mass_features_dataframe.columns, "Re-loaded LCMS collection mass features should have cluster assignments."
-    print("Completed save and re-load of LCMS collection")
-
-    """    # Make some more plots
+    
+    # Verify parameters were saved and loaded correctly (using the modified parameters from earlier)
+    assert lcms_collection2.parameters.lcms_collection.alignment_acceptance_fraction_improved_threshold == -1, \
+        f"Re-loaded threshold parameter should be -1, got {lcms_collection2.parameters.lcms_collection.alignment_acceptance_fraction_improved_threshold}"
+    assert lcms_collection2.parameters.lcms_collection.alignment_acceptance_technique == ['fraction_improved'], \
+        f"Re-loaded technique parameter should be ['fraction_improved'], got {lcms_collection2.parameters.lcms_collection.alignment_acceptance_technique}"
+    
+    """# Make some more plots
     lcms_collection.plot_mz_features_across_samples()
     lcms_collection.plot_mz_features_per_cluster()
     lcms_collection.plot_consensus_mz_features() ## zoomed out
@@ -92,6 +101,7 @@ if __name__ == "__main__":
     ]
     lcms_collection.plot_cluster_outlier_frequency(dim_list, clu_size_thresh = 0.25)
     """
+    
     # Gap fill missing cluster features
     start_time = time.time()
     lcms_collection.fill_missing_cluster_features()

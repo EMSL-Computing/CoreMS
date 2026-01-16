@@ -896,6 +896,24 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
 
         # Load the mass spectra data
         self._validate_manifest()
+        
+        # Set the parameters file location
+        self.parameters_location = self._get_parameters_location()
+
+    def _get_parameters_location(self):
+        """Find the parameters file (JSON or TOML) associated with the collection HDF5 file."""
+        # Check for TOML file first (preferred)
+        toml_path = self.collection_hdf5_path.with_suffix('.toml')
+        if toml_path.exists():
+            return toml_path
+        
+        # Check for JSON file
+        json_path = self.collection_hdf5_path.with_suffix('.json')
+        if json_path.exists():
+            return json_path
+        
+        # No parameters file found
+        return None
 
     def _load_collection_metadata(self):
         """Load metadata and manifest from the saved collection HDF5 file."""
@@ -967,6 +985,10 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
         # First load the LCMSCollection object exactly as in the parent class
         lcms_collection = super().get_lcms_collection(load_raw=load_raw, load_light=load_light)
 
+        # Load parameters if a parameters file exists
+        if self.parameters_location:
+            self._load_parameters(lcms_collection)
+
         # Add retention time alignments if they exist
         self._load_rt_alignments(lcms_collection)
 
@@ -974,3 +996,17 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
         self._load_cluster_assignments(lcms_collection)
 
         return lcms_collection
+    
+    def _load_parameters(self, lcms_collection):
+        """Load collection-level parameters from the saved parameters file."""
+        from corems.encapsulation.input.parameter_from_json import (
+            load_and_set_json_parameters_lcms_collection,
+            load_and_set_toml_parameters_lcms_collection,
+        )
+        
+        if self.parameters_location.suffix == ".json":
+            load_and_set_json_parameters_lcms_collection(lcms_collection, self.parameters_location)
+        elif self.parameters_location.suffix == ".toml":
+            load_and_set_toml_parameters_lcms_collection(lcms_collection, self.parameters_location)
+        else:
+            warnings.warn(f"Unknown parameter file format: {self.parameters_location.suffix}. Skipping parameter loading.")
