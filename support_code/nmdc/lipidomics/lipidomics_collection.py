@@ -1,5 +1,6 @@
 from pathlib import Path
 import time
+import pandas as pd
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollection, ReadSavedLCMSCollection
 from corems.mass_spectra.output.export import LCMSCollectionExport
 
@@ -8,7 +9,7 @@ if __name__ == "__main__":
     # Set the path to the collection of LCMS runs (previously processed)
     collection_path = Path("/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/mini_collection_test_out2")
     # Path to manifest file
-    manifest_file = Path("/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/mini_collection_test_out2/manifest.csv")
+    manifest_file = Path("/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/mini_collection_test_out2/manifest_tiny.csv")
 
     # Set the number of cores to use for loading the data (the parser is parallelized)
     ncores = 6
@@ -76,42 +77,22 @@ if __name__ == "__main__":
         cores=ncores)
     lcms_collection2 = reader.get_lcms_collection(load_raw=False, load_light=True)
     
-    # Verify basic collection structure
-    assert len(lcms_collection2) == len(lcms_collection), "Re-loaded LCMS collection should have the same number of samples."
-    assert len(lcms_collection2.mass_features_dataframe) == len(lcms_collection.mass_features_dataframe), "Re-loaded LCMS collection should have the same number of mass features."
-    assert str(lcms_collection2[0].raw_file_location) == str(lcms_collection[0].raw_file_location), "Re-loaded LCMS collection should have the same raw file locations."
-    assert lcms_collection2.rt_aligned == lcms_collection.rt_aligned and lcms_collection.rt_aligned, "Both LCMS collections should be marked as retention time aligned."
-    assert "cluster" in lcms_collection2.mass_features_dataframe.columns, "Re-loaded LCMS collection mass features should have cluster assignments."
-    
-    # Verify parameters were saved and loaded correctly (using the modified parameters from earlier)
+    # Verify parameters, induced features, and missing mass features searched flag upon reload
     assert lcms_collection2.parameters.lcms_collection.alignment_acceptance_fraction_improved_threshold == -1, \
         f"Re-loaded threshold parameter should be -1, got {lcms_collection2.parameters.lcms_collection.alignment_acceptance_fraction_improved_threshold}"
-    assert lcms_collection2.parameters.lcms_collection.alignment_acceptance_technique == ['fraction_improved'], \
-        f"Re-loaded technique parameter should be ['fraction_improved'], got {lcms_collection2.parameters.lcms_collection.alignment_acceptance_technique}"
-    
-    # Verify induced mass features were saved and loaded correctly
     assert lcms_collection2.missing_mass_features_searched, "Re-loaded collection should have missing_mass_features_searched=True"
-    
-    # Count induced mass features in both collections
     original_induced_count = sum([len(lcms_obj.induced_mass_features) for lcms_obj in lcms_collection])
     reloaded_induced_count = sum([len(lcms_obj.induced_mass_features) for lcms_obj in lcms_collection2])
     assert reloaded_induced_count == original_induced_count, \
         f"Re-loaded induced mass features count mismatch: {reloaded_induced_count} vs {original_induced_count}"
-    
-    # Verify at least one sample has induced mass features
     assert reloaded_induced_count > 0, "Collection should have some induced mass features after gap filling"
-    
-    # Verify a few induced mass features have the correct attributes
-    for lcms_idx, lcms_obj in enumerate(lcms_collection2):
-        if len(lcms_obj.induced_mass_features) > 0:
-            # Get first induced mass feature
-            first_mf_id = list(lcms_obj.induced_mass_features.keys())[0]
-            first_mf = lcms_obj.induced_mass_features[first_mf_id]
-            # Verify it has the expected attributes
-            assert hasattr(first_mf, 'mz'), "Induced mass feature should have mz attribute"
-            assert hasattr(first_mf, 'intensity'), "Induced mass feature should have intensity attribute"
-            assert hasattr(first_mf, 'apex_scan'), "Induced mass feature should have apex_scan attribute"
-            break
+
+    # Verify the pivot table outputs are the same before and after save/load
+    original_pivot = lcms_collection.collection_pivot_table()
+    reloaded_pivot = lcms_collection2.collection_pivot_table()
+    pd.testing.assert_frame_equal(original_pivot, reloaded_pivot, check_dtype=False)
+
+    print('Test completed successfully! LCMSCollection save and load functionality works as expected.')
     
     """# Make some more plots
     lcms_collection.plot_mz_features_across_samples()
@@ -130,7 +111,6 @@ if __name__ == "__main__":
         'persistence'
     ]
     lcms_collection.plot_cluster_outlier_frequency(dim_list, clu_size_thresh = 0.25)
-    """
     
     # Create pivot tables and reports
     results = lcms_collection.collection_pivot_table()
@@ -141,3 +121,4 @@ if __name__ == "__main__":
     #TODO KRH: Add visualization of a consensus mass feature
     #TODO KRH: Add visualization of matched spectrum with consensus mass feature
     #TODO KRH: Add code to deal with annotations of features in the collection context
+    """

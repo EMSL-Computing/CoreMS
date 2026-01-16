@@ -8,6 +8,7 @@ import toml
 import json
 import multiprocessing
 from pathlib import Path
+import datetime
 
 import pandas as pd
 import warnings
@@ -24,6 +25,159 @@ from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.molecular_id.factory.spectrum_search_results import SpectrumSearchResults
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 from corems.mass_spectra.input.mzml import MZMLSpectraParser
+
+
+def create_manifest_from_folder(
+    folder_path: Path,
+    output_path: Path = None,
+    batch_time_threshold_hours: float = 12.0,
+    center_name: str = None,
+    overwrite: bool = False
+) -> Path:
+    """
+    Create a manifest CSV file for ReadCoreMSHDFMassSpectraCollection from CoreMS HDF5 files.
+    
+    Scans a folder for .corems subdirectories and generates a manifest with columns:
+    sample_name, batch, order, center, time. Files are batched by creation time, and
+    one sample is designated as the retention time alignment center.
+    
+    Parameters
+    ----------
+    folder_path : Path
+        Path to folder containing .corems subdirectories with HDF5 files.
+    output_path : Path, optional
+        Output manifest CSV path. Default: folder_path/manifest.csv.
+    batch_time_threshold_hours : float, optional
+        Time gap in hours for batch separation. Default: 12.0.
+    center_name : str, optional
+        Sample name to designate as RT alignment center (must exist in samples).
+        If None, the middle sample (by creation time) is used.
+    overwrite : bool, optional
+        Whether to overwrite existing manifest. Default: False.
+        
+    Returns
+    -------
+    Path
+        Path to created manifest file.
+        
+    Raises
+    ------
+    FileNotFoundError
+        If folder_path doesn't exist or contains no .corems subdirectories.
+    FileExistsError
+        If output file exists and overwrite is False.
+    ValueError
+        If no HDF5 files found, or center_name doesn't match any sample.
+    """
+    if not folder_path.exists():
+        raise FileNotFoundError(f"Folder {folder_path} does not exist.")
+    
+    # Set default output path if not provided
+    if output_path is None:
+        output_path = folder_path / "manifest.csv"
+    
+    # Check if output file exists
+    if output_path.exists() and not overwrite:
+        raise FileExistsError(
+            f"Manifest file {output_path} already exists. "
+            "Set overwrite=True to replace it."
+        )
+    
+    # Find all .corems subdirectories
+    corems_dirs = sorted([d for d in folder_path.iterdir() if d.is_dir() and d.suffix == ".corems"])
+    
+    if not corems_dirs:
+        raise FileNotFoundError(
+            f"No .corems subdirectories found in {folder_path}. "
+            "Ensure the folder contains processed CoreMS data."
+        )
+    
+    # Collect sample information
+    sample_data = []
+    
+    for corems_dir in corems_dirs:
+        sample_name = corems_dir.stem  # Remove .corems extension
+        hdf5_file = corems_dir / f"{sample_name}.hdf5"
+        
+        if not hdf5_file.exists():
+            print(f"Warning: HDF5 file not found for {sample_name}, skipping.")
+            continue
+        
+        # Get file creation time from the HDF5 file
+        creation_timestamp = hdf5_file.stat().st_mtime
+        creation_time = datetime.datetime.fromtimestamp(creation_timestamp)
+        
+        sample_data.append({
+            'sample_name': sample_name,
+            'creation_time': creation_time,
+            'hdf5_path': hdf5_file
+        })
+    
+    if not sample_data:
+        raise ValueError(
+            f"No valid HDF5 files found in {folder_path}. "
+            "Ensure .corems subdirectories contain .hdf5 files."
+        )
+    
+    # Sort by creation time
+    sample_data.sort(key=lambda x: x['creation_time'])
+    
+    # Assign batches based on time threshold
+    batch_assignments = []
+    current_batch = 1
+    
+    for i, sample in enumerate(sample_data):
+        if i == 0:
+            batch_assignments.append(current_batch)
+        else:
+            time_diff = sample['creation_time'] - sample_data[i-1]['creation_time']
+            time_diff_hours = time_diff.total_seconds() / 3600
+            
+            if time_diff_hours > batch_time_threshold_hours:
+                current_batch += 1
+            
+            batch_assignments.append(current_batch)
+    
+    # Determine which sample should be the center for retention time alignment
+    sample_names = [s['sample_name'] for s in sample_data]
+    
+    if center_name is not None:
+        # Validate that center_name is in the discovered samples
+        if center_name not in sample_names:
+            raise ValueError(
+                f"Specified center_name '{center_name}' not found in discovered samples. "
+                f"Available samples: {', '.join(sample_names)}"
+            )
+        center_sample = center_name
+    else:
+        # Use the middle sample (by creation time) as center
+        middle_idx = len(sample_data) // 2
+        center_sample = sample_data[middle_idx]['sample_name']
+        print(f"Auto-selected center sample: {center_sample} (index {middle_idx} of {len(sample_data)}, middle by creation time)")
+    
+    # Create manifest dataframe with center column as TRUE/FALSE
+    manifest_df = pd.DataFrame({
+        'sample_name': sample_names,
+        'batch': batch_assignments,
+        'order': list(range(1, len(sample_data) + 1)),
+        'center': ['TRUE' if name == center_sample else 'FALSE' for name in sample_names],
+        'time': [s['creation_time'].strftime('%Y-%m-%dT%H:%M:%SZ') for s in sample_data]
+    })
+    
+    # Sort manifest by time before saving to ensure proper order
+    manifest_df = manifest_df.sort_values('time').reset_index(drop=True)
+    # Update order column to reflect sorted order
+    manifest_df['order'] = list(range(1, len(manifest_df) + 1))
+    
+    # Save manifest
+    manifest_df.to_csv(output_path, index=False)
+    
+    print(f"Manifest created successfully at {output_path}")
+    print(f"Total samples: {len(sample_data)}")
+    print(f"Number of batches: {current_batch}")
+    print(f"Batch assignments: {dict(zip(range(1, current_batch + 1), [batch_assignments.count(b) for b in range(1, current_batch + 1)]))}")
+    
+    return output_path
 
 
 class ReadCoreMSHDFMassSpectra(
@@ -613,41 +767,64 @@ class ReadCoreMSHDFMassSpectra(
 
 
 class ReadCoreMSHDFMassSpectraCollection:
-    """Class to read a collection of CoreMS HDF5 files and populate a LCMSCollection object.
+    """Read a collection of CoreMS HDF5 files and populate an LCMSCollection object.
     
     Parameters
     ----------
-    folder_location : str
-        The location of the folder containing the CoreMS HDF5 files.
-    manifest_file : str
-        The location of the manifest file containing the sample names, order, and batch.
-        This must be a csv with the following columns: 'sample_name', 'order', 'batch'.
-        Other fields can be included in the manifest file, but these are required.
-    cores : int
-        The number of cores to use for multiprocessing. Default is 1.
+    folder_location : Path
+        Folder containing .corems subdirectories with HDF5 files.
+    manifest_file : Path, optional
+        Manifest CSV with columns: sample_name, order, batch, center, time.
+        One sample must have center='TRUE' for RT alignment.
+        If None, auto-generates from folder contents. Default: None.
+    cores : int, optional
+        Number of cores for multiprocessing. Default: 1.
+    auto_manifest_batch_threshold_hours : float, optional
+        Time gap (hours) for auto-generated batch separation. Default: 12.0.
+    auto_manifest_center_name : str, optional
+        Sample name for RT alignment center when auto-generating.
+        Must match a discovered sample. If None, uses middle sample. Default: None.
 
     Attributes
     ----------
-    folder_location : str
-        The location of the folder containing the CoreMS HDF5 files.
-    manifest_filepath : str
-        The location of the manifest file containing the sample names, order, and batch.
+    folder_location : Path
+        Folder containing CoreMS HDF5 files.
+    manifest_filepath : Path
+        Path to manifest file.
+    manifest : dict
+        Manifest data indexed by sample_name.
     """
     def __init__(
             self, 
-            folder_location: str, 
-            manifest_file: str, 
-            cores: int = 1
+            folder_location: Path, 
+            manifest_file: Path = None, 
+            cores: int = 1,
+            auto_manifest_batch_threshold_hours: float = 12.0,
+            auto_manifest_center_name: str = None
             ):
-        # Check for folder location and manifest file
+        # Check for folder location
+        folder_location = Path(folder_location)
         if not folder_location.exists():
             raise FileNotFoundError(f"Folder location {folder_location} not found.")
-        if not manifest_file.exists():
-            raise FileNotFoundError(f"Manifest file {manifest_file} not found.")
-
-        # Check if the manifest file is a CSV
-        if manifest_file.suffix != ".csv":
-            raise ValueError("Manifest file must be a CSV.")
+        
+        # Auto-generate manifest if not provided
+        if manifest_file is None:
+            print(f"No manifest file provided. Auto-generating manifest from {folder_location}")
+            manifest_file = create_manifest_from_folder(
+                folder_path=folder_location,
+                output_path=folder_location / "manifest_auto.csv",
+                batch_time_threshold_hours=auto_manifest_batch_threshold_hours,
+                center_name=auto_manifest_center_name,
+                overwrite=True
+            )
+        else:
+            manifest_file = Path(manifest_file)
+            if not manifest_file.exists():
+                raise FileNotFoundError(f"Manifest file {manifest_file} not found.")
+            
+            # Check if the manifest file is a CSV
+            if manifest_file.suffix != ".csv":
+                raise ValueError("Manifest file must be a CSV.")
 
         self.folder_location = folder_location
         self._manifest_dict = None
@@ -691,6 +868,14 @@ class ReadCoreMSHDFMassSpectraCollection:
             hdf5_file = corems_dir / f"{sample_name}.hdf5"
             if not hdf5_file.exists():
                 raise FileNotFoundError(f"HDF5 file for {sample_name} not found.")
+        
+        # Check that at least one sample has center='TRUE' for retention time alignment
+        center_values = [sample_data.get('center') for sample_data in self._manifest_dict.values()]
+        if not any(center_val == 'TRUE' or center_val == True for center_val in center_values):
+            raise ValueError(
+                "Manifest must contain at least one sample with center='TRUE' for retention time alignment. "
+                "None of the samples in the manifest have center='TRUE'."
+            )
 
     def _validate_parameters(self):
         """Validate that the parameters used for all samples within a batch are the same."""
@@ -1001,6 +1186,10 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
         
         # Load induced mass features if they exist
         self._load_induced_mass_features(lcms_collection)
+        
+        # Combine induced mass features into the collection-level dataframe if any were loaded
+        if lcms_collection.missing_mass_features_searched:
+            lcms_collection._combine_mass_features(induced_features=True)
 
         return lcms_collection
     
