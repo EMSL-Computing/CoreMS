@@ -1559,6 +1559,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         self.collection_location = collection_location
         self._manifest_dict = manifest
         self.collection_parser = collection_parser
+        self.raw_files_relocated = False
 
         # These attributes are generally set by the parser during instantiation of this class
         self._lcms = {}
@@ -1567,6 +1568,10 @@ class LCMSCollection(LCMSCollectionCalculations):
         self.consensus_mass_features = {}
         self._parameters = LCMSCollectionParameters()
         self.isotopes_dropped = False
+
+        # These attributes are set during processing
+        self.rt_aligned = False
+        self.missing_mass_features_searched = False
 
     def _reorder_lcms_objects(self):
         """
@@ -1846,10 +1851,10 @@ class LCMSCollection(LCMSCollectionCalculations):
                 scan_df=scan_df,
                 data=data
                 )[f"ms{ms_level}"]
-            
-        elif parser_class_name == "MassSpectraParser":
+
+        elif parser_class_name == "ReadCoreMSHDFMassSpectra":
             raise ValueError(
-                "MassSpectraParser does not have a method to load raw data. Need to instantiate the original parser to access the raw data."
+                "ReadCoreMSHDFMassSpectra does not have a method to load raw data. Need to instantiate the original parser to access the raw data."
             )
 
     def drop_raw_data(self, sample_idx: int, ms_level = 1) -> None:
@@ -1939,8 +1944,9 @@ class LCMSCollection(LCMSCollectionCalculations):
                     f"Tried extensions: {', '.join(raw_extensions)}"
                 )
             
-            # Update the raw file location
+            # Update the raw file location and set flag that raw files have been relocated
             lcms_obj.raw_file_location = new_raw_file
+        self.raw_files_relocated = True
 
     def collection_pivot_table(self, attribute = 'coll_mf_id', verbose = True):
         """Generate a pivot table of all regular and induced mass features in
@@ -2139,6 +2145,19 @@ class LCMSCollection(LCMSCollectionCalculations):
     def raw_files(self):
         """Returns a list of raw files in the collection."""
         return [x.raw_file_location for x in self]
+    
+    @property
+    def rt_alignments(self):
+        """Returns a dictionary of retention time alignments for the collection."""
+        if self.rt_aligned:
+            _rt_alignments = {}
+            # Construct a dictionary of aligned retention times (stored on each LCMS object within the collection, not the collection itself)
+            for i, lcms_obj in enumerate(self):
+                aligned_times = [x for k, x in sorted(lcms_obj._scan_info["scan_time_aligned"].items())]
+                _rt_alignments[i] = aligned_times
+            return _rt_alignments
+        else:
+            return None
     
     @property
     def cluster_feature_dictionary(self):

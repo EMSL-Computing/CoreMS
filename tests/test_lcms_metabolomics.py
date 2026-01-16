@@ -3,6 +3,7 @@ import shutil
 import numpy as np
 
 from corems.mass_spectra.output.export import LCMSMetabolomicsExport
+from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.molecular_id.search.database_interfaces import MSPInterface
 from corems.encapsulation.factory.parameters import LCMSParameters, reset_lcms_parameters, reset_ms_parameters
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
@@ -123,25 +124,30 @@ def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
     assert report['Ion Formula'][1] == 'C24 H47 O2'
     assert report['chebi'][1] == 28866
 
-    # Test parameter re-import by loading the HDF5 file and comparing parameters
+    # Reload the saved lcms object and check that mass features are still present
     parser = ReadCoreMSHDFMassSpectra(
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab.corems/Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab.hdf5"
     )
-    lcms_obj_reimported = parser.get_lcms_obj()
+    myLCMSobj2 = parser.get_lcms_obj()
 
-    # Check that the parameters match, including the new peak metrics filtering parameters
-    assert lcms_obj_reimported.parameters == lcms_obj.parameters, \
-        "Re-imported parameters should match original parameters"
-    
+    # Check that the parameters match
+    assert myLCMSobj2.parameters == lcms_obj.parameters
+
     # Specifically check the new peak metrics filtering parameters
-    assert lcms_obj_reimported.parameters.lc_ms.remove_mass_features_by_peak_metrics
-    assert lcms_obj_reimported.parameters.lc_ms.mass_feature_attribute_filter_dict == {
+    assert myLCMSobj2.parameters.lc_ms.remove_mass_features_by_peak_metrics
+    assert myLCMSobj2.parameters.lc_ms.mass_feature_attribute_filter_dict == {
         'dispersity_index': {'value': 0.5, 'operator': '<'}
     }
-    
-    # Test that the number of mass features is preserved in the re-import
-    assert len(lcms_obj_reimported.mass_features) == len(lcms_obj.mass_features), \
-        "Re-imported LCMS object should have the same number of mass features as original"
+
+    # Check that the spectra parser class is the same as the original parser and that we can plot a mass spectrum using the original parser
+    assert myLCMSobj2.spectra_parser_class.__name__ == "ImportMassSpectraThermoMSFileReader"
+    myLCMSobj2.spectra_parser.get_mass_spectrum_from_scan(1, spectrum_mode="profile").plot_centroid()
+
+    # Check that the mass features dataframe is the same as the original
+    df2 = myLCMSobj2.mass_features_to_df()
+    df1 = lcms_obj.mass_features_to_df()
+    assert df2.shape == df1.shape
+    myLCMSobj2.mass_features[0].plot(return_fig=False)
     
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
     shutil.rmtree(
