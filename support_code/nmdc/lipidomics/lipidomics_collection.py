@@ -137,5 +137,7 @@ if __name__ == "__main__":
     results1 = lcms_collection.collection_pivot_table(attribute = 'intensity')
     results2 = lcms_collection.collection_consensus_report(how = 'intensity')
     results3 = lcms_collection.collection_consensus_report(how = 'median')
-        
+    
+    #TODO KRH: Add visualization of a consensus mass feature
+    #TODO KRH: Add visualization of matched spectrum with consensus mass feature
     #TODO KRH: Add code to deal with annotations of features in the collection context
