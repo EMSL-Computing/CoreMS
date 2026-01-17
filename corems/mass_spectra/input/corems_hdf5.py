@@ -503,13 +503,15 @@ class ReadCoreMSHDFMassSpectra(
                 "Parameters file must be in JSON format, TOML format is not yet supported."
             )
 
-    def import_mass_features(self, mass_spectra) -> None:
+    def import_mass_features(self, mass_spectra, mf_ids=None) -> None:
         """Imports the mass features from the HDF5 file.
 
         Parameters
         ----------
         mass_spectra : LCMSBase | MassSpectraBase
             The MassSpectraBase or LCMSBase object to populate with mass features.
+        mf_ids : list, optional
+            A list of mass feature IDs to import. If None, all mass features are imported.
 
         Returns
         -------
@@ -520,6 +522,8 @@ class ReadCoreMSHDFMassSpectra(
         dict_group_load = self.h5pydata["mass_features"]
         dict_group_keys = dict_group_load.keys()
         for k in dict_group_keys:
+            if mf_ids is not None and int(k) not in mf_ids:
+                continue
             # Instantiate the MassFeature object
             mass_feature = LCMSMassFeature(
                 mass_spectra,

@@ -503,6 +503,74 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             raise ValueError("ms_level must be 1 or 2")
         self._ms_unprocessed[ms_level] = None
 
+    def _find_ms2_scans_for_mass_features(self, mf_ids=None, scan_filter=None):
+        """Find MS2 scans associated with mass features.
+        
+        This helper method finds MS2 scans that match mass features based on RT and m/z tolerances.
+        It updates the ms2_scan_numbers attribute on each mass feature.
+        
+        Parameters
+        ----------
+        mf_ids : list of int, optional
+            List of mass feature IDs to find MS2 for. If None, finds for all mass features.
+        scan_filter : str, optional
+            Filter string for MS2 scans (e.g., 'hcd'). Default is None.
+            
+        Returns
+        -------
+        list
+            List of unique MS2 scan numbers found across all mass features.
+            
+        Raises
+        ------
+        ValueError
+            If no MS2 scans are found in the dataset.
+        """
+        # Get mass features to process
+        if mf_ids is None:
+            mf_ids = list(self.mass_features.keys())
+        
+        # Get mass features dataframe
+        mf_df = self.mass_features_to_df()
+        mf_df = mf_df.loc[mf_ids].copy()
+        
+        # Find ms2 scans that have a precursor m/z value
+        ms2_scans = self.scan_df[self.scan_df.ms_level == 2]
+        ms2_scans = ms2_scans[~ms2_scans.precursor_mz.isna()]
+        ms2_scans = ms2_scans[ms2_scans.tic > 0]
+        
+        if len(ms2_scans) == 0:
+            raise ValueError("No DDA scans found in dataset")
+        
+        if scan_filter is not None:
+            ms2_scans = ms2_scans[ms2_scans.scan_text.str.contains(scan_filter)]
+        
+        # Get tolerances from parameters
+        time_tol = self.parameters.lc_ms.ms2_dda_rt_tolerance
+        mz_tol = self.parameters.lc_ms.ms2_dda_mz_tolerance
+        
+        # For each mass feature, find the ms2 scans that are within the roi scan time and mz range
+        dda_scans = []
+        for i, row in mf_df.iterrows():
+            ms2_scans_filtered = ms2_scans[
+                ms2_scans.scan_time.between(
+                    row.scan_time - time_tol, row.scan_time + time_tol
+                )
+            ]
+            ms2_scans_filtered = ms2_scans_filtered[
+                ms2_scans_filtered.precursor_mz.between(
+                    row.mz - mz_tol, row.mz + mz_tol
+                )
+            ]
+            scan_list = ms2_scans_filtered.scan.tolist()
+            if scan_list:
+                self.mass_features[i].ms2_scan_numbers = (
+                    scan_list + list(self.mass_features[i].ms2_scan_numbers)
+                )
+                dda_scans.extend(scan_list)
+        
+        return list(set(dda_scans))
+    
     def add_associated_ms2_dda(
         self,
         auto_process=True,
@@ -548,48 +616,19 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         # reconfigure ms_params to get the correct mass spectrum parameters from the key
         ms_params = self.parameters.mass_spectrum[ms_params_key]
 
-        mf_df = self.mass_features_to_df().copy()
-        # Find ms2 scans that have a precursor m/z value
-        ms2_scans = self.scan_df[self.scan_df.ms_level == 2]
-        ms2_scans = ms2_scans[~ms2_scans.precursor_mz.isna()]
-        # drop ms2 scans that have no tic
-        ms2_scans = ms2_scans[ms2_scans.tic > 0]
-        if ms2_scans is None:
-            raise ValueError("No DDA scans found in dataset")
-
-        if scan_filter is not None:
-            ms2_scans = ms2_scans[ms2_scans.scan_text.str.contains(scan_filter)]
-        # set tolerance in rt space (in minutes) and mz space (in daltons)
-        time_tol = self.parameters.lc_ms.ms2_dda_rt_tolerance
-        mz_tol = self.parameters.lc_ms.ms2_dda_mz_tolerance
-
-        # for each mass feature, find the ms2 scans that are within the roi scan time and mz range
-        dda_scans = []
-        for i, row in mf_df.iterrows():
-            ms2_scans_filtered = ms2_scans[
-                ms2_scans.scan_time.between(
-                    row.scan_time - time_tol, row.scan_time + time_tol
-                )
-            ]
-            ms2_scans_filtered = ms2_scans_filtered[
-                ms2_scans_filtered.precursor_mz.between(
-                    row.mz - mz_tol, row.mz + mz_tol
-                )
-            ]
-            dda_scans = dda_scans + ms2_scans_filtered.scan.tolist()
-            self.mass_features[i].ms2_scan_numbers = (
-                ms2_scans_filtered.scan.tolist()
-                + self.mass_features[i].ms2_scan_numbers
-            )
-        # add to _ms attribute
+        # Find MS2 scans for all mass features
+        dda_scans = self._find_ms2_scans_for_mass_features(scan_filter=scan_filter)
+        
+        # Load MS2 spectra
         self.add_mass_spectra(
-            scan_list=list(set(dda_scans)),
+            scan_list=dda_scans,
             auto_process=auto_process,
             spectrum_mode=spectrum_mode,
             use_parser=use_parser,
             ms_params=ms_params,
         )
-        # associate appropriate _ms attribute to appropriate mass feature's ms2_mass_spectra attribute
+        
+        # Associate appropriate _ms attribute to appropriate mass feature's ms2_mass_spectra attribute
         for mf_id in self.mass_features:
             if self.mass_features[mf_id].ms2_scan_numbers is not None:
                 for dda_scan in self.mass_features[mf_id].ms2_scan_numbers:

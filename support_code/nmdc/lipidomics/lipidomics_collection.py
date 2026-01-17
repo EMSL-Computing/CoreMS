@@ -15,6 +15,7 @@ if __name__ == "__main__":
     ncores = 6
 
     # Instantiate the parser
+    # Note, these samples have not had the DDA MS2 scans associated or MS1 data loaded 
     parser = ReadCoreMSHDFMassSpectraCollection(
             folder_location = collection_path,
             manifest_file = manifest_file,
@@ -62,6 +63,14 @@ if __name__ == "__main__":
     start_time = time.time()
     lcms_collection.fill_missing_cluster_features()
     print("Time to gap fill missing cluster features: ", time.time() - start_time, "seconds, using", ncores, " cores")
+
+    # Reload representative mass features with MS2 data associated
+    sample_mf_map = lcms_collection.reload_representative_mass_features(
+            add_ms2=True,
+            auto_process_ms2=True,
+            ms2_spectrum_mode=None,
+            ms2_scan_filter=None
+        )
 
     # Check save and load functionality for LCMSCollection
     print("Saving and re-loading LCMS collection to test save/load functionality")

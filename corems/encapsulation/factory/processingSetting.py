@@ -1193,7 +1193,7 @@ class LCMSCollectionSettings:
     consensus_representative_metrics_available: tuple = ('intensity', 'persistence', 'area')
     """
     Metric used to determine the most representative sample for a consensus mass feature.
-    Options: 'intensity', 'persistence', 'area', or any column in mass_features_dataframe.
+    Options: 'intensity', 'persistence', 'area'
     Default is 'intensity'.
     """
 

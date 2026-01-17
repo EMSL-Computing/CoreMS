@@ -3301,6 +3301,406 @@ class LCMSCollectionCalculations:
             'mf_id': max_idx,
             representative_metric: representative_mf[representative_metric]
         }
+    
+    def add_consensus_ms1(self, auto_process=True, use_parser=True, spectrum_mode=None):
+        """
+        Add MS1 spectra to representative samples for all consensus mass feature clusters.
+        
+        For each cluster, identifies the most representative sample (using
+        get_most_representative_sample_for_cluster) and adds the associated MS1 spectrum
+        to that sample's mass feature. First checks if MS1 data is already saved in HDF5,
+        then loads raw data if needed using parallelized approach.
+        
+        Must be run after add_consensus_mass_features(). Uses same logic as
+        add_associated_ms1 but only for mass features associated with clusters.
+        
+        Parameters
+        ----------
+        auto_process : bool, optional
+            If True, auto-processes MS1 spectra before adding. Default is True.
+        use_parser : bool, optional
+            If True, invoke the spectra parser to get MS1 spectra. Default is True.
+        spectrum_mode : str or None, optional
+            The spectrum mode to use. If None, determines from parser.
+            Default is None.
+            
+        Returns
+        -------
+        None
+            Updates mass features in each sample with associated MS1 spectra.
+            
+        Raises
+        ------
+        ValueError
+            If cluster_summary_dataframe is not set (run add_consensus_mass_features first).
+            
+        Notes
+        -----
+        - Checks one sample to see if MS1 data exists in HDF5
+        - If not in HDF5, loads raw data and generates MS1 using parallelized approach
+        - Uses encapsulated parameters from lc_ms.ms1_scans_to_average
+        - Only processes mass features that are part of clusters
+        - Vectorized for speed using batch processing per sample
+        - Reloads mass features for samples when needed (if loaded with load_light=True)
+        
+        See Also
+        --------
+        get_most_representative_sample_for_cluster : Gets representative sample
+        get_ms1_for_cluster : Helper to retrieve MS1 for specific cluster
+        add_associated_ms1 : Single-sample MS1 addition method
+        """
+        #TODO: Refactor to use _add_consensus_ms1_for_sample helper method
+        raise NotImplementedError("This method is bad, remove before committing.")
+        # Validate prerequisites
+        if not hasattr(self, 'cluster_summary_dataframe') or self.cluster_summary_dataframe is None:
+            raise ValueError(
+                "cluster_summary_dataframe not found. Must run add_consensus_mass_features() first."
+            )
+        
+        # Check if MS1 data exists in HDF5 by checking one sample
+        sample_0 = self[0]
+        ms1_in_hdf5 = hasattr(sample_0, '_ms') and len(sample_0._ms) > 0
+        
+        # Get all unique clusters
+        clusters = self.mass_features_dataframe['cluster'].unique()
+        
+        # For each cluster, get the representative sample
+        # Build a dictionary of sample_id -> list of mf_ids that need MS1
+        sample_mf_map = {}
+        for cluster_id in clusters:
+            rep_info = self.get_most_representative_sample_for_cluster(cluster_id)
+            sample_id = rep_info['sample_id']
+            mf_id = rep_info['mf_id']
+            
+            if sample_id not in sample_mf_map:
+                sample_mf_map[sample_id] = []
+            sample_mf_map[sample_id].append(mf_id)
+        
+        # Reload mass features for samples that need them
+        # Check if the specific mass features we need are loaded
+        for sample_id in sample_mf_map.keys():
+            # Get local_mf_ids from collection mf_ids
+            local_mf_ids = []
+            for coll_mf_id in sample_mf_map[sample_id]:
+                parts = str(coll_mf_id).split('_', 1)
+                if len(parts) == 2:
+                    try:
+                        local_mf_id = int(parts[1])
+                    except ValueError:
+                        local_mf_id = parts[1]
+                else:
+                    local_mf_id = coll_mf_id
+                local_mf_ids.append(local_mf_id)
+            
+            # Check if all needed mass features are loaded
+            sample = self[sample_id]
+            missing_mfs = [local_id for local_id in local_mf_ids if local_id not in sample.mass_features]
+            
+            print(f"DEBUG add_consensus_ms1: sample_id={sample_id}, needed={len(local_mf_ids)}, loaded={len(sample.mass_features)}, missing={len(missing_mfs)}")
+            
+            if len(missing_mfs) > 0:
+                # Need to reload mass features for this sample
+                # Only reload the specific mass features we need
+                print(f"DEBUG: Reloading {len(sample_mf_map[sample_id])} mass features for sample {sample_id}")
+                self._reload_sample_mass_features(sample_id, mf_ids_to_load=sample_mf_map[sample_id])
+        
+        # Process each sample that has representative mass features
+        if self.parameters.lcms_collection.cores == 1:
+            for sample_id in tqdm(sample_mf_map.keys(), desc="Adding consensus MS1", unit="sample"):
+                self._add_consensus_ms1_for_sample(
+                    sample_id, 
+                    sample_mf_map[sample_id],
+                    ms1_in_hdf5,
+                    auto_process,
+                    use_parser,
+                    spectrum_mode
+                )
+        else:
+            # Parallel processing
+            if self.parameters.lcms_collection.cores > len(sample_mf_map):
+                ncores = len(sample_mf_map)
+            else:
+                ncores = self.parameters.lcms_collection.cores
+            
+            pool = multiprocessing.Pool(ncores)
+            pool.starmap(
+                self._add_consensus_ms1_for_sample,
+                [(sid, sample_mf_map[sid], ms1_in_hdf5, auto_process, use_parser, spectrum_mode) 
+                 for sid in sample_mf_map.keys()]
+            )
+            pool.close()
+            pool.join()
+    
+    def reload_representative_mass_features(self, add_ms2=False, auto_process_ms2=True, ms2_spectrum_mode=None, ms2_scan_filter=None):
+        """
+        Reload mass features for all representative samples in the cluster summary.
+        
+        This method is useful when the collection was loaded with load_light=True,
+        which stores mass features only in the collection dataframe. This reloads
+        the specific mass features that are representatives for each cluster,
+        allowing them to be accessed as LCMSMassFeature objects.
+        
+        Parameters
+        ----------
+        add_ms2 : bool, optional
+            If True, also loads and associates MS2 spectra with mass features. Default is False.
+        auto_process_ms2 : bool, optional
+            If True and add_ms2=True, auto-processes MS2 spectra. Default is True.
+        ms2_spectrum_mode : str or None, optional
+            Spectrum mode for MS2 spectra. If None, determines from parser. Default is None.
+        ms2_scan_filter : str or None, optional
+            Filter string for MS2 scans (e.g., 'hcd'). Default is None.
+        
+        Returns
+        -------
+        dict
+            Dictionary mapping sample_id to list of reloaded mf_ids.
+            
+        Raises
+        ------
+        ValueError
+            If cluster_summary_dataframe is not set (run add_consensus_mass_features first).
+            
+        Notes
+        -----
+        - Only reloads mass features that are cluster representatives
+        - Uses get_most_representative_sample_for_cluster() to determine which to reload
+        - More memory-efficient than reloading all mass features
+        - Parallelized based on lcms_collection.cores parameter
+        - MS2 association uses same logic as add_associated_ms2_dda()
+        
+        See Also
+        --------
+        _reload_sample_mass_features : Low-level method to reload specific mass features
+        get_most_representative_sample_for_cluster : Gets representative sample for cluster
+        """
+        # Validate prerequisites
+        if not hasattr(self, 'cluster_summary_dataframe') or self.cluster_summary_dataframe is None:
+            raise ValueError(
+                "cluster_summary_dataframe not found. Must run add_consensus_mass_features() first."
+            )
+        
+        # Get all unique clusters
+        clusters = self.mass_features_dataframe['cluster'].unique()
+        
+        # Build a dictionary of sample_id -> list of mf_ids that are representatives
+        sample_mf_map = {}
+        for cluster_id in clusters:
+            rep_info = self.get_most_representative_sample_for_cluster(cluster_id)
+            sample_id = rep_info['sample_id']
+            mf_id = rep_info['mf_id']
+            
+            if sample_id not in sample_mf_map:
+                sample_mf_map[sample_id] = []
+            sample_mf_map[sample_id].append(mf_id)
+        
+        # Reload mass features for each sample (parallelized)
+        if self.parameters.lcms_collection.cores == 1:
+            # Serial processing
+            from tqdm import tqdm
+            for sample_id in tqdm(sample_mf_map.keys(), desc="Reloading representative mass features", unit="sample"):
+                mf_ids = sample_mf_map[sample_id]
+                self._reload_sample_mass_features(sample_id, mf_ids_to_load=mf_ids, add_ms2=add_ms2, 
+                                                  auto_process_ms2=auto_process_ms2, ms2_spectrum_mode=ms2_spectrum_mode,
+                                                  ms2_scan_filter=ms2_scan_filter)
+        else:
+            # Parallel processing
+            import multiprocessing
+            from tqdm import tqdm
+            
+            if self.parameters.lcms_collection.cores > len(sample_mf_map):
+                ncores = len(sample_mf_map)
+            else:
+                ncores = self.parameters.lcms_collection.cores
+            
+            pool = multiprocessing.Pool(ncores)
+            
+            # Build arguments list for starmap
+            args_list = [
+                (sample_id, sample_mf_map[sample_id], add_ms2, auto_process_ms2, 
+                 ms2_spectrum_mode, ms2_scan_filter, False)
+                for sample_id in sample_mf_map.keys()
+            ]
+            
+            # Execute in parallel
+            mp_result = pool.starmap(self._reload_sample_mass_features, args_list)
+            pool.close()
+            pool.join()
+            
+            # Collect results back into samples
+            for i, sample_id in enumerate(tqdm(sample_mf_map.keys(), desc="Collecting reloaded mass features", unit="sample")):
+                self[sample_id].mass_features = mp_result[i]
+        
+        return sample_mf_map
+    
+    def _associate_ms2_with_mass_features(self, sample, local_mf_ids, auto_process=True, 
+                                          spectrum_mode=None, scan_filter=None):
+        """
+        Associate MS2 spectra with specific mass features in a sample.
+        
+        Uses the LCMSBase helper method to find and load MS2 scans for the specified mass features.
+        
+        Parameters
+        ----------
+        sample : LCMSBase
+            The sample object containing mass features and scan data.
+        local_mf_ids : list of int
+            List of local (sample-level) mass feature IDs to find MS2 for.
+        auto_process : bool, optional
+            If True, auto-processes the MS2 spectra. Default is True.
+        spectrum_mode : str or None, optional
+            Spectrum mode for MS2 spectra. If None, determines from parser. Default is None.
+        scan_filter : str or None, optional
+            Filter string for MS2 scans (e.g., 'hcd'). Default is None.
+            
+        Returns
+        -------
+        dict
+            Dictionary of scan_number -> MassSpectrum objects for the loaded MS2 spectra.
+        """
+        # Check if we have scan data
+        if not hasattr(sample, 'scan_df') or sample.scan_df is None:
+            return {}
+        
+        # Separate mass features into those that need scan finding vs those that already have scans
+        mfs_needing_scan_finding = []
+        unique_dda_scans = set()
+        
+        for mf_id in local_mf_ids:
+            if mf_id not in sample.mass_features:
+                continue
+            mf = sample.mass_features[mf_id]
+            # If this mass feature already has MS2 scans, add them to our set
+            if mf.ms2_scan_numbers is not None and len(mf.ms2_scan_numbers) > 0:
+                unique_dda_scans.update(mf.ms2_scan_numbers)
+            else:
+                # Otherwise, we need to find scans for this mass feature
+                mfs_needing_scan_finding.append(mf_id)
+        
+        # Only run the scan finding for mass features that need it
+        if mfs_needing_scan_finding:
+            found_scans = sample._find_ms2_scans_for_mass_features(
+                mf_ids=mfs_needing_scan_finding,
+                scan_filter=scan_filter
+            )
+            unique_dda_scans.update(found_scans)
+
+        if len(unique_dda_scans) == 0:
+            return {}
+        
+        # Get ms2 parameters from sample
+        #TODO KRH: deal with different ms2 scan types here (CID vs HCD), may need to add scan translator to the initializeion
+        ms_params = sample.parameters.mass_spectrum['ms2']
+
+        # Load MS2 spectra (convert set to list)
+        sample.add_mass_spectra(
+            scan_list=list(unique_dda_scans),
+            auto_process=auto_process,
+            spectrum_mode=spectrum_mode,
+            use_parser=True,
+            ms_params=ms_params,
+        )
+        
+        # Associate MS2 spectra with mass features
+        for mf_id in local_mf_ids:
+            if mf_id not in sample.mass_features:
+                continue
+            if sample.mass_features[mf_id].ms2_scan_numbers:
+                for dda_scan in sample.mass_features[mf_id].ms2_scan_numbers:
+                    if dda_scan in sample._ms:
+                        sample.mass_features[mf_id].ms2_mass_spectra[dda_scan] = sample._ms[dda_scan]
+        
+        # Return only the MS2 spectra we loaded (for parallel processing)
+        return {scan: sample._ms[scan] for scan in unique_dda_scans if scan in sample._ms}
+    
+    def _reload_sample_mass_features(self, sample_id, mf_ids_to_load=None, add_ms2=False, 
+                                     auto_process_ms2=True, ms2_spectrum_mode=None, ms2_scan_filter=None,
+                                     inplace=True):
+        """
+        Reload specific mass features for a sample from HDF5.
+        
+        This is useful when the collection was loaded with load_light=True,
+        which stores mass features only in the collection dataframe and not
+        as LCMSMassFeature objects in individual samples.
+        
+        Parameters
+        ----------
+        sample_id : int
+            The sample ID to reload mass features for.
+        mf_ids_to_load : list of str, optional
+            List of collection-level mf_ids (format: '{sample_id}_{local_mf_id}') to load.
+            If None, loads all mass features for the sample.
+        add_ms2 : bool, optional
+            If True, also loads and associates MS2 spectra. Default is False.
+        auto_process_ms2 : bool, optional
+            If True, auto-processes MS2 spectra. Default is True.
+        ms2_spectrum_mode : str or None, optional
+            Spectrum mode for MS2 spectra. Default is None.
+        ms2_scan_filter : str or None, optional
+            Filter string for MS2 scans. Default is None.
+        inplace : bool, optional
+            If True, updates the sample's mass_features in place. If False, returns the
+            mass_features dictionary (for multiprocessing). Default is True.
+            
+        Returns
+        -------
+        dict or None
+            If inplace=False, returns dictionary of mass features.
+            Otherwise returns None and updates object in place.
+        """
+        sample = self[sample_id]
+        sample_name = self.samples[sample_id]
+        
+        # Check if we have a collection parser that can reload
+        if not hasattr(self, 'collection_parser') or self.collection_parser is None:
+            print("Warning: Cannot reload mass features - no collection_parser available")
+            if not inplace:
+                return {}
+            return
+        
+        # Get the HDF5 file for this sample
+        hdf5_file = self.collection_parser.folder_location / f"{sample_name}.corems/{sample_name}.hdf5"
+        
+        if not hdf5_file.exists():
+            print(f"Warning: HDF5 file not found for sample {sample_name}: {hdf5_file}")
+            if not inplace:
+                return {}
+            return
+        
+        # Import here to avoid circular imports
+        from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
+        
+        # If specific mf_ids requested, extract the local mf_ids we need
+        local_mf_ids_to_load = None
+        if mf_ids_to_load is not None:
+            local_mf_ids_to_load = set()
+            for coll_mf_id in mf_ids_to_load:
+                # Parse collection-level ID to get local ID
+                parts = str(coll_mf_id).split('_', 1)
+                if len(parts) == 2:
+                    try:
+                        local_mf_ids_to_load.add(int(parts[1]))
+                    except ValueError:
+                        local_mf_ids_to_load.add(parts[1])
+        
+        # Reload mass features from HDF5
+        with ReadCoreMSHDFMassSpectra(hdf5_file) as parser:
+            # Load mass features - if specific IDs requested, only load those
+            parser.import_mass_features(sample, mf_ids=local_mf_ids_to_load)
+        
+        # If add_ms2, associate MS2 spectra with the loaded mass features
+        if add_ms2 and local_mf_ids_to_load is not None:
+            self._associate_ms2_with_mass_features(
+                sample, 
+                list(local_mf_ids_to_load),
+                auto_process=auto_process_ms2,
+                spectrum_mode=ms2_spectrum_mode,
+                scan_filter=ms2_scan_filter
+            )
+        
+        # Return mass features if not inplace (for multiprocessing)
+        if not inplace:
+            return sample.mass_features
         
     def add_sparse_distance_matrix(self, features):
         if features is None:
