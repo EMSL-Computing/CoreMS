@@ -3302,135 +3302,6 @@ class LCMSCollectionCalculations:
             representative_metric: representative_mf[representative_metric]
         }
     
-    def add_consensus_ms1(self, auto_process=True, use_parser=True, spectrum_mode=None):
-        """
-        Add MS1 spectra to representative samples for all consensus mass feature clusters.
-        
-        For each cluster, identifies the most representative sample (using
-        get_most_representative_sample_for_cluster) and adds the associated MS1 spectrum
-        to that sample's mass feature. First checks if MS1 data is already saved in HDF5,
-        then loads raw data if needed using parallelized approach.
-        
-        Must be run after add_consensus_mass_features(). Uses same logic as
-        add_associated_ms1 but only for mass features associated with clusters.
-        
-        Parameters
-        ----------
-        auto_process : bool, optional
-            If True, auto-processes MS1 spectra before adding. Default is True.
-        use_parser : bool, optional
-            If True, invoke the spectra parser to get MS1 spectra. Default is True.
-        spectrum_mode : str or None, optional
-            The spectrum mode to use. If None, determines from parser.
-            Default is None.
-            
-        Returns
-        -------
-        None
-            Updates mass features in each sample with associated MS1 spectra.
-            
-        Raises
-        ------
-        ValueError
-            If cluster_summary_dataframe is not set (run add_consensus_mass_features first).
-            
-        Notes
-        -----
-        - Checks one sample to see if MS1 data exists in HDF5
-        - If not in HDF5, loads raw data and generates MS1 using parallelized approach
-        - Uses encapsulated parameters from lc_ms.ms1_scans_to_average
-        - Only processes mass features that are part of clusters
-        - Vectorized for speed using batch processing per sample
-        - Reloads mass features for samples when needed (if loaded with load_light=True)
-        
-        See Also
-        --------
-        get_most_representative_sample_for_cluster : Gets representative sample
-        get_ms1_for_cluster : Helper to retrieve MS1 for specific cluster
-        add_associated_ms1 : Single-sample MS1 addition method
-        """
-        #TODO: Refactor to use _add_consensus_ms1_for_sample helper method
-        raise NotImplementedError("This method is bad, remove before committing.")
-        # Validate prerequisites
-        if not hasattr(self, 'cluster_summary_dataframe') or self.cluster_summary_dataframe is None:
-            raise ValueError(
-                "cluster_summary_dataframe not found. Must run add_consensus_mass_features() first."
-            )
-        
-        # Check if MS1 data exists in HDF5 by checking one sample
-        sample_0 = self[0]
-        ms1_in_hdf5 = hasattr(sample_0, '_ms') and len(sample_0._ms) > 0
-        
-        # Get all unique clusters
-        clusters = self.mass_features_dataframe['cluster'].unique()
-        
-        # For each cluster, get the representative sample
-        # Build a dictionary of sample_id -> list of mf_ids that need MS1
-        sample_mf_map = {}
-        for cluster_id in clusters:
-            rep_info = self.get_most_representative_sample_for_cluster(cluster_id)
-            sample_id = rep_info['sample_id']
-            mf_id = rep_info['mf_id']
-            
-            if sample_id not in sample_mf_map:
-                sample_mf_map[sample_id] = []
-            sample_mf_map[sample_id].append(mf_id)
-        
-        # Reload mass features for samples that need them
-        # Check if the specific mass features we need are loaded
-        for sample_id in sample_mf_map.keys():
-            # Get local_mf_ids from collection mf_ids
-            local_mf_ids = []
-            for coll_mf_id in sample_mf_map[sample_id]:
-                parts = str(coll_mf_id).split('_', 1)
-                if len(parts) == 2:
-                    try:
-                        local_mf_id = int(parts[1])
-                    except ValueError:
-                        local_mf_id = parts[1]
-                else:
-                    local_mf_id = coll_mf_id
-                local_mf_ids.append(local_mf_id)
-            
-            # Check if all needed mass features are loaded
-            sample = self[sample_id]
-            missing_mfs = [local_id for local_id in local_mf_ids if local_id not in sample.mass_features]
-            
-            print(f"DEBUG add_consensus_ms1: sample_id={sample_id}, needed={len(local_mf_ids)}, loaded={len(sample.mass_features)}, missing={len(missing_mfs)}")
-            
-            if len(missing_mfs) > 0:
-                # Need to reload mass features for this sample
-                # Only reload the specific mass features we need
-                print(f"DEBUG: Reloading {len(sample_mf_map[sample_id])} mass features for sample {sample_id}")
-                self._reload_sample_mass_features(sample_id, mf_ids_to_load=sample_mf_map[sample_id])
-        
-        # Process each sample that has representative mass features
-        if self.parameters.lcms_collection.cores == 1:
-            for sample_id in tqdm(sample_mf_map.keys(), desc="Adding consensus MS1", unit="sample"):
-                self._add_consensus_ms1_for_sample(
-                    sample_id, 
-                    sample_mf_map[sample_id],
-                    ms1_in_hdf5,
-                    auto_process,
-                    use_parser,
-                    spectrum_mode
-                )
-        else:
-            # Parallel processing
-            if self.parameters.lcms_collection.cores > len(sample_mf_map):
-                ncores = len(sample_mf_map)
-            else:
-                ncores = self.parameters.lcms_collection.cores
-            
-            pool = multiprocessing.Pool(ncores)
-            pool.starmap(
-                self._add_consensus_ms1_for_sample,
-                [(sid, sample_mf_map[sid], ms1_in_hdf5, auto_process, use_parser, spectrum_mode) 
-                 for sid in sample_mf_map.keys()]
-            )
-            pool.close()
-            pool.join()
-    
     def reload_representative_mass_features(self, add_ms2=False, auto_process_ms2=True, ms2_spectrum_mode=None, ms2_scan_filter=None):
         """
         Reload mass features for all representative samples in the cluster summary.
@@ -4422,3 +4293,431 @@ class LCMSCollectionCalculations:
         
         for sample_name in self.samples:
             self._lcms[sample_name].mass_features = {}
+    
+    def process_samples_pipeline(self, operations, description="Processing samples", keep_raw_data=False):
+        """
+        Execute a pipeline of operations on all samples in parallel.
+        
+        This method provides a flexible framework for performing multiple
+        sample-level operations in a single parallelized pass, which is more
+        efficient than calling separate methods sequentially.
+        
+        Parameters
+        ----------
+        operations : list of SampleOperation
+            List of operations to perform on each sample, in order.
+            Each operation should be an instance of a class derived from
+            SampleOperation (see lc_calc_operations module).
+        description : str, optional
+            Progress bar description. Default is "Processing samples".
+        keep_raw_data : bool, optional
+            If True, keeps raw MS data loaded in memory after pipeline completes.
+            If False, cleans up raw data to free memory. Default is False.
+            
+        Returns
+        -------
+        dict
+            Dictionary with results from pipeline execution, keyed by operation name.
+            Structure: {operation_name: {sample_id: result, ...}, ...}
+            
+        Raises
+        ------
+        ValueError
+            If operations list is empty or contains invalid operations.
+            
+        Notes
+        -----
+        - Operations are executed sequentially within each sample
+        - Samples are processed in parallel based on parameters.lcms_collection.cores
+        - Each operation can have conditional execution via can_execute()
+        - Results are collected back via collect_results() method of each operation
+        - Failed operations for a sample are logged but don't halt processing
+        - Raw MS data loaded by operations is automatically cleaned up unless keep_raw_data=True
+        
+        Examples
+        --------
+        >>> from corems.mass_spectra.calc.lc_calc_operations import (
+        ...     GapFillOperation, ReloadFeaturesOperation
+        ... )
+        >>> ops = [
+        ...     GapFillOperation('gap_fill', expand_on_miss=True),
+        ...     ReloadFeaturesOperation('reload', add_ms2=True)
+        ... ]
+        >>> results = lcms_collection.process_samples_pipeline(ops)
+        
+        See Also
+        --------
+        lc_calc_operations : Module containing built-in operation classes
+        fill_and_process_features : Convenience method combining common operations
+        """
+        from corems.mass_spectra.calc.lc_calc_operations import SampleOperation
+        
+        # Validate operations
+        if not operations or len(operations) == 0:
+            raise ValueError("operations list cannot be empty")
+        
+        for op in operations:
+            if not isinstance(op, SampleOperation):
+                raise ValueError(f"All operations must be SampleOperation instances, got {type(op)}")
+        
+        # Prepare runtime parameters for each operation
+        # This is where we gather collection-level data that operations need
+        runtime_params = self._prepare_pipeline_runtime_params(operations)
+        runtime_params['keep_raw_data'] = keep_raw_data
+        
+        # Execute pipeline
+        sample_ct = len(self.samples)
+        
+        if self.parameters.lcms_collection.cores == 1:
+            # Serial processing
+            from tqdm import tqdm
+            results_by_operation = {op.name: {} for op in operations}
+            
+            for sample_id in tqdm(range(sample_ct), desc=description, unit="sample"):
+                sample_results = self._execute_sample_pipeline(
+                    sample_id, operations, runtime_params, inplace=True
+                )
+                # Collect results
+                for op_name, result in sample_results.items():
+                    results_by_operation[op_name][sample_id] = result
+        else:
+            # Parallel processing
+            import multiprocessing
+            from tqdm import tqdm
+            
+            if self.parameters.lcms_collection.cores > sample_ct:
+                ncores = sample_ct
+            else:
+                ncores = self.parameters.lcms_collection.cores
+            
+            pool = multiprocessing.Pool(ncores)
+            
+            # Build arguments for each sample
+            args_list = [
+                (sample_id, operations, runtime_params, False)
+                for sample_id in range(sample_ct)
+            ]
+            
+            # Execute in parallel
+            mp_results = pool.starmap(self._execute_sample_pipeline, args_list)
+            pool.close()
+            pool.join()
+            
+            # Collect results back into collection
+            results_by_operation = {op.name: {} for op in operations}
+            for sample_id in tqdm(range(sample_ct), desc=f"Collecting {description} results", unit="sample"):
+                sample_results = mp_results[sample_id]
+                
+                # Let each operation collect its results
+                for i, op in enumerate(operations):
+                    result = sample_results.get(op.name)
+                    if result is not None:
+                        op.collect_results(sample_id, result, self)
+                        results_by_operation[op.name][sample_id] = result
+        
+        return results_by_operation
+    
+    def _prepare_pipeline_runtime_params(self, operations):
+        """
+        Prepare runtime parameters needed by operations in the pipeline.
+        
+        This method gathers collection-level data that operations need,
+        such as cluster information for gap-filling or mf_ids for reloading.
+        
+        Parameters
+        ----------
+        operations : list of SampleOperation
+            List of operations that will be executed
+            
+        Returns
+        -------
+        dict
+            Dictionary of runtime parameters for operations
+        """
+        from corems.mass_spectra.calc.lc_calc_operations import (
+            GapFillOperation, ReloadFeaturesOperation
+        )
+        
+        runtime_params = {}
+        
+        # Check if any operation needs gap-fill parameters
+        needs_gap_fill = any(isinstance(op, GapFillOperation) for op in operations)
+        if needs_gap_fill:
+            # Prepare gap-fill parameters (same as fill_missing_cluster_features)
+            min_cluster_presence = self.parameters.lcms_collection.consensus_min_sample_fraction
+            expand_on_miss = self.parameters.lcms_collection.gap_fill_expand_on_miss
+            
+            summarydf = self.cluster_summary_dataframe
+            mfdf = self.mass_features_dataframe
+            sample_ct = len(self.samples)
+            
+            # Identify clusters needing gap-filling
+            # Note: cluster_summary_dataframe has 'cluster' as index, need to reset it
+            missingdf = summarydf.reset_index()[[
+                'cluster', 
+                'sample_id_nunique', 
+                'mz_min', 
+                'mz_max', 
+                'scan_time_aligned_min', 
+                'scan_time_aligned_max'
+            ]].copy()
+            missingdf = missingdf[missingdf.sample_id_nunique > min_cluster_presence * sample_ct]
+            missingdf = missingdf[missingdf.sample_id_nunique != sample_ct]
+            
+            if len(missingdf) > 0:
+                # Find which samples are missing for each cluster
+                missing_samples_list = []
+                for c in missingdf.cluster.to_numpy():
+                    cludf = mfdf[mfdf.cluster == c]
+                    missing = [x for x in mfdf.sample_id.unique() if x not in cludf.sample_id.unique()]
+                    missing_samples_list.append(missing)
+                missingdf['missing_samples'] = missing_samples_list
+                
+                # Calculate expanded search windows
+                mz_clu_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
+                rt_clu_tol = self.parameters.lcms_collection.consensus_rt_tol
+                missingdf['mz_max_allowed'] = missingdf.mz_max + mz_clu_tol * missingdf.mz_max
+                missingdf['mz_min_allowed'] = missingdf.mz_min - mz_clu_tol * missingdf.mz_min
+                missingdf['sta_max_allowed'] = missingdf.scan_time_aligned_max + rt_clu_tol * missingdf.scan_time_aligned_max
+                missingdf['sta_min_allowed'] = missingdf.scan_time_aligned_min - rt_clu_tol * missingdf.scan_time_aligned_min
+                
+                runtime_params['missingdf'] = missingdf
+                runtime_params['cluster_dict'] = self.cluster_feature_dictionary
+                runtime_params['expand_on_miss'] = expand_on_miss
+        
+        # Check if any operation needs reload parameters
+        needs_reload = any(isinstance(op, ReloadFeaturesOperation) for op in operations)
+        if needs_reload:
+            # Build sample_mf_map for reloading representatives
+            clusters = self.mass_features_dataframe['cluster'].unique()
+            sample_mf_map = {}
+            for cluster_id in clusters:
+                rep_info = self.get_most_representative_sample_for_cluster(cluster_id)
+                sample_id = rep_info['sample_id']
+                mf_id = rep_info['mf_id']
+                
+                if sample_id not in sample_mf_map:
+                    sample_mf_map[sample_id] = []
+                sample_mf_map[sample_id].append(mf_id)
+            
+            runtime_params['sample_mf_map'] = sample_mf_map
+        
+        return runtime_params
+    
+    def _execute_sample_pipeline(self, sample_id, operations, runtime_params, inplace=True):
+        """
+        Execute a pipeline of operations on a single sample.
+        
+        This is the worker function called (potentially in parallel) for each sample.
+        
+        Parameters
+        ----------
+        sample_id : int
+            Sample ID to process
+        operations : list of SampleOperation
+            Operations to execute in order
+        runtime_params : dict
+            Runtime parameters prepared by _prepare_pipeline_runtime_params
+        inplace : bool, optional
+            If True, updates sample in place. If False, returns results for
+            multiprocessing. Default is True.
+            
+        Returns
+        -------
+        dict
+            Dictionary with results from each operation, keyed by operation name.
+            If inplace=True, returns results that need to be collected.
+            If inplace=False, returns all results for multiprocessing collection.
+        """
+        results = {}
+        
+        # Check if any operations need raw MS data
+        needs_raw_data = {}  # {ms_level: True/False}
+        for op in operations:
+            needs_raw, ms_level = op.needs_raw_ms_data()
+            if needs_raw and ms_level:
+                needs_raw_data[ms_level] = True
+        
+        # Load raw data once if any operations need it
+        # Note: For gap-filling, it loads data internally, so we just track it here
+        for ms_level in needs_raw_data.keys():
+            # Gap-filling loads its own data, but we want to keep track that it's loaded
+            # Other operations can then use the loaded data
+            pass
+        
+        for op in operations:
+            try:
+                # Check if operation can execute on this sample
+                sample = self[sample_id]
+                if not op.can_execute(sample, self):
+                    continue
+                
+                # Prepare operation-specific runtime params
+                op_runtime_params = {}
+                
+                # Add gap-fill params if this is a gap-fill operation
+                from corems.mass_spectra.calc.lc_calc_operations import GapFillOperation, ReloadFeaturesOperation
+                
+                if isinstance(op, GapFillOperation):
+                    if 'missingdf' in runtime_params:
+                        op_runtime_params['missingdf'] = runtime_params['missingdf']
+                        op_runtime_params['cluster_dict'] = runtime_params['cluster_dict']
+                        op_runtime_params['expand_on_miss'] = runtime_params['expand_on_miss']
+                
+                elif isinstance(op, ReloadFeaturesOperation):
+                    if 'sample_mf_map' in runtime_params:
+                        sample_mf_map = runtime_params['sample_mf_map']
+                        if sample_id in sample_mf_map:
+                            op_runtime_params['mf_ids_to_load'] = sample_mf_map[sample_id]
+                
+                # Execute the operation
+                result = op.execute(sample_id, self, **op_runtime_params)
+                results[op.name] = result
+                
+                # If inplace, collect immediately
+                if inplace and result is not None:
+                    op.collect_results(sample_id, result, self)
+                    
+            except Exception as e:
+                print(f"Warning: Operation '{op.name}' failed for sample {sample_id}: {e}")
+                results[op.name] = None
+        
+        # Clean up raw data if requested
+        keep_raw_data = runtime_params.get('keep_raw_data', False)
+        if not keep_raw_data:
+            for ms_level in needs_raw_data.keys():
+                if ms_level in self[sample_id]._ms_unprocessed:
+                    del self[sample_id]._ms_unprocessed[ms_level]
+        
+        return results
+    
+    def process_consensus_features(self, perform_gap_filling=True, reload_representatives=True,
+                                   add_ms1=False, add_ms2=False, auto_process_ms2=True, 
+                                   ms2_scan_filter=None, keep_raw_data=False):
+        """
+        Process consensus mass features across the collection in a single parallelized pass.
+        
+        This method provides a convenient interface to the sample processing pipeline,
+        allowing multiple operations (gap-filling, feature reloading, MS1/MS2 association,
+        and potentially more in the future) to be performed efficiently in a single pass
+        through all samples.
+        
+        Parameters
+        ----------
+        perform_gap_filling : bool, optional
+            If True, performs gap-filling for missing cluster features. Default is True.
+            This operation loads raw MS1 data which can be reused by subsequent operations.
+        reload_representatives : bool, optional
+            If True, reloads representative mass features from HDF5. Default is True.
+        add_ms1 : bool, optional
+            If True and reload_representatives=True, associates MS1 spectra with
+            reloaded features. Automatically uses raw data from gap-filling if available,
+            otherwise uses parser. Spectrum mode is auto-detected. Default is False.
+        add_ms2 : bool, optional
+            If True and reload_representatives=True, associates MS2 spectra with
+            reloaded features. Spectrum mode is auto-detected. Default is False.
+        auto_process_ms2 : bool, optional
+            If True and add_ms2=True, auto-processes MS2 spectra. Default is True.
+        ms2_scan_filter : str or None, optional
+            Filter string for MS2 scans (e.g., 'hcd'). Default is None.
+        keep_raw_data : bool, optional
+            If True, keeps raw MS data loaded in memory after pipeline completes.
+            If False, cleans up raw data to free memory. Default is False.
+        
+        TODO
+        ----
+        - Add MS1 molecular formula search option
+            
+        Returns
+        -------
+        dict
+            Dictionary with pipeline results. Keys include:
+            - 'gap_fill': dict mapping sample_id to induced mass features (if gap-filling)
+            - 'reload': dict mapping sample_id to reloaded mass features (if reloading)
+            - 'ms2_search': dict mapping sample_id to search results (if performing MS2 search)
+            
+        Raises
+        ------
+        ValueError
+            If neither operation is enabled (both perform_gap_filling and 
+            reload_representatives are False).
+            
+        Notes
+        -----
+        - Must run add_consensus_mass_features() before calling this method
+        - Processes samples in parallel based on parameters.lcms_collection.cores
+        - Raw MS1 data loaded by gap-filling is automatically reused by MS1 association
+        - More efficient than calling individual methods separately
+        - After gap-filling, sets missing_mass_features_searched = True
+        - Mass features remain loaded in memory for downstream processing
+        - For more advanced workflows, use process_samples_pipeline() directly
+        
+        Examples
+        --------
+        >>> # Gap-fill, reload with MS1/MS2, and perform MS2 molecular formula search
+        >>> results = lcms_collection.process_consensus_features(
+        ...     perform_gap_filling=True,
+        ...     reload_representatives=True,
+        ...     add_ms1=True,
+        ...     add_ms2=True,
+        ... )
+        
+        >>> # Custom MS2 spectral search
+        >>> def my_search(sample, metadata, **params):
+        ...     # Custom search logic
+        ...     pass
+        >>> results = lcms_collection.process_consensus_features(
+        ...     reload_representatives=True,
+        ...     add_ms2=True,
+        ...     metadata=my_metadata
+        ... )
+        
+        See Also
+        --------
+        process_samples_pipeline : Generic pipeline executor for custom workflows
+        fill_missing_cluster_features : Original gap-filling method
+        reload_representative_mass_features : Original reload method
+        """
+        from corems.mass_spectra.calc.lc_calc_operations import (
+            GapFillOperation, ReloadFeaturesOperation
+        )
+        
+        # Validate that at least one operation is enabled
+        if not perform_gap_filling and not reload_representatives:
+            raise ValueError("At least one of perform_gap_filling or reload_representatives must be True")
+        
+        
+        # Build pipeline
+        operations = []
+        
+        if perform_gap_filling:
+            expand_on_miss = self.parameters.lcms_collection.gap_fill_expand_on_miss
+            operations.append(GapFillOperation('gap_fill', expand_on_miss=expand_on_miss))
+        
+        if reload_representatives:
+            operations.append(ReloadFeaturesOperation(
+                'reload',
+                add_ms1=add_ms1,
+                add_ms2=add_ms2,
+                auto_process_ms2=auto_process_ms2,
+                ms2_scan_filter=ms2_scan_filter
+            ))
+        
+        # Execute pipeline
+        results = self.process_samples_pipeline(
+            operations,
+            description="Gap-filling and reloading features",
+            keep_raw_data=keep_raw_data
+        )
+        
+        # Post-processing
+        if perform_gap_filling:
+            # Combine induced mass features into dataframe
+            self._combine_mass_features(induced_features=True)
+            # Mark that gap-filling has been performed
+            self.missing_mass_features_searched = True
+            # Clear induced mass features from individual samples
+            for sample_name in self.samples:
+                self._lcms[sample_name].induced_mass_features = {}
+        
+        return results

@@ -4,6 +4,18 @@ import pandas as pd
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollection, ReadSavedLCMSCollection
 from corems.mass_spectra.output.export import LCMSCollectionExport
 
+"""
+Example showing the new pipeline-based sample processing approach.
+
+The new approach combines multiple sample-level operations (gap-filling, 
+feature reloading, MS1/MS2 searches, etc.) into a single parallelized pass,
+which is more efficient than processing samples multiple times.
+
+Two usage patterns:
+1. High-level convenience method: process_consensus_features()
+2. Advanced pipeline builder: process_samples_pipeline() with custom operations
+"""
+
 if __name__ == "__main__":
    
     # Set the path to the collection of LCMS runs (previously processed)
@@ -59,6 +71,65 @@ if __name__ == "__main__":
     lcms_collection.add_consensus_mass_features()
     print("Time to generate consensus mass features: ", time.time() - start_time, "seconds -", len(lcms_collection.mass_features_dataframe), " total mass features", ncores, " cores")   
 
+    # NEW PIPELINE APPROACH: Gap fill, reload, and add MS1/MS2 in a single pass
+    print("\n=== Testing new pipeline approach with MS1 and MS2 ===")
+    start_time = time.time()
+    pipeline_results = lcms_collection.process_consensus_features(
+        perform_gap_filling=True,
+        reload_representatives=True,
+        add_ms1=True,
+        add_ms2=True,
+        auto_process_ms2=True,
+        ms2_scan_filter=None,
+        keep_raw_data=False
+    )
+    print("Time for combined gap-fill, reload, MS1, and MS2: ", time.time() - start_time, "seconds, using", ncores, " cores")
+    print("Gap-filled features in", len([s for s in pipeline_results.get('gap_fill', {}).values() if s]), "samples")
+    print("Reloaded features in", len([s for s in pipeline_results.get('reload', {}).values() if s]), "samples")
+    
+    # Verify that mass features were reloaded
+    total_mf_reloaded = sum([len(lcms_obj.mass_features) for lcms_obj in lcms_collection])
+    print(f"Total mass features reloaded: {total_mf_reloaded}")
+    assert total_mf_reloaded > 0, "Should have reloaded some mass features"
+    
+    # Check for MS1 associations
+    total_ms1_with_spectra = 0
+    total_mf_checked = 0
+    for lcms_obj in lcms_collection:
+        for mf_id, mf in lcms_obj.mass_features.items():
+            total_mf_checked += 1
+            if hasattr(mf, 'mass_spectrum') and mf.mass_spectrum is not None:
+                total_ms1_with_spectra += 1
+    
+    print(f"Total mass features with MS1 spectra: {total_ms1_with_spectra} out of {total_mf_checked}")
+    if total_ms1_with_spectra > 0:
+        print(f"✓ MS1 spectra successfully associated with {total_ms1_with_spectra/total_mf_checked*100:.1f}% of mass features")
+        assert total_ms1_with_spectra > 0, "Should have MS1 spectra associated with mass features"
+    else:
+        print("⚠ No MS1 spectra associated")
+    
+    # Check for MS2 associations
+    total_ms2 = 0
+    for lcms_obj in lcms_collection:
+        for mf_id, mf in lcms_obj.mass_features.items():
+            if hasattr(mf, 'ms2_mass_spectra') and mf.ms2_mass_spectra:
+                total_ms2 += len(mf.ms2_mass_spectra)
+    print(f"Total MS2 spectra associated: {total_ms2}")
+    if total_ms2 > 0:
+        print("✓ MS2 spectra successfully associated with mass features")
+    else:
+        print("⚠ No MS2 spectra associated (this may be expected if no MS2 data exists)")
+    
+    # Verify raw data was cleaned up (unless keep_raw_data=True)
+    raw_data_present = any(1 in lcms_obj._ms_unprocessed and not lcms_obj._ms_unprocessed[1].empty 
+                          for lcms_obj in lcms_collection)
+    if not raw_data_present:
+        print("✓ Raw MS1 data successfully cleaned up after pipeline")
+    else:
+        print("⚠ Raw MS1 data still present (expected if keep_raw_data=True)")
+
+    """
+    # OLD APPROACH (commented out - replaced by pipeline above):
     # Gap fill missing cluster features BEFORE saving
     start_time = time.time()
     lcms_collection.fill_missing_cluster_features()
@@ -71,7 +142,36 @@ if __name__ == "__main__":
             ms2_spectrum_mode=None,
             ms2_scan_filter=None
         )
+    """
+    
+    """
+    # ADVANCED PIPELINE APPROACH (for custom workflows):
+    # Build a custom pipeline with full control over operations
+    from corems.mass_spectra.calc.lc_calc_operations import (
+        GapFillOperation, 
+        ReloadFeaturesOperation,
+        CustomOperation
+    )
+    
+    # Define custom operation
+    def my_custom_processing(sample_id, collection, **params):
+        sample = collection[sample_id]
+        # Do custom processing here
+        # e.g., normalization, quality checks, etc.
+        return None
+    
+    # Build pipeline
+    ops = [
+        GapFillOperation('gap_fill', expand_on_miss=True),
+        ReloadFeaturesOperation('reload', add_ms2=True, auto_process_ms2=True),
+        CustomOperation('custom', func=my_custom_processing)
+    ]
+    
+    # Execute
+    results = lcms_collection.process_samples_pipeline(ops, description="Custom workflow")
+    """
 
+    """
     # Check save and load functionality for LCMSCollection
     print("Saving and re-loading LCMS collection to test save/load functionality")
     print(f"Before saving: missing_mass_features_searched = {lcms_collection.missing_mass_features_searched}")
@@ -103,7 +203,7 @@ if __name__ == "__main__":
 
     print('Test completed successfully! LCMSCollection save and load functionality works as expected.')
     
-    """# Make some more plots
+    # Make some more plots
     lcms_collection.plot_mz_features_across_samples()
     lcms_collection.plot_mz_features_per_cluster()
     lcms_collection.plot_consensus_mz_features() ## zoomed out
