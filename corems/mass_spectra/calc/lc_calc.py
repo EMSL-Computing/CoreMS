@@ -4435,7 +4435,7 @@ class LCMSCollectionCalculations:
             Dictionary of runtime parameters for operations
         """
         from corems.mass_spectra.calc.lc_calc_operations import (
-            GapFillOperation, ReloadFeaturesOperation
+            GapFillOperation, ReloadFeaturesOperation, MS2SpectralSearchOperation
         )
         
         runtime_params = {}
@@ -4502,6 +4502,15 @@ class LCMSCollectionCalculations:
             
             runtime_params['sample_mf_map'] = sample_mf_map
         
+        # Check if any operation needs MS2 spectral search parameters
+        needs_ms2_search = any(isinstance(op, MS2SpectralSearchOperation) for op in operations)
+        if needs_ms2_search:
+            # Pass through pre-prepared spectral library
+            if hasattr(self, '_spectral_lib') and self._spectral_lib is not None:
+                runtime_params['fe_lib'] = self._spectral_lib
+            if hasattr(self, '_spectral_search_molecular_metadata'):
+                runtime_params['molecular_metadata'] = self._spectral_search_molecular_metadata
+        
         return runtime_params
     
     def _execute_sample_pipeline(self, sample_id, operations, runtime_params, inplace=True):
@@ -4558,7 +4567,9 @@ class LCMSCollectionCalculations:
             op_runtime_params = {}
             
             # Add gap-fill params if this is a gap-fill operation
-            from corems.mass_spectra.calc.lc_calc_operations import GapFillOperation, ReloadFeaturesOperation
+            from corems.mass_spectra.calc.lc_calc_operations import (
+                GapFillOperation, ReloadFeaturesOperation, MS2SpectralSearchOperation
+            )
             
             if isinstance(op, GapFillOperation):
                 if 'missingdf' in runtime_params:
@@ -4571,6 +4582,13 @@ class LCMSCollectionCalculations:
                     sample_mf_map = runtime_params['sample_mf_map']
                     if sample_id in sample_mf_map:
                         op_runtime_params['mf_ids_to_load'] = sample_mf_map[sample_id]
+            
+            elif isinstance(op, MS2SpectralSearchOperation):
+                # Add MS2 spectral search parameters
+                if 'fe_lib' in runtime_params:
+                    op_runtime_params['fe_lib'] = runtime_params['fe_lib']
+                if 'molecular_metadata' in runtime_params:
+                    op_runtime_params['molecular_metadata'] = runtime_params['molecular_metadata']
             
             # Execute the operation
             result = op.execute(sample_id, self, **op_runtime_params)
@@ -4590,16 +4608,18 @@ class LCMSCollectionCalculations:
         return results
     
     def process_consensus_features(self, perform_gap_filling=True, reload_representatives=True,
-                                   add_ms1=False, add_ms2=False, auto_process_ms2=True, 
+                                   add_ms1=False, add_ms2=False,
                                    ms2_scan_filter=None, molecular_formula_search=False,
+                                   ms2_spectral_search=False, spectral_lib=None,
+                                   molecular_metadata=None,
                                    keep_raw_data=False):
         """
         Process consensus mass features across the collection in a single parallelized pass.
         
         This method provides a convenient interface to the sample processing pipeline,
         allowing multiple operations (gap-filling, feature reloading, MS1/MS2 association,
-        and potentially more in the future) to be performed efficiently in a single pass
-        through all samples.
+        molecular formula search, and MS2 spectral search) to be performed efficiently in 
+        a single pass through all samples.
         
         Parameters
         ----------
@@ -4614,9 +4634,7 @@ class LCMSCollectionCalculations:
             otherwise uses parser. Spectrum mode is auto-detected. Default is False.
         add_ms2 : bool, optional
             If True and reload_representatives=True, associates MS2 spectra with
-            reloaded features. Spectrum mode is auto-detected. Default is False.
-        auto_process_ms2 : bool, optional
-            If True and add_ms2=True, auto-processes MS2 spectra. Default is True.
+            reloaded features and automatically processes them. Spectrum mode is auto-detected. Default is False.
         ms2_scan_filter : str or None, optional
             Filter string for MS2 scans (e.g., 'hcd'). Default is None.
         molecular_formula_search : bool, optional
@@ -4624,6 +4642,18 @@ class LCMSCollectionCalculations:
             associated MS1 spectra. Requires add_ms1=True or that MS1 spectra
             are already associated. Uses parameters from 
             parameters.mass_spectrum["ms1"].molecular_search. Default is False.
+        ms2_spectral_search : bool, optional
+            If True, performs MS2 spectral library search using FlashEntropy.
+            Requires add_ms2=True and spectral_lib to be provided. Default is False.
+        spectral_lib : FlashEntropy library, optional
+            Pre-prepared FlashEntropy spectral library for MS2 search.
+            Create using MSPInterface.get_metabolomics_spectra_library().
+            Required if ms2_spectral_search=True. Default is None.
+        molecular_metadata : pd.DataFrame, optional
+            Molecular metadata corresponding to spectral_lib.
+            Returned from MSPInterface.get_metabolomics_spectra_library().
+            Stored as self.spectral_search_molecular_metadata for later export.
+            Default is None.
         keep_raw_data : bool, optional
             If True, keeps raw MS data loaded in memory after pipeline completes.
             If False, cleans up raw data to free memory. Default is False.
@@ -4634,19 +4664,21 @@ class LCMSCollectionCalculations:
             Dictionary with pipeline results. Keys include:
             - 'gap_fill': dict mapping sample_id to induced mass features (if gap-filling)
             - 'reload': dict mapping sample_id to reloaded mass features (if reloading)
-            - 'mf_search': dict mapping sample_id to number of features searched (if performing molecular formula search)
+            - 'mf_search': dict mapping sample_id to number of features searched (if molecular formula search)
+            - 'ms2_search': dict mapping sample_id to number of spectra searched (if MS2 spectral search)
             
         Raises
         ------
         ValueError
-            If neither operation is enabled (both perform_gap_filling and 
-            reload_representatives are False).
+            If neither operation is enabled, or if required parameters are missing.
             
         Notes
         -----
         - Must run add_consensus_mass_features() before calling this method
         - Processes samples in parallel based on parameters.lcms_collection.cores
         - Raw MS1 data loaded by gap-filling is automatically reused by MS1 association
+        - MS2 spectral search requires add_ms2=True and msp_file_path
+        - FlashEntropy library is created once and reused across all samples
         - More efficient than calling individual methods separately
         - After gap-filling, sets missing_mass_features_searched = True
         - Mass features remain loaded in memory for downstream processing
@@ -4654,22 +4686,33 @@ class LCMSCollectionCalculations:
         
         Examples
         --------
-        >>> # Gap-fill, reload with MS1/MS2, and perform MS2 molecular formula search
+        >>> # Prepare spectral library for MS2 search
+        >>> from corems.molecular_id.search.database_interfaces import MSPInterface
+        >>> my_msp = MSPInterface(file_path='path/to/library.msp')
+        >>> spectral_lib, molecular_metadata = my_msp.get_metabolomics_spectra_library(
+        ...     polarity='negative',
+        ...     format='flashentropy',
+        ...     normalize=True,
+        ...     fe_kwargs={
+        ...         'normalize_intensity': True,
+        ...         'min_ms2_difference_in_da': 0.02,
+        ...         'max_ms2_tolerance_in_da': 0.01,
+        ...         'max_indexed_mz': 3000,
+        ...         'precursor_ions_removal_da': None,
+        ...         'noise_threshold': 0,
+        ...     }
+        ... )
+        >>> 
+        >>> # Gap-fill, reload with MS1/MS2, perform molecular formula and spectral search
         >>> results = lcms_collection.process_consensus_features(
         ...     perform_gap_filling=True,
         ...     reload_representatives=True,
         ...     add_ms1=True,
         ...     add_ms2=True,
-        ... )
-        
-        >>> # Custom MS2 spectral search
-        >>> def my_search(sample, metadata, **params):
-        ...     # Custom search logic
-        ...     pass
-        >>> results = lcms_collection.process_consensus_features(
-        ...     reload_representatives=True,
-        ...     add_ms2=True,
-        ...     metadata=my_metadata
+        ...     molecular_formula_search=True,
+        ...     ms2_spectral_search=True,
+        ...     spectral_lib=spectral_lib,
+        ...     molecular_metadata=molecular_metadata
         ... )
         
         See Also
@@ -4679,7 +4722,8 @@ class LCMSCollectionCalculations:
         reload_representative_mass_features : Original reload method
         """
         from corems.mass_spectra.calc.lc_calc_operations import (
-            GapFillOperation, ReloadFeaturesOperation, MolecularFormulaSearchOperation
+            GapFillOperation, ReloadFeaturesOperation, MolecularFormulaSearchOperation,
+            MS2SpectralSearchOperation
         )
         
         # Validate that at least one operation is enabled
@@ -4694,6 +4738,18 @@ class LCMSCollectionCalculations:
                     "You must run add_consensus_mass_features() before calling process_consensus_features()."
                 )
         
+        # Validate prerequisites for MS2 spectral search
+        if ms2_spectral_search:
+            if not add_ms2:
+                raise ValueError(
+                    "MS2 spectral search requires add_ms2=True to load MS2 spectra."
+                )
+            if spectral_lib is None:
+                raise ValueError(
+                    "MS2 spectral search requires spectral_lib to be provided. "
+                    "Create it using MSPInterface.get_metabolomics_spectra_library() before calling this method."
+                )
+        
         # Build pipeline
         operations = []
         
@@ -4706,12 +4762,21 @@ class LCMSCollectionCalculations:
                 'reload',
                 add_ms1=add_ms1,
                 add_ms2=add_ms2,
-                auto_process_ms2=auto_process_ms2,
+                auto_process_ms2=add_ms2,  # Auto-process MS2 if add_ms2 is enabled
                 ms2_scan_filter=ms2_scan_filter
             ))
         
         if molecular_formula_search:
             operations.append(MolecularFormulaSearchOperation('mf_search'))
+        
+        if ms2_spectral_search:
+            operations.append(MS2SpectralSearchOperation(
+                'ms2_search',
+                ms2_scan_filter=ms2_scan_filter
+            ))
+            # Store spectral library and metadata for runtime preparation
+            self._spectral_lib = spectral_lib
+            self._spectral_search_molecular_metadata = molecular_metadata
         
         # Execute pipeline
         results = self.process_samples_pipeline(
@@ -4719,6 +4784,11 @@ class LCMSCollectionCalculations:
             description="Gap-filling and reloading features",
             keep_raw_data=keep_raw_data
         )
+        
+        # Store molecular metadata if spectral search was performed
+        if ms2_spectral_search and hasattr(self, '_spectral_search_molecular_metadata'):
+            # This allows users to access the metadata for reporting
+            self.spectral_search_molecular_metadata = self._spectral_search_molecular_metadata
         
         # Post-processing
         if perform_gap_filling:

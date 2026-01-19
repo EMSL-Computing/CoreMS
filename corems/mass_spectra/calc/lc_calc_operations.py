@@ -634,3 +634,188 @@ class MolecularFormulaSearchOperation(SampleOperation):
         """
         # Search modifies mass features in place, nothing to collect
         pass
+
+
+class MS2SpectralSearchOperation(SampleOperation):
+    """
+    Perform MS2 spectral search using entropy-based matching.
+    
+    This operation performs spectral library search on MS2 spectra associated
+    with mass features using FlashEntropy for fast similarity scoring. Requires
+    MS2 spectra to be loaded and processed before execution.
+    
+    Parameters
+    ----------
+    name : str
+        Operation name (for logging)
+    ms2_scan_filter : str or None, optional
+        Filter string for MS2 scans (e.g., 'hcd'). If None, uses all MS2 scans.
+        Default is None.
+    peak_sep_da : float, optional
+        Peak separation in Daltons for spectral matching. Default is 0.01.
+    **kwargs
+        Additional parameters passed to parent class
+        
+    Examples
+    --------
+    >>> op = MS2SpectralSearchOperation('ms2_search', ms2_scan_filter='hcd')
+    >>> # Use in pipeline - requires fe_lib in runtime_params
+    >>> results = collection.process_samples_pipeline([op])
+    
+    Notes
+    -----
+    This operation requires:
+    - MS2 spectra to be associated with mass features
+    - FlashEntropy library (fe_lib) to be provided in runtime_params
+    - MS2 spectra must be processed (centroided)
+    
+    The spectral search modifies mass features in place by adding spectral
+    match scores and metadata.
+    """
+    
+    def __init__(self, name='ms2_spectral_search', ms2_scan_filter=None, **kwargs):
+        super().__init__(name, **kwargs)
+        self.params['ms2_scan_filter'] = ms2_scan_filter
+    
+    def needs_raw_ms_data(self):
+        """
+        This operation doesn't need raw data - it works on processed MS2 spectra
+        that are already associated with mass features.
+        
+        Returns
+        -------
+        tuple
+            (False, None) - no raw data needed
+        """
+        return False, None
+    
+    def can_execute(self, sample, collection, **runtime_params):
+        """
+        Check if MS2 spectral search can be executed.
+        
+        Requires that the sample has mass features with MS2 spectra associated.
+        
+        Parameters
+        ----------
+        sample : LCMSObject
+            The sample object
+        collection : LCMSCollection
+            The collection containing the sample
+        **runtime_params
+            Runtime parameters (not used)
+            
+        Returns
+        -------
+        bool
+            True if sample has mass features with MS2 spectra
+        """        
+        # Check if sample has mass features
+        if not hasattr(sample, 'mass_features') or not sample.mass_features:
+            return False
+        
+        # Check if any mass features have MS2 spectra associated
+        has_ms2 = any(
+            hasattr(mf, 'ms2_mass_spectra') and mf.ms2_mass_spectra
+            for mf in sample.mass_features.values()
+        )
+        
+        return has_ms2
+    
+    def execute(self, sample_id, collection, fe_lib=None, molecular_metadata=None, **runtime_params):
+        """
+        Execute MS2 spectral search on a sample.
+        
+        Performs entropy-based spectral library search on all MS2 spectra
+        in the sample that match the scan filter criteria.
+        
+        Parameters
+        ----------
+        sample_id : str
+            Sample identifier
+        collection : LCMSCollection
+            The collection containing the sample
+        fe_lib : FlashEntropy library
+            Pre-computed FlashEntropy library for spectral matching
+        molecular_metadata : pd.DataFrame, optional
+            Metadata for molecules in the spectral library
+        **runtime_params
+            Runtime parameters (not used)
+            
+        Returns
+        -------
+        int
+            Number of MS2 spectra searched
+        """
+        sample = collection[sample_id]
+        
+        # Get parameters
+        ms2_scan_filter = self.params.get('ms2_scan_filter')
+        
+        # Verify that we have a spectral library
+        if fe_lib is None:
+            raise ValueError(
+                f"Sample {sample_id}: MS2 spectral search requires fe_lib (FlashEntropy library) "
+                "to be provided in runtime parameters. Create the library at the collection level "
+                "and pass it to the pipeline."
+            )
+        
+        # Extract peak_sep_da from FlashEntropy library configuration
+        peak_sep_da = fe_lib.entropy_search.max_ms2_tolerance_in_da
+        if peak_sep_da is None:
+            raise ValueError(
+                f"Sample {sample_id}: Could not extract max_ms2_tolerance_in_da from FlashEntropy library. "
+                "Ensure the library was created with this parameter specified."
+            )
+        
+        # Verify that sample has _ms dictionary
+        if not hasattr(sample, '_ms') or not sample._ms:
+            return 0  # No MS2 spectra to search
+        
+        # Get MS2 scan numbers based on filter
+        if ms2_scan_filter is not None:
+            # Filter by scan text
+            ms2_scan_df = sample.scan_df[
+                sample.scan_df.scan_text.str.contains(ms2_scan_filter) &
+                (sample.scan_df.ms_level == 2)
+            ]
+        else:
+            # All MS2 scans
+            ms2_scan_df = sample.scan_df[sample.scan_df.ms_level == 2]
+        
+        # Get scans that are actually loaded in _ms
+        ms2_scans_to_search = [
+            scan for scan in ms2_scan_df.scan.tolist()
+            if scan in sample._ms.keys()
+        ]
+        
+        if not ms2_scans_to_search:
+            return 0  # No MS2 spectra to search
+        
+        # Perform spectral search using the sample's fe_search method
+        sample.fe_search(
+            scan_list=ms2_scans_to_search,
+            fe_lib=fe_lib,
+            peak_sep_da=peak_sep_da
+        )
+        
+        # Return count of spectra searched
+        return len(ms2_scans_to_search)
+    
+    def collect_results(self, sample_id, result, collection):
+        """
+        Collect results (no-op as search modifies mass features in place).
+        
+        The MS2 spectral search modifies mass features in place by adding
+        spectral match results, so no explicit result collection is needed.
+        
+        Parameters
+        ----------
+        sample_id : str
+            Sample identifier
+        result : int
+            Number of spectra searched
+        collection : LCMSCollection
+            The collection containing the sample
+        """
+        # Search modifies mass features in place, nothing to collect
+        pass

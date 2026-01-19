@@ -1,8 +1,15 @@
 from pathlib import Path
 import time
 import pandas as pd
+import numpy as np
+from multiprocessing import Pool
+import shutil
+
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollection, ReadSavedLCMSCollection
-from corems.mass_spectra.output.export import LCMSCollectionExport
+from corems.mass_spectra.output.export import LCMSCollectionExport, LCMSMetabolomicsExport
+from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
+from corems.encapsulation.factory.parameters import LCMSParameters
+from corems.molecular_id.search.database_interfaces import MSPInterface
 
 """
 Example showing the new pipeline-based sample processing approach.
@@ -15,35 +22,139 @@ Two usage patterns:
 1. High-level convenience method: process_consensus_features()
 2. Advanced pipeline builder: process_samples_pipeline() with custom operations
 """
+def process_single_sample(args):
+    """
+    Process a single LCMS sample file.
+    
+    Parameters
+    ----------
+    args : tuple
+        (raw_file_path, processed_folder)
+    
+    Returns
+    -------
+    str
+        Path to the processed HDF5 file
+    """
+    raw_file_path, processed_folder = args
+    
+    # Import the raw data
+    print(f"Processing {raw_file_path.name}...")
+    parser = ImportMassSpectraThermoMSFileReader(str(raw_file_path))
+    lcms_obj = parser.get_lcms_obj(spectra="ms1")
+    
+    # Set parameters to the defaults for reproducible testing
+    lcms_obj.parameters = LCMSParameters(use_defaults=True)
+
+    # Set parameters on the LCMS object that are reasonable for testing
+    ## persistent homology parameters
+    lcms_obj.parameters.lc_ms.peak_picking_method = "persistent homology"
+    lcms_obj.parameters.lc_ms.ph_inten_min_rel = 0.0005
+    lcms_obj.parameters.lc_ms.ph_persis_min_rel = 0.01
+    lcms_obj.parameters.lc_ms.ph_smooth_it = 0
+    lcms_obj.parameters.lc_ms.ms2_min_fe_score = 0.3
+    lcms_obj.parameters.lc_ms.ms1_scans_to_average = 1
+
+    ## MSParameters for ms1 mass spectra
+    ms1_params = lcms_obj.parameters.mass_spectrum['ms1']
+    ms1_params.mass_spectrum.noise_threshold_method = "relative_abundance"
+    ms1_params.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
+    ms1_params.mass_spectrum.noise_min_mz, ms1_params.mass_spectrum.min_picking_mz = 0, 0
+    ms1_params.mass_spectrum.noise_max_mz, ms1_params.mass_spectrum.max_picking_mz = np.inf, np.inf
+    ms1_params.ms_peak.legacy_resolving_power = False
+    ms1_params.molecular_search.url_database = ""
+    ms1_params.molecular_search.usedAtoms = {
+        'C': (5, 30),
+        'H': (18, 200),
+        'O': (1, 23),
+        'N': (0, 3),
+        'P': (0, 1),
+        'S': (0, 1),
+    }
+
+    ## settings for ms2 data (HCD scans)
+    ms2_params_hcd = ms1_params.copy()
+    lcms_obj.parameters.mass_spectrum['ms2'] = ms2_params_hcd
+
+    ## reporting settings
+    lcms_obj.parameters.lc_ms.export_eics = True
+    lcms_obj.parameters.lc_ms.export_profile_spectra = True
+
+    ## peak metrics filtering settings
+    lcms_obj.parameters.lc_ms.remove_mass_features_by_peak_metrics = True
+    lcms_obj.parameters.lc_ms.mass_feature_attribute_filter_dict = {
+        'dispersity_index': {'value': 0.5, 'operator': '<'}
+    }
+
+    # Use persistent homology to find mass features in the lc-ms data
+    lcms_obj.find_mass_features()
+    lcms_obj.integrate_mass_features(drop_if_fail=True)
+    
+    # Add peak metrics and filter mass features based on the new parameters
+    lcms_obj.add_peak_metrics(remove_by_metrics=True)
+    
+    # Save to HDF5
+    output_name = raw_file_path.stem
+    exporter = LCMSMetabolomicsExport(str(processed_folder / output_name), lcms_obj)
+    exporter.to_hdf(overwrite=True)
+    
+    print(f"✓ Completed {raw_file_path.name} - {len(lcms_obj.mass_features)} mass features")
+    return str(processed_folder / f"{output_name}.hdf5")
 
 if __name__ == "__main__":
+    ncores = 1
+    reprocess_samples = False # Set to True to reprocess raw data, False to use existing processed data
+
+    # Set paths
+    raw_data_path = Path("/Volumes/LaCie/nmdc_data/collection_testing/dev_test/raw")
+    processed_folder = Path("/Volumes/LaCie/nmdc_data/collection_testing/dev_test/processed")
+    msp_file_location = Path("/Users/heal742/LOCAL/05_NMDC/02_MetaMS/metams/test_data/test_lcms_metab_data/20250407_database.msp")
+    
+    if reprocess_samples:
+        # Delete existing processed dir if reprocessing
+        if processed_folder.exists():
+            shutil.rmtree(processed_folder)
+
+        # Create processed folder if it doesn't exist
+        processed_folder.mkdir(parents=True, exist_ok=True)
+        
+        # Find all raw files (adjust extension based on your data format)
+        raw_files = list(raw_data_path.glob("*.raw")) + list(raw_data_path.glob("*.mzML"))
+        
+        if not raw_files:
+            raise ValueError(f"No raw files found in {raw_data_path}")
+        
+        print(f"\n=== Preprocessing {len(raw_files)} samples in parallel using {ncores} cores ===")
+        start_time = time.time()
+        
+        # Prepare arguments for parallel processing
+        process_args = [(raw_file, processed_folder) for raw_file in raw_files]
+        
+        # Process samples in parallel
+        with Pool(processes=ncores) as pool:
+            processed_files = pool.map(process_single_sample, process_args)
+        
+        print(f"Time to preprocess all samples: {time.time() - start_time:.1f} seconds using {ncores} cores")
+        print(f"Processed {len(processed_files)} samples to {processed_folder}\n")
    
     # Set the path to the collection of LCMS runs (previously processed)
-    collection_path = Path("/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/mini_collection_test_out2")
-    # Path to manifest file
-    manifest_file = Path("/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/mini_collection_test_out2/manifest_tiny.csv")
-
-    # Set the number of cores to use for loading the data (the parser is parallelized)
-    ncores = 3
-
-    # Instantiate the parser
-    # Note, these samples have not had the DDA MS2 scans associated or MS1 data loaded 
+    collection_path = processed_folder
+    
+    # Instantiate the parser (manifest will be auto-generated if it doesn't exist)
     parser = ReadCoreMSHDFMassSpectraCollection(
             folder_location = collection_path,
-            manifest_file = manifest_file,
             cores = ncores
             )
-    print("Loading LCMS collection with", len(parser.manifest), "samples using", ncores, "cores")
+    print("\n=== Loading LCMS collection with", len(parser.manifest), "samples using", ncores, "cores ===")
 
     # Load the LCMS collection (minimally load the data)
     start_time = time.time()
     lcms_collection = parser.get_lcms_collection(load_raw=False, load_light=True)
     print("Time to load LCMS collection ", time.time() - start_time, "seconds -", len(lcms_collection), " LCMS runs and ", ncores, " cores")
 
-    # Update raw file locations (optionally, but common)
-    og_file_location = lcms_collection[0].raw_file_location
+    # Update raw file locations to point to the raw data folder
     lcms_collection.update_raw_file_locations(
-        new_raw_folder = "/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/mini_collection_test2"
+        new_raw_folder = str(raw_data_path)
         )   
     print("Number of total mass features: ", len(lcms_collection.mass_features_dataframe))
 
@@ -60,34 +171,61 @@ if __name__ == "__main__":
     assert lcms_collection.rt_alignments is not None, "LCMS collection should have rt_alignments now."
     print("Time to align LCMS collection: ", time.time() - start_time, "seconds") 
 
-    """# Make some plots 
-    lcms_collection.plot_tics(type="both")
-    lcms_collection.plot_alignments()    
-    """
-
     # Make consensus mass features from the consolidated mass features
     print("Generating consensus mass features across the LCMS collection")
     start_time = time.time()    
     lcms_collection.add_consensus_mass_features()
     print("Time to generate consensus mass features: ", time.time() - start_time, "seconds -", len(lcms_collection.mass_features_dataframe), " total mass features", ncores, " cores")   
 
-    # NEW PIPELINE APPROACH: Gap fill, reload, add MS1/MS2, and run molecular formula search in a single pass
-    print("\n=== Testing new pipeline approach with MS1, MS2, and molecular formula search ===")
+    # Tell the user how many clusters were generated
+    print(f"Total clusters formed: {len(lcms_collection.cluster_summary_dataframe)}")
+
+    # Prepare spectral library for MS2 search (mimicking test_lcms_metabolomics)
+    print("\n=== Preparing spectral library for MS2 search ===")
+    
+    # Check if MSP file exists before attempting to load
+    if msp_file_location.exists():
+        my_msp = MSPInterface(file_path=msp_file_location)
+        spectral_lib, molecular_metadata = my_msp.get_metabolomics_spectra_library(
+            polarity="negative",  # Change to match your data polarity
+            format="flashentropy",
+            normalize=True,
+            fe_kwargs={
+                "normalize_intensity": True,
+                "min_ms2_difference_in_da": 0.02,  # for cleaning spectra
+                "max_ms2_tolerance_in_da": 0.01,  # for setting search space
+                "max_indexed_mz": 3000,
+                "precursor_ions_removal_da": None,
+                "noise_threshold": 0,
+            },
+        )
+        print(f"Loaded spectral library with {len(molecular_metadata)} entries")
+        enable_spectral_search = True
+    else:
+        raise FileNotFoundError(f"MSP file not found at {msp_file_location}. Cannot perform spectral search.")
+    
+    # PIPELINE APPROACH: Gap fill, reload, add MS1/MS2, run molecular formula and spectral search in a single pass
+    print("\n=== Testing new pipeline approach with MS1, MS2, molecular formula, and spectral search ===")
     start_time = time.time()
     pipeline_results = lcms_collection.process_consensus_features(
-        perform_gap_filling=False,
+        perform_gap_filling=True,
         reload_representatives=True,
-        add_ms1=True,
-        add_ms2=False,
-        auto_process_ms2=True,
-        ms2_scan_filter=None,
-        molecular_formula_search=True,  # New: run molecular formula search
+        add_ms1=True,  
+        add_ms2=True,
+        molecular_formula_search=True,
+        ms2_spectral_search=True,
+        spectral_lib=spectral_lib,
+        molecular_metadata=molecular_metadata,
         keep_raw_data=False
     )
-    print("Time for combined gap-fill, reload, MS1, MS2, and MF search: ", time.time() - start_time, "seconds, using", ncores, " cores")
+    print("Time for combined reload, MS1, MS2, MF search, and spectral search: ", time.time() - start_time, "seconds, using", ncores, " cores")
     print("Gap-filled features in", len([s for s in pipeline_results.get('gap_fill', {}).values() if s]), "samples")
     print("Reloaded features in", len([s for s in pipeline_results.get('reload', {}).values() if s]), "samples")
     print("Molecular formula search completed on", len([s for s in pipeline_results.get('mf_search', {}).values() if s]), "samples")
+    if enable_spectral_search:
+        print("MS2 spectral search completed on", len([s for s in pipeline_results.get('ms2_search', {}).values() if s and s > 0]), "samples")
+        total_ms2_searched = sum([s for s in pipeline_results.get('ms2_search', {}).values() if s])
+        print(f"Total MS2 spectra searched: {total_ms2_searched}")
     
     # Verify that mass features were reloaded
     total_mf_reloaded = sum([len(lcms_obj.mass_features) for lcms_obj in lcms_collection])
@@ -153,6 +291,28 @@ if __name__ == "__main__":
         print("✓ Raw MS1 data successfully cleaned up after pipeline")
     else:
         print("⚠ Raw MS1 data still present (expected if keep_raw_data=True)")
+    
+    # Check for spectral match results (if spectral search was performed)
+    if enable_spectral_search:
+        total_spectral_matches = 0
+        total_mf_with_matches = 0
+        for lcms_obj in lcms_collection:
+            if hasattr(lcms_obj, 'spectral_search_results') and lcms_obj.spectral_search_results:
+                total_spectral_matches += len(lcms_obj.spectral_search_results)
+                total_mf_with_matches += 1
+                break  # Count each mass feature only once
+        
+        print(f"\nSpectral Search Results:")
+        print(f"Total mass features with spectral matches: {total_mf_with_matches}")
+        print(f"Total spectral matches: {total_spectral_matches}")
+        if total_mf_with_matches > 0:
+            print(f"✓ MS2 spectral search successfully found matches")
+            print(f"  Average {total_spectral_matches/total_mf_with_matches:.1f} matches per feature")
+            # Access the molecular metadata if needed for export
+            if hasattr(lcms_collection, 'spectral_search_molecular_metadata'):
+                print(f"  Molecular metadata available with {len(lcms_collection.spectral_search_molecular_metadata)} entries")
+        else:
+            print("⚠ No spectral matches found (check library and search parameters)")
 
     """
     # OLD APPROACH (commented out - replaced by pipeline above):
