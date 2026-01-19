@@ -4546,41 +4546,39 @@ class LCMSCollectionCalculations:
             pass
         
         for op in operations:
-            try:
-                # Check if operation can execute on this sample
-                sample = self[sample_id]
-                if not op.can_execute(sample, self):
-                    continue
-                
-                # Prepare operation-specific runtime params
-                op_runtime_params = {}
-                
-                # Add gap-fill params if this is a gap-fill operation
-                from corems.mass_spectra.calc.lc_calc_operations import GapFillOperation, ReloadFeaturesOperation
-                
-                if isinstance(op, GapFillOperation):
-                    if 'missingdf' in runtime_params:
-                        op_runtime_params['missingdf'] = runtime_params['missingdf']
-                        op_runtime_params['cluster_dict'] = runtime_params['cluster_dict']
-                        op_runtime_params['expand_on_miss'] = runtime_params['expand_on_miss']
-                
-                elif isinstance(op, ReloadFeaturesOperation):
-                    if 'sample_mf_map' in runtime_params:
-                        sample_mf_map = runtime_params['sample_mf_map']
-                        if sample_id in sample_mf_map:
-                            op_runtime_params['mf_ids_to_load'] = sample_mf_map[sample_id]
-                
-                # Execute the operation
-                result = op.execute(sample_id, self, **op_runtime_params)
-                results[op.name] = result
-                
-                # If inplace, collect immediately
-                if inplace and result is not None:
-                    op.collect_results(sample_id, result, self)
-                    
-            except Exception as e:
-                print(f"Warning: Operation '{op.name}' failed for sample {sample_id}: {e}")
-                results[op.name] = None
+            # Check if operation can execute on this sample
+            sample = self[sample_id]
+            if not op.can_execute(sample, self):
+                raise RuntimeError(
+                    f"Operation '{op.name}' cannot execute on sample {sample_id} "
+                    f"({sample.sample_name}). Prerequisites not met."
+                )
+            
+            # Prepare operation-specific runtime params
+            op_runtime_params = {}
+            
+            # Add gap-fill params if this is a gap-fill operation
+            from corems.mass_spectra.calc.lc_calc_operations import GapFillOperation, ReloadFeaturesOperation
+            
+            if isinstance(op, GapFillOperation):
+                if 'missingdf' in runtime_params:
+                    op_runtime_params['missingdf'] = runtime_params['missingdf']
+                    op_runtime_params['cluster_dict'] = runtime_params['cluster_dict']
+                    op_runtime_params['expand_on_miss'] = runtime_params['expand_on_miss']
+            
+            elif isinstance(op, ReloadFeaturesOperation):
+                if 'sample_mf_map' in runtime_params:
+                    sample_mf_map = runtime_params['sample_mf_map']
+                    if sample_id in sample_mf_map:
+                        op_runtime_params['mf_ids_to_load'] = sample_mf_map[sample_id]
+            
+            # Execute the operation
+            result = op.execute(sample_id, self, **op_runtime_params)
+            results[op.name] = result
+            
+            # If inplace, collect immediately
+            if inplace and result is not None:
+                op.collect_results(sample_id, result, self)
         
         # Clean up raw data if requested
         keep_raw_data = runtime_params.get('keep_raw_data', False)
@@ -4593,7 +4591,8 @@ class LCMSCollectionCalculations:
     
     def process_consensus_features(self, perform_gap_filling=True, reload_representatives=True,
                                    add_ms1=False, add_ms2=False, auto_process_ms2=True, 
-                                   ms2_scan_filter=None, keep_raw_data=False):
+                                   ms2_scan_filter=None, molecular_formula_search=False,
+                                   keep_raw_data=False):
         """
         Process consensus mass features across the collection in a single parallelized pass.
         
@@ -4620,13 +4619,14 @@ class LCMSCollectionCalculations:
             If True and add_ms2=True, auto-processes MS2 spectra. Default is True.
         ms2_scan_filter : str or None, optional
             Filter string for MS2 scans (e.g., 'hcd'). Default is None.
+        molecular_formula_search : bool, optional
+            If True, performs molecular formula search on mass features using
+            associated MS1 spectra. Requires add_ms1=True or that MS1 spectra
+            are already associated. Uses parameters from 
+            parameters.mass_spectrum["ms1"].molecular_search. Default is False.
         keep_raw_data : bool, optional
             If True, keeps raw MS data loaded in memory after pipeline completes.
             If False, cleans up raw data to free memory. Default is False.
-        
-        TODO
-        ----
-        - Add MS1 molecular formula search option
             
         Returns
         -------
@@ -4634,7 +4634,7 @@ class LCMSCollectionCalculations:
             Dictionary with pipeline results. Keys include:
             - 'gap_fill': dict mapping sample_id to induced mass features (if gap-filling)
             - 'reload': dict mapping sample_id to reloaded mass features (if reloading)
-            - 'ms2_search': dict mapping sample_id to search results (if performing MS2 search)
+            - 'mf_search': dict mapping sample_id to number of features searched (if performing molecular formula search)
             
         Raises
         ------
@@ -4679,13 +4679,20 @@ class LCMSCollectionCalculations:
         reload_representative_mass_features : Original reload method
         """
         from corems.mass_spectra.calc.lc_calc_operations import (
-            GapFillOperation, ReloadFeaturesOperation
+            GapFillOperation, ReloadFeaturesOperation, MolecularFormulaSearchOperation
         )
         
         # Validate that at least one operation is enabled
         if not perform_gap_filling and not reload_representatives:
             raise ValueError("At least one of perform_gap_filling or reload_representatives must be True")
         
+        # Validate prerequisites for gap-filling
+        if perform_gap_filling:
+            if not hasattr(self, 'cluster_summary_dataframe') or self.cluster_summary_dataframe is None:
+                raise ValueError(
+                    "Cannot perform gap-filling: cluster_summary_dataframe not set. "
+                    "You must run add_consensus_mass_features() before calling process_consensus_features()."
+                )
         
         # Build pipeline
         operations = []
@@ -4702,6 +4709,9 @@ class LCMSCollectionCalculations:
                 auto_process_ms2=auto_process_ms2,
                 ms2_scan_filter=ms2_scan_filter
             ))
+        
+        if molecular_formula_search:
+            operations.append(MolecularFormulaSearchOperation('mf_search'))
         
         # Execute pipeline
         results = self.process_samples_pipeline(

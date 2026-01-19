@@ -24,7 +24,7 @@ if __name__ == "__main__":
     manifest_file = Path("/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/mini_collection_test_out2/manifest_tiny.csv")
 
     # Set the number of cores to use for loading the data (the parser is parallelized)
-    ncores = 6
+    ncores = 3
 
     # Instantiate the parser
     # Note, these samples have not had the DDA MS2 scans associated or MS1 data loaded 
@@ -71,21 +71,23 @@ if __name__ == "__main__":
     lcms_collection.add_consensus_mass_features()
     print("Time to generate consensus mass features: ", time.time() - start_time, "seconds -", len(lcms_collection.mass_features_dataframe), " total mass features", ncores, " cores")   
 
-    # NEW PIPELINE APPROACH: Gap fill, reload, and add MS1/MS2 in a single pass
-    print("\n=== Testing new pipeline approach with MS1 and MS2 ===")
+    # NEW PIPELINE APPROACH: Gap fill, reload, add MS1/MS2, and run molecular formula search in a single pass
+    print("\n=== Testing new pipeline approach with MS1, MS2, and molecular formula search ===")
     start_time = time.time()
     pipeline_results = lcms_collection.process_consensus_features(
-        perform_gap_filling=True,
+        perform_gap_filling=False,
         reload_representatives=True,
         add_ms1=True,
-        add_ms2=True,
+        add_ms2=False,
         auto_process_ms2=True,
         ms2_scan_filter=None,
+        molecular_formula_search=True,  # New: run molecular formula search
         keep_raw_data=False
     )
-    print("Time for combined gap-fill, reload, MS1, and MS2: ", time.time() - start_time, "seconds, using", ncores, " cores")
+    print("Time for combined gap-fill, reload, MS1, MS2, and MF search: ", time.time() - start_time, "seconds, using", ncores, " cores")
     print("Gap-filled features in", len([s for s in pipeline_results.get('gap_fill', {}).values() if s]), "samples")
     print("Reloaded features in", len([s for s in pipeline_results.get('reload', {}).values() if s]), "samples")
+    print("Molecular formula search completed on", len([s for s in pipeline_results.get('mf_search', {}).values() if s]), "samples")
     
     # Verify that mass features were reloaded
     total_mf_reloaded = sum([len(lcms_obj.mass_features) for lcms_obj in lcms_collection])
@@ -119,6 +121,30 @@ if __name__ == "__main__":
         print("✓ MS2 spectra successfully associated with mass features")
     else:
         print("⚠ No MS2 spectra associated (this may be expected if no MS2 data exists)")
+    
+    # Check for molecular formula assignments
+    total_mf_with_formulas = 0
+    total_formula_assignments = 0
+    for lcms_obj in lcms_collection:
+        for mf_id, mf in lcms_obj.mass_features.items():
+            if hasattr(mf, 'mass_spectrum') and mf.mass_spectrum is not None:
+                # Check if the ms1_peak has molecular formula assignments
+                try:
+                    ms1_peak = mf.ms1_peak
+                    if hasattr(ms1_peak, 'molecular_formulas') and ms1_peak.molecular_formulas:
+                        total_mf_with_formulas += 1
+                        total_formula_assignments += len(ms1_peak.molecular_formulas)
+                except (AttributeError, IndexError):
+                    # Skip if ms1_peak can't be determined
+                    pass
+    
+    print(f"Total mass features with molecular formula assignments: {total_mf_with_formulas} out of {total_mf_checked}")
+    print(f"Total molecular formula assignments: {total_formula_assignments}")
+    if total_mf_with_formulas > 0:
+        print(f"✓ Molecular formula search successfully assigned formulas to {total_mf_with_formulas/total_mf_checked*100:.1f}% of mass features")
+        print(f"  Average {total_formula_assignments/total_mf_with_formulas:.1f} formulas per assigned feature")
+    else:
+        print("⚠ No molecular formula assignments (check search parameters)")
     
     # Verify raw data was cleaned up (unless keep_raw_data=True)
     raw_data_present = any(1 in lcms_obj._ms_unprocessed and not lcms_obj._ms_unprocessed[1].empty 

@@ -434,3 +434,203 @@ class ReloadFeaturesOperation(SampleOperation):
     def collect_results(self, sample_id, result, collection):
         """Collect reloaded mass features back into sample."""
         collection[sample_id].mass_features = result
+
+
+class MolecularFormulaSearchOperation(SampleOperation):
+    """
+    Perform molecular formula search on mass features using associated MS1 spectra.
+    
+    This operation runs molecular formula search on all mass features in a sample
+    that have associated MS1 spectra. Requires MS1 spectra to be loaded and
+    processed before execution.
+    
+    Parameters
+    ----------
+    name : str
+        Operation name (for logging)
+    **kwargs
+        Additional parameters passed to parent class
+        
+    Examples
+    --------
+    >>> op = MolecularFormulaSearchOperation('mf_search')
+    >>> # Use in pipeline
+    >>> results = collection.process_samples_pipeline([op])
+    
+    Notes
+    -----
+    This operation requires that MS1 spectra have been associated with mass
+    features (e.g., via ReloadFeaturesOperation with add_ms1=True). The
+    molecular formula search uses parameters from the collection's 
+    parameters.mass_spectrum["ms1"].molecular_search settings.
+    """
+    
+    def __init__(self, name='molecular_formula_search', **kwargs):
+        super().__init__(name, **kwargs)
+    
+    def needs_raw_ms_data(self):
+        """
+        This operation doesn't need raw data - it works on processed MS1 spectra
+        that are already associated with mass features.
+        
+        Returns
+        -------
+        tuple
+            (False, None) - no raw data needed
+        """
+        return False, None
+    
+    def can_execute(self, sample, collection, **runtime_params):
+        """
+        Check if molecular formula search can be executed.
+        
+        Requires that the sample has mass features with associated MS1 spectra.
+        
+        Parameters
+        ----------
+        sample : LCMSObject
+            The sample object
+        collection : LCMSCollection
+            The collection containing the sample
+        **runtime_params
+            Runtime parameters (not used)
+            
+        Returns
+        -------
+        bool
+            True if sample has mass features with MS1 spectra
+        """        
+        # Check if sample has mass features
+        if not hasattr(sample, 'mass_features') or not sample.mass_features:
+            return False
+        
+        # Check if at least some mass features have MS1 spectra
+        has_ms1 = any(
+            hasattr(mf, 'mass_spectrum') and mf.mass_spectrum is not None
+            for mf in sample.mass_features.values()
+        )
+        
+        return has_ms1
+    
+    def execute(self, sample_id, collection, **runtime_params):
+        """
+        Execute molecular formula search on a sample.
+        
+        Creates a SearchMolecularFormulasLC object and runs mass feature search,
+        which annotates mass features with molecular formula assignments.
+        
+        Parameters
+        ----------
+        sample_id : str
+            Sample identifier
+        collection : LCMSCollection
+            The collection containing the sample
+        **runtime_params
+            Runtime parameters (not used)
+            
+        Returns
+        -------
+        int
+            Number of mass features that were searched
+        """
+        from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulasLC
+        import time
+        import sqlalchemy.exc
+        import sqlite3
+        
+        sample = collection[sample_id]
+        
+        # Verify that mass features exist
+        if not hasattr(sample, 'mass_features') or not sample.mass_features:
+            return 0  # No mass features to search
+        
+        # Verify that mass features have MS1 spectra associated
+        if not hasattr(sample, '_ms') or not sample._ms:
+            raise RuntimeError(
+                f"Sample {sample_id} does not have MS1 spectra loaded in _ms dictionary. "
+                "Molecular formula search requires MS1 spectra to be associated with mass features. "
+                "Ensure add_ms1=True when reloading features."
+            )
+        
+        # Prepare data for bulk molecular formula search
+        # Group mass features by their apex scan
+        scan_to_mf = {}
+        for mf_id, mf in sample.mass_features.items():
+            apex_scan = mf.apex_scan
+            if apex_scan not in scan_to_mf:
+                scan_to_mf[apex_scan] = []
+            scan_to_mf[apex_scan].append(mf)
+        
+        # Build lists of mass spectra and corresponding peaks
+        mass_spectrum_list = []
+        ms_peaks_list = []
+        
+        for scan_num, mf_list in scan_to_mf.items():
+            # Get the mass spectrum for this scan
+            if scan_num not in sample._ms:
+                continue  # Skip if spectrum not loaded
+                
+            mass_spectrum = sample._ms[scan_num]
+            
+            # Verify spectrum is processed (has peaks)
+            if not hasattr(mass_spectrum, '_mspeaks') or not mass_spectrum._mspeaks:
+                continue  # Skip unprocessed spectra
+            
+            # Get the MS1 peaks for each mass feature at this scan
+            peaks_for_scan = []
+            for mf in mf_list:
+                try:
+                    # Use the ms1_peak property which finds the closest peak
+                    ms1_peak = mf.ms1_peak
+                    peaks_for_scan.append(ms1_peak)
+                except (AttributeError, IndexError):
+                    # Skip if ms1_peak can't be determined
+                    continue
+            
+            if peaks_for_scan:
+                mass_spectrum_list.append(mass_spectrum)
+                ms_peaks_list.append(peaks_for_scan)
+        
+        # Run molecular formula search if we have data, with retry logic for database locks
+        if mass_spectrum_list and ms_peaks_list:
+            max_retries = 10
+            retry_delay = 2  # seconds
+            
+            for attempt in range(max_retries):
+                try:
+                    mol_search = SearchMolecularFormulasLC(sample)
+                    mol_search.bulk_run_molecular_formula_search(mass_spectrum_list, ms_peaks_list)
+                    break  # Success, exit retry loop
+                except (sqlalchemy.exc.OperationalError, sqlite3.OperationalError) as e:
+                    if attempt < max_retries - 1:
+                        # Database is locked, retry after delay
+                        print(f"Sample {sample_id}: Database locked during molecular formula search, retrying in {retry_delay}s (attempt {attempt + 1}/{max_retries})...")
+                        time.sleep(retry_delay)
+                    else:
+                        # Max retries exceeded, re-raise the exception
+                        raise RuntimeError(
+                            f"Sample {sample_id}: Molecular formula search failed after {max_retries} attempts due to database lock. "
+                            "Try reducing parallel cores or increasing database timeout."
+                        ) from e
+        
+        # Return count of features searched
+        return len(sample.mass_features)
+    
+    def collect_results(self, sample_id, result, collection):
+        """
+        Collect results (no-op as search modifies mass features in place).
+        
+        The molecular formula search modifies mass features in place by adding
+        molecular formula assignments, so no explicit result collection is needed.
+        
+        Parameters
+        ----------
+        sample_id : str
+            Sample identifier
+        result : int
+            Number of features searched
+        collection : LCMSCollection
+            The collection containing the sample
+        """
+        # Search modifies mass features in place, nothing to collect
+        pass
