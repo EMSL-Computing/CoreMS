@@ -72,7 +72,9 @@ def summarize_processing_results(lcms_collection):
     # Feature loading - check if mass features have MS1/MS2 spectra
     mf_with_ms1 = 0
     mf_with_ms2 = 0
+    mf_with_ms2_scans = 0
     total_ms2_spectra = 0
+    total_ms2_scan_numbers = 0
     
     for lcms_obj in lcms_collection:
         for mf in lcms_obj.mass_features.values():
@@ -81,6 +83,9 @@ def summarize_processing_results(lcms_collection):
             if hasattr(mf, 'ms2_mass_spectra') and mf.ms2_mass_spectra:
                 mf_with_ms2 += 1
                 total_ms2_spectra += len(mf.ms2_mass_spectra)
+            if hasattr(mf, 'ms2_scan_numbers') and mf.ms2_scan_numbers is not None and len(mf.ms2_scan_numbers) > 0:
+                mf_with_ms2_scans += 1
+                total_ms2_scan_numbers += len(mf.ms2_scan_numbers)
     
     if mf_with_ms1 > 0 or mf_with_ms2 > 0:
         print(f"\nMS Data Association: ✓ Complete")
@@ -88,6 +93,8 @@ def summarize_processing_results(lcms_collection):
             print(f"  MS1: {mf_with_ms1}/{loaded_mf_count} loaded features ({mf_with_ms1/loaded_mf_count*100:.1f}%)")
         if mf_with_ms2 > 0:
             print(f"  MS2: {mf_with_ms2}/{loaded_mf_count} loaded features ({total_ms2_spectra} spectra)")
+        if mf_with_ms2_scans > 0:
+            print(f"  MS2 scan numbers: {mf_with_ms2_scans}/{loaded_mf_count} loaded features ({total_ms2_scan_numbers} scans)")
     
     # Molecular formula search
     mf_with_formulas = 0
@@ -294,7 +301,8 @@ def process_single_sample(args):
     lcms_obj.parameters = get_configured_lcms_parameters()
 
     # Use persistent homology to find mass features in the lc-ms data and integrate
-    lcms_obj.find_mass_features()
+    # Assign MS2 scan numbers during peak picking for choosing representatives with MS2
+    lcms_obj.find_mass_features(assign_ms2_scans=True, ms2_scan_filter=None)
     lcms_obj.integrate_mass_features(drop_if_fail=True)
     
     # Add peak metrics and filter mass features based on the new parameters
@@ -312,8 +320,8 @@ if __name__ == "__main__":
     # =============================================================================
     # Configuration
     # =============================================================================
-    ncores = 1
-    reprocess_samples = True  # Set to True to reprocess raw data
+    ncores = 3
+    reprocess_samples = False  # Set to True to reprocess raw data
     
     # Paths
     base_path = Path("/Volumes/LaCie/nmdc_data/collection_testing/dev_test/")
@@ -400,9 +408,9 @@ if __name__ == "__main__":
         load_representatives=True,
         perform_gap_filling=True,
         add_ms1=True,  
-        add_ms2=False,
-        molecular_formula_search=False,
-        ms2_spectral_search=False,
+        add_ms2=True,
+        molecular_formula_search=True,
+        ms2_spectral_search=True,
         spectral_lib=spectral_lib,
         molecular_metadata=molecular_metadata,
         gather_eics=True,

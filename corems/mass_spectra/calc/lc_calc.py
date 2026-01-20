@@ -357,7 +357,7 @@ class LCCalculations:
                 ms.process_mass_spec()
         return ms
 
-    def find_mass_features(self, ms_level=1, grid=True):
+    def find_mass_features(self, ms_level=1, grid=True, assign_ms2_scans=False, ms2_scan_filter=None):
         """Find mass features within an LCMSBase object
 
         Note that this is a wrapper function that calls the find_mass_features_ph function, but can be extended to support other peak picking methods in the future.
@@ -369,6 +369,13 @@ class LCCalculations:
         grid : bool, optional
             If True, will regrid the data before running the persistent homology calculations (after checking if the data is gridded),
             used for persistent homology peak picking for profile data only. Default is True.
+        assign_ms2_scans : bool, optional
+            If True, assign MS2 scan numbers to mass features after peak picking.
+            This populates the ms2_scan_numbers attribute on each mass feature, which enables
+            choosing representative features based on MS2 availability. Default is False.
+        ms2_scan_filter : str or None, optional
+            Filter string for MS2 scans when assign_ms2_scans is True (e.g., 'hcd').
+            If None, all MS2 scans are considered. Default is None.
 
         Raises
         ------
@@ -408,9 +415,20 @@ class LCCalculations:
         else:
             raise ValueError("Peak picking method not implemented")
         
-        # Cluster mass features after peak picking for persistent homology methods
-        if pp_method in ["persistent homology", "centroided_persistent_homology"]:
-            self.cluster_mass_features(drop_children=True, sort_by="persistence")
+        # Cluster mass features to remove redundant features
+        self.cluster_mass_features(drop_children=True)
+        
+        # Optionally assign MS2 scan numbers to mass features during peak picking
+        # This helps with choosing representative features that have MS2 data
+        if assign_ms2_scans:
+            try:
+                self._find_ms2_scans_for_mass_features(
+                    mf_ids=None,  # Process all mass features
+                    scan_filter=ms2_scan_filter
+                )
+            except ValueError:
+                # No MS2 scans found - this is okay, just skip
+                pass
         
         # Remove noisey mass features if designated in parameters
         if self.parameters.lc_ms.remove_redundant_mass_features:
@@ -3451,7 +3469,8 @@ class LCMSCollectionCalculations:
             mf = sample.mass_features[mf_id]
             # If this mass feature already has MS2 scans, add them to our set
             if mf.ms2_scan_numbers is not None and len(mf.ms2_scan_numbers) > 0:
-                unique_dda_scans.update(mf.ms2_scan_numbers)
+                # Convert to integers in case they come from HDF5 as numpy types
+                unique_dda_scans.update([int(scan) for scan in mf.ms2_scan_numbers])
             else:
                 # Otherwise, we need to find scans for this mass feature
                 mfs_needing_scan_finding.append(mf_id)
@@ -3484,7 +3503,7 @@ class LCMSCollectionCalculations:
         for mf_id in local_mf_ids:
             if mf_id not in sample.mass_features:
                 continue
-            if sample.mass_features[mf_id].ms2_scan_numbers:
+            if sample.mass_features[mf_id].ms2_scan_numbers is not None and len(sample.mass_features[mf_id].ms2_scan_numbers) > 0:
                 for dda_scan in sample.mass_features[mf_id].ms2_scan_numbers:
                     if dda_scan in sample._ms:
                         sample.mass_features[mf_id].ms2_mass_spectra[dda_scan] = sample._ms[dda_scan]
