@@ -3258,6 +3258,104 @@ class LCMSCollectionCalculations:
         else:
             plt.show()
     
+    def get_representative_mass_features_for_all_clusters(self, representative_metric=None):
+        """
+        Get the most representative mass feature for all clusters in bulk.
+        
+        This is much more efficient than calling get_most_representative_sample_for_cluster
+        in a loop, as it processes all clusters in a single pass over the dataframe.
+        
+        Parameters
+        ----------
+        representative_metric : str, optional
+            The metric to use to determine the most representative sample.
+            If None, uses the value from self.parameters.lcms_collection.consensus_representative_metric.
+            Options:
+            - 'intensity': Selects the mass feature with the highest intensity
+            - 'intensity_prefer_ms2': Selects the highest intensity feature that has MS2 scans,
+              or the highest intensity overall if none have MS2
+            Default is None (uses parameter setting).
+            
+        Returns
+        -------
+        :obj:`~pandas.DataFrame`
+            DataFrame with one row per cluster containing:
+            - cluster: cluster ID
+            - sample_id: The sample ID of the most representative sample
+            - mf_id: The mass feature ID in the sample
+            - coll_mf_id: The collection-level mass feature ID (index)
+            - has_ms2: Whether this mass feature has MS2 scan numbers
+            - intensity: The intensity value of the representative mass feature
+        """
+        # Use default from parameters if not specified
+        if representative_metric is None:
+            representative_metric = self.parameters.lcms_collection.consensus_representative_metric
+        
+        mf_df = self.mass_features_dataframe.copy()
+        
+        # Handle special metric 'intensity_prefer_ms2'
+        if representative_metric == 'intensity_prefer_ms2':
+            if 'intensity' not in mf_df.columns:
+                raise ValueError(
+                    f"'intensity' column not found in mass_features_dataframe. "
+                    f"Available columns: {mf_df.columns.tolist()}"
+                )
+            
+            # Add has_ms2 flag if ms2_scan_numbers column exists
+            if 'ms2_scan_numbers' in mf_df.columns:
+                def has_ms2_scans(val):
+                    if val is None:
+                        return False
+                    try:
+                        return len(val) > 0
+                    except (TypeError, ValueError):
+                        return False
+                
+                mf_df['has_ms2'] = mf_df['ms2_scan_numbers'].apply(has_ms2_scans)
+                
+                # Sort by has_ms2 (descending) then intensity (descending)
+                # This ensures features with MS2 are preferred when intensities are equal
+                mf_df = mf_df.sort_values(['has_ms2', 'intensity'], ascending=[False, False])
+            else:
+                mf_df['has_ms2'] = False
+                mf_df = mf_df.sort_values('intensity', ascending=False)
+            
+            # Group by cluster and take the first (highest intensity, preferring MS2)
+            representatives = mf_df.groupby('cluster').first().reset_index()
+            
+        else:
+            # Standard metric - check if it exists
+            if representative_metric not in mf_df.columns:
+                raise ValueError(
+                    f"Metric '{representative_metric}' not found. Available columns: {mf_df.columns.tolist()}"
+                )
+            
+            # Add has_ms2 flag for consistency
+            if 'ms2_scan_numbers' in mf_df.columns:
+                def has_ms2_scans(val):
+                    if val is None:
+                        return False
+                    try:
+                        return len(val) > 0
+                    except (TypeError, ValueError):
+                        return False
+                mf_df['has_ms2'] = mf_df['ms2_scan_numbers'].apply(has_ms2_scans)
+            else:
+                mf_df['has_ms2'] = False
+            
+            # Get the index of max value for each cluster
+            idx = mf_df.groupby('cluster')[representative_metric].idxmax()
+            representatives = mf_df.loc[idx].reset_index(drop=True)
+        
+        # Store the collection-level index as coll_mf_id
+        representatives['coll_mf_id'] = representatives.index
+        
+        # Select only the columns we need
+        result_cols = ['cluster', 'sample_id', 'mf_id', 'coll_mf_id', 'has_ms2', 'intensity']
+        representatives = representatives[result_cols]
+        
+        return representatives
+    
     def get_most_representative_sample_for_cluster(self, cluster_id, representative_metric=None):
         """
         Get the most representative sample for a given cluster based on a metric.
@@ -3269,8 +3367,11 @@ class LCMSCollectionCalculations:
         representative_metric : str, optional
             The metric to use to determine the most representative sample.
             If None, uses the value from self.parameters.lcms_collection.consensus_representative_metric.
-            Options: 'intensity', 'persistence', or any column in mass_features_dataframe.
-            Default is None.
+            Options:
+            - 'intensity': Selects the mass feature with the highest intensity
+            - 'intensity_prefer_ms2': Selects the highest intensity feature that has MS2 scans,
+              or the highest intensity overall if none have MS2
+            Default is None (uses parameter setting).
             
         Returns
         -------
@@ -3278,24 +3379,26 @@ class LCMSCollectionCalculations:
             Dictionary containing:
             - 'sample_id': The sample ID of the most representative sample
             - 'sample_name': The sample name of the most representative sample
-            - 'mf_id': The mass feature ID (coll_mf_id) in the collection
-            - representative_metric: The value of the metric for this mass feature
+            - 'mf_id': The mass feature ID in the sample
+            - 'coll_mf_id': The collection-level mass feature ID (index)
+            - 'has_ms2': Whether this mass feature has MS2 scan numbers
+            - 'intensity': The intensity value of the representative mass feature
         
         Raises
         ------
         ValueError
             If cluster_id is not found or if representative_metric is not a valid column.
         """
-        # Use default from parameters if not specified
-        if representative_metric is None:
-            representative_metric = self.parameters.lcms_collection.consensus_representative_metric
+        # Use the bulk method to get all representatives, then filter to this cluster
+        # This follows DRY principle and ensures consistency
+        all_representatives = self.get_representative_mass_features_for_all_clusters(
+            representative_metric=representative_metric
+        )
         
-        # Get all mass features in this cluster
-        cluster_mfs = self.mass_features_dataframe[
-            self.mass_features_dataframe['cluster'] == cluster_id
-        ].copy()
+        # Filter to the requested cluster
+        cluster_rep = all_representatives[all_representatives['cluster'] == cluster_id]
         
-        if len(cluster_mfs) == 0:
+        if len(cluster_rep) == 0:
             # Try to provide helpful error message
             available_clusters = self.mass_features_dataframe['cluster'].unique()
             raise ValueError(
@@ -3304,28 +3407,19 @@ class LCMSCollectionCalculations:
                 f"(showing first 10 of {len(available_clusters)} total clusters)"
             )
         
-        # Check if metric exists
-        if representative_metric not in cluster_mfs.columns:
-            raise ValueError(
-                f"Metric '{representative_metric}' not found. Available columns: {cluster_mfs.columns.tolist()}"
-            )
-        
-        # Find the mass feature with the highest value for the metric
-        max_idx = cluster_mfs[representative_metric].idxmax()
-        representative_mf = cluster_mfs.loc[max_idx]
+        # Get the representative row (should only be one)
+        rep_row = cluster_rep.iloc[0]
         
         # Get sample name from sample_id
-        sample_name = self.samples[representative_mf['sample_id']]
-        
-        # Get sample-level mf_id directly from the dataframe column
-        sample_level_mf_id = representative_mf['mf_id']
+        sample_name = self.samples[rep_row['sample_id']]
         
         return {
-            'sample_id': representative_mf['sample_id'],
+            'sample_id': rep_row['sample_id'],
             'sample_name': sample_name,
-            'mf_id': sample_level_mf_id,  # Sample-level mf_id from column
-            'coll_mf_id': max_idx,  # Collection-level id (index)
-            representative_metric: representative_mf[representative_metric]
+            'mf_id': rep_row['mf_id'],
+            'coll_mf_id': rep_row['coll_mf_id'],
+            'has_ms2': rep_row['has_ms2'],
+            'intensity': rep_row['intensity']
         }
     
     def reload_representative_mass_features(self, add_ms2=False, auto_process_ms2=True, ms2_spectrum_mode=None, ms2_scan_filter=None):
@@ -3377,15 +3471,14 @@ class LCMSCollectionCalculations:
                 "cluster_summary_dataframe not found. Must run add_consensus_mass_features() first."
             )
         
-        # Get all unique clusters
-        clusters = self.mass_features_dataframe['cluster'].unique()
+        # Get all representative mass features in bulk (much faster than looping)
+        representatives = self.get_representative_mass_features_for_all_clusters()
         
         # Build a dictionary of sample_id -> list of mf_ids that are representatives
         sample_mf_map = {}
-        for cluster_id in clusters:
-            rep_info = self.get_most_representative_sample_for_cluster(cluster_id)
-            sample_id = rep_info['sample_id']
-            mf_id = rep_info['mf_id']
+        for _, row in representatives.iterrows():
+            sample_id = row['sample_id']
+            mf_id = row['mf_id']
             
             if sample_id not in sample_mf_map:
                 sample_mf_map[sample_id] = []
@@ -4521,14 +4614,13 @@ class LCMSCollectionCalculations:
         needs_reload = any(isinstance(op, ReloadFeaturesOperation) for op in operations)
         if needs_reload:
             # Build sample_mf_map for reloading representatives
-            clusters = self.mass_features_dataframe['cluster'].unique()
-            # Filter out NaN clusters
-            clusters = [c for c in clusters if pd.notna(c)]
+            # Get all representative mass features in bulk (much faster than looping)
+            representatives = self.get_representative_mass_features_for_all_clusters()
+            
             sample_mf_map = {}
-            for cluster_id in clusters:
-                rep_info = self.get_most_representative_sample_for_cluster(cluster_id)
-                sample_id = rep_info['sample_id']
-                mf_id = rep_info['mf_id']
+            for _, row in representatives.iterrows():
+                sample_id = row['sample_id']
+                mf_id = row['mf_id']
                 
                 if sample_id not in sample_mf_map:
                     sample_mf_map[sample_id] = []

@@ -132,7 +132,7 @@ def summarize_processing_results(lcms_collection):
     
     if mf_with_spectral_matches > 0:
         print(f"\nMS2 Spectral Search: ✓ Complete")
-        print(f"  {scans_searched} MS2 scans searched")
+        print(f"  {scans_searched} MS2 scans with library search results")
         print(f"  {mf_with_spectral_matches}/{loaded_mf_count} loaded features matched ({total_spectral_matches} total matches)")
         if hasattr(lcms_collection, 'spectral_search_molecular_metadata'):
             print(f"  Library size: {len(lcms_collection.spectral_search_molecular_metadata)} entries")
@@ -320,7 +320,7 @@ if __name__ == "__main__":
     # =============================================================================
     # Configuration
     # =============================================================================
-    ncores = 3
+    ncores = 1
     reprocess_samples = False  # Set to True to reprocess raw data
     
     # Paths

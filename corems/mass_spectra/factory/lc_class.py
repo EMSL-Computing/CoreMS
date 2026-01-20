@@ -868,6 +868,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "monoisotopic_mf_id",
             "isotopologue_type",
             "mass_spectrum_deconvoluted_parent",
+            "ms2_scan_numbers",
         ]
 
         df_mf_list = []
@@ -879,7 +880,12 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             dict_mf = {}
             # Get the values for each key in df_keys from the mass feature object
             for key in df_keys:
-                dict_mf[key] = getattr(mf_dict[mf_id], key)
+                value = getattr(mf_dict[mf_id], key)
+                # Wrap list/array values in a list so pandas treats them as single cell values
+                if key == 'ms2_scan_numbers' and isinstance(value, (list, np.ndarray)):
+                    dict_mf[key] = [value]
+                else:
+                    dict_mf[key] = value
             if len(mf_dict[mf_id].ms2_scan_numbers) > 0:
                 # Add MS2 spectra info
                 best_ms2_spectrum = mf_dict[mf_id].best_ms2
@@ -933,6 +939,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "isotopologue_type",
             "mass_spectrum_deconvoluted_parent",
             "associated_mass_features",
+            "ms2_scan_numbers",
             "ms2_spectrum",
         ]
         # drop columns that are not in col_order
