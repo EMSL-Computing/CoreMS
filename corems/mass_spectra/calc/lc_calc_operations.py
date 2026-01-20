@@ -15,16 +15,16 @@ ReloadFeaturesOperation
 
 """
 
+from abc import ABC, abstractmethod
 import pandas as pd
 
 
-class SampleOperation:
+class SampleOperation(ABC):
     """
     Base class for operations that can be performed on a sample.
     
-    All sample operations should inherit from this class and implement
-    the execute() method. Optionally override can_execute() for conditional
-    execution and collect_results() for custom result collection.
+    All sample operations must inherit from this class and implement all
+    abstract methods. This ensures proper integration with the pipeline framework.
     
     Parameters
     ----------
@@ -39,19 +39,39 @@ class SampleOperation:
         Operation name
     params : dict
         Dictionary of operation parameters
+    description : str
+        Human-readable description for progress messages (must override in subclasses)
     """
     
     def __init__(self, name, **kwargs):
         self.name = name
         self.params = kwargs
+    
+    @property
+    @abstractmethod
+    def description(self):
+        """
+        Human-readable description for progress messages.
         
+        This property must be overridden in subclasses to provide a meaningful
+        description that will be shown in progress bars (e.g., "gap-filling",
+        "reloading features", etc.).
+        
+        Returns
+        -------
+        str
+            Brief description of what this operation does
+        """
+        pass
+    
+    @abstractmethod
     def needs_raw_ms_data(self):
         """
         Declare whether this operation needs raw MS data loaded.
         
-        Override this method to specify raw data requirements. The pipeline
-        executor will ensure raw data is loaded before executing operations
-        that need it, and can clean it up afterwards.
+        Subclasses must implement this method to specify raw data requirements.
+        The pipeline executor will ensure raw data is loaded before executing
+        operations that need it, and can clean it up afterwards.
         
         Returns
         -------
@@ -59,12 +79,23 @@ class SampleOperation:
             (needs_raw_data, ms_level)
             - needs_raw_data: True if operation needs raw MS data
             - ms_level: MS level needed (1 for MS1, 2 for MS2, etc.) or None
+            
+        Examples
+        --------
+        >>> def needs_raw_ms_data(self):
+        ...     return True, 1  # Needs MS1 data
+        >>> def needs_raw_ms_data(self):
+        ...     return False, None  # No raw data needed
         """
-        return False, None
-        
+        pass
+    
+    @abstractmethod
     def can_execute(self, sample, collection):
         """
         Check if this operation can be executed on the sample.
+        
+        Subclasses must implement this method to define prerequisites.
+        Return True if the operation can execute, False otherwise.
         
         Parameters
         ----------
@@ -77,9 +108,17 @@ class SampleOperation:
         -------
         bool
             True if operation can execute, False otherwise
+            
+        Examples
+        --------
+        >>> def can_execute(self, sample, collection):
+        ...     return True  # Can always execute
+        >>> def can_execute(self, sample, collection):
+        ...     return hasattr(sample, 'mass_features') and sample.mass_features
         """
-        return True
-        
+        pass
+    
+    @abstractmethod
     def execute(self, sample_id, collection, **runtime_params):
         """
         Execute the operation on a sample.
@@ -100,14 +139,16 @@ class SampleOperation:
         result
             Operation result (can be None if operation modifies sample in place)
         """
-        raise NotImplementedError(f"execute() not implemented for {self.__class__.__name__}")
-        
+        pass
+    
+    @abstractmethod
     def collect_results(self, sample_id, result, collection):
         """
         Collect results back into collection after parallel execution.
         
-        Override this method if the operation returns results that need
-        to be collected back into the collection object.
+        Subclasses must implement this method to handle result collection.
+        If the operation modifies samples in place and doesn't need to collect
+        results, simply implement as `pass`.
         
         Parameters
         ----------
@@ -117,6 +158,13 @@ class SampleOperation:
             Result returned from execute()
         collection : LCMSBaseCollection
             The collection to update
+            
+        Examples
+        --------
+        >>> def collect_results(self, sample_id, result, collection):
+        ...     pass  # Operation modifies sample in place
+        >>> def collect_results(self, sample_id, result, collection):
+        ...     collection[sample_id].induced_mass_features = result
         """
         pass
         
@@ -144,6 +192,11 @@ class GapFillOperation(SampleOperation):
     Requires that add_consensus_mass_features() has been run on the collection.
     This operation loads raw MS1 data which will be available for subsequent operations.
     """
+    
+    @property
+    def description(self):
+        """Human-readable description for progress messages."""
+        return "gap-filling"
     
     def needs_raw_ms_data(self):
         """This operation needs raw MS1 data."""
@@ -325,6 +378,15 @@ class ReloadFeaturesOperation(SampleOperation):
     the data.
     """
     
+    @property
+    def description(self):
+        """Human-readable description for progress messages."""
+        return "reloading features"
+    
+    def needs_raw_ms_data(self):
+        """This operation doesn't need raw data."""
+        return False, None
+    
     def can_execute(self, sample, collection):
         """Check if collection parser is available."""
         return hasattr(collection, 'collection_parser') and \
@@ -464,6 +526,11 @@ class MolecularFormulaSearchOperation(SampleOperation):
     molecular formula search uses parameters from the collection's 
     parameters.mass_spectrum["ms1"].molecular_search settings.
     """
+    
+    @property
+    def description(self):
+        """Human-readable description for progress messages."""
+        return "molecular formula search"
     
     def __init__(self, name='molecular_formula_search', **kwargs):
         super().__init__(name, **kwargs)
@@ -673,6 +740,11 @@ class MS2SpectralSearchOperation(SampleOperation):
     match scores and metadata.
     """
     
+    @property
+    def description(self):
+        """Human-readable description for progress messages."""
+        return "MS2 spectral search"
+    
     def __init__(self, name='ms2_spectral_search', ms2_scan_filter=None, **kwargs):
         super().__init__(name, **kwargs)
         self.params['ms2_scan_filter'] = ms2_scan_filter
@@ -798,24 +870,45 @@ class MS2SpectralSearchOperation(SampleOperation):
             peak_sep_da=peak_sep_da
         )
         
-        # Return count of spectra searched
-        return len(ms2_scans_to_search)
+        # Return the spectral search results for collection
+        # (needed for multiprocessing - results populated in worker need to be returned)
+        return sample.spectral_search_results
     
     def collect_results(self, sample_id, result, collection):
         """
-        Collect results (no-op as search modifies mass features in place).
+        Collect spectral search results back into the sample.
         
-        The MS2 spectral search modifies mass features in place by adding
-        spectral match results, so no explicit result collection is needed.
+        In multiprocessing, the worker's modifications don't persist to the
+        main process, so we need to explicitly collect and reassign the results.
+        This also re-associates the results with mass features.
         
         Parameters
         ----------
         sample_id : str
             Sample identifier
-        result : int
-            Number of spectra searched
+        result : dict
+            Dictionary of spectral search results from execute()
         collection : LCMSCollection
             The collection containing the sample
         """
-        # Search modifies mass features in place, nothing to collect
-        pass
+        # Assign the spectral search results back to the sample
+        if result:
+            collection[sample_id].spectral_search_results.update(result)
+            
+            # Re-associate results with mass features (same logic as fe_search)
+            sample = collection[sample_id]
+            if len(sample.mass_features) > 0:
+                for mass_feature_id, mass_feature in sample.mass_features.items():
+                    scan_ids = mass_feature.ms2_scan_numbers
+                    for ms2_scan_id in scan_ids:
+                        precursor_mz = mass_feature.mz
+                        try:
+                            sample.spectral_search_results[ms2_scan_id][precursor_mz]
+                        except KeyError:
+                            pass
+                        else:
+                            sample.mass_features[
+                                mass_feature_id
+                            ].ms2_similarity_results.append(
+                                sample.spectral_search_results[ms2_scan_id][precursor_mz]
+                            )

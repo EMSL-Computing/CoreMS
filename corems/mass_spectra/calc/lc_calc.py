@@ -4294,7 +4294,7 @@ class LCMSCollectionCalculations:
         for sample_name in self.samples:
             self._lcms[sample_name].mass_features = {}
     
-    def process_samples_pipeline(self, operations, description="Processing samples", keep_raw_data=False):
+    def process_samples_pipeline(self, operations, description=None, keep_raw_data=False):
         """
         Execute a pipeline of operations on all samples in parallel.
         
@@ -4308,8 +4308,10 @@ class LCMSCollectionCalculations:
             List of operations to perform on each sample, in order.
             Each operation should be an instance of a class derived from
             SampleOperation (see lc_calc_operations module).
-        description : str, optional
-            Progress bar description. Default is "Processing samples".
+        description : str or None, optional
+            Progress bar description. If None, automatically generates description
+            from operation descriptions (e.g., "gap-filling, reloading features").
+            Default is None.
         keep_raw_data : bool, optional
             If True, keeps raw MS data loaded in memory after pipeline completes.
             If False, cleans up raw data to free memory. Default is False.
@@ -4360,6 +4362,11 @@ class LCMSCollectionCalculations:
             if not isinstance(op, SampleOperation):
                 raise ValueError(f"All operations must be SampleOperation instances, got {type(op)}")
         
+        # Generate description from operations if not provided
+        if description is None:
+            operation_descriptions = [op.description for op in operations]
+            description = ", ".join(operation_descriptions).capitalize()
+        
         # Prepare runtime parameters for each operation
         # This is where we gather collection-level data that operations need
         runtime_params = self._prepare_pipeline_runtime_params(operations)
@@ -4373,7 +4380,9 @@ class LCMSCollectionCalculations:
             from tqdm import tqdm
             results_by_operation = {op.name: {} for op in operations}
             
-            for sample_id in tqdm(range(sample_ct), desc=description, unit="sample"):
+            # Print description on its own line before progress bar
+            print(f"\n{description.capitalize()}:")
+            for sample_id in tqdm(range(sample_ct), unit="sample", ncols=80):
                 sample_results = self._execute_sample_pipeline(
                     sample_id, operations, runtime_params, inplace=True
                 )
@@ -4405,7 +4414,8 @@ class LCMSCollectionCalculations:
             
             # Collect results back into collection
             results_by_operation = {op.name: {} for op in operations}
-            for sample_id in tqdm(range(sample_ct), desc=f"Collecting {description} results", unit="sample"):
+            print(f"\nCollecting {description} results:")
+            for sample_id in tqdm(range(sample_ct), unit="sample", ncols=80):
                 sample_results = mp_results[sample_id]
                 
                 # Let each operation collect its results
@@ -4607,7 +4617,7 @@ class LCMSCollectionCalculations:
         
         return results
     
-    def process_consensus_features(self, perform_gap_filling=True, reload_representatives=True,
+    def process_consensus_features(self, load_representatives=True, perform_gap_filling=True,
                                    add_ms1=False, add_ms2=False,
                                    ms2_scan_filter=None, molecular_formula_search=False,
                                    ms2_spectral_search=False, spectral_lib=None,
@@ -4623,18 +4633,18 @@ class LCMSCollectionCalculations:
         
         Parameters
         ----------
+        load_representatives : bool, optional
+            If True, loads representative mass features from HDF5. Default is True.
         perform_gap_filling : bool, optional
             If True, performs gap-filling for missing cluster features. Default is True.
             This operation loads raw MS1 data which can be reused by subsequent operations.
-        reload_representatives : bool, optional
-            If True, reloads representative mass features from HDF5. Default is True.
         add_ms1 : bool, optional
-            If True and reload_representatives=True, associates MS1 spectra with
-            reloaded features. Automatically uses raw data from gap-filling if available,
+            If True and load_representatives=True, associates MS1 spectra with
+            loaded features. Automatically uses raw data from gap-filling if available,
             otherwise uses parser. Spectrum mode is auto-detected. Default is False.
         add_ms2 : bool, optional
-            If True and reload_representatives=True, associates MS2 spectra with
-            reloaded features and automatically processes them. Spectrum mode is auto-detected. Default is False.
+            If True and load_representatives=True, associates MS2 spectra with
+            loaded features and automatically processes them. Spectrum mode is auto-detected. Default is False.
         ms2_scan_filter : str or None, optional
             Filter string for MS2 scans (e.g., 'hcd'). Default is None.
         molecular_formula_search : bool, optional
@@ -4705,8 +4715,8 @@ class LCMSCollectionCalculations:
         >>> 
         >>> # Gap-fill, reload with MS1/MS2, perform molecular formula and spectral search
         >>> results = lcms_collection.process_consensus_features(
+        ...     load_representatives=True,
         ...     perform_gap_filling=True,
-        ...     reload_representatives=True,
         ...     add_ms1=True,
         ...     add_ms2=True,
         ...     molecular_formula_search=True,
@@ -4727,8 +4737,8 @@ class LCMSCollectionCalculations:
         )
         
         # Validate that at least one operation is enabled
-        if not perform_gap_filling and not reload_representatives:
-            raise ValueError("At least one of perform_gap_filling or reload_representatives must be True")
+        if not perform_gap_filling and not load_representatives:
+            raise ValueError("At least one of perform_gap_filling or load_representatives must be True")
         
         # Validate prerequisites for gap-filling
         if perform_gap_filling:
@@ -4757,7 +4767,7 @@ class LCMSCollectionCalculations:
             expand_on_miss = self.parameters.lcms_collection.gap_fill_expand_on_miss
             operations.append(GapFillOperation('gap_fill', expand_on_miss=expand_on_miss))
         
-        if reload_representatives:
+        if load_representatives:
             operations.append(ReloadFeaturesOperation(
                 'reload',
                 add_ms1=add_ms1,
@@ -4778,10 +4788,9 @@ class LCMSCollectionCalculations:
             self._spectral_lib = spectral_lib
             self._spectral_search_molecular_metadata = molecular_metadata
         
-        # Execute pipeline
+        # Execute pipeline (description auto-generated from operations)
         results = self.process_samples_pipeline(
             operations,
-            description="Gap-filling and reloading features",
             keep_raw_data=keep_raw_data
         )
         
