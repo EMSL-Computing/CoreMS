@@ -42,9 +42,24 @@ def summarize_processing_results(lcms_collection):
     
     # Basic collection info
     n_samples = len(lcms_collection)
-    total_mf = sum(len(lcms_obj.mass_features) for lcms_obj in lcms_collection)
+    
+    # Collection-level feature count (from dataframe - all features)
+    collection_mf_count = len(lcms_collection.mass_features_dataframe) if lcms_collection.mass_features_dataframe is not None else 0
+    
+    # Sample-level loaded feature count (from mass_features dict - loaded for processing)
+    loaded_mf_count = sum(len(lcms_obj.mass_features) for lcms_obj in lcms_collection)
+    
+    # Cluster count
+    if 'cluster' in lcms_collection.mass_features_dataframe.columns:
+        n_clusters = lcms_collection.mass_features_dataframe['cluster'].nunique()
+    else:
+        n_clusters = 0
+    
     print(f"\nSamples: {n_samples}")
-    print(f"Total mass features: {total_mf}")
+    print(f"Total features in collection: {collection_mf_count}")
+    print(f"Representative features loaded: {loaded_mf_count}")
+    if n_clusters > 0:
+        print(f"Consensus clusters: {n_clusters}")
     
     # Gap filling - check for induced mass features
     induced_counts = [len(lcms_obj.induced_mass_features) for lcms_obj in lcms_collection]
@@ -70,9 +85,9 @@ def summarize_processing_results(lcms_collection):
     if mf_with_ms1 > 0 or mf_with_ms2 > 0:
         print(f"\nMS Data Association: ✓ Complete")
         if mf_with_ms1 > 0:
-            print(f"  MS1: {mf_with_ms1}/{total_mf} features ({mf_with_ms1/total_mf*100:.1f}%)")
+            print(f"  MS1: {mf_with_ms1}/{loaded_mf_count} loaded features ({mf_with_ms1/loaded_mf_count*100:.1f}%)")
         if mf_with_ms2 > 0:
-            print(f"  MS2: {mf_with_ms2}/{total_mf} features ({total_ms2_spectra} spectra)")
+            print(f"  MS2: {mf_with_ms2}/{loaded_mf_count} loaded features ({total_ms2_spectra} spectra)")
     
     # Molecular formula search
     mf_with_formulas = 0
@@ -91,7 +106,7 @@ def summarize_processing_results(lcms_collection):
     
     if mf_with_formulas > 0:
         print(f"\nMolecular Formula Search: ✓ Complete")
-        print(f"  {mf_with_formulas}/{total_mf} features assigned ({total_formulas} total formulas)")
+        print(f"  {mf_with_formulas}/{loaded_mf_count} loaded features assigned ({total_formulas} total formulas)")
         print(f"  Average {total_formulas/mf_with_formulas:.1f} formulas per feature")
     
     # MS2 spectral search
@@ -111,9 +126,23 @@ def summarize_processing_results(lcms_collection):
     if mf_with_spectral_matches > 0:
         print(f"\nMS2 Spectral Search: ✓ Complete")
         print(f"  {scans_searched} MS2 scans searched")
-        print(f"  {mf_with_spectral_matches}/{total_mf} features matched ({total_spectral_matches} total matches)")
+        print(f"  {mf_with_spectral_matches}/{loaded_mf_count} loaded features matched ({total_spectral_matches} total matches)")
         if hasattr(lcms_collection, 'spectral_search_molecular_metadata'):
             print(f"  Library size: {len(lcms_collection.spectral_search_molecular_metadata)} entries")
+    
+    # Check for loaded EICs
+    total_eics_loaded = 0
+    samples_with_eics = 0
+    
+    for lcms_obj in lcms_collection:
+        if hasattr(lcms_obj, 'eics') and lcms_obj.eics:
+            samples_with_eics += 1
+            total_eics_loaded += len(lcms_obj.eics)
+    
+    if total_eics_loaded > 0:
+        print(f"\nEIC Loading: ✓ Complete")
+        print(f"  {total_eics_loaded} EICs loaded across {samples_with_eics}/{n_samples} samples")
+        print(f"  Average {total_eics_loaded/samples_with_eics:.1f} EICs per sample")
     
     # Memory management check
     raw_data_present = any(1 in lcms_obj._ms_unprocessed and not lcms_obj._ms_unprocessed[1].empty 
@@ -264,7 +293,7 @@ def process_single_sample(args):
     # Get configured parameters
     lcms_obj.parameters = get_configured_lcms_parameters()
 
-    # Use persistent homology to find mass features in the lc-ms data
+    # Use persistent homology to find mass features in the lc-ms data and integrate
     lcms_obj.find_mass_features()
     lcms_obj.integrate_mass_features(drop_if_fail=True)
     
@@ -283,8 +312,8 @@ if __name__ == "__main__":
     # =============================================================================
     # Configuration
     # =============================================================================
-    ncores = 3
-    reprocess_samples = False  # Set to True to reprocess raw data
+    ncores = 1
+    reprocess_samples = True  # Set to True to reprocess raw data
     
     # Paths
     base_path = Path("/Volumes/LaCie/nmdc_data/collection_testing/dev_test/")
@@ -371,11 +400,12 @@ if __name__ == "__main__":
         load_representatives=True,
         perform_gap_filling=True,
         add_ms1=True,  
-        add_ms2=True,
-        molecular_formula_search=True,
-        ms2_spectral_search=True,
+        add_ms2=False,
+        molecular_formula_search=False,
+        ms2_spectral_search=False,
         spectral_lib=spectral_lib,
         molecular_metadata=molecular_metadata,
+        gather_eics=True,
         keep_raw_data=False
     )
     print(f"Pipeline complete: {time.time() - start_time:.1f} seconds using {ncores} cores")

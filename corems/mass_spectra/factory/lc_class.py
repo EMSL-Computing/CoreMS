@@ -784,11 +784,6 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 ]
                 mf_dict[k].update_mz()
 
-        if not induced_features:
-            # Re-process clustering if persistent homology is selected to remove duplicate mass features after adding and processing MS1 spectra
-            if self.parameters.lc_ms.peak_picking_method == "persistent homology":
-                self.cluster_mass_features(drop_children=True, sort_by="persistence")
-
     def mass_features_to_df(self, induced_features = False):
         """Returns a pandas dataframe summarizing the mass features.
 
@@ -1607,6 +1602,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         self.consensus_mass_features = {}
         self._parameters = LCMSCollectionParameters()
         self.isotopes_dropped = False
+        self._mass_features_locked = False  # Prevents rebuilding mass_features_dataframe from samples
 
         # These attributes are set during processing
         self.rt_aligned = False
@@ -1660,7 +1656,18 @@ class LCMSCollection(LCMSCollectionCalculations):
         Returns
         --------
         None, sets the _combined_mass_features or _combined_induced_mass_feature attribute.
+        
+        Notes
+        -----
+        If _mass_features_locked is True (e.g., when only representative features are loaded),
+        this method will skip rebuilding the regular mass features dataframe to preserve
+        the full collection-level dataframe. Induced features are always rebuilt since they
+        are created during processing.
         """
+        
+        # Skip rebuilding regular mass features if locked (preserves full dataframe)
+        if not induced_features and self._mass_features_locked:
+            return
 
         ## TODO: See why this function runs slower on multiprocessing,
         ## especially for induced features
@@ -1691,9 +1698,9 @@ class LCMSCollection(LCMSCollectionCalculations):
             mf_df_list.append(mf_df)
 
         combined_mass_features = pd.concat(mf_df_list)
-        # Move coll_mf_id, sample_name, and sample_id to front
+        # Move coll_mf_id, sample_name, sample_id, and mf_id to front
         cols = combined_mass_features.columns.tolist()
-        top_cols = ["coll_mf_id", "sample_name", "sample_id", "mz", "scan_time_aligned"]
+        top_cols = ["coll_mf_id", "sample_name", "sample_id", "mf_id", "mz", "scan_time_aligned"]
         cols = [x for x in top_cols + [col for col in cols if col not in top_cols] if x in cols]
         combined_mass_features = combined_mass_features[cols]
         # Make coll_mf_id the index
@@ -2135,16 +2142,9 @@ class LCMSCollection(LCMSCollectionCalculations):
     def induced_mass_features_dataframe(self):
         self._check_mass_features_df(induced_features = True)
         if self._combined_induced_mass_features is not None and len(self._combined_induced_mass_features) > 0:
-            # Extract cluster ID from coll_mf_id if not already present
-            if 'cluster' not in self._combined_induced_mass_features.columns:
-                imf_df = self._combined_induced_mass_features.copy()
-                imf_df = imf_df.reset_index(drop=False)
-                # Extract cluster ID from coll_mf_id format: "sample_id_cCluster_idx_i"
-                imf_df['cluster'] = imf_df['coll_mf_id'].apply(
-                    lambda x: int(x.split('_')[1][1:])
-                )
-                imf_df = imf_df.set_index('coll_mf_id')
-                self._combined_induced_mass_features = imf_df
+            # The cluster column should already be set during gap-filling
+            # No parsing needed - cluster_index is stored directly on induced mass features
+            pass
         return self._combined_induced_mass_features
 
     @induced_mass_features_dataframe.setter
@@ -2204,3 +2204,57 @@ class LCMSCollection(LCMSCollectionCalculations):
         df = self.mass_features_dataframe
         cluster_dict = df.groupby('cluster').apply(lambda x: x.index.tolist()).to_dict()
         return cluster_dict
+    
+    def get_eics_for_cluster(self, cluster_id):
+        """
+        Retrieve all EICs for mass features in a specific cluster across all samples.
+        
+        Returns a dictionary mapping sample names to EIC_Data objects for the given cluster.
+        Useful for visualizing and comparing chromatographic peaks across samples.
+        
+        Parameters
+        ----------
+        cluster_id : int
+            The cluster ID to retrieve EICs for
+            
+        Returns
+        -------
+        dict
+            Dictionary with structure: {sample_name: EIC_Data object}
+            Only includes samples where the EIC was loaded.
+            
+        Examples
+        --------
+        >>> # Load EICs first
+        >>> collection.process_consensus_features(gather_eics=True, ...)
+        >>> 
+        >>> # Get all EICs for cluster 5
+        >>> eics = collection.get_eics_for_cluster(5)
+        >>> for sample_name, eic_data in eics.items():
+        ...     print(f"{sample_name}: {len(eic_data.scans)} scans")
+        
+        Notes
+        -----
+        Requires that EICs have been loaded using gather_eics=True in
+        process_consensus_features() or manually loaded via LoadEICsOperation.
+        """
+        eics_by_sample = {}
+        
+        # Iterate through all samples
+        for sample_id, sample in enumerate(self):
+            sample_name = self.samples[sample_id]
+            
+            # Check if sample has EICs loaded
+            if not hasattr(sample, 'eics') or not sample.eics:
+                continue
+            
+            # Find mass features in this cluster for this sample
+            # Check both regular and induced mass features
+            for mf in list(sample.mass_features.values()) + list(sample.induced_mass_features.values()):
+                if hasattr(mf, 'cluster_index') and mf.cluster_index == cluster_id:
+                    # Get the EIC for this mass feature's m/z
+                    if mf.mz in sample.eics:
+                        eics_by_sample[sample_name] = sample.eics[mf.mz]
+                        break  # Found the EIC for this sample, move to next sample
+        
+        return eics_by_sample

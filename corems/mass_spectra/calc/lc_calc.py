@@ -408,6 +408,10 @@ class LCCalculations:
         else:
             raise ValueError("Peak picking method not implemented")
         
+        # Cluster mass features after peak picking for persistent homology methods
+        if pp_method in ["persistent homology", "centroided_persistent_homology"]:
+            self.cluster_mass_features(drop_children=True, sort_by="persistence")
+        
         # Remove noisey mass features if designated in parameters
         if self.parameters.lc_ms.remove_redundant_mass_features:
             self._remove_redundant_mass_features()
@@ -3295,10 +3299,14 @@ class LCMSCollectionCalculations:
         # Get sample name from sample_id
         sample_name = self.samples[representative_mf['sample_id']]
         
+        # Get sample-level mf_id directly from the dataframe column
+        sample_level_mf_id = representative_mf['mf_id']
+        
         return {
             'sample_id': representative_mf['sample_id'],
             'sample_name': sample_name,
-            'mf_id': max_idx,
+            'mf_id': sample_level_mf_id,  # Sample-level mf_id from column
+            'coll_mf_id': max_idx,  # Collection-level id (index)
             representative_metric: representative_mf[representative_metric]
         }
     
@@ -3541,18 +3549,12 @@ class LCMSCollectionCalculations:
         # Import here to avoid circular imports
         from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
         
-        # If specific mf_ids requested, extract the local mf_ids we need
+        # If specific mf_ids requested, use them directly
         local_mf_ids_to_load = None
         if mf_ids_to_load is not None:
-            local_mf_ids_to_load = set()
-            for coll_mf_id in mf_ids_to_load:
-                # Parse collection-level ID to get local ID
-                parts = str(coll_mf_id).split('_', 1)
-                if len(parts) == 2:
-                    try:
-                        local_mf_ids_to_load.add(int(parts[1]))
-                    except ValueError:
-                        local_mf_ids_to_load.add(parts[1])
+            # mf_ids_to_load is already a list of sample-level mf_ids (integers)
+            # No parsing needed - they come from the mf_id column in the dataframe
+            local_mf_ids_to_load = set(mf_ids_to_load)
         
         # Reload mass features from HDF5
         with ReadCoreMSHDFMassSpectra(hdf5_file) as parser:
@@ -4445,7 +4447,8 @@ class LCMSCollectionCalculations:
             Dictionary of runtime parameters for operations
         """
         from corems.mass_spectra.calc.lc_calc_operations import (
-            GapFillOperation, ReloadFeaturesOperation, MS2SpectralSearchOperation
+            GapFillOperation, ReloadFeaturesOperation, MS2SpectralSearchOperation,
+            LoadEICsOperation
         )
         
         runtime_params = {}
@@ -4500,6 +4503,8 @@ class LCMSCollectionCalculations:
         if needs_reload:
             # Build sample_mf_map for reloading representatives
             clusters = self.mass_features_dataframe['cluster'].unique()
+            # Filter out NaN clusters
+            clusters = [c for c in clusters if pd.notna(c)]
             sample_mf_map = {}
             for cluster_id in clusters:
                 rep_info = self.get_most_representative_sample_for_cluster(cluster_id)
@@ -4520,6 +4525,23 @@ class LCMSCollectionCalculations:
                 runtime_params['fe_lib'] = self._spectral_lib
             if hasattr(self, '_spectral_search_molecular_metadata'):
                 runtime_params['molecular_metadata'] = self._spectral_search_molecular_metadata
+        
+        # Check if any operation needs EIC loading parameters
+        needs_eic_loading = any(isinstance(op, LoadEICsOperation) for op in operations)
+        if needs_eic_loading:
+            # Build cluster_mz_dict: map of sample_id -> list of m/z values in clusters
+            mfdf = self.mass_features_dataframe
+            cluster_mz_dict = {}
+            
+            # Get all mass features that belong to clusters (cluster is not NaN)
+            clustered_mf = mfdf[mfdf['cluster'].notna()]
+            
+            # Group by sample_id and collect all m/z values
+            for sample_id in clustered_mf['sample_id'].unique():
+                sample_df = clustered_mf[clustered_mf['sample_id'] == sample_id]
+                cluster_mz_dict[sample_id] = sample_df['mz'].unique().tolist()
+            
+            runtime_params['cluster_mz_dict'] = cluster_mz_dict
         
         return runtime_params
     
@@ -4578,7 +4600,7 @@ class LCMSCollectionCalculations:
             
             # Add gap-fill params if this is a gap-fill operation
             from corems.mass_spectra.calc.lc_calc_operations import (
-                GapFillOperation, ReloadFeaturesOperation, MS2SpectralSearchOperation
+                GapFillOperation, ReloadFeaturesOperation, MS2SpectralSearchOperation, LoadEICsOperation
             )
             
             if isinstance(op, GapFillOperation):
@@ -4590,8 +4612,9 @@ class LCMSCollectionCalculations:
             elif isinstance(op, ReloadFeaturesOperation):
                 if 'sample_mf_map' in runtime_params:
                     sample_mf_map = runtime_params['sample_mf_map']
-                    if sample_id in sample_mf_map:
-                        op_runtime_params['mf_ids_to_load'] = sample_mf_map[sample_id]
+                    # Always pass mf_ids_to_load to ensure we only load what's needed
+                    # If sample not in map, it has no representatives - pass empty list
+                    op_runtime_params['mf_ids_to_load'] = sample_mf_map.get(sample_id, [])
             
             elif isinstance(op, MS2SpectralSearchOperation):
                 # Add MS2 spectral search parameters
@@ -4599,6 +4622,11 @@ class LCMSCollectionCalculations:
                     op_runtime_params['fe_lib'] = runtime_params['fe_lib']
                 if 'molecular_metadata' in runtime_params:
                     op_runtime_params['molecular_metadata'] = runtime_params['molecular_metadata']
+            
+            elif isinstance(op, LoadEICsOperation):
+                # Add EIC loading parameters
+                if 'cluster_mz_dict' in runtime_params:
+                    op_runtime_params['cluster_mz_dict'] = runtime_params['cluster_mz_dict']
             
             # Execute the operation
             result = op.execute(sample_id, self, **op_runtime_params)
@@ -4622,6 +4650,7 @@ class LCMSCollectionCalculations:
                                    ms2_scan_filter=None, molecular_formula_search=False,
                                    ms2_spectral_search=False, spectral_lib=None,
                                    molecular_metadata=None,
+                                   gather_eics=False,
                                    keep_raw_data=False):
         """
         Process consensus mass features across the collection in a single parallelized pass.
@@ -4664,6 +4693,12 @@ class LCMSCollectionCalculations:
             Returned from MSPInterface.get_metabolomics_spectra_library().
             Stored as self.spectral_search_molecular_metadata for later export.
             Default is None.
+        gather_eics : bool, optional
+            If True, loads extracted ion chromatograms (EICs) from HDF5 for all
+            mass features with assigned cluster_index (including gap-filled features).
+            Enables access to EICs via get_eics_for_cluster(cluster_id) method.
+            Requires that EICs were previously exported with export_eics=True.
+            Default is False.
         keep_raw_data : bool, optional
             If True, keeps raw MS data loaded in memory after pipeline completes.
             If False, cleans up raw data to free memory. Default is False.
@@ -4733,7 +4768,7 @@ class LCMSCollectionCalculations:
         """
         from corems.mass_spectra.calc.lc_calc_operations import (
             GapFillOperation, ReloadFeaturesOperation, MolecularFormulaSearchOperation,
-            MS2SpectralSearchOperation
+            MS2SpectralSearchOperation, LoadEICsOperation
         )
         
         # Validate that at least one operation is enabled
@@ -4787,6 +4822,9 @@ class LCMSCollectionCalculations:
             # Store spectral library and metadata for runtime preparation
             self._spectral_lib = spectral_lib
             self._spectral_search_molecular_metadata = molecular_metadata
+        
+        if gather_eics:
+            operations.append(LoadEICsOperation('load_eics'))
         
         # Execute pipeline (description auto-generated from operations)
         results = self.process_samples_pipeline(

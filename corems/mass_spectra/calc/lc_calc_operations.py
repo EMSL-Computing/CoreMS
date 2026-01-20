@@ -447,15 +447,12 @@ class ReloadFeaturesOperation(SampleOperation):
         # If specific mf_ids requested, extract the local mf_ids we need
         local_mf_ids_to_load = None
         if mf_ids_to_load is not None:
-            local_mf_ids_to_load = set()
-            for coll_mf_id in mf_ids_to_load:
-                # Parse collection-level ID to get local ID
-                parts = str(coll_mf_id).split('_', 1)
-                if len(parts) == 2:
-                    try:
-                        local_mf_ids_to_load.add(int(parts[1]))
-                    except ValueError:
-                        local_mf_ids_to_load.add(parts[1])
+            # mf_ids_to_load is already a list of sample-level mf_ids (integers)
+            # No parsing needed - they come from the mf_id column in the dataframe
+            if len(mf_ids_to_load) == 0:
+                # No features to load for this sample - return empty dict
+                return {}
+            local_mf_ids_to_load = set(mf_ids_to_load)
         
         # Reload mass features from HDF5
         with ReadCoreMSHDFMassSpectra(hdf5_file) as parser:
@@ -494,8 +491,29 @@ class ReloadFeaturesOperation(SampleOperation):
         return sample.mass_features
         
     def collect_results(self, sample_id, result, collection):
-        """Collect reloaded mass features back into sample."""
+        """
+        Collect reloaded mass features back into sample.
+        
+        This operation loads a subset of mass features (e.g., representatives)
+        into sample.mass_features for processing, while preserving the full
+        mass_features_dataframe at the collection level. Sets a lock flag to
+        prevent automatic rebuilding of the collection dataframe from individual
+        samples.
+        
+        Parameters
+        ----------
+        sample_id : int
+            Sample ID that was processed
+        result : dict
+            Dictionary of reloaded mass features
+        collection : LCMSBaseCollection
+            The collection
+        """
+        # Update sample.mass_features with loaded features
         collection[sample_id].mass_features = result
+        # Lock the collection dataframe to prevent rebuilding from individual samples
+        # (since we've only loaded a subset, rebuilding would lose data)
+        collection._mass_features_locked = True
 
 
 class MolecularFormulaSearchOperation(SampleOperation):
@@ -912,3 +930,129 @@ class MS2SpectralSearchOperation(SampleOperation):
                             ].ms2_similarity_results.append(
                                 sample.spectral_search_results[ms2_scan_id][precursor_mz]
                             )
+
+
+class LoadEICsOperation(SampleOperation):
+    """
+    Load extracted ion chromatograms (EICs) from HDF5 for regular mass features.
+    
+    Loads EICs for regular mass features that belong to consensus clusters from HDF5.
+    Induced (gap-filled) features already have EICs from integrate_mass_features,
+    so no additional loading is needed for them.
+    
+    This operation enables downstream visualization and analysis of chromatographic
+    peaks across all samples in a cluster.
+    
+    Notes
+    -----
+    Requires that mass features have been loaded and cluster_index assigned.
+    Regular mass feature EICs must have been previously saved to HDF5 with export_eics=True.
+    Induced mass features already have EICs populated during gap-filling.
+    """
+    
+    @property
+    def description(self):
+        """Human-readable description for progress messages."""
+        return "loading EICs"
+    
+    def needs_raw_ms_data(self):
+        """This operation doesn't need raw data - induced features already have EICs."""
+        return False, None
+    
+    def can_execute(self, sample, collection):
+        """
+        Check if EIC loading can be executed.
+        
+        This operation can always execute if the sample exists - the actual work
+        is determined by cluster_mz_dict in runtime_params. If cluster_mz_dict is
+        empty or None, execute() will simply return 0 (no EICs loaded).
+        
+        Returns
+        -------
+        bool
+            True (always executable - runtime_params control actual work)
+        """
+        return True
+    
+    def execute(self, sample_id, collection, cluster_mz_dict=None, **runtime_params):
+        """
+        Load EICs from HDF5 for a single sample.
+        
+        Loads EICs for regular mass features that belong to consensus clusters.
+        Induced (gap-filled) mass features already have EICs from integrate_mass_features,
+        so no additional loading is needed for them.
+        
+        The cluster_mz_dict parameter (passed from collection level) maps sample_id
+        to a list of m/z values that belong to clusters for that sample.
+        
+        Parameters
+        ----------
+        sample_id : int
+            Sample index to process
+        collection : LCMSBaseCollection
+            The collection
+        cluster_mz_dict : dict, optional
+            Dictionary mapping sample_id to list of m/z values in clusters for that sample.
+            If None, will not load any EICs. Default is None.
+        **runtime_params
+            Additional runtime parameters (ignored)
+            
+        Returns
+        -------
+        dict
+            Dictionary of loaded EIC_Data objects, keyed by m/z value
+        """
+        from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
+        
+        sample = collection[sample_id]
+        sample_name = collection.samples[sample_id]
+        
+        # If no cluster info provided or no m/z values for this sample, return early
+        if cluster_mz_dict is None or sample_id not in cluster_mz_dict:
+            return {}
+        
+        # Get m/z values for this sample that belong to clusters
+        sample_cluster_mz = set(cluster_mz_dict[sample_id])
+        
+        # Load EICs for each of the sample_cluster_mz
+        hdf5_path = sample.file_location
+        if hdf5_path and hdf5_path.exists():
+            try:
+                reader = ReadCoreMSHDFMassSpectra(str(hdf5_path))
+                reader.import_eics(sample, mz_list=list(sample_cluster_mz))
+                # Return the loaded EICs for multiprocessing collection
+                # (modifications in worker process don't persist to main process)
+                return sample.eics.copy()
+            except (KeyError, AttributeError):
+                # No EIC data in HDF5 file for these m/z values
+                return {}
+        
+        return {}
+    
+    def collect_results(self, sample_id, result, collection):
+        """
+        Collect loaded EICs back into sample.
+        
+        In multiprocessing, the worker's modifications don't persist to the
+        main process, so we need to explicitly collect and reassign the EICs.
+        This also re-associates EICs with mass features.
+        
+        Parameters
+        ----------
+        sample_id : int
+            Sample ID that was processed
+        result : dict
+            Dictionary of EIC_Data objects keyed by m/z, returned from execute()
+        collection : LCMSBaseCollection
+            The collection
+        """
+        if result:
+            # Update sample.eics with loaded EICs
+            collection[sample_id].eics.update(result)
+            
+            # Re-associate EICs with mass features (same logic as import_eics)
+            sample = collection[sample_id]
+            for idx in sample.mass_features.keys():
+                mz = sample.mass_features[idx].mz
+                if mz in sample.eics.keys():
+                    sample.mass_features[idx]._eic_data = sample.eics[mz]
