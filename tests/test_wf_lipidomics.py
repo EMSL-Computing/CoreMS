@@ -148,7 +148,7 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
 
     # Export the mass features to a pandas dataframe
     df = lcms_obj.mass_features_to_df()
-    assert df.shape == (128, 20)
+    assert df.shape == (128, 21)
 
     # Plot a mass feature
     lcms_obj.mass_features[0].plot(return_fig=False)
