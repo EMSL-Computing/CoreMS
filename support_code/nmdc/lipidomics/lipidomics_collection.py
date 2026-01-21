@@ -322,7 +322,8 @@ if __name__ == "__main__":
     # =============================================================================
     ncores = 1
     reprocess_samples = False  # Set to True to reprocess raw data
-    
+    perform_ms2_search = True  # Set to True to perform MS2 spectral library search
+
     # Paths
     base_path = Path("/Volumes/LaCie/nmdc_data/collection_testing/dev_test/")
     collection_save_path = base_path / "collection"
@@ -382,23 +383,28 @@ if __name__ == "__main__":
     # =============================================================================
     # Step 5: Prepare MS2 Spectral Library
     # =============================================================================
-    print("\n=== Preparing MS2 Spectral Library ===")
-    my_msp = MSPInterface(file_path=msp_file_location)
-    spectral_lib, molecular_metadata = my_msp.get_metabolomics_spectra_library(
-        polarity="positive",
-        format="flashentropy",
-        normalize=True,
-        fe_kwargs={
-            "normalize_intensity": True,
-            "min_ms2_difference_in_da": 0.02,
-            "max_ms2_tolerance_in_da": 0.01,
-            "max_indexed_mz": 3000,
-            "precursor_ions_removal_da": None,
-            "noise_threshold": 0,
-        },
-    )
-    print(f"Loaded spectral library: {len(molecular_metadata)} entries")
-    
+    if perform_ms2_search:
+        print("\n=== Preparing MS2 Spectral Library ===")
+        my_msp = MSPInterface(file_path=msp_file_location)
+        spectral_lib, molecular_metadata = my_msp.get_metabolomics_spectra_library(
+            polarity="positive",
+            format="flashentropy",
+            normalize=True,
+            fe_kwargs={
+                "normalize_intensity": True,
+                "min_ms2_difference_in_da": 0.02,
+                "max_ms2_tolerance_in_da": 0.01,
+                "max_indexed_mz": 3000,
+                "precursor_ions_removal_da": None,
+                "noise_threshold": 0,
+            },
+        )
+        print(f"Loaded spectral library: {len(molecular_metadata)} entries")
+    else: 
+        spectral_lib = None
+        molecular_metadata = None
+        print("Skipping MS2 spectral library preparation")
+
     # =============================================================================
     # Step 6: Process Consensus Features with Integrated Pipeline
     # =============================================================================
@@ -409,14 +415,31 @@ if __name__ == "__main__":
         perform_gap_filling=True,
         add_ms1=True,  
         add_ms2=True,
-        molecular_formula_search=True,
-        ms2_spectral_search=True,
+        molecular_formula_search=False,
+        ms2_spectral_search=False,
         spectral_lib=spectral_lib,
         molecular_metadata=molecular_metadata,
         gather_eics=True,
         keep_raw_data=False
     )
     print(f"Pipeline complete: {time.time() - start_time:.1f} seconds using {ncores} cores")
+    
+    # =============================================================================
+    # Step 6.5: Test Consensus Cluster Plotting
+    # =============================================================================
+    print("\n=== Testing Consensus Cluster Plotting ===")
+    
+    # Plot the first cluster as a test
+    if len(lcms_collection.cluster_summary_dataframe) > 0:
+        first_cluster_id = lcms_collection.cluster_summary_dataframe.index[0]
+        # 3116 is a good one to look at :)
+        print(f"Plotting cluster {first_cluster_id}")
+        lcms_collection.plot_cluster(
+            cluster_id=first_cluster_id,
+            to_plot=["EIC", "MS1", "MS2"],
+            plot_smoothed_eic=False,
+            plot_eic_datapoints=False
+        )
     
     # =============================================================================
     # Step 7: Summarize Processing Results

@@ -46,7 +46,7 @@ def test_import_lcmsobj_mzml():
         auto_process=True, use_parser=True, spectrum_mode="centroid"
     )
     mass_features_df = myLCMSobj.mass_features_to_df()
-    assert mass_features_df.shape == (1183, 17)
+    assert mass_features_df.shape == (1183, 18)
     
     # Reset the MSParameters to the original values
     reset_lcms_parameters()
@@ -245,7 +245,7 @@ def test_lipidomics_workflow(postgres_database, lcms_obj):
 
     # Check that the mass features dataframe is the same as the original
     df2 = myLCMSobj2.mass_features_to_df()
-    assert df2.shape == (128, 20)
+    assert df2.shape == (128, 21)
     myLCMSobj2.mass_features[0].mass_spectrum.to_dataframe()
     assert myLCMSobj2.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
     assert myLCMSobj2.mass_features_ms1_annot_to_df().shape[0] > 130
