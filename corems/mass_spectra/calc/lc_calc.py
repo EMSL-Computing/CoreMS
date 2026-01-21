@@ -3060,10 +3060,14 @@ class LCMSCollectionCalculations:
         if self.induced_mass_features_dataframe is not None and len(self.induced_mass_features_dataframe) > 0:
             imf_df = self.induced_mass_features_dataframe.copy()
             imf_df = imf_df.reset_index(drop=False)
-            # Cluster column already extracted by induced_mass_features_dataframe property
+            # Cluster column extracted from mf_id in _prepare_lcms_mass_features_for_combination
             # Combine regular and induced features
             mf_df = pd.concat([mf_df, imf_df], axis=0)
             mf_df = mf_df.reset_index(drop=True)
+        
+        # Filter out any rows with NaN cluster values before converting to int
+        if 'cluster' in mf_df.columns:
+            mf_df = mf_df.dropna(subset=['cluster'])
             mf_df['cluster'] = mf_df['cluster'].astype(int)
 
         summary_df = (
@@ -3257,6 +3261,376 @@ class LCMSCollectionCalculations:
             return fig
         else:
             plt.show()
+    
+    def plot_cluster(
+        self,
+        cluster_id,
+        to_plot=["EIC", "MS1", "MS2"],
+        return_fig=False,
+        plot_smoothed_eic=False,
+        plot_eic_datapoints=False,
+        eic_buffer_time=None,
+        label_samples=False,
+    ):
+        """
+        Plot a consensus mass feature cluster across all samples.
+        
+        Similar to LCMSMassFeature.plot() but shows EICs from all samples in the cluster,
+        highlighting the representative mass feature.
+        
+        Parameters
+        ----------
+        cluster_id : int
+            The cluster ID to plot
+        to_plot : list, optional
+            List of strings specifying what to plot: "EIC", "MS1", "MS2".
+            Default is ["EIC", "MS1", "MS2"].
+        return_fig : bool, optional
+            If True, returns the figure object. Default is False.
+        plot_smoothed_eic : bool, optional
+            If True, plots smoothed EICs. Default is False.
+        plot_eic_datapoints : bool, optional
+            If True, plots EIC data points. Default is False.
+        eic_buffer_time : float, optional
+            Time buffer around the peak for EIC plotting (minutes).
+            If None, uses parameter setting. Default is None.
+        label_samples : bool, optional
+            If True, labels each sample in the legend. Default is False.
+            
+        Returns
+        -------
+        matplotlib.figure.Figure or None
+            The figure object if return_fig=True, otherwise None
+            
+        Raises
+        ------
+        ValueError
+            If cluster_id is not found or if required data is not loaded
+        """
+        import matplotlib.pyplot as plt
+        
+        # Get cluster summary for median values
+        if cluster_id not in self.cluster_summary_dataframe.index:
+            raise ValueError(
+                f"Cluster {cluster_id} not found in cluster_summary_dataframe. "
+                f"Run add_consensus_mass_features() first."
+            )
+        
+        cluster_summary = self.cluster_summary_dataframe.loc[cluster_id]
+        
+        # Get representative mass feature info
+        rep_info = self.get_most_representative_sample_for_cluster(cluster_id)
+        rep_sample_id = rep_info['sample_id']
+        rep_mf_id = rep_info['mf_id']
+        rep_sample = self[rep_sample_id]
+        
+        # Check if representative mass feature is loaded
+        if rep_mf_id not in rep_sample.mass_features:
+            raise ValueError(
+                f"Representative mass feature {rep_mf_id} not loaded in sample {rep_sample.sample_name}. "
+                f"Run reload_representative_mass_features() or process_consensus_features() first."
+            )
+        
+        rep_mf = rep_sample.mass_features[rep_mf_id]
+        
+        # Get eic buffer time
+        if eic_buffer_time is None:
+            eic_buffer_time = self[0].parameters.lc_ms.eic_buffer_time
+        
+        # Adjust to_plot based on available data
+        if rep_mf.mass_spectrum is None:
+            to_plot = [x for x in to_plot if x != "MS1"]
+        if len(rep_mf.ms2_mass_spectra) == 0:
+            to_plot = [x for x in to_plot if x != "MS2"]
+        
+        # Check if EICs are available
+        cluster_mfs = self.mass_features_dataframe[
+            self.mass_features_dataframe['cluster'] == cluster_id
+        ]
+        
+        has_eics = False
+        # Check regular features
+        for _, row in cluster_mfs.iterrows():
+            sample_id = row['sample_id']
+            sample = self[sample_id]
+            if hasattr(sample, 'eics') and sample.eics:
+                has_eics = True
+                break
+        
+        # Also check induced features if available
+        if not has_eics and self.induced_mass_features_dataframe is not None:
+            induced_cluster_mfs = self.induced_mass_features_dataframe[
+                self.induced_mass_features_dataframe['cluster'] == cluster_id
+            ]
+            for _, row in induced_cluster_mfs.iterrows():
+                sample_id = row['sample_id']
+                sample = self[sample_id]
+                if hasattr(sample, 'eics') and sample.eics:
+                    has_eics = True
+                    break
+        
+        if not has_eics:
+            to_plot = [x for x in to_plot if x != "EIC"]
+            if len(to_plot) == 0:
+                raise ValueError(
+                    f"No plottable data available for cluster {cluster_id}. "
+                    f"Run process_consensus_features(gather_eics=True, add_ms1=True, add_ms2=True) first."
+                )
+        
+        # Check if MS1 is deconvoluted
+        deconvoluted = rep_mf._ms_deconvoluted_idx is not None
+        
+        # Create figure
+        fig, axs = plt.subplots(
+            len(to_plot), 1, figsize=(10, len(to_plot) * 4), squeeze=False
+        )
+        
+        fig.suptitle(
+            f"Consensus Cluster {cluster_id}: "
+            f"m/z = {cluster_summary['mz_median']:.4f} "
+            f"(±{cluster_summary['mz_std']:.4f}); "
+            f"RT = {cluster_summary['scan_time_aligned_median']:.2f} min "
+            f"(±{cluster_summary['scan_time_aligned_std']:.2f}); "
+            f"{int(cluster_summary['sample_id_nunique'])} samples"
+        )
+        
+        i = 0
+        
+        # EIC plot - show all samples
+        if "EIC" in to_plot:
+            axs[i][0].set_title("EICs from all samples", loc="left")
+            
+            # Track if we've added labels for legend (to avoid duplicates)
+            rep_labeled = False
+            regular_labeled = False
+            induced_labeled = False
+            
+            # Plot regular (non-induced) mass features
+            for _, row in cluster_mfs.iterrows():
+                sample_id = row['sample_id']
+                mf_id = row['mf_id']
+                sample = self[sample_id]
+                sample_name = row['sample_name']
+                
+                # Check if EIC is available for this mass feature
+                if hasattr(sample, 'eics') and sample.eics and row['mz'] in sample.eics:
+                    eic_data = sample.eics[row['mz']]
+                    
+                    # Determine line style and width
+                    if sample_id == rep_sample_id and mf_id == rep_mf_id:
+                        # Representative feature - bold line
+                        linewidth = 2.5
+                        alpha = 1.0
+                        color = 'tab:blue'
+                        if label_samples:
+                            label = f"{sample_name} (representative)"
+                        else:
+                            label = "Representative" if not rep_labeled else None
+                            rep_labeled = True
+                    else:
+                        # Other features - thinner line
+                        linewidth = 1.0
+                        alpha = 0.5
+                        color = 'tab:blue'
+                        if label_samples:
+                            label = sample_name
+                        else:
+                            label = "Regular features" if not regular_labeled else None
+                            regular_labeled = True
+                    
+                    axs[i][0].plot(
+                        eic_data.time,
+                        eic_data.eic,
+                        c=color,
+                        linewidth=linewidth,
+                        alpha=alpha,
+                        linestyle='-',
+                        label=label
+                    )
+                    
+                    if plot_eic_datapoints:
+                        axs[i][0].scatter(
+                            eic_data.time,
+                            eic_data.eic,
+                            c=color,
+                            alpha=alpha,
+                            s=10
+                        )
+                    
+                    if plot_smoothed_eic and hasattr(eic_data, 'eic_smoothed'):
+                        axs[i][0].plot(
+                            eic_data.time,
+                            eic_data.eic_smoothed,
+                            c=color,
+                            linestyle='--',
+                            alpha=alpha * 0.8,
+                            linewidth=linewidth * 0.8
+                        )
+            
+            # Plot induced (gap-filled) mass features if available
+            if self.induced_mass_features_dataframe is not None:
+                induced_cluster_mfs = self.induced_mass_features_dataframe[
+                    self.induced_mass_features_dataframe['cluster'] == cluster_id
+                ]
+                
+                for _, row in induced_cluster_mfs.iterrows():
+                    sample_id = row['sample_id']
+                    mf_id = row['mf_id']
+                    sample = self[sample_id]
+                    sample_name = row['sample_name']
+                    
+                    # Check if EIC is available for this induced mass feature
+                    if hasattr(sample, 'eics') and sample.eics and row['mz'] in sample.eics:
+                        eic_data = sample.eics[row['mz']]
+                        
+                        # Induced features - even thinner line
+                        linewidth = 0.5
+                        alpha = 0.4
+                        color = 'tab:orange'
+                        
+                        if label_samples:
+                            label = f"{sample_name} (induced)"
+                        else:
+                            label = "Gap-filled features" if not induced_labeled else None
+                            induced_labeled = True
+                        
+                        axs[i][0].plot(
+                            eic_data.time,
+                            eic_data.eic,
+                            c=color,
+                            linewidth=linewidth,
+                            alpha=alpha,
+                            linestyle='-',
+                            label=label
+                        )
+                        
+                        if plot_eic_datapoints:
+                            axs[i][0].scatter(
+                                eic_data.time,
+                                eic_data.eic,
+                                c=color,
+                                alpha=alpha,
+                                s=5
+                            )
+                        
+                        if plot_smoothed_eic and hasattr(eic_data, 'eic_smoothed'):
+                            axs[i][0].plot(
+                                eic_data.time,
+                                eic_data.eic_smoothed,
+                                c=color,
+                                linestyle='--',
+                                alpha=alpha * 0.8,
+                                linewidth=linewidth * 0.8
+                            )
+            
+            # Add vertical line at median RT
+            axs[i][0].axvline(
+                x=cluster_summary['scan_time_aligned_median'],
+                color='k',
+                linestyle='--',
+                alpha=0.7,
+                label='Median RT'
+            )
+            
+            axs[i][0].set_ylabel("Intensity")
+            axs[i][0].set_xlabel("Time (minutes)")
+            axs[i][0].set_xlim(
+                cluster_summary['scan_time_aligned_median'] - eic_buffer_time,
+                cluster_summary['scan_time_aligned_median'] + eic_buffer_time,
+            )
+            axs[i][0].legend(loc='upper left', fontsize=8)
+            axs[i][0].yaxis.get_major_formatter().set_useOffset(False)
+            i += 1
+        
+        # MS1 plot - from representative
+        if "MS1" in to_plot:
+            if deconvoluted:
+                axs[i][0].set_title(
+                    f"MS1 (deconvoluted) - Representative: {rep_sample.sample_name}",
+                    loc="left"
+                )
+                axs[i][0].vlines(
+                    rep_mf.mass_spectrum.mz_exp,
+                    0,
+                    rep_mf.mass_spectrum.abundance,
+                    color="k",
+                    alpha=0.2,
+                    label="Raw MS1",
+                )
+                axs[i][0].vlines(
+                    rep_mf.mass_spectrum_deconvoluted.mz_exp,
+                    0,
+                    rep_mf.mass_spectrum_deconvoluted.abundance,
+                    color="k",
+                    label="Deconvoluted MS1",
+                )
+                axs[i][0].set_xlim(
+                    rep_mf.mass_spectrum_deconvoluted.mz_exp.min() * 0.8,
+                    rep_mf.mass_spectrum_deconvoluted.mz_exp.max() * 1.1,
+                )
+                axs[i][0].set_ylim(
+                    0, rep_mf.mass_spectrum_deconvoluted.abundance.max() * 1.1
+                )
+            else:
+                axs[i][0].set_title(
+                    f"MS1 (raw) - Representative: {rep_sample.sample_name}",
+                    loc="left"
+                )
+                axs[i][0].vlines(
+                    rep_mf.mass_spectrum.mz_exp,
+                    0,
+                    rep_mf.mass_spectrum.abundance,
+                    color="k",
+                    label="Raw MS1",
+                )
+                axs[i][0].set_xlim(
+                    rep_mf.mass_spectrum.mz_exp.min() * 0.8,
+                    rep_mf.mass_spectrum.mz_exp.max() * 1.1,
+                )
+                axs[i][0].set_ylim(bottom=0)
+            
+            # Highlight the feature m/z
+            if abs(rep_mf.ms1_peak.mz_exp - rep_mf.mz) < 0.01:
+                axs[i][0].vlines(
+                    rep_mf.ms1_peak.mz_exp,
+                    0,
+                    rep_mf.ms1_peak.abundance,
+                    color="m",
+                    label="Feature m/z",
+                )
+            
+            axs[i][0].legend(loc="upper left")
+            axs[i][0].set_ylabel("Intensity")
+            axs[i][0].set_xlabel("m/z")
+            axs[i][0].yaxis.set_tick_params(labelleft=False)
+            i += 1
+        
+        # MS2 plot - from representative
+        if "MS2" in to_plot:
+            axs[i][0].set_title(
+                f"MS2 - Representative: {rep_sample.sample_name}",
+                loc="left"
+            )
+            axs[i][0].vlines(
+                rep_mf.best_ms2.mz_exp,
+                0,
+                rep_mf.best_ms2.abundance,
+                color="k"
+            )
+            axs[i][0].set_ylabel("Intensity")
+            axs[i][0].set_xlabel("m/z")
+            axs[i][0].set_ylim(bottom=0)
+            axs[i][0].yaxis.set_tick_params(labelleft=False)
+            i += 1
+        
+        plt.tight_layout()
+        
+        if return_fig:
+            plt.close(fig)
+            return fig
+        else:
+            plt.show()
+            return None
     
     def get_representative_mass_features_for_all_clusters(self, representative_metric=None):
         """

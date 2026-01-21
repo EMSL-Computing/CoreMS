@@ -1648,6 +1648,24 @@ class LCMSCollection(LCMSCollectionCalculations):
         mf_df["sample_id"] = self.manifest[lcms_obj.sample_name]["collection_id"]
         mf_df["coll_mf_id"] = mf_df["sample_id"].astype(str) + "_" + mf_df["mf_id"].astype(str)
 
+        # For induced features, extract cluster from mf_id (format: c{cluster}_{index}_i)
+        # and add as a column since cluster_index attribute may not be set on the object
+        if induced_features:
+            def extract_cluster(mf_id):
+                # mf_id format: c{cluster}_{index}_i
+                # Example: c123_5_i -> cluster 123
+                if isinstance(mf_id, str) and mf_id.startswith('c') and '_i' in mf_id:
+                    parts = mf_id.split('_')
+                    if len(parts) >= 2:
+                        cluster_str = parts[0][1:]  # Remove 'c' prefix
+                        try:
+                            return int(cluster_str)
+                        except ValueError:
+                            return None
+                return None
+            
+            mf_df['cluster'] = mf_df['mf_id'].apply(extract_cluster)
+
         # Check if scan_df has scan_time_aligned and add to mf_df if so
         if "scan_time_aligned" in lcms_obj.scan_df.columns:
             scan_df = lcms_obj.scan_df[["scan", "scan_time_aligned"]].copy()
@@ -1701,13 +1719,34 @@ class LCMSCollection(LCMSCollectionCalculations):
         # Prepare mass features for combination sequentially
         mf_df_list = []
         for lcms_obj in self:
+            # Skip samples with no induced mass features if processing induced features
+            if induced_features:
+                has_attr = hasattr(lcms_obj, 'induced_mass_features')
+                if has_attr:
+                    dict_len = len(lcms_obj.induced_mass_features)
+                    print(f"Sample {lcms_obj.sample_name}: has_attr={has_attr}, len={dict_len}")
+                    if dict_len == 0:
+                        continue
+                else:
+                    print(f"Sample {lcms_obj.sample_name}: has_attr={has_attr}")
+                    continue
             mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj, induced_features)
             mf_df_list.append(mf_df)
+
+        # If no mass features were collected (e.g., no induced features exist), return early
+        if len(mf_df_list) == 0:
+            # Add a warning here, not sure how one might reach this state, clearly saying if they are induced features or not
+            warnings.warn("No mass features found to combine in the collection.", UserWarning)
+            if induced_features:
+                self._combined_induced_mass_features = None
+            else:
+                self._combined_mass_features = None
+            return
 
         combined_mass_features = pd.concat(mf_df_list)
         # Move coll_mf_id, sample_name, sample_id, and mf_id to front
         cols = combined_mass_features.columns.tolist()
-        top_cols = ["coll_mf_id", "sample_name", "sample_id", "mf_id", "mz", "scan_time_aligned"]
+        top_cols = ["coll_mf_id", "sample_name", "sample_id", "mf_id", "mz", "scan_time_aligned", "cluster"]
         cols = [x for x in top_cols + [col for col in cols if col not in top_cols] if x in cols]
         combined_mass_features = combined_mass_features[cols]
         # Make coll_mf_id the index
@@ -2027,7 +2066,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         mf_pivot.reset_index(inplace = True)
         imf_pivot = self.induced_mass_features_dataframe.copy()
         imf_pivot.reset_index(inplace = True)
-        # Cluster column already extracted by induced_mass_features_dataframe property
+        # Cluster column extracted from mf_id in _prepare_lcms_mass_features_for_combination
         mf_pivot = pd.concat([mf_pivot, imf_pivot], axis = 0)
         mf_pivot.reset_index(drop = True, inplace = True)
         mf_pivot['cluster'] = mf_pivot['cluster'].astype(int)
@@ -2070,7 +2109,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         mf_df.reset_index(inplace = True)
         imf_df = self.induced_mass_features_dataframe.copy()
         imf_df.reset_index(inplace = True)
-        # Cluster column already extracted by induced_mass_features_dataframe property
+        # Cluster column extracted from mf_id in _prepare_lcms_mass_features_for_combination
         mf_df = pd.concat([mf_df, imf_df], axis = 0)
         mf_df.reset_index(drop = True, inplace = True)
         mf_df['cluster'] = mf_df['cluster'].astype(int)
@@ -2149,8 +2188,8 @@ class LCMSCollection(LCMSCollectionCalculations):
     def induced_mass_features_dataframe(self):
         self._check_mass_features_df(induced_features = True)
         if self._combined_induced_mass_features is not None and len(self._combined_induced_mass_features) > 0:
-            # The cluster column should already be set during gap-filling
-            # No parsing needed - cluster_index is stored directly on induced mass features
+            # The cluster column is extracted from mf_id in _prepare_lcms_mass_features_for_combination
+            # mf_id format for induced features: c{cluster}_{index}_i
             pass
         return self._combined_induced_mass_features
 
