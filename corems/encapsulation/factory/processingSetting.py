@@ -1161,6 +1161,17 @@ class LCMSCollectionSettings:
         If True, expands search window using consensus_mz_tol_ppm and consensus_rt_tol
         when no peak is found in the initial cluster boundaries during gap-filling.
         Default is False.
+    consensus_representative_metric : str, optional
+        Metric used to determine the most representative sample for a consensus mass feature.
+        Options:
+        - 'intensity': Selects the mass feature with the highest intensity value
+        - 'intensity_prefer_ms2': Selects the mass feature with the highest intensity among 
+          those that have MS2 scan numbers assigned. If no features have MS2 scans, falls 
+          back to selecting the highest intensity feature overall.
+        Default is 'intensity_prefer_ms2'.
+    consensus_representative_metrics_available : tuple, optional
+        Tuple of available metrics for determining the most representative sample.
+        Default is ('intensity', 'intensity_prefer_ms2').
     """
     # Settings for general processing
     cores = 1
@@ -1187,6 +1198,10 @@ class LCMSCollectionSettings:
 
     # Gap-filling settings
     gap_fill_expand_on_miss: bool = True
+    
+    # Consensus mass feature visualization parameters
+    consensus_representative_metric: str = 'intensity_prefer_ms2'
+    consensus_representative_metrics_available: tuple = ('intensity', 'intensity_prefer_ms2')
 
     def __post_init__(self):
         self.consensus_mz_tol_ppm = self.alignment_mz_tol_ppm

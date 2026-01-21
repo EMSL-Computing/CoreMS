@@ -503,13 +503,15 @@ class ReadCoreMSHDFMassSpectra(
                 "Parameters file must be in JSON format, TOML format is not yet supported."
             )
 
-    def import_mass_features(self, mass_spectra) -> None:
+    def import_mass_features(self, mass_spectra, mf_ids=None) -> None:
         """Imports the mass features from the HDF5 file.
 
         Parameters
         ----------
         mass_spectra : LCMSBase | MassSpectraBase
             The MassSpectraBase or LCMSBase object to populate with mass features.
+        mf_ids : list, optional
+            A list of mass feature IDs to import. If None, all mass features are imported.
 
         Returns
         -------
@@ -520,6 +522,8 @@ class ReadCoreMSHDFMassSpectra(
         dict_group_load = self.h5pydata["mass_features"]
         dict_group_keys = dict_group_load.keys()
         for k in dict_group_keys:
+            if mf_ids is not None and int(k) not in mf_ids:
+                continue
             # Instantiate the MassFeature object
             mass_feature = LCMSMassFeature(
                 mass_spectra,
@@ -563,13 +567,15 @@ class ReadCoreMSHDFMassSpectra(
                             mass_spectra._ms[ms2_scan]
                         )
 
-    def import_eics(self, mass_spectra):
+    def import_eics(self, mass_spectra, mz_list=None):
         """Imports the extracted ion chromatograms from the HDF5 file.
 
         Parameters
         ----------
         mass_spectra : LCMSBase | MassSpectraBase
             The MassSpectraBase or LCMSBase object to populate with extracted ion chromatograms.
+        mz_list : list of float, optional
+            List of m/z values to load EICs for. If None, loads all EICs. Default is None.
 
         Returns
         -------
@@ -579,7 +585,16 @@ class ReadCoreMSHDFMassSpectra(
         """
         dict_group_load = self.h5pydata["eics"]
         dict_group_keys = dict_group_load.keys()
+        
+        # Create a set of target m/z values for fast lookup if filtering
+        target_mz_set = set(mz_list) if mz_list is not None else None
+        
         for k in dict_group_keys:
+            # Check if we should load this EIC (filter by m/z if list provided)
+            eic_mz = dict_group_load[k].attrs["mz"]
+            if target_mz_set is not None and eic_mz not in target_mz_set:
+                continue  # Skip this EIC
+            
             my_eic = EIC_Data(
                 scans=dict_group_load[k]["scans"][:],
                 time=dict_group_load[k]["time"][:],
@@ -592,7 +607,7 @@ class ReadCoreMSHDFMassSpectra(
                     if key == "apexes" and len(my_eic.apexes) > 0:
                         my_eic.apexes = [tuple(x) for x in my_eic.apexes]
             # Add to mass_spectra object
-            mass_spectra.eics[dict_group_load[k].attrs["mz"]] = my_eic
+            mass_spectra.eics[eic_mz] = my_eic
 
         # Add to mass features
         for idx in mass_spectra.mass_features.keys():
@@ -1323,12 +1338,9 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
                 for mf_id_str in sample_group.keys():
                     mf_group = sample_group[mf_id_str]
                     
-                    # The mf_id in HDF5 is stored as the collection ID (e.g., 'c10006_422_i' or '0_c10006_422_i')
-                    # Extract the integer ID - it's the second-to-last part when split by '_'
-                    # Format: sample_id_cCluster_mf_id_i
-                    parts = mf_id_str.split('_')
-                    # Find the part that's a number (should be second-to-last before 'i')
-                    mf_id = int(parts[-2]) if len(parts) > 1 else int(mf_id_str)
+                    # The mf_id in HDF5 is stored as a string of the integer ID
+                    # (induced_mass_features dict uses integer keys)
+                    mf_id = int(mf_id_str)
                     
                     # Instantiate the LCMSMassFeature object with required attributes
                     mass_feature = LCMSMassFeature(

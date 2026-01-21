@@ -357,7 +357,7 @@ class LCCalculations:
                 ms.process_mass_spec()
         return ms
 
-    def find_mass_features(self, ms_level=1, grid=True):
+    def find_mass_features(self, ms_level=1, grid=True, assign_ms2_scans=False, ms2_scan_filter=None):
         """Find mass features within an LCMSBase object
 
         Note that this is a wrapper function that calls the find_mass_features_ph function, but can be extended to support other peak picking methods in the future.
@@ -369,6 +369,13 @@ class LCCalculations:
         grid : bool, optional
             If True, will regrid the data before running the persistent homology calculations (after checking if the data is gridded),
             used for persistent homology peak picking for profile data only. Default is True.
+        assign_ms2_scans : bool, optional
+            If True, assign MS2 scan numbers to mass features after peak picking.
+            This populates the ms2_scan_numbers attribute on each mass feature, which enables
+            choosing representative features based on MS2 availability. Default is False.
+        ms2_scan_filter : str or None, optional
+            Filter string for MS2 scans when assign_ms2_scans is True (e.g., 'hcd').
+            If None, all MS2 scans are considered. Default is None.
 
         Raises
         ------
@@ -407,6 +414,21 @@ class LCCalculations:
                 )
         else:
             raise ValueError("Peak picking method not implemented")
+        
+        # Cluster mass features to remove redundant features
+        self.cluster_mass_features(drop_children=True)
+        
+        # Optionally assign MS2 scan numbers to mass features during peak picking
+        # This helps with choosing representative features that have MS2 data
+        if assign_ms2_scans:
+            try:
+                self._find_ms2_scans_for_mass_features(
+                    mf_ids=None,  # Process all mass features
+                    scan_filter=ms2_scan_filter
+                )
+            except ValueError:
+                # No MS2 scans found - this is okay, just skip
+                pass
         
         # Remove noisey mass features if designated in parameters
         if self.parameters.lc_ms.remove_redundant_mass_features:
@@ -3038,10 +3060,14 @@ class LCMSCollectionCalculations:
         if self.induced_mass_features_dataframe is not None and len(self.induced_mass_features_dataframe) > 0:
             imf_df = self.induced_mass_features_dataframe.copy()
             imf_df = imf_df.reset_index(drop=False)
-            # Cluster column already extracted by induced_mass_features_dataframe property
+            # Cluster column extracted from mf_id in _prepare_lcms_mass_features_for_combination
             # Combine regular and induced features
             mf_df = pd.concat([mf_df, imf_df], axis=0)
             mf_df = mf_df.reset_index(drop=True)
+        
+        # Filter out any rows with NaN cluster values before converting to int
+        if 'cluster' in mf_df.columns:
+            mf_df = mf_df.dropna(subset=['cluster'])
             mf_df['cluster'] = mf_df['cluster'].astype(int)
 
         summary_df = (
@@ -3068,7 +3094,8 @@ class LCMSCollectionCalculations:
             if col != "cluster"
         ]
         summary_df = summary_df.rename(columns={"cluster_": "cluster"})
-        summary_df = summary_df.reset_index(drop=True)
+        # Set cluster as the index for easy lookup
+        summary_df = summary_df.set_index('cluster')
         return summary_df
 
     def plot_mz_features_per_cluster(self, return_fig = False):
@@ -3234,6 +3261,805 @@ class LCMSCollectionCalculations:
             return fig
         else:
             plt.show()
+    
+    def plot_cluster(
+        self,
+        cluster_id,
+        to_plot=["EIC", "MS1", "MS2"],
+        return_fig=False,
+        plot_smoothed_eic=False,
+        plot_eic_datapoints=False,
+        eic_buffer_time=None,
+        label_samples=False,
+    ):
+        """
+        Plot a consensus mass feature cluster across all samples.
+        
+        Similar to LCMSMassFeature.plot() but shows EICs from all samples in the cluster,
+        highlighting the representative mass feature.
+        
+        Parameters
+        ----------
+        cluster_id : int
+            The cluster ID to plot
+        to_plot : list, optional
+            List of strings specifying what to plot: "EIC", "MS1", "MS2".
+            Default is ["EIC", "MS1", "MS2"].
+        return_fig : bool, optional
+            If True, returns the figure object. Default is False.
+        plot_smoothed_eic : bool, optional
+            If True, plots smoothed EICs. Default is False.
+        plot_eic_datapoints : bool, optional
+            If True, plots EIC data points. Default is False.
+        eic_buffer_time : float, optional
+            Time buffer around the peak for EIC plotting (minutes).
+            If None, uses parameter setting. Default is None.
+        label_samples : bool, optional
+            If True, labels each sample in the legend. Default is False.
+            
+        Returns
+        -------
+        matplotlib.figure.Figure or None
+            The figure object if return_fig=True, otherwise None
+            
+        Raises
+        ------
+        ValueError
+            If cluster_id is not found or if required data is not loaded
+        """
+        import matplotlib.pyplot as plt
+        
+        # Get cluster summary for median values
+        if cluster_id not in self.cluster_summary_dataframe.index:
+            raise ValueError(
+                f"Cluster {cluster_id} not found in cluster_summary_dataframe. "
+                f"Run add_consensus_mass_features() first."
+            )
+        
+        cluster_summary = self.cluster_summary_dataframe.loc[cluster_id]
+        
+        # Get representative mass feature info
+        rep_info = self.get_most_representative_sample_for_cluster(cluster_id)
+        rep_sample_id = rep_info['sample_id']
+        rep_mf_id = rep_info['mf_id']
+        rep_sample = self[rep_sample_id]
+        
+        # Check if representative mass feature is loaded
+        if rep_mf_id not in rep_sample.mass_features:
+            raise ValueError(
+                f"Representative mass feature {rep_mf_id} not loaded in sample {rep_sample.sample_name}. "
+                f"Run reload_representative_mass_features() or process_consensus_features() first."
+            )
+        
+        rep_mf = rep_sample.mass_features[rep_mf_id]
+        
+        # Get eic buffer time
+        if eic_buffer_time is None:
+            eic_buffer_time = self[0].parameters.lc_ms.eic_buffer_time
+        
+        # Adjust to_plot based on available data
+        if rep_mf.mass_spectrum is None:
+            to_plot = [x for x in to_plot if x != "MS1"]
+        if len(rep_mf.ms2_mass_spectra) == 0:
+            to_plot = [x for x in to_plot if x != "MS2"]
+        
+        # Check if EICs are available
+        cluster_mfs = self.mass_features_dataframe[
+            self.mass_features_dataframe['cluster'] == cluster_id
+        ]
+        
+        has_eics = False
+        # Check regular features
+        for _, row in cluster_mfs.iterrows():
+            sample_id = row['sample_id']
+            sample = self[sample_id]
+            if hasattr(sample, 'eics') and sample.eics:
+                has_eics = True
+                break
+        
+        # Also check induced features if available
+        if not has_eics and self.induced_mass_features_dataframe is not None:
+            induced_cluster_mfs = self.induced_mass_features_dataframe[
+                self.induced_mass_features_dataframe['cluster'] == cluster_id
+            ]
+            for _, row in induced_cluster_mfs.iterrows():
+                sample_id = row['sample_id']
+                sample = self[sample_id]
+                if hasattr(sample, 'eics') and sample.eics:
+                    has_eics = True
+                    break
+        
+        if not has_eics:
+            to_plot = [x for x in to_plot if x != "EIC"]
+            if len(to_plot) == 0:
+                raise ValueError(
+                    f"No plottable data available for cluster {cluster_id}. "
+                    f"Run process_consensus_features(gather_eics=True, add_ms1=True, add_ms2=True) first."
+                )
+        
+        # Check if MS1 is deconvoluted
+        deconvoluted = rep_mf._ms_deconvoluted_idx is not None
+        
+        # Create figure
+        fig, axs = plt.subplots(
+            len(to_plot), 1, figsize=(10, len(to_plot) * 4), squeeze=False
+        )
+        
+        fig.suptitle(
+            f"Consensus Cluster {cluster_id}: "
+            f"m/z = {cluster_summary['mz_median']:.4f} "
+            f"(±{cluster_summary['mz_std']:.4f}); "
+            f"RT = {cluster_summary['scan_time_aligned_median']:.2f} min "
+            f"(±{cluster_summary['scan_time_aligned_std']:.2f}); "
+            f"{int(cluster_summary['sample_id_nunique'])} samples"
+        )
+        
+        i = 0
+        
+        # EIC plot - show all samples
+        if "EIC" in to_plot:
+            axs[i][0].set_title("EICs from all samples", loc="left")
+            
+            # Track if we've added labels for legend (to avoid duplicates)
+            rep_labeled = False
+            regular_labeled = False
+            induced_labeled = False
+            
+            # Plot regular (non-induced) mass features
+            for _, row in cluster_mfs.iterrows():
+                sample_id = row['sample_id']
+                mf_id = row['mf_id']
+                sample = self[sample_id]
+                sample_name = row['sample_name']
+                
+                # Check if EIC is available for this mass feature
+                if hasattr(sample, 'eics') and sample.eics and row['mz'] in sample.eics:
+                    eic_data = sample.eics[row['mz']]
+                    
+                    # Determine line style and width
+                    if sample_id == rep_sample_id and mf_id == rep_mf_id:
+                        # Representative feature - bold line
+                        linewidth = 2.5
+                        alpha = 1.0
+                        color = 'tab:blue'
+                        if label_samples:
+                            label = f"{sample_name} (representative)"
+                        else:
+                            label = "Representative" if not rep_labeled else None
+                            rep_labeled = True
+                    else:
+                        # Other features - thinner line
+                        linewidth = 1.0
+                        alpha = 0.5
+                        color = 'tab:blue'
+                        if label_samples:
+                            label = sample_name
+                        else:
+                            label = "Regular features" if not regular_labeled else None
+                            regular_labeled = True
+                    
+                    axs[i][0].plot(
+                        eic_data.time,
+                        eic_data.eic,
+                        c=color,
+                        linewidth=linewidth,
+                        alpha=alpha,
+                        linestyle='-',
+                        label=label
+                    )
+                    
+                    if plot_eic_datapoints:
+                        axs[i][0].scatter(
+                            eic_data.time,
+                            eic_data.eic,
+                            c=color,
+                            alpha=alpha,
+                            s=10
+                        )
+                    
+                    if plot_smoothed_eic and hasattr(eic_data, 'eic_smoothed'):
+                        axs[i][0].plot(
+                            eic_data.time,
+                            eic_data.eic_smoothed,
+                            c=color,
+                            linestyle='--',
+                            alpha=alpha * 0.8,
+                            linewidth=linewidth * 0.8
+                        )
+            
+            # Plot induced (gap-filled) mass features if available
+            if self.induced_mass_features_dataframe is not None:
+                induced_cluster_mfs = self.induced_mass_features_dataframe[
+                    self.induced_mass_features_dataframe['cluster'] == cluster_id
+                ]
+                
+                for _, row in induced_cluster_mfs.iterrows():
+                    sample_id = row['sample_id']
+                    mf_id = row['mf_id']
+                    sample = self[sample_id]
+                    sample_name = row['sample_name']
+                    
+                    # Check if EIC is available for this induced mass feature
+                    if hasattr(sample, 'eics') and sample.eics and row['mz'] in sample.eics:
+                        eic_data = sample.eics[row['mz']]
+                        
+                        # Induced features - even thinner line
+                        linewidth = 0.5
+                        alpha = 0.4
+                        color = 'tab:orange'
+                        
+                        if label_samples:
+                            label = f"{sample_name} (induced)"
+                        else:
+                            label = "Gap-filled features" if not induced_labeled else None
+                            induced_labeled = True
+                        
+                        axs[i][0].plot(
+                            eic_data.time,
+                            eic_data.eic,
+                            c=color,
+                            linewidth=linewidth,
+                            alpha=alpha,
+                            linestyle='-',
+                            label=label
+                        )
+                        
+                        if plot_eic_datapoints:
+                            axs[i][0].scatter(
+                                eic_data.time,
+                                eic_data.eic,
+                                c=color,
+                                alpha=alpha,
+                                s=5
+                            )
+                        
+                        if plot_smoothed_eic and hasattr(eic_data, 'eic_smoothed'):
+                            axs[i][0].plot(
+                                eic_data.time,
+                                eic_data.eic_smoothed,
+                                c=color,
+                                linestyle='--',
+                                alpha=alpha * 0.8,
+                                linewidth=linewidth * 0.8
+                            )
+            
+            # Add vertical line at median RT
+            axs[i][0].axvline(
+                x=cluster_summary['scan_time_aligned_median'],
+                color='k',
+                linestyle='--',
+                alpha=0.7,
+                label='Median RT'
+            )
+            
+            axs[i][0].set_ylabel("Intensity")
+            axs[i][0].set_xlabel("Time (minutes)")
+            axs[i][0].set_xlim(
+                cluster_summary['scan_time_aligned_median'] - eic_buffer_time,
+                cluster_summary['scan_time_aligned_median'] + eic_buffer_time,
+            )
+            axs[i][0].legend(loc='upper left', fontsize=8)
+            axs[i][0].yaxis.get_major_formatter().set_useOffset(False)
+            i += 1
+        
+        # MS1 plot - from representative
+        if "MS1" in to_plot:
+            if deconvoluted:
+                axs[i][0].set_title(
+                    f"MS1 (deconvoluted) - Representative: {rep_sample.sample_name}",
+                    loc="left"
+                )
+                axs[i][0].vlines(
+                    rep_mf.mass_spectrum.mz_exp,
+                    0,
+                    rep_mf.mass_spectrum.abundance,
+                    color="k",
+                    alpha=0.2,
+                    label="Raw MS1",
+                )
+                axs[i][0].vlines(
+                    rep_mf.mass_spectrum_deconvoluted.mz_exp,
+                    0,
+                    rep_mf.mass_spectrum_deconvoluted.abundance,
+                    color="k",
+                    label="Deconvoluted MS1",
+                )
+                axs[i][0].set_xlim(
+                    rep_mf.mass_spectrum_deconvoluted.mz_exp.min() * 0.8,
+                    rep_mf.mass_spectrum_deconvoluted.mz_exp.max() * 1.1,
+                )
+                axs[i][0].set_ylim(
+                    0, rep_mf.mass_spectrum_deconvoluted.abundance.max() * 1.1
+                )
+            else:
+                axs[i][0].set_title(
+                    f"MS1 (raw) - Representative: {rep_sample.sample_name}",
+                    loc="left"
+                )
+                axs[i][0].vlines(
+                    rep_mf.mass_spectrum.mz_exp,
+                    0,
+                    rep_mf.mass_spectrum.abundance,
+                    color="k",
+                    label="Raw MS1",
+                )
+                axs[i][0].set_xlim(
+                    rep_mf.mass_spectrum.mz_exp.min() * 0.8,
+                    rep_mf.mass_spectrum.mz_exp.max() * 1.1,
+                )
+                axs[i][0].set_ylim(bottom=0)
+            
+            # Highlight the feature m/z
+            if abs(rep_mf.ms1_peak.mz_exp - rep_mf.mz) < 0.01:
+                axs[i][0].vlines(
+                    rep_mf.ms1_peak.mz_exp,
+                    0,
+                    rep_mf.ms1_peak.abundance,
+                    color="m",
+                    label="Feature m/z",
+                )
+            
+            axs[i][0].legend(loc="upper left")
+            axs[i][0].set_ylabel("Intensity")
+            axs[i][0].set_xlabel("m/z")
+            axs[i][0].yaxis.set_tick_params(labelleft=False)
+            i += 1
+        
+        # MS2 plot - from representative
+        if "MS2" in to_plot:
+            axs[i][0].set_title(
+                f"MS2 - Representative: {rep_sample.sample_name}",
+                loc="left"
+            )
+            axs[i][0].vlines(
+                rep_mf.best_ms2.mz_exp,
+                0,
+                rep_mf.best_ms2.abundance,
+                color="k"
+            )
+            axs[i][0].set_ylabel("Intensity")
+            axs[i][0].set_xlabel("m/z")
+            axs[i][0].set_ylim(bottom=0)
+            axs[i][0].yaxis.set_tick_params(labelleft=False)
+            i += 1
+        
+        plt.tight_layout()
+        
+        if return_fig:
+            plt.close(fig)
+            return fig
+        else:
+            plt.show()
+            return None
+    
+    def get_representative_mass_features_for_all_clusters(self, representative_metric=None):
+        """
+        Get the most representative mass feature for all clusters in bulk.
+        
+        This is much more efficient than calling get_most_representative_sample_for_cluster
+        in a loop, as it processes all clusters in a single pass over the dataframe.
+        
+        Parameters
+        ----------
+        representative_metric : str, optional
+            The metric to use to determine the most representative sample.
+            If None, uses the value from self.parameters.lcms_collection.consensus_representative_metric.
+            Options:
+            - 'intensity': Selects the mass feature with the highest intensity
+            - 'intensity_prefer_ms2': Selects the highest intensity feature that has MS2 scans,
+              or the highest intensity overall if none have MS2
+            Default is None (uses parameter setting).
+            
+        Returns
+        -------
+        :obj:`~pandas.DataFrame`
+            DataFrame with one row per cluster containing:
+            - cluster: cluster ID
+            - sample_id: The sample ID of the most representative sample
+            - mf_id: The mass feature ID in the sample
+            - coll_mf_id: The collection-level mass feature ID (index)
+            - has_ms2: Whether this mass feature has MS2 scan numbers
+            - intensity: The intensity value of the representative mass feature
+        """
+        # Use default from parameters if not specified
+        if representative_metric is None:
+            representative_metric = self.parameters.lcms_collection.consensus_representative_metric
+        
+        mf_df = self.mass_features_dataframe.copy()
+        
+        # Handle special metric 'intensity_prefer_ms2'
+        if representative_metric == 'intensity_prefer_ms2':
+            if 'intensity' not in mf_df.columns:
+                raise ValueError(
+                    f"'intensity' column not found in mass_features_dataframe. "
+                    f"Available columns: {mf_df.columns.tolist()}"
+                )
+            
+            # Add has_ms2 flag if ms2_scan_numbers column exists
+            if 'ms2_scan_numbers' in mf_df.columns:
+                def has_ms2_scans(val):
+                    if val is None:
+                        return False
+                    try:
+                        return len(val) > 0
+                    except (TypeError, ValueError):
+                        return False
+                
+                mf_df['has_ms2'] = mf_df['ms2_scan_numbers'].apply(has_ms2_scans)
+                
+                # Sort by has_ms2 (descending) then intensity (descending)
+                # This ensures features with MS2 are preferred when intensities are equal
+                mf_df = mf_df.sort_values(['has_ms2', 'intensity'], ascending=[False, False])
+            else:
+                mf_df['has_ms2'] = False
+                mf_df = mf_df.sort_values('intensity', ascending=False)
+            
+            # Group by cluster and take the first (highest intensity, preferring MS2)
+            representatives = mf_df.groupby('cluster').first().reset_index()
+            
+        else:
+            # Standard metric - check if it exists
+            if representative_metric not in mf_df.columns:
+                raise ValueError(
+                    f"Metric '{representative_metric}' not found. Available columns: {mf_df.columns.tolist()}"
+                )
+            
+            # Add has_ms2 flag for consistency
+            if 'ms2_scan_numbers' in mf_df.columns:
+                def has_ms2_scans(val):
+                    if val is None:
+                        return False
+                    try:
+                        return len(val) > 0
+                    except (TypeError, ValueError):
+                        return False
+                mf_df['has_ms2'] = mf_df['ms2_scan_numbers'].apply(has_ms2_scans)
+            else:
+                mf_df['has_ms2'] = False
+            
+            # Get the index of max value for each cluster
+            idx = mf_df.groupby('cluster')[representative_metric].idxmax()
+            representatives = mf_df.loc[idx].reset_index(drop=True)
+        
+        # Store the collection-level index as coll_mf_id
+        representatives['coll_mf_id'] = representatives.index
+        
+        # Select only the columns we need
+        result_cols = ['cluster', 'sample_id', 'mf_id', 'coll_mf_id', 'has_ms2', 'intensity']
+        representatives = representatives[result_cols]
+        
+        return representatives
+    
+    def get_most_representative_sample_for_cluster(self, cluster_id, representative_metric=None):
+        """
+        Get the most representative sample for a given cluster based on a metric.
+        
+        Parameters
+        ----------
+        cluster_id : int
+            The cluster ID to find the representative sample for.
+        representative_metric : str, optional
+            The metric to use to determine the most representative sample.
+            If None, uses the value from self.parameters.lcms_collection.consensus_representative_metric.
+            Options:
+            - 'intensity': Selects the mass feature with the highest intensity
+            - 'intensity_prefer_ms2': Selects the highest intensity feature that has MS2 scans,
+              or the highest intensity overall if none have MS2
+            Default is None (uses parameter setting).
+            
+        Returns
+        -------
+        dict
+            Dictionary containing:
+            - 'sample_id': The sample ID of the most representative sample
+            - 'sample_name': The sample name of the most representative sample
+            - 'mf_id': The mass feature ID in the sample
+            - 'coll_mf_id': The collection-level mass feature ID (index)
+            - 'has_ms2': Whether this mass feature has MS2 scan numbers
+            - 'intensity': The intensity value of the representative mass feature
+        
+        Raises
+        ------
+        ValueError
+            If cluster_id is not found or if representative_metric is not a valid column.
+        """
+        # Use the bulk method to get all representatives, then filter to this cluster
+        # This follows DRY principle and ensures consistency
+        all_representatives = self.get_representative_mass_features_for_all_clusters(
+            representative_metric=representative_metric
+        )
+        
+        # Filter to the requested cluster
+        cluster_rep = all_representatives[all_representatives['cluster'] == cluster_id]
+        
+        if len(cluster_rep) == 0:
+            # Try to provide helpful error message
+            available_clusters = self.mass_features_dataframe['cluster'].unique()
+            raise ValueError(
+                f"Cluster {cluster_id} not found in mass_features_dataframe. "
+                f"Available clusters: {sorted(available_clusters[:10].tolist())}... "
+                f"(showing first 10 of {len(available_clusters)} total clusters)"
+            )
+        
+        # Get the representative row (should only be one)
+        rep_row = cluster_rep.iloc[0]
+        
+        # Get sample name from sample_id
+        sample_name = self.samples[rep_row['sample_id']]
+        
+        return {
+            'sample_id': rep_row['sample_id'],
+            'sample_name': sample_name,
+            'mf_id': rep_row['mf_id'],
+            'coll_mf_id': rep_row['coll_mf_id'],
+            'has_ms2': rep_row['has_ms2'],
+            'intensity': rep_row['intensity']
+        }
+    
+    def reload_representative_mass_features(self, add_ms2=False, auto_process_ms2=True, ms2_spectrum_mode=None, ms2_scan_filter=None):
+        """
+        Reload mass features for all representative samples in the cluster summary.
+        
+        This method is useful when the collection was loaded with load_light=True,
+        which stores mass features only in the collection dataframe. This reloads
+        the specific mass features that are representatives for each cluster,
+        allowing them to be accessed as LCMSMassFeature objects.
+        
+        Parameters
+        ----------
+        add_ms2 : bool, optional
+            If True, also loads and associates MS2 spectra with mass features. Default is False.
+        auto_process_ms2 : bool, optional
+            If True and add_ms2=True, auto-processes MS2 spectra. Default is True.
+        ms2_spectrum_mode : str or None, optional
+            Spectrum mode for MS2 spectra. If None, determines from parser. Default is None.
+        ms2_scan_filter : str or None, optional
+            Filter string for MS2 scans (e.g., 'hcd'). Default is None.
+        
+        Returns
+        -------
+        dict
+            Dictionary mapping sample_id to list of reloaded mf_ids.
+            
+        Raises
+        ------
+        ValueError
+            If cluster_summary_dataframe is not set (run add_consensus_mass_features first).
+            
+        Notes
+        -----
+        - Only reloads mass features that are cluster representatives
+        - Uses get_most_representative_sample_for_cluster() to determine which to reload
+        - More memory-efficient than reloading all mass features
+        - Parallelized based on lcms_collection.cores parameter
+        - MS2 association uses same logic as add_associated_ms2_dda()
+        
+        See Also
+        --------
+        _reload_sample_mass_features : Low-level method to reload specific mass features
+        get_most_representative_sample_for_cluster : Gets representative sample for cluster
+        """
+        # Validate prerequisites
+        if not hasattr(self, 'cluster_summary_dataframe') or self.cluster_summary_dataframe is None:
+            raise ValueError(
+                "cluster_summary_dataframe not found. Must run add_consensus_mass_features() first."
+            )
+        
+        # Get all representative mass features in bulk (much faster than looping)
+        representatives = self.get_representative_mass_features_for_all_clusters()
+        
+        # Build a dictionary of sample_id -> list of mf_ids that are representatives
+        sample_mf_map = {}
+        for _, row in representatives.iterrows():
+            sample_id = row['sample_id']
+            mf_id = row['mf_id']
+            
+            if sample_id not in sample_mf_map:
+                sample_mf_map[sample_id] = []
+            sample_mf_map[sample_id].append(mf_id)
+        
+        # Reload mass features for each sample (parallelized)
+        if self.parameters.lcms_collection.cores == 1:
+            # Serial processing
+            from tqdm import tqdm
+            for sample_id in tqdm(sample_mf_map.keys(), desc="Reloading representative mass features", unit="sample"):
+                mf_ids = sample_mf_map[sample_id]
+                self._reload_sample_mass_features(sample_id, mf_ids_to_load=mf_ids, add_ms2=add_ms2, 
+                                                  auto_process_ms2=auto_process_ms2, ms2_spectrum_mode=ms2_spectrum_mode,
+                                                  ms2_scan_filter=ms2_scan_filter)
+        else:
+            # Parallel processing
+            import multiprocessing
+            from tqdm import tqdm
+            
+            if self.parameters.lcms_collection.cores > len(sample_mf_map):
+                ncores = len(sample_mf_map)
+            else:
+                ncores = self.parameters.lcms_collection.cores
+            
+            pool = multiprocessing.Pool(ncores)
+            
+            # Build arguments list for starmap
+            args_list = [
+                (sample_id, sample_mf_map[sample_id], add_ms2, auto_process_ms2, 
+                 ms2_spectrum_mode, ms2_scan_filter, False)
+                for sample_id in sample_mf_map.keys()
+            ]
+            
+            # Execute in parallel
+            mp_result = pool.starmap(self._reload_sample_mass_features, args_list)
+            pool.close()
+            pool.join()
+            
+            # Collect results back into samples
+            for i, sample_id in enumerate(tqdm(sample_mf_map.keys(), desc="Collecting reloaded mass features", unit="sample")):
+                self[sample_id].mass_features = mp_result[i]
+        
+        return sample_mf_map
+    
+    def _associate_ms2_with_mass_features(self, sample, local_mf_ids, auto_process=True, 
+                                          spectrum_mode=None, scan_filter=None):
+        """
+        Associate MS2 spectra with specific mass features in a sample.
+        
+        Uses the LCMSBase helper method to find and load MS2 scans for the specified mass features.
+        
+        Parameters
+        ----------
+        sample : LCMSBase
+            The sample object containing mass features and scan data.
+        local_mf_ids : list of int
+            List of local (sample-level) mass feature IDs to find MS2 for.
+        auto_process : bool, optional
+            If True, auto-processes the MS2 spectra. Default is True.
+        spectrum_mode : str or None, optional
+            Spectrum mode for MS2 spectra. If None, determines from parser. Default is None.
+        scan_filter : str or None, optional
+            Filter string for MS2 scans (e.g., 'hcd'). Default is None.
+            
+        Returns
+        -------
+        dict
+            Dictionary of scan_number -> MassSpectrum objects for the loaded MS2 spectra.
+        """
+        # Check if we have scan data
+        if not hasattr(sample, 'scan_df') or sample.scan_df is None:
+            return {}
+        
+        # Separate mass features into those that need scan finding vs those that already have scans
+        mfs_needing_scan_finding = []
+        unique_dda_scans = set()
+        
+        for mf_id in local_mf_ids:
+            if mf_id not in sample.mass_features:
+                continue
+            mf = sample.mass_features[mf_id]
+            # If this mass feature already has MS2 scans, add them to our set
+            if mf.ms2_scan_numbers is not None and len(mf.ms2_scan_numbers) > 0:
+                # Convert to integers in case they come from HDF5 as numpy types
+                unique_dda_scans.update([int(scan) for scan in mf.ms2_scan_numbers])
+            else:
+                # Otherwise, we need to find scans for this mass feature
+                mfs_needing_scan_finding.append(mf_id)
+        
+        # Only run the scan finding for mass features that need it
+        if mfs_needing_scan_finding:
+            found_scans = sample._find_ms2_scans_for_mass_features(
+                mf_ids=mfs_needing_scan_finding,
+                scan_filter=scan_filter
+            )
+            unique_dda_scans.update(found_scans)
+
+        if len(unique_dda_scans) == 0:
+            return {}
+        
+        # Get ms2 parameters from sample
+        #TODO KRH: deal with different ms2 scan types here (CID vs HCD), may need to add scan translator to the initializeion
+        ms_params = sample.parameters.mass_spectrum['ms2']
+
+        # Load MS2 spectra (convert set to list)
+        sample.add_mass_spectra(
+            scan_list=list(unique_dda_scans),
+            auto_process=auto_process,
+            spectrum_mode=spectrum_mode,
+            use_parser=True,
+            ms_params=ms_params,
+        )
+        
+        # Associate MS2 spectra with mass features
+        for mf_id in local_mf_ids:
+            if mf_id not in sample.mass_features:
+                continue
+            if sample.mass_features[mf_id].ms2_scan_numbers is not None and len(sample.mass_features[mf_id].ms2_scan_numbers) > 0:
+                for dda_scan in sample.mass_features[mf_id].ms2_scan_numbers:
+                    if dda_scan in sample._ms:
+                        sample.mass_features[mf_id].ms2_mass_spectra[dda_scan] = sample._ms[dda_scan]
+        
+        # Return only the MS2 spectra we loaded (for parallel processing)
+        return {scan: sample._ms[scan] for scan in unique_dda_scans if scan in sample._ms}
+    
+    def _reload_sample_mass_features(self, sample_id, mf_ids_to_load=None, add_ms2=False, 
+                                     auto_process_ms2=True, ms2_spectrum_mode=None, ms2_scan_filter=None,
+                                     inplace=True):
+        """
+        Reload specific mass features for a sample from HDF5.
+        
+        This is useful when the collection was loaded with load_light=True,
+        which stores mass features only in the collection dataframe and not
+        as LCMSMassFeature objects in individual samples.
+        
+        Parameters
+        ----------
+        sample_id : int
+            The sample ID to reload mass features for.
+        mf_ids_to_load : list of str, optional
+            List of collection-level mf_ids (format: '{sample_id}_{local_mf_id}') to load.
+            If None, loads all mass features for the sample.
+        add_ms2 : bool, optional
+            If True, also loads and associates MS2 spectra. Default is False.
+        auto_process_ms2 : bool, optional
+            If True, auto-processes MS2 spectra. Default is True.
+        ms2_spectrum_mode : str or None, optional
+            Spectrum mode for MS2 spectra. Default is None.
+        ms2_scan_filter : str or None, optional
+            Filter string for MS2 scans. Default is None.
+        inplace : bool, optional
+            If True, updates the sample's mass_features in place. If False, returns the
+            mass_features dictionary (for multiprocessing). Default is True.
+            
+        Returns
+        -------
+        dict or None
+            If inplace=False, returns dictionary of mass features.
+            Otherwise returns None and updates object in place.
+        """
+        sample = self[sample_id]
+        sample_name = self.samples[sample_id]
+        
+        # Check if we have a collection parser that can reload
+        if not hasattr(self, 'collection_parser') or self.collection_parser is None:
+            print("Warning: Cannot reload mass features - no collection_parser available")
+            if not inplace:
+                return {}
+            return
+        
+        # Get the HDF5 file for this sample
+        hdf5_file = self.collection_parser.folder_location / f"{sample_name}.corems/{sample_name}.hdf5"
+        
+        if not hdf5_file.exists():
+            print(f"Warning: HDF5 file not found for sample {sample_name}: {hdf5_file}")
+            if not inplace:
+                return {}
+            return
+        
+        # Import here to avoid circular imports
+        from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
+        
+        # If specific mf_ids requested, use them directly
+        local_mf_ids_to_load = None
+        if mf_ids_to_load is not None:
+            # mf_ids_to_load is already a list of sample-level mf_ids (integers)
+            # No parsing needed - they come from the mf_id column in the dataframe
+            local_mf_ids_to_load = set(mf_ids_to_load)
+        
+        # Reload mass features from HDF5
+        with ReadCoreMSHDFMassSpectra(hdf5_file) as parser:
+            # Load mass features - if specific IDs requested, only load those
+            parser.import_mass_features(sample, mf_ids=local_mf_ids_to_load)
+        
+        # If add_ms2, associate MS2 spectra with the loaded mass features
+        if add_ms2 and local_mf_ids_to_load is not None:
+            self._associate_ms2_with_mass_features(
+                sample, 
+                list(local_mf_ids_to_load),
+                auto_process=auto_process_ms2,
+                spectrum_mode=ms2_spectrum_mode,
+                scan_filter=ms2_scan_filter
+            )
+        
+        # Return mass features if not inplace (for multiprocessing)
+        if not inplace:
+            return sample.mass_features
         
     def add_sparse_distance_matrix(self, features):
         if features is None:
@@ -3955,3 +4781,555 @@ class LCMSCollectionCalculations:
         
         for sample_name in self.samples:
             self._lcms[sample_name].mass_features = {}
+    
+    def process_samples_pipeline(self, operations, description=None, keep_raw_data=False):
+        """
+        Execute a pipeline of operations on all samples in parallel.
+        
+        This method provides a flexible framework for performing multiple
+        sample-level operations in a single parallelized pass, which is more
+        efficient than calling separate methods sequentially.
+        
+        Parameters
+        ----------
+        operations : list of SampleOperation
+            List of operations to perform on each sample, in order.
+            Each operation should be an instance of a class derived from
+            SampleOperation (see lc_calc_operations module).
+        description : str or None, optional
+            Progress bar description. If None, automatically generates description
+            from operation descriptions (e.g., "gap-filling, reloading features").
+            Default is None.
+        keep_raw_data : bool, optional
+            If True, keeps raw MS data loaded in memory after pipeline completes.
+            If False, cleans up raw data to free memory. Default is False.
+            
+        Returns
+        -------
+        dict
+            Dictionary with results from pipeline execution, keyed by operation name.
+            Structure: {operation_name: {sample_id: result, ...}, ...}
+            
+        Raises
+        ------
+        ValueError
+            If operations list is empty or contains invalid operations.
+            
+        Notes
+        -----
+        - Operations are executed sequentially within each sample
+        - Samples are processed in parallel based on parameters.lcms_collection.cores
+        - Each operation can have conditional execution via can_execute()
+        - Results are collected back via collect_results() method of each operation
+        - Failed operations for a sample are logged but don't halt processing
+        - Raw MS data loaded by operations is automatically cleaned up unless keep_raw_data=True
+        
+        Examples
+        --------
+        >>> from corems.mass_spectra.calc.lc_calc_operations import (
+        ...     GapFillOperation, ReloadFeaturesOperation
+        ... )
+        >>> ops = [
+        ...     GapFillOperation('gap_fill', expand_on_miss=True),
+        ...     ReloadFeaturesOperation('reload', add_ms2=True)
+        ... ]
+        >>> results = lcms_collection.process_samples_pipeline(ops)
+        
+        See Also
+        --------
+        lc_calc_operations : Module containing built-in operation classes
+        fill_and_process_features : Convenience method combining common operations
+        """
+        from corems.mass_spectra.calc.lc_calc_operations import SampleOperation
+        
+        # Validate operations
+        if not operations or len(operations) == 0:
+            raise ValueError("operations list cannot be empty")
+        
+        for op in operations:
+            if not isinstance(op, SampleOperation):
+                raise ValueError(f"All operations must be SampleOperation instances, got {type(op)}")
+        
+        # Generate description from operations if not provided
+        if description is None:
+            operation_descriptions = [op.description for op in operations]
+            description = ", ".join(operation_descriptions).capitalize()
+        
+        # Prepare runtime parameters for each operation
+        # This is where we gather collection-level data that operations need
+        runtime_params = self._prepare_pipeline_runtime_params(operations)
+        runtime_params['keep_raw_data'] = keep_raw_data
+        
+        # Execute pipeline
+        sample_ct = len(self.samples)
+        
+        if self.parameters.lcms_collection.cores == 1:
+            # Serial processing
+            from tqdm import tqdm
+            results_by_operation = {op.name: {} for op in operations}
+            
+            # Print description on its own line before progress bar
+            print(f"\n{description.capitalize()}:")
+            for sample_id in tqdm(range(sample_ct), unit="sample", ncols=80):
+                sample_results = self._execute_sample_pipeline(
+                    sample_id, operations, runtime_params, inplace=True
+                )
+                # Collect results
+                for op_name, result in sample_results.items():
+                    results_by_operation[op_name][sample_id] = result
+        else:
+            # Parallel processing
+            import multiprocessing
+            from tqdm import tqdm
+            
+            if self.parameters.lcms_collection.cores > sample_ct:
+                ncores = sample_ct
+            else:
+                ncores = self.parameters.lcms_collection.cores
+            
+            pool = multiprocessing.Pool(ncores)
+            
+            # Build arguments for each sample
+            args_list = [
+                (sample_id, operations, runtime_params, False)
+                for sample_id in range(sample_ct)
+            ]
+            
+            # Execute in parallel
+            mp_results = pool.starmap(self._execute_sample_pipeline, args_list)
+            pool.close()
+            pool.join()
+            
+            # Collect results back into collection
+            results_by_operation = {op.name: {} for op in operations}
+            print(f"\nCollecting {description} results:")
+            for sample_id in tqdm(range(sample_ct), unit="sample", ncols=80):
+                sample_results = mp_results[sample_id]
+                
+                # Let each operation collect its results
+                for i, op in enumerate(operations):
+                    result = sample_results.get(op.name)
+                    if result is not None:
+                        op.collect_results(sample_id, result, self)
+                        results_by_operation[op.name][sample_id] = result
+        
+        return results_by_operation
+    
+    def _prepare_pipeline_runtime_params(self, operations):
+        """
+        Prepare runtime parameters needed by operations in the pipeline.
+        
+        This method gathers collection-level data that operations need,
+        such as cluster information for gap-filling or mf_ids for reloading.
+        
+        Parameters
+        ----------
+        operations : list of SampleOperation
+            List of operations that will be executed
+            
+        Returns
+        -------
+        dict
+            Dictionary of runtime parameters for operations
+        """
+        from corems.mass_spectra.calc.lc_calc_operations import (
+            GapFillOperation, ReloadFeaturesOperation, MS2SpectralSearchOperation,
+            LoadEICsOperation
+        )
+        
+        runtime_params = {}
+        
+        # Check if any operation needs gap-fill parameters
+        needs_gap_fill = any(isinstance(op, GapFillOperation) for op in operations)
+        if needs_gap_fill:
+            # Prepare gap-fill parameters (same as fill_missing_cluster_features)
+            min_cluster_presence = self.parameters.lcms_collection.consensus_min_sample_fraction
+            expand_on_miss = self.parameters.lcms_collection.gap_fill_expand_on_miss
+            
+            summarydf = self.cluster_summary_dataframe
+            mfdf = self.mass_features_dataframe
+            sample_ct = len(self.samples)
+            
+            # Identify clusters needing gap-filling
+            # Note: cluster_summary_dataframe has 'cluster' as index, need to reset it
+            missingdf = summarydf.reset_index()[[
+                'cluster', 
+                'sample_id_nunique', 
+                'mz_min', 
+                'mz_max', 
+                'scan_time_aligned_min', 
+                'scan_time_aligned_max'
+            ]].copy()
+            missingdf = missingdf[missingdf.sample_id_nunique > min_cluster_presence * sample_ct]
+            missingdf = missingdf[missingdf.sample_id_nunique != sample_ct]
+            
+            if len(missingdf) > 0:
+                # Find which samples are missing for each cluster
+                missing_samples_list = []
+                for c in missingdf.cluster.to_numpy():
+                    cludf = mfdf[mfdf.cluster == c]
+                    missing = [x for x in mfdf.sample_id.unique() if x not in cludf.sample_id.unique()]
+                    missing_samples_list.append(missing)
+                missingdf['missing_samples'] = missing_samples_list
+                
+                # Calculate expanded search windows
+                mz_clu_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
+                rt_clu_tol = self.parameters.lcms_collection.consensus_rt_tol
+                missingdf['mz_max_allowed'] = missingdf.mz_max + mz_clu_tol * missingdf.mz_max
+                missingdf['mz_min_allowed'] = missingdf.mz_min - mz_clu_tol * missingdf.mz_min
+                missingdf['sta_max_allowed'] = missingdf.scan_time_aligned_max + rt_clu_tol * missingdf.scan_time_aligned_max
+                missingdf['sta_min_allowed'] = missingdf.scan_time_aligned_min - rt_clu_tol * missingdf.scan_time_aligned_min
+                
+                runtime_params['missingdf'] = missingdf
+                runtime_params['cluster_dict'] = self.cluster_feature_dictionary
+                runtime_params['expand_on_miss'] = expand_on_miss
+        
+        # Check if any operation needs reload parameters
+        needs_reload = any(isinstance(op, ReloadFeaturesOperation) for op in operations)
+        if needs_reload:
+            # Build sample_mf_map for reloading representatives
+            # Get all representative mass features in bulk (much faster than looping)
+            representatives = self.get_representative_mass_features_for_all_clusters()
+            
+            sample_mf_map = {}
+            for _, row in representatives.iterrows():
+                sample_id = row['sample_id']
+                mf_id = row['mf_id']
+                
+                if sample_id not in sample_mf_map:
+                    sample_mf_map[sample_id] = []
+                sample_mf_map[sample_id].append(mf_id)
+            
+            runtime_params['sample_mf_map'] = sample_mf_map
+        
+        # Check if any operation needs MS2 spectral search parameters
+        needs_ms2_search = any(isinstance(op, MS2SpectralSearchOperation) for op in operations)
+        if needs_ms2_search:
+            # Pass through pre-prepared spectral library
+            if hasattr(self, '_spectral_lib') and self._spectral_lib is not None:
+                runtime_params['fe_lib'] = self._spectral_lib
+            if hasattr(self, '_spectral_search_molecular_metadata'):
+                runtime_params['molecular_metadata'] = self._spectral_search_molecular_metadata
+        
+        # Check if any operation needs EIC loading parameters
+        needs_eic_loading = any(isinstance(op, LoadEICsOperation) for op in operations)
+        if needs_eic_loading:
+            # Build cluster_mz_dict: map of sample_id -> list of m/z values in clusters
+            mfdf = self.mass_features_dataframe
+            cluster_mz_dict = {}
+            
+            # Get all mass features that belong to clusters (cluster is not NaN)
+            clustered_mf = mfdf[mfdf['cluster'].notna()]
+            
+            # Group by sample_id and collect all m/z values
+            for sample_id in clustered_mf['sample_id'].unique():
+                sample_df = clustered_mf[clustered_mf['sample_id'] == sample_id]
+                cluster_mz_dict[sample_id] = sample_df['mz'].unique().tolist()
+            
+            runtime_params['cluster_mz_dict'] = cluster_mz_dict
+        
+        return runtime_params
+    
+    def _execute_sample_pipeline(self, sample_id, operations, runtime_params, inplace=True):
+        """
+        Execute a pipeline of operations on a single sample.
+        
+        This is the worker function called (potentially in parallel) for each sample.
+        
+        Parameters
+        ----------
+        sample_id : int
+            Sample ID to process
+        operations : list of SampleOperation
+            Operations to execute in order
+        runtime_params : dict
+            Runtime parameters prepared by _prepare_pipeline_runtime_params
+        inplace : bool, optional
+            If True, updates sample in place. If False, returns results for
+            multiprocessing. Default is True.
+            
+        Returns
+        -------
+        dict
+            Dictionary with results from each operation, keyed by operation name.
+            If inplace=True, returns results that need to be collected.
+            If inplace=False, returns all results for multiprocessing collection.
+        """
+        results = {}
+        
+        # Check if any operations need raw MS data
+        needs_raw_data = {}  # {ms_level: True/False}
+        for op in operations:
+            needs_raw, ms_level = op.needs_raw_ms_data()
+            if needs_raw and ms_level:
+                needs_raw_data[ms_level] = True
+        
+        # Load raw data once if any operations need it
+        # Note: For gap-filling, it loads data internally, so we just track it here
+        for ms_level in needs_raw_data.keys():
+            # Gap-filling loads its own data, but we want to keep track that it's loaded
+            # Other operations can then use the loaded data
+            pass
+        
+        for op in operations:
+            # Check if operation can execute on this sample
+            sample = self[sample_id]
+            if not op.can_execute(sample, self):
+                raise RuntimeError(
+                    f"Operation '{op.name}' cannot execute on sample {sample_id} "
+                    f"({sample.sample_name}). Prerequisites not met."
+                )
+            
+            # Prepare operation-specific runtime params
+            op_runtime_params = {}
+            
+            # Add gap-fill params if this is a gap-fill operation
+            from corems.mass_spectra.calc.lc_calc_operations import (
+                GapFillOperation, ReloadFeaturesOperation, MS2SpectralSearchOperation, LoadEICsOperation
+            )
+            
+            if isinstance(op, GapFillOperation):
+                if 'missingdf' in runtime_params:
+                    op_runtime_params['missingdf'] = runtime_params['missingdf']
+                    op_runtime_params['cluster_dict'] = runtime_params['cluster_dict']
+                    op_runtime_params['expand_on_miss'] = runtime_params['expand_on_miss']
+            
+            elif isinstance(op, ReloadFeaturesOperation):
+                if 'sample_mf_map' in runtime_params:
+                    sample_mf_map = runtime_params['sample_mf_map']
+                    # Always pass mf_ids_to_load to ensure we only load what's needed
+                    # If sample not in map, it has no representatives - pass empty list
+                    op_runtime_params['mf_ids_to_load'] = sample_mf_map.get(sample_id, [])
+            
+            elif isinstance(op, MS2SpectralSearchOperation):
+                # Add MS2 spectral search parameters
+                if 'fe_lib' in runtime_params:
+                    op_runtime_params['fe_lib'] = runtime_params['fe_lib']
+                if 'molecular_metadata' in runtime_params:
+                    op_runtime_params['molecular_metadata'] = runtime_params['molecular_metadata']
+            
+            elif isinstance(op, LoadEICsOperation):
+                # Add EIC loading parameters
+                if 'cluster_mz_dict' in runtime_params:
+                    op_runtime_params['cluster_mz_dict'] = runtime_params['cluster_mz_dict']
+            
+            # Execute the operation
+            result = op.execute(sample_id, self, **op_runtime_params)
+            results[op.name] = result
+            
+            # If inplace, collect immediately
+            if inplace and result is not None:
+                op.collect_results(sample_id, result, self)
+        
+        # Clean up raw data if requested
+        keep_raw_data = runtime_params.get('keep_raw_data', False)
+        if not keep_raw_data:
+            for ms_level in needs_raw_data.keys():
+                if ms_level in self[sample_id]._ms_unprocessed:
+                    del self[sample_id]._ms_unprocessed[ms_level]
+        
+        return results
+    
+    def process_consensus_features(self, load_representatives=True, perform_gap_filling=True,
+                                   add_ms1=False, add_ms2=False,
+                                   ms2_scan_filter=None, molecular_formula_search=False,
+                                   ms2_spectral_search=False, spectral_lib=None,
+                                   molecular_metadata=None,
+                                   gather_eics=False,
+                                   keep_raw_data=False):
+        """
+        Process consensus mass features across the collection in a single parallelized pass.
+        
+        This method provides a convenient interface to the sample processing pipeline,
+        allowing multiple operations (gap-filling, feature reloading, MS1/MS2 association,
+        molecular formula search, and MS2 spectral search) to be performed efficiently in 
+        a single pass through all samples.
+        
+        Parameters
+        ----------
+        load_representatives : bool, optional
+            If True, loads representative mass features from HDF5. Default is True.
+        perform_gap_filling : bool, optional
+            If True, performs gap-filling for missing cluster features. Default is True.
+            This operation loads raw MS1 data which can be reused by subsequent operations.
+        add_ms1 : bool, optional
+            If True and load_representatives=True, associates MS1 spectra with
+            loaded features. Automatically uses raw data from gap-filling if available,
+            otherwise uses parser. Spectrum mode is auto-detected. Default is False.
+        add_ms2 : bool, optional
+            If True and load_representatives=True, associates MS2 spectra with
+            loaded features and automatically processes them. Spectrum mode is auto-detected. Default is False.
+        ms2_scan_filter : str or None, optional
+            Filter string for MS2 scans (e.g., 'hcd'). Default is None.
+        molecular_formula_search : bool, optional
+            If True, performs molecular formula search on mass features using
+            associated MS1 spectra. Requires add_ms1=True or that MS1 spectra
+            are already associated. Uses parameters from 
+            parameters.mass_spectrum["ms1"].molecular_search. Default is False.
+        ms2_spectral_search : bool, optional
+            If True, performs MS2 spectral library search using FlashEntropy.
+            Requires add_ms2=True and spectral_lib to be provided. Default is False.
+        spectral_lib : FlashEntropy library, optional
+            Pre-prepared FlashEntropy spectral library for MS2 search.
+            Create using MSPInterface.get_metabolomics_spectra_library().
+            Required if ms2_spectral_search=True. Default is None.
+        molecular_metadata : pd.DataFrame, optional
+            Molecular metadata corresponding to spectral_lib.
+            Returned from MSPInterface.get_metabolomics_spectra_library().
+            Stored as self.spectral_search_molecular_metadata for later export.
+            Default is None.
+        gather_eics : bool, optional
+            If True, loads extracted ion chromatograms (EICs) from HDF5 for all
+            mass features with assigned cluster_index (including gap-filled features).
+            Enables access to EICs via get_eics_for_cluster(cluster_id) method.
+            Requires that EICs were previously exported with export_eics=True.
+            Default is False.
+        keep_raw_data : bool, optional
+            If True, keeps raw MS data loaded in memory after pipeline completes.
+            If False, cleans up raw data to free memory. Default is False.
+            
+        Returns
+        -------
+        dict
+            Dictionary with pipeline results. Keys include:
+            - 'gap_fill': dict mapping sample_id to induced mass features (if gap-filling)
+            - 'reload': dict mapping sample_id to reloaded mass features (if reloading)
+            - 'mf_search': dict mapping sample_id to number of features searched (if molecular formula search)
+            - 'ms2_search': dict mapping sample_id to number of spectra searched (if MS2 spectral search)
+            
+        Raises
+        ------
+        ValueError
+            If neither operation is enabled, or if required parameters are missing.
+            
+        Notes
+        -----
+        - Must run add_consensus_mass_features() before calling this method
+        - Processes samples in parallel based on parameters.lcms_collection.cores
+        - Raw MS1 data loaded by gap-filling is automatically reused by MS1 association
+        - MS2 spectral search requires add_ms2=True and msp_file_path
+        - FlashEntropy library is created once and reused across all samples
+        - More efficient than calling individual methods separately
+        - After gap-filling, sets missing_mass_features_searched = True
+        - Mass features remain loaded in memory for downstream processing
+        - For more advanced workflows, use process_samples_pipeline() directly
+        
+        Examples
+        --------
+        >>> # Prepare spectral library for MS2 search
+        >>> from corems.molecular_id.search.database_interfaces import MSPInterface
+        >>> my_msp = MSPInterface(file_path='path/to/library.msp')
+        >>> spectral_lib, molecular_metadata = my_msp.get_metabolomics_spectra_library(
+        ...     polarity='negative',
+        ...     format='flashentropy',
+        ...     normalize=True,
+        ...     fe_kwargs={
+        ...         'normalize_intensity': True,
+        ...         'min_ms2_difference_in_da': 0.02,
+        ...         'max_ms2_tolerance_in_da': 0.01,
+        ...         'max_indexed_mz': 3000,
+        ...         'precursor_ions_removal_da': None,
+        ...         'noise_threshold': 0,
+        ...     }
+        ... )
+        >>> 
+        >>> # Gap-fill, reload with MS1/MS2, perform molecular formula and spectral search
+        >>> results = lcms_collection.process_consensus_features(
+        ...     load_representatives=True,
+        ...     perform_gap_filling=True,
+        ...     add_ms1=True,
+        ...     add_ms2=True,
+        ...     molecular_formula_search=True,
+        ...     ms2_spectral_search=True,
+        ...     spectral_lib=spectral_lib,
+        ...     molecular_metadata=molecular_metadata
+        ... )
+        
+        See Also
+        --------
+        process_samples_pipeline : Generic pipeline executor for custom workflows
+        fill_missing_cluster_features : Original gap-filling method
+        reload_representative_mass_features : Original reload method
+        """
+        from corems.mass_spectra.calc.lc_calc_operations import (
+            GapFillOperation, ReloadFeaturesOperation, MolecularFormulaSearchOperation,
+            MS2SpectralSearchOperation, LoadEICsOperation
+        )
+        
+        # Validate that at least one operation is enabled
+        if not perform_gap_filling and not load_representatives:
+            raise ValueError("At least one of perform_gap_filling or load_representatives must be True")
+        
+        # Validate prerequisites for gap-filling
+        if perform_gap_filling:
+            if not hasattr(self, 'cluster_summary_dataframe') or self.cluster_summary_dataframe is None:
+                raise ValueError(
+                    "Cannot perform gap-filling: cluster_summary_dataframe not set. "
+                    "You must run add_consensus_mass_features() before calling process_consensus_features()."
+                )
+        
+        # Validate prerequisites for MS2 spectral search
+        if ms2_spectral_search:
+            if not add_ms2:
+                raise ValueError(
+                    "MS2 spectral search requires add_ms2=True to load MS2 spectra."
+                )
+            if spectral_lib is None:
+                raise ValueError(
+                    "MS2 spectral search requires spectral_lib to be provided. "
+                    "Create it using MSPInterface.get_metabolomics_spectra_library() before calling this method."
+                )
+        
+        # Build pipeline
+        operations = []
+        
+        if perform_gap_filling:
+            expand_on_miss = self.parameters.lcms_collection.gap_fill_expand_on_miss
+            operations.append(GapFillOperation('gap_fill', expand_on_miss=expand_on_miss))
+        
+        if load_representatives:
+            operations.append(ReloadFeaturesOperation(
+                'reload',
+                add_ms1=add_ms1,
+                add_ms2=add_ms2,
+                auto_process_ms2=add_ms2,  # Auto-process MS2 if add_ms2 is enabled
+                ms2_scan_filter=ms2_scan_filter
+            ))
+        
+        if molecular_formula_search:
+            operations.append(MolecularFormulaSearchOperation('mf_search'))
+        
+        if ms2_spectral_search:
+            operations.append(MS2SpectralSearchOperation(
+                'ms2_search',
+                ms2_scan_filter=ms2_scan_filter
+            ))
+            # Store spectral library and metadata for runtime preparation
+            self._spectral_lib = spectral_lib
+            self._spectral_search_molecular_metadata = molecular_metadata
+        
+        if gather_eics:
+            operations.append(LoadEICsOperation('load_eics'))
+        
+        # Execute pipeline (description auto-generated from operations)
+        results = self.process_samples_pipeline(
+            operations,
+            keep_raw_data=keep_raw_data
+        )
+        
+        # Store molecular metadata if spectral search was performed
+        if ms2_spectral_search and hasattr(self, '_spectral_search_molecular_metadata'):
+            # This allows users to access the metadata for reporting
+            self.spectral_search_molecular_metadata = self._spectral_search_molecular_metadata
+        
+        # Post-processing
+        if perform_gap_filling:
+            # Combine induced mass features into dataframe
+            self._combine_mass_features(induced_features=True)
+            # Mark that gap-filling has been performed
+            self.missing_mass_features_searched = True
+            # Clear induced mass features from individual samples
+            for sample_name in self.samples:
+                self._lcms[sample_name].induced_mass_features = {}
+        
+        return results

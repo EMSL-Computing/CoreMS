@@ -1326,8 +1326,6 @@ class MSPInterface(SpectralDatabaseInterface):
         db_df.rename(columns=metabolite_metadata_mapping, inplace=True)
         db_df["molecular_data_id"] = db_df["inchikey"]
 
-
-
         # Check if the resulting dataframe has the required columns for the flash entropy search
         required_columns = ["molecular_data_id", "precursor_mz", "ion_type", "id"]
         for col in required_columns:
