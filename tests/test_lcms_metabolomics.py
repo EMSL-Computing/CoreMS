@@ -244,6 +244,40 @@ def test_lcms_metabolomics_targeted_search(lcms_obj):
             f"No mass feature found for target m/z={target_mz}, RT={target_rt}. " \
             f"Closest m/z diff: {mz_diff_ppm.min():.2f} ppm, closest RT diff: {rt_diff.min():.3f} min"
     
+    # Verify that the type attribute is set correctly
+    assert 'type' in mf_df.columns, "Type column should be present in mass features dataframe"
+    assert (mf_df['type'] == 'internal standard').all(), \
+        "All targeted mass features should have type 'internal standard'"
+    
+    # Test HDF5 export/import to verify type attribute persists
+    shutil.rmtree("test_targeted_search.corems", ignore_errors=True)
+    exporter = LCMSMetabolomicsExport("test_targeted_search", lcms_obj)
+    exporter.to_hdf(overwrite=True)
+    
+    # Reload the saved lcms object and check that type attribute persists
+    parser = ReadCoreMSHDFMassSpectra(
+        "test_targeted_search.corems/test_targeted_search.hdf5"
+    )
+    lcms_obj_reloaded = parser.get_lcms_obj()
+    
+    # Check that mass features were reloaded
+    assert len(lcms_obj_reloaded.mass_features) == len(lcms_obj.mass_features), \
+        "Reloaded object should have the same number of mass features"
+    
+    # Verify type attribute persisted through export/import
+    for mf_id, mf in lcms_obj_reloaded.mass_features.items():
+        assert mf.type == 'internal standard', \
+            f"Mass feature {mf_id} should have type 'internal standard' after reload"
+    
+    # Verify type column in dataframe after reload
+    mf_df_reloaded = lcms_obj_reloaded.mass_features_to_df(drop_na_cols=True)
+    assert 'type' in mf_df_reloaded.columns, "Type column should persist in reloaded dataframe"
+    assert (mf_df_reloaded['type'] == 'internal standard').all(), \
+        "All mass features should have type 'internal standard' after reload"
+    
+    # Cleanup
+    shutil.rmtree("test_targeted_search.corems", ignore_errors=True)
+    
     # Reset the parameters to the original values
     reset_lcms_parameters()
     reset_ms_parameters()
