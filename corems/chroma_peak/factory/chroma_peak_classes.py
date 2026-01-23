@@ -156,6 +156,9 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         1 indicates a perfect Gaussian shape, 0 indicates a non-Gaussian shape.
     _ms_deconvoluted_idx : [int]
         The indexes of the mass_spectrum attribute in the deconvoluted mass spectrum.
+    _type : str
+        The type of mass feature. Default is "untargeted".
+        Can be "untargeted", "targeted", or another customized type.
     is_calibrated : bool
         If True, the feature has been calibrated. Default is False.
     monoisotopic_mf_id : int
@@ -215,6 +218,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         self._tailing_factor: float = None
         self._noise_score: tuple = None
         self._gaussian_similarity: float = None
+        self._type: str = "untargeted"
 
         # Additional attributes
         self.monoisotopic_mf_id = None
@@ -642,6 +646,30 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         left, right = self._noise_score
         # Handle NaN values - nanmax ignores NaN
         return np.nanmax([left, right])
+
+    @property
+    def type(self):
+        """Type of the mass feature.
+
+        Returns
+        -------
+        str
+            The type of mass feature ("untargeted", "targeted", or "internal standard").
+        """
+        return self._type
+
+    @type.setter
+    def type(self, value):
+        """Set the type of the mass feature.
+
+        Parameters
+        ----------
+        value : str
+            The type of mass feature. Should be one of: "untargeted", "targeted", "internal standard".
+        """
+        if not isinstance(value, str):
+            raise ValueError("The type of the mass feature must be a string")
+        self._type = value
 
     @property
     def best_ms2(self):

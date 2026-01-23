@@ -784,7 +784,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 ]
                 mf_dict[k].update_mz()
 
-    def mass_features_to_df(self, induced_features = False):
+    def mass_features_to_df(self, induced_features=False, drop_na_cols=False, include_cols=None):
         """Returns a pandas dataframe summarizing the mass features.
 
         The dataframe contains the following columns: mf_id, mz, apex_scan, scan_time, intensity,
@@ -793,6 +793,11 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         -----------
         induced_features : bool, optional
             If True, calls the induced_mass_features dictionary. Defaults to False.
+        drop_na_cols : bool, optional
+            If True, drops columns that are entirely NA. Defaults to False.
+        include_cols : list of str, optional
+            If provided, only includes the specified columns in the output (in addition to 'mf_id' which is always included as the index).
+            If None, includes all available columns. Defaults to None.
 
         Raises
         --------
@@ -869,6 +874,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "isotopologue_type",
             "mass_spectrum_deconvoluted_parent",
             "ms2_scan_numbers",
+            "type",
         ]
 
         df_mf_list = []
@@ -919,6 +925,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         # reorder columns
         col_order = [
             "mf_id",
+            "type",
             "scan_time",
             "mz",
             "apex_scan",
@@ -958,6 +965,19 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             df_mf["dispersity_index"] = df_mf["dispersity_index"].astype('float64')
         if 'normalized_dispersity_index' in df_mf.columns:
             df_mf["normalized_dispersity_index"] = df_mf["normalized_dispersity_index"].astype('float64')
+        
+        # Filter columns if include_cols is specified
+        if include_cols is not None:
+            # Ensure include_cols is a list
+            if not isinstance(include_cols, list):
+                raise ValueError("include_cols must be a list of column names")
+            # Keep only requested columns that exist in the dataframe
+            available_cols = [col for col in include_cols if col in df_mf.columns]
+            df_mf = df_mf[available_cols]
+        
+        # Drop columns that are entirely NA if requested
+        if drop_na_cols:
+            df_mf = df_mf.dropna(axis=1, how='all')
         
         return df_mf
 

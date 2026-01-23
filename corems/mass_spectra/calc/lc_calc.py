@@ -357,7 +357,8 @@ class LCCalculations:
                 ms.process_mass_spec()
         return ms
 
-    def find_mass_features(self, ms_level=1, grid=True, assign_ms2_scans=False, ms2_scan_filter=None):
+    def find_mass_features(self, ms_level=1, grid=True, assign_ms2_scans=False, ms2_scan_filter=None, 
+                          targeted_search=False, target_search_dict=None):
         """Find mass features within an LCMSBase object
 
         Note that this is a wrapper function that calls the find_mass_features_ph function, but can be extended to support other peak picking methods in the future.
@@ -376,6 +377,21 @@ class LCCalculations:
         ms2_scan_filter : str or None, optional
             Filter string for MS2 scans when assign_ms2_scans is True (e.g., 'hcd').
             If None, all MS2 scans are considered. Default is None.
+        targeted_search : bool, optional
+            If True, perform targeted mass feature search using the target_search_dict.
+            This mode filters data to only m/z and RT windows of interest and bypasses
+            intensity and persistence thresholds. Default is False.
+        target_search_dict : dict or None, optional
+            Dictionary containing target search parameters. Required if targeted_search is True.
+            Must contain:
+                - 'target_mz_list': list of target m/z values
+                - 'target_rt_list': list of target retention times (in minutes)
+                - 'mz_tolerance_ppm': m/z tolerance in ppm
+                - 'rt_tolerance': retention time tolerance (in minutes)
+            Optionally can contain:
+                - 'type': type label for mass features (e.g., "internal standard")
+                  If not provided, defaults to "targeted"
+            Default is None.
 
         Raises
         ------
@@ -384,18 +400,38 @@ class LCCalculations:
             If persistent homology peak picking is attempted on non-profile mode data.
             If data is not gridded and grid is False.
             If peak picking method is not implemented.
+            If targeted_search is True but target_search_dict is None or invalid.
 
         Returns
         -------
         None, but assigns the mass_features and eics attributes to the object.
 
         """
+        # Validate targeted search parameters
+        if targeted_search:
+            if target_search_dict is None:
+                raise ValueError("target_search_dict must be provided when targeted_search is True")
+            required_keys = ['target_mz_list', 'target_rt_list', 'mz_tolerance_ppm', 'rt_tolerance']
+            for key in required_keys:
+                if key not in target_search_dict:
+                    raise ValueError(f"target_search_dict must contain '{key}'")
+            if len(target_search_dict['target_mz_list']) != len(target_search_dict['target_rt_list']):
+                raise ValueError("target_mz_list and target_rt_list must have the same length")
+        
         pp_method = self.parameters.lc_ms.peak_picking_method
 
         if pp_method == "persistent homology":
             msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
             if all(msx_scan_df["ms_format"] == "profile"):
-                self.find_mass_features_ph(ms_level=ms_level, grid=grid)
+                # Determine mass feature type
+                if targeted_search:
+                    mf_type = target_search_dict.get('type', 'targeted')
+                else:
+                    mf_type = 'untargeted'
+                self.find_mass_features_ph(ms_level=ms_level, grid=grid, 
+                                          targeted_search=targeted_search, 
+                                          target_search_dict=target_search_dict,
+                                          mf_type=mf_type)
             else:
                 raise ValueError(
                     "MS{} scans are not profile mode, which is required for persistent homology peak picking.".format(
@@ -405,7 +441,15 @@ class LCCalculations:
         elif pp_method == "centroided_persistent_homology":
             msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
             if all(msx_scan_df["ms_format"] == "centroid"):
-                self.find_mass_features_ph_centroid(ms_level=ms_level)
+                # Determine mass feature type
+                if targeted_search:
+                    mf_type = target_search_dict.get('type', 'targeted')
+                else:
+                    mf_type = 'untargeted'
+                self.find_mass_features_ph_centroid(ms_level=ms_level, 
+                                                    targeted_search=targeted_search, 
+                                                    target_search_dict=target_search_dict,
+                                                    mf_type=mf_type)
             else:
                 raise ValueError(
                     "MS{} scans are not centroid mode, which is required for persistent homology centroided peak picking.".format(
@@ -431,7 +475,7 @@ class LCCalculations:
                 pass
         
         # Remove noisey mass features if designated in parameters
-        if self.parameters.lc_ms.remove_redundant_mass_features:
+        if self.parameters.lc_ms.remove_redundant_mass_features and not targeted_search:
             self._remove_redundant_mass_features()
 
     def integrate_mass_features(
@@ -1861,7 +1905,51 @@ class PHCalculations:
 
         return new_data_w
 
-    def find_mass_features_ph(self, ms_level=1, grid=True):
+    def _filter_data_by_targets(self, data, target_search_dict):
+        """Filter MS data to only include m/z and RT windows around target values.
+        
+        Parameters
+        ----------
+        data : pd.DataFrame
+            MS data with 'mz' and 'scan_time' columns
+        target_search_dict : dict
+            Dictionary with target_mz_list, target_rt_list, mz_tolerance_ppm, rt_tolerance
+            
+        Returns
+        -------
+        pd.DataFrame
+            Filtered data containing only points within target windows
+        """
+        target_mz_list = target_search_dict['target_mz_list']
+        target_rt_list = target_search_dict['target_rt_list']
+        mz_tolerance_ppm = target_search_dict['mz_tolerance_ppm']
+        rt_tolerance = target_search_dict['rt_tolerance']
+        
+        # Create a mask for data points that fall within any target window
+        mask = np.zeros(len(data), dtype=bool)
+        
+        for target_mz, target_rt in zip(target_mz_list, target_rt_list):
+            # Calculate m/z window
+            mz_tol = target_mz * mz_tolerance_ppm / 1e6
+            mz_min = target_mz - mz_tol
+            mz_max = target_mz + mz_tol
+            
+            # Calculate RT window
+            rt_min = target_rt - rt_tolerance
+            rt_max = target_rt + rt_tolerance
+            
+            # Create mask for this target
+            target_mask = (
+                (data['mz'] >= mz_min) & (data['mz'] <= mz_max) &
+                (data['scan_time'] >= rt_min) & (data['scan_time'] <= rt_max)
+            )
+            
+            # Combine with overall mask
+            mask |= target_mask
+        
+        return data[mask].reset_index(drop=True)
+    
+    def find_mass_features_ph(self, ms_level=1, grid=True, targeted_search=False, target_search_dict=None, mf_type="untargeted"):
         """Find mass features within an LCMSBase object using persistent homology.
 
         Assigns the mass_features attribute to the object (a dictionary of LCMSMassFeature objects, keyed by mass feature id)
@@ -1872,6 +1960,12 @@ class PHCalculations:
             The MS level to use. Default is 1.
         grid : bool, optional
             If True, will regrid the data before running the persistent homology calculations (after checking if the data is gridded). Default is True.
+        targeted_search : bool, optional
+            If True, perform targeted search mode. Default is False.
+        target_search_dict : dict or None, optional
+            Dictionary with target parameters for targeted search. Default is None.
+        mf_type : str, optional
+            Type label for the mass features. Default is "untargeted".
 
         Raises
         ------
@@ -1900,14 +1994,30 @@ class PHCalculations:
 
         # Drop rows with missing intensity values and reset index
         data = data.dropna(subset=["intensity"]).reset_index(drop=True)
+        
+        # Add scan_time for filtering if in targeted mode
+        if targeted_search:
+            data = data.merge(self.scan_df[["scan", "scan_time"]], on="scan", how="left")
 
-        # Threshold data
+        # Threshold data (bypass thresholds in targeted mode)
         dims = ["mz", "scan_time"]
-        threshold = self.parameters.lc_ms.ph_inten_min_rel * data.intensity.max()
-        persistence_threshold = (
-            self.parameters.lc_ms.ph_persis_min_rel * data.intensity.max()
-        )
-        data_thres = data[data["intensity"] > threshold].reset_index(drop=True).copy()
+        if targeted_search:
+            # In targeted mode, bypass intensity and persistence thresholds
+            threshold = 0
+            persistence_threshold = 0
+            # Filter data to only target windows
+            data_thres = self._filter_data_by_targets(data, target_search_dict)
+            if len(data_thres) == 0:
+                if self.parameters.lc_ms.verbose_processing:
+                    print("No data found in target windows")
+                self.mass_features = {}
+                return
+        else:
+            threshold = self.parameters.lc_ms.ph_inten_min_rel * data.intensity.max()
+            persistence_threshold = (
+                self.parameters.lc_ms.ph_persis_min_rel * data.intensity.max()
+            )
+            data_thres = data[data["intensity"] > threshold].reset_index(drop=True).copy()
 
         # Check if gridded, if not, grid
         gridded_mz = self.check_if_grid(data_thres)
@@ -1919,20 +2029,21 @@ class PHCalculations:
             else:
                 data_thres = self.grid_data(data_thres)
 
-        # Add scan_time
-        data_thres = data_thres.merge(self.scan_df[["scan", "scan_time"]], on="scan")
+        # Add scan_time (skip if already present from targeted mode)
+        if 'scan_time' not in data_thres.columns:
+            data_thres = data_thres.merge(self.scan_df[["scan", "scan_time"]], on="scan")
         # Process in chunks if required
         if len(data_thres) > 10000:
             return self._find_mass_features_ph_partition(
-                data_thres, dims, persistence_threshold
+                data_thres, dims, persistence_threshold, mf_type
             )
         else:
             # Process all at once
             return self._find_mass_features_ph_single(
-                data_thres, dims, persistence_threshold
+                data_thres, dims, persistence_threshold, mf_type
             )
 
-    def _find_mass_features_ph_single(self, data_thres, dims, persistence_threshold):
+    def _find_mass_features_ph_single(self, data_thres, dims, persistence_threshold, mf_type="untargeted"):
         """Process all data at once (original logic)."""
         # Build factors
         factors = {
@@ -1965,9 +2076,9 @@ class PHCalculations:
         mass_features_df = mass_features_df.reset_index(drop=True)
 
         # Populate mass_features attribute
-        self._populate_mass_features(mass_features_df)
+        self._populate_mass_features(mass_features_df, mf_type)
 
-    def _find_mass_features_ph_partition(self, data_thres, dims, persistence_threshold):
+    def _find_mass_features_ph_partition(self, data_thres, dims, persistence_threshold, mf_type="untargeted"):
         """Partition the persistent homology mass feature detection for large datasets.
 
         This method splits the input data into overlapping scan partitions, processes each partition to detect mass features
@@ -1981,6 +2092,8 @@ class PHCalculations:
             List of dimension names (e.g., ["mz", "scan_time"]) used for feature detection.
         persistence_threshold : float
             Minimum persistence value required for a detected mass feature to be retained.
+        mf_type : str, optional
+            Type label for the mass features. Default is "untargeted".
 
         Returns
         -------
@@ -2084,7 +2197,7 @@ class PHCalculations:
             combined_features = combined_features.reset_index(drop=True)
 
             # Populate mass_features attribute
-            self._populate_mass_features(combined_features)
+            self._populate_mass_features(combined_features, mf_type)
         else:
             self.mass_features = {}
 
@@ -2147,7 +2260,7 @@ class PHCalculations:
 
         return mass_features
 
-    def _populate_mass_features(self, mass_features_df):
+    def _populate_mass_features(self, mass_features_df, mf_type="untargeted"):
         """Populate the mass_features attribute from a DataFrame.
 
         Parameters
@@ -2155,6 +2268,8 @@ class PHCalculations:
         mass_features_df : pd.DataFrame
             DataFrame containing mass feature information.
             Note that the order of this DataFrame will determine the order of mass features in the mass_features attribute.
+        mf_type : str, optional
+            Type label for the mass features. Default is "untargeted".
 
         Returns
         -------
@@ -2170,18 +2285,25 @@ class PHCalculations:
         for row in mass_features_df.itertuples():
             row_dict = mass_features_df.iloc[row.Index].to_dict()
             lcms_feature = LCMSMassFeature(self, **row_dict)
+            lcms_feature.type = mf_type
             self.mass_features[lcms_feature.id] = lcms_feature
 
         if self.parameters.lc_ms.verbose_processing:
             print("Found " + str(len(mass_features_df)) + " initial mass features")
 
-    def find_mass_features_ph_centroid(self, ms_level=1):
+    def find_mass_features_ph_centroid(self, ms_level=1, targeted_search=False, target_search_dict=None, mf_type="untargeted"):
         """Find mass features within an LCMSBase object using persistent homology-type approach but with centroided data.
 
         Parameters
         ----------
         ms_level : int, optional
             The MS level to use. Default is 1.
+        targeted_search : bool, optional
+            If True, perform targeted search mode. Default is False.
+        target_search_dict : dict or None, optional
+            Dictionary with target parameters for targeted search. Default is None.
+        mf_type : str, optional
+            Type label for the mass features. Default is "untargeted".
 
         Raises
         ------
@@ -2203,20 +2325,37 @@ class PHCalculations:
         # Work with reference instead of copy
         data = self._ms_unprocessed[ms_level]
 
-        # Calculate threshold first to avoid multiple operations
-        max_intensity = data["intensity"].max()
-        threshold = self.parameters.lc_ms.ph_inten_min_rel * max_intensity
-
-        # Create single filter condition and apply to required columns only
-        valid_mask = data["intensity"].notna() & (data["intensity"] > threshold)
-        required_cols = ["mz", "intensity", "scan"]
-        data_thres = data.loc[valid_mask, required_cols].copy()
-        data_thres["persistence"] = data_thres["intensity"]
-
-        # Merge with required scan data
+        # Merge with scan data first (needed for filtering in targeted mode)
         scan_subset = self.scan_df[["scan", "scan_time"]]
-        mf_df = data_thres.merge(scan_subset, on="scan", how="inner")
-        del data_thres, scan_subset
+        data_with_time = data.merge(scan_subset, on="scan", how="inner")
+        
+        # Calculate threshold and filter (bypass in targeted mode)
+        if targeted_search:
+            # In targeted mode, bypass intensity threshold
+            threshold = 0
+            valid_mask = data_with_time["intensity"].notna()
+            required_cols = ["mz", "intensity", "scan", "scan_time"]
+            data_thres = data_with_time.loc[valid_mask, required_cols].copy()
+            
+            # Filter to target windows
+            data_thres = self._filter_data_by_targets(data_thres, target_search_dict)
+            
+            if len(data_thres) == 0:
+                if self.parameters.lc_ms.verbose_processing:
+                    print("No data found in target windows")
+                self.mass_features = {}
+                return
+        else:
+            # Normal mode with threshold
+            max_intensity = data_with_time["intensity"].max()
+            threshold = self.parameters.lc_ms.ph_inten_min_rel * max_intensity
+            valid_mask = data_with_time["intensity"].notna() & (data_with_time["intensity"] > threshold)
+            required_cols = ["mz", "intensity", "scan", "scan_time"]
+            data_thres = data_with_time.loc[valid_mask, required_cols].copy()
+        
+        data_thres["persistence"] = data_thres["intensity"]
+        mf_df = data_thres
+        del data_thres, scan_subset, data_with_time
 
         # Order by scan_time and then mz to ensure features near in rt are processed together
         # It's ok that different scans are in different partitions; we will roll up later
@@ -2289,6 +2428,7 @@ class PHCalculations:
         for idx, row in mass_features.iterrows():
             row_dict = row.to_dict()
             lcms_feature = LCMSMassFeature(self, **row_dict)
+            lcms_feature.type = mf_type
             self.mass_features[lcms_feature.id] = lcms_feature
 
         if self.parameters.lc_ms.verbose_processing:
