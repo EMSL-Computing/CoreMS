@@ -158,3 +158,126 @@ def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
     # Reset the MSParameters to the original values
     reset_lcms_parameters()
     reset_ms_parameters()
+
+
+def test_lcms_metabolomics_targeted_search(lcms_obj):
+    """Test the targeted search functionality for LCMS metabolomics"""
+    
+    # Set parameters to the defaults for reproducible testing
+    lcms_obj.parameters = LCMSParameters(use_defaults=True)
+    
+    # Set parameters on the LCMS object that are reasonable for testing
+    lcms_obj.parameters.lc_ms.peak_picking_method = "persistent homology"
+    lcms_obj.parameters.lc_ms.ph_inten_min_rel = 0.0005
+    lcms_obj.parameters.lc_ms.ph_persis_min_rel = 0.05
+    lcms_obj.parameters.lc_ms.ph_smooth_it = 0
+    
+    # MSParameters for ms1 and ms2 mass spectra
+    ms1_params = lcms_obj.parameters.mass_spectrum['ms1']
+    ms1_params.mass_spectrum.noise_threshold_method = "relative_abundance"
+    ms1_params.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
+    ms1_params.mass_spectrum.noise_min_mz, ms1_params.mass_spectrum.min_picking_mz = 0, 0
+    ms1_params.mass_spectrum.noise_max_mz, ms1_params.mass_spectrum.max_picking_mz = np.inf, np.inf
+    ms1_params.ms_peak.legacy_resolving_power = False
+    
+    # Copy settings for ms2 data
+    ms2_params_hcd = ms1_params.copy()
+    lcms_obj.parameters.mass_spectrum['ms2'] = ms2_params_hcd
+    
+    # Prepare a targeted search dictionary with specific m/z and RT values
+    # These values are known to exist in the test data
+    target_mz_list = [301.2166, 698.6289]
+    target_rt_list = [8.8956, 23.8168]
+    target_search_dict = {
+        "target_mz_list": target_mz_list,
+        "target_rt_list": target_rt_list,
+        "mz_tolerance_ppm": 5,
+        "rt_tolerance": 0.5,
+        "type": "internal standard"
+    }
+    
+    # Perform targeted search for mass features
+    lcms_obj.find_mass_features(
+        targeted_search=True,
+        target_search_dict=target_search_dict
+    )
+    
+    # Verify that mass features were found
+    assert len(lcms_obj.mass_features) > 0, "No mass features found in targeted search"
+    
+    # Verify that the number of mass features matches or is close to the number of targets
+    # (may find multiple features per target depending on clustering)
+    assert len(lcms_obj.mass_features) >= len(target_mz_list), \
+        f"Expected at least {len(target_mz_list)} mass features, found {len(lcms_obj.mass_features)}"
+    
+    # Integrate the mass features
+    lcms_obj.integrate_mass_features(drop_if_fail=True)
+    
+    # Verify that mass features still exist after integration
+    assert len(lcms_obj.mass_features) > 0, "No mass features remaining after integration"
+    
+    # Add associated MS1 data
+    lcms_obj.add_associated_ms1(use_parser=False, spectrum_mode="profile")
+    
+    # Add associated MS2 data
+    og_ms_len = len(lcms_obj._ms)
+    lcms_obj.add_associated_ms2_dda(use_parser=True, spectrum_mode="centroid")
+    
+    # Verify MS2 data was added
+    assert len(lcms_obj._ms) >= og_ms_len, "MS2 data should be added"
+    
+    # Check that mass features have the expected properties
+    mf_df = lcms_obj.mass_features_to_df(drop_na_cols=True)
+    assert not mf_df.empty, "Mass features dataframe should not be empty"
+    
+    # Verify that at least one mass feature is close to each target m/z and RT value
+    for target_mz, target_rt in zip(target_mz_list, target_rt_list):
+        # Calculate m/z difference in ppm for all features
+        mz_diff_ppm = abs(mf_df['mz'] - target_mz) / target_mz * 1e6
+        # Calculate RT difference in minutes (scan_time is in minutes)
+        rt_diff = abs(mf_df['scan_time'] - target_rt)
+        
+        # Check if any feature is within tolerance for both m/z and RT
+        matches = (mz_diff_ppm < 10) & (rt_diff < 1.0)
+        
+        assert matches.any(), \
+            f"No mass feature found for target m/z={target_mz}, RT={target_rt}. " \
+            f"Closest m/z diff: {mz_diff_ppm.min():.2f} ppm, closest RT diff: {rt_diff.min():.3f} min"
+    
+    # Verify that the type attribute is set correctly
+    assert 'type' in mf_df.columns, "Type column should be present in mass features dataframe"
+    assert (mf_df['type'] == 'internal standard').all(), \
+        "All targeted mass features should have type 'internal standard'"
+    
+    # Test HDF5 export/import to verify type attribute persists
+    shutil.rmtree("test_targeted_search.corems", ignore_errors=True)
+    exporter = LCMSMetabolomicsExport("test_targeted_search", lcms_obj)
+    exporter.to_hdf(overwrite=True)
+    
+    # Reload the saved lcms object and check that type attribute persists
+    parser = ReadCoreMSHDFMassSpectra(
+        "test_targeted_search.corems/test_targeted_search.hdf5"
+    )
+    lcms_obj_reloaded = parser.get_lcms_obj()
+    
+    # Check that mass features were reloaded
+    assert len(lcms_obj_reloaded.mass_features) == len(lcms_obj.mass_features), \
+        "Reloaded object should have the same number of mass features"
+    
+    # Verify type attribute persisted through export/import
+    for mf_id, mf in lcms_obj_reloaded.mass_features.items():
+        assert mf.type == 'internal standard', \
+            f"Mass feature {mf_id} should have type 'internal standard' after reload"
+    
+    # Verify type column in dataframe after reload
+    mf_df_reloaded = lcms_obj_reloaded.mass_features_to_df(drop_na_cols=True)
+    assert 'type' in mf_df_reloaded.columns, "Type column should persist in reloaded dataframe"
+    assert (mf_df_reloaded['type'] == 'internal standard').all(), \
+        "All mass features should have type 'internal standard' after reload"
+    
+    # Cleanup
+    shutil.rmtree("test_targeted_search.corems", ignore_errors=True)
+    
+    # Reset the parameters to the original values
+    reset_lcms_parameters()
+    reset_ms_parameters()
