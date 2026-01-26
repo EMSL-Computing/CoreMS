@@ -4969,7 +4969,7 @@ class LCMSCollectionCalculations:
         for sample_name in self.samples:
             self._lcms[sample_name].mass_features = {}
     
-    def process_samples_pipeline(self, operations, description=None, keep_raw_data=False):
+    def process_samples_pipeline(self, operations, description=None, keep_raw_data=False, show_progress=True):
         """
         Execute a pipeline of operations on all samples in parallel.
         
@@ -4990,6 +4990,9 @@ class LCMSCollectionCalculations:
         keep_raw_data : bool, optional
             If True, keeps raw MS data loaded in memory after pipeline completes.
             If False, cleans up raw data to free memory. Default is False.
+        show_progress : bool, optional
+            If True, displays progress bars during processing. If False, runs silently.
+            Default is True.
             
         Returns
         -------
@@ -5052,12 +5055,17 @@ class LCMSCollectionCalculations:
         
         if self.parameters.lcms_collection.cores == 1:
             # Serial processing
-            from tqdm import tqdm
             results_by_operation = {op.name: {} for op in operations}
             
-            # Print description on its own line before progress bar
-            print(f"\n{description.capitalize()}:")
-            for sample_id in tqdm(range(sample_ct), unit="sample", ncols=80):
+            if show_progress:
+                from tqdm import tqdm
+                # Print description on its own line before progress bar
+                print(f"\n{description.capitalize()}:")
+                iterator = tqdm(range(sample_ct), unit="sample", ncols=80)
+            else:
+                iterator = range(sample_ct)
+            
+            for sample_id in iterator:
                 sample_results = self._execute_sample_pipeline(
                     sample_id, operations, runtime_params, inplace=True
                 )
@@ -5067,7 +5075,6 @@ class LCMSCollectionCalculations:
         else:
             # Parallel processing
             import multiprocessing
-            from tqdm import tqdm
             
             if self.parameters.lcms_collection.cores > sample_ct:
                 ncores = sample_ct
@@ -5089,8 +5096,15 @@ class LCMSCollectionCalculations:
             
             # Collect results back into collection
             results_by_operation = {op.name: {} for op in operations}
-            print(f"\nCollecting {description} results:")
-            for sample_id in tqdm(range(sample_ct), unit="sample", ncols=80):
+            
+            if show_progress:
+                from tqdm import tqdm
+                print(f"\nCollecting {description} results:")
+                iterator = tqdm(range(sample_ct), unit="sample", ncols=80)
+            else:
+                iterator = range(sample_ct)
+            
+            for sample_id in iterator:
                 sample_results = mp_results[sample_id]
                 
                 # Let each operation collect its results

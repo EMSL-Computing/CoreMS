@@ -2358,11 +2358,19 @@ class LCMSCollectionExport():
         They are saved with full detail (all attributes and datasets) in the collection HDF5 file
         and distributed to individual LCMS objects when the collection is loaded.
         
+        The induced mass features are stored in the collection's induced_mass_features_dataframe
+        and are regenerated as LCMSMassFeature objects for saving.
+        
         Parameters
         ----------
         overwrite : bool
             If True, overwrites existing induced mass features group. If False, skips if group exists.
         """
+        # Check if we have any induced mass features to save
+        if (self.mass_spectra_collection.induced_mass_features_dataframe is None or 
+            self.mass_spectra_collection.induced_mass_features_dataframe.empty):
+            return
+        
         # Open the collection HDF5 file to save induced mass features
         with h5py.File(self.out_file_path.with_suffix(".hdf5"), "a") as hdf_handle:
             group_name = "induced_mass_features"
@@ -2376,17 +2384,34 @@ class LCMSCollectionExport():
             # Create top-level group for induced mass features
             imf_group = hdf_handle.create_group(group_name)
             
-            # Iterate through each LCMS object and save its induced mass features
-            for lcms_idx, lcms_obj in enumerate(self.mass_spectra_collection):
-                if len(lcms_obj.induced_mass_features) == 0:
+            # Get the induced mass features dataframe
+            induced_df = self.mass_spectra_collection.induced_mass_features_dataframe
+            
+            # Get unique sample IDs from the dataframe
+            sample_ids = induced_df['sample_id'].unique()
+            
+            # Iterate through each sample and save its induced mass features
+            for sample_id in sample_ids:
+                # Filter dataframe to this sample
+                sample_df = induced_df[induced_df['sample_id'] == sample_id].copy()
+                
+                if sample_df.empty:
+                    continue
+                
+                # Regenerate mass features from the dataframe
+                regenerated_features = self._regenerate_mass_features_from_sample_df(
+                    sample_df, sample_id
+                )
+                
+                if not regenerated_features:
                     continue
                 
                 # Create a subgroup for this sample's induced mass features
-                sample_group = imf_group.create_group(str(lcms_idx))
+                sample_group = imf_group.create_group(str(sample_id))
                 
                 # Use the static helper method from LCMSExport to save the mass features
                 LCMSExport._save_mass_features_dict_to_hdf5(
-                    lcms_obj.induced_mass_features, 
+                    regenerated_features, 
                     sample_group, 
                     overwrite=overwrite
                 )
@@ -2397,11 +2422,19 @@ class LCMSCollectionExport():
         Induced mass features are gap-filled features created during process_consensus_features.
         Their associated EICs need to be saved at the collection level so they can be reloaded.
         
+        The induced mass features are identified from the collection's induced_mass_features_dataframe,
+        and their EICs are retrieved from the individual LCMS objects.
+        
         Parameters
         ----------
         overwrite : bool
             If True, overwrites existing induced EICs group. If False, skips if group exists.
         """
+        # Check if we have any induced mass features to save
+        if (self.mass_spectra_collection.induced_mass_features_dataframe is None or 
+            self.mass_spectra_collection.induced_mass_features_dataframe.empty):
+            return
+        
         # Open the collection HDF5 file to save induced EICs
         with h5py.File(self.out_file_path.with_suffix(".hdf5"), "a") as hdf_handle:
             group_name = "induced_eics"
@@ -2415,88 +2448,110 @@ class LCMSCollectionExport():
             # Create top-level group for induced EICs
             induced_eics_group = hdf_handle.create_group(group_name)
             
-            # Iterate through each LCMS object and save EICs for induced mass features
-            for lcms_idx, lcms_obj in enumerate(self.mass_spectra_collection):
-                if len(lcms_obj.induced_mass_features) == 0:
+            # Get the induced mass features dataframe
+            induced_df = self.mass_spectra_collection.induced_mass_features_dataframe
+            
+            # Get unique sample IDs from the dataframe
+            sample_ids = induced_df['sample_id'].unique()
+            
+            # Iterate through each sample and save EICs for its induced mass features
+            for sample_id in sample_ids:
+                lcms_obj = self.mass_spectra_collection[sample_id]
+                
+                # Filter dataframe to this sample
+                sample_df = induced_df[induced_df['sample_id'] == sample_id].copy()
+                
+                if sample_df.empty:
                     continue
                 
-                # Collect EICs for induced mass features in this sample
+                # Collect EICs for induced mass features using _eic_mz from dataframe
                 induced_eics = {}
-                for mf_id, mass_feature in lcms_obj.induced_mass_features.items():
-                    # Check if this mass feature has an associated EIC
-                    if hasattr(mass_feature, '_eic_data') and mass_feature._eic_data is not None:
-                        # Use the mass feature's mz as the key (EIC_Data doesn't have mz attribute)
-                        eic_mz = mass_feature.mz
-                        induced_eics[eic_mz] = mass_feature._eic_data
+                for _, row in sample_df.iterrows():
+                    # Get the EIC m/z from the dataframe
+                    eic_mz = row.get('_eic_mz')
+                    
+                    if eic_mz is not None and pd.notna(eic_mz):
+                        # Try to get the EIC from the LCMS object
+                        if hasattr(lcms_obj, 'eics') and lcms_obj.eics and eic_mz in lcms_obj.eics:
+                            induced_eics[eic_mz] = lcms_obj.eics[eic_mz]
                 
                 if not induced_eics:
                     continue
                 
                 # Create a subgroup for this sample's induced EICs
-                sample_group = induced_eics_group.create_group(str(lcms_idx))
+                sample_group = induced_eics_group.create_group(str(sample_id))
                 
                 # Use the static helper method from LCMSExport to save the EICs
                 LCMSExport._save_eics_dict_to_hdf5(induced_eics, sample_group, overwrite)
     
-    def _regenerate_mass_features_from_dataframe(self, lcms_obj):
-        """Regenerate induced mass features from the induced_mass_features_dataframe.
+    def _regenerate_mass_features_from_sample_df(self, sample_df, sample_id):
+        """Regenerate induced mass features from a sample-specific dataframe.
         
-        This method creates LCMSMassFeature objects from the induced_mass_features_dataframe
-        for a specific LCMS object (sample). The regenerated features will be saved to the
-        individual LCMS HDF5 file.
+        This method creates LCMSMassFeature objects from rows in the induced_mass_features_dataframe
+        for a specific sample. The regenerated features are used for saving to HDF5.
         
         Parameters
         ----------
-        lcms_obj : LCMSBase
-            The LCMS object to regenerate induced mass features for.
+        sample_df : pd.DataFrame
+            DataFrame containing induced mass features for a specific sample.
+        sample_id : int
+            The sample ID (index in the collection).
             
         Returns
         -------
         dict
             Dictionary of regenerated LCMSMassFeature objects keyed by feature ID.
         """
-        from corems.mass_spectrum.factory.LC_Class import LCMSMassFeature
-        
-        # Get the sample_id for this LCMS object from the collection
-        sample_id = None
-        for idx, obj in enumerate(self.mass_spectra_collection):
-            if obj is lcms_obj:
-                sample_id = idx
-                break
-        
-        if sample_id is None:
-            return {}
-        
-        # Get the induced_mass_features_dataframe from the collection
-        induced_df = self.mass_spectra_collection.induced_mass_features_dataframe
-        
-        if induced_df is None or induced_df.empty:
-            return {}
-        
-        # Filter to only features for this sample
-        sample_df = induced_df[induced_df['sample_id'] == sample_id].copy()
+        from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
         
         if sample_df.empty:
             return {}
         
+        # Get the corresponding LCMS object for proper parent reference
+        lcms_obj = self.mass_spectra_collection[sample_id]
+        
         # Regenerate mass features from the dataframe
         regenerated_features = {}
+        
         for _, row in sample_df.iterrows():
-            # Create a new LCMSMassFeature
-            # Note: Using retention_time parameter, NOT scan_time
+            # Extract the original ID from mf_id (format: c{cluster}_{index}_i)
+            # This is the ID used in lcms_obj.induced_mass_features dict
+            original_id = row['mf_id']
+            
+            # Create a new LCMSMassFeature with proper parent reference
+            # Note: dataframe uses 'scan_time' but __init__ parameter is 'retention_time'
             mass_feature = LCMSMassFeature(
+                lcms_parent=lcms_obj,
                 mz=row['mz'],
-                retention_time=row['retention_time'],  # Use retention_time parameter
+                retention_time=row['scan_time'],  # Column is 'scan_time' in dataframe
                 intensity=row['intensity'],
-                apex_scan=row['apex_scan'],
-                persistence=row.get('persistence', None),
-                tailing_factor=row.get('tailing_factor', None),
-                fronting_factor=row.get('fronting_factor', None),
-                half_height_width=row.get('half_height_width', None),
+                apex_scan=int(row['apex_scan']),
+                persistence=row.get('persistence', None) if 'persistence' in row else None,
+                id=original_id  # Use the original string ID from gap-filling
             )
             
-            # Set the ID
-            mass_feature.id = int(row['id'])
+            # Set additional attributes dynamically from dataframe columns
+            # Skip columns already handled in __init__ or structural metadata
+            skip_cols = {
+                'sample_id', 'mf_id', 'mz', 'scan_time', 'scan_time_aligned',
+                'intensity', 'apex_scan', 'persistence'}
+            
+            # Iterate through all columns and set via property setters
+            for col_name in row.index:
+                if col_name in skip_cols or pd.isna(row[col_name]):
+                    continue
+                
+                # Convert value to appropriate type
+                value = row[col_name]
+                
+                # Set via property (public interface handles private attributes)
+                # Don't save empty lists
+                if isinstance(value, list) and len(value) == 0:
+                    continue
+                try:
+                    setattr(mass_feature, col_name, value)
+                except (AttributeError, TypeError):
+                    pass  # Skip attributes that don't exist or can't be set
             
             # Set cluster_index if present
             if 'cluster' in row and pd.notna(row['cluster']):

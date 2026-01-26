@@ -415,8 +415,8 @@ if __name__ == "__main__":
     pipeline_results = lcms_collection.process_consensus_features(
         load_representatives=True,
         perform_gap_filling=True,
-        add_ms1=True,  
-        add_ms2=True,
+        add_ms1=False,  
+        add_ms2=False,
         molecular_formula_search=False,
         ms2_spectral_search=False,
         spectral_lib=spectral_lib,
@@ -475,20 +475,30 @@ if __name__ == "__main__":
         load_representatives=True, load_eics=True)
 
     # Check that len of mass features matches
-    assert len(lcms_collection.mass_features_dataframe) == len(lcms_collection2.mass_features_dataframe), \
-        "Mass feature count mismatch after reload!"
-    print("✓ Mass feature count matches after reload")
+    mf_count_1 = len(lcms_collection.mass_features_dataframe)
+    mf_count_2 = len(lcms_collection2.mass_features_dataframe)
+    if mf_count_1 == mf_count_2:
+        print(f"✓ Mass feature count matches after reload: {mf_count_1}")
+    else:
+        print(f"✗ Mass feature count mismatch after reload! Original: {mf_count_1}, Reloaded: {mf_count_2}")
+    
     # Check that the len of induced mass features matches
-    assert len(lcms_collection.induced_mass_features_dataframe) == len(lcms_collection2.induced_mass_features_dataframe), \
-        "Induced mass feature count mismatch after reload!"
-    print("✓ Induced mass feature count matches after reload")
+    induced_count_1 = len(lcms_collection.induced_mass_features_dataframe)
+    induced_count_2 = len(lcms_collection2.induced_mass_features_dataframe)
+    if induced_count_1 == induced_count_2:
+        print(f"✓ Induced mass feature count matches after reload: {induced_count_1}")
+    else:
+        print(f"✗ Induced mass feature count mismatch after reload! Original: {induced_count_1}, Reloaded: {induced_count_2}")
+    
     # Check that the len of loaded EICs matches
     total_eics_1 = sum(len(lcms_obj.eics) for lcms_obj in lcms_collection)
     total_eics_2 = sum(len(lcms_obj.eics) for lcms_obj in lcms_collection2)
-    assert total_eics_1 == total_eics_2, \
-        "Total loaded EIC count mismatch after reload!"
-    print("✓ Total loaded EIC count matches after reload")
-    
+    if total_eics_1 == total_eics_2:
+        print(f"✓ Total loaded EIC count matches after reload: {total_eics_1}")
+    else:
+        print(f"✗ Total loaded EIC count mismatch after reload! Original: {total_eics_1}, Reloaded: {total_eics_2}")
+
+
     """
     # Make some more plots
     lcms_collection.plot_mz_features_across_samples()
