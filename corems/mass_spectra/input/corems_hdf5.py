@@ -10,6 +10,7 @@ import multiprocessing
 from pathlib import Path
 import datetime
 
+import numpy as np
 import pandas as pd
 import warnings
 
@@ -567,7 +568,7 @@ class ReadCoreMSHDFMassSpectra(
                             mass_spectra._ms[ms2_scan]
                         )
 
-    def import_eics(self, mass_spectra, mz_list=None):
+    def import_eics(self, mass_spectra, mz_list=None, mz_tolerance=0.0001):
         """Imports the extracted ion chromatograms from the HDF5 file.
 
         Parameters
@@ -576,6 +577,9 @@ class ReadCoreMSHDFMassSpectra(
             The MassSpectraBase or LCMSBase object to populate with extracted ion chromatograms.
         mz_list : list of float, optional
             List of m/z values to load EICs for. If None, loads all EICs. Default is None.
+        mz_tolerance : float, optional
+            Tolerance in Daltons for matching m/z values when mz_list is provided.
+            Default is 0.0001 Da.
 
         Returns
         -------
@@ -585,15 +589,16 @@ class ReadCoreMSHDFMassSpectra(
         """
         dict_group_load = self.h5pydata["eics"]
         dict_group_keys = dict_group_load.keys()
-        
-        # Create a set of target m/z values for fast lookup if filtering
-        target_mz_set = set(mz_list) if mz_list is not None else None
-        
+
+        # Prefilter dict_group_keys if mz_list is provided to EICs within tolerance
+        if mz_list is not None:
+            target_mz_array = np.array(sorted(mz_list))
+            mzs = [float(k) for k in dict_group_keys if np.abs(float(k)-target_mz_array).min() < mz_tolerance]
+            dict_group_keys = [str(mz) for mz in mzs]
+
         for k in dict_group_keys:
             # Check if we should load this EIC (filter by m/z if list provided)
             eic_mz = dict_group_load[k].attrs["mz"]
-            if target_mz_set is not None and eic_mz not in target_mz_set:
-                continue  # Skip this EIC
             
             my_eic = EIC_Data(
                 scans=dict_group_load[k]["scans"][:],
@@ -609,11 +614,62 @@ class ReadCoreMSHDFMassSpectra(
             # Add to mass_spectra object
             mass_spectra.eics[eic_mz] = my_eic
 
-        # Add to mass features
-        for idx in mass_spectra.mass_features.keys():
-            mz = mass_spectra.mass_features[idx].mz
-            if mz in mass_spectra.eics.keys():
-                mass_spectra.mass_features[idx]._eic_data = mass_spectra.eics[mz]
+        # Associate EICs with mass features using tolerance-based matching
+        mass_spectra.associate_eics_with_mass_features()
+
+    @staticmethod
+    def _load_eics_from_hdf5_group(eics_group, lcms_obj, mz_filter=None):
+        """Load EICs from an HDF5 group.
+        
+        This is a static helper method that can be reused to load EIC data
+        from any HDF5 group in a consistent format.
+        
+        Parameters
+        ----------
+        eics_group : h5py.Group
+            The HDF5 group containing EIC data.
+        lcms_obj : LCMSBase
+            The LCMS object to associate EICs with (for reference, not modified).
+        mz_filter : list, optional
+            List of m/z values to load. If None, loads all EICs. Default is None.
+            Uses tolerance-based matching (0.0001).
+        
+        Returns
+        -------
+        dict
+            Dictionary of EIC_Data objects keyed by m/z value.
+        """
+        from corems.mass_spectra.factory.chromat_data import EIC_Data
+        
+        loaded_eics = {}
+        tolerance = 0.0001
+        
+        for eic_key_str in eics_group.keys():
+            eic_mz = float(eic_key_str) if eic_key_str.replace('.', '', 1).replace('-', '', 1).isdigit() else eics_group[eic_key_str].attrs.get("mz")
+            
+            # If mz_filter is provided, check if this EIC matches any requested m/z
+            if mz_filter is not None:
+                if not any(abs(eic_mz - mz) < tolerance for mz in mz_filter):
+                    continue
+            
+            eic_data = eics_group[eic_key_str]
+            
+            # Create EIC_Data object from datasets
+            eic = EIC_Data(
+                scans=list(eic_data["scans"][:]) if "scans" in eic_data else [],
+                time=list(eic_data["time"][:]) if "time" in eic_data else [],
+                eic=list(eic_data["eic"][:]) if "eic" in eic_data else [],
+                apexes=list(eic_data["apexes"][:]) if "apexes" in eic_data else [],
+            )
+            
+            # Load any additional datasets
+            for key in eic_data.keys():
+                if key not in ["scans", "time", "eic", "apexes"]:
+                    setattr(eic, key, eic_data[key][:])
+            
+            loaded_eics[eic_mz] = eic
+        
+        return loaded_eics
 
     def import_spectral_search_results(self, mass_spectra):
         """Imports the spectral search results from the HDF5 file.
@@ -1039,6 +1095,14 @@ class ReadCoreMSHDFMassSpectraCollection:
             lcms_obj = parser.get_lcms_obj(load_raw=load_raw, load_light=load_light, use_original_parser=use_original_parser, raw_file_path=raw_file_path)
             if load_light:
                 mf_df = lcms_obj.mass_features_to_df()
+                # Add ._eic_mz to mf_df for each mass_feature
+                eic_mz_list = []
+                for mf_id, mf in lcms_obj.mass_features.items():
+                    if hasattr(mf, "_eic_mz"):
+                        eic_mz_list.append(mf._eic_mz)
+                    else:
+                        eic_mz_list.append(None)
+                mf_df["_eic_mz"] = eic_mz_list               
                 lcms_obj.mass_features = {}
                 lcms_obj.light_mf_df = mf_df
         return lcms_obj
@@ -1269,8 +1333,25 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
                 # Drop rows with NaN cluster values
                 lcms_collection.mass_features_dataframe.dropna(subset=['cluster'], inplace=True)
 
-    def get_lcms_collection(self, load_raw=False, load_light=False):
-        """Get the LCMS collection from the saved HDF5 file."""
+    def get_lcms_collection(self, load_raw=False, load_light=False, load_representatives=False, load_eics=False):
+        """Get the LCMS collection from the saved HDF5 file.
+        
+        Parameters
+        ----------
+        load_raw : bool, optional
+            If True, load raw data. Default is False.
+        load_light : bool, optional
+            If True, load light data (minimal). Default is False.
+        load_representatives : bool, optional
+            If True, load representative mass features from clusters. Default is False.
+        load_eics : bool, optional
+            If True, load EIC data for clustered mass features. Default is False.
+            
+        Returns
+        -------
+        LCMSCollection
+            The loaded LCMS collection object.
+        """
         # First load the LCMSCollection object exactly as in the parent class
         lcms_collection = super().get_lcms_collection(load_raw=load_raw, load_light=load_light)
         
@@ -1290,9 +1371,21 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
         # Load induced mass features if they exist
         self._load_induced_mass_features(lcms_collection)
         
+        # Load EICs for induced mass features from collection HDF5
+        if lcms_collection.missing_mass_features_searched:
+            self._load_induced_eics_from_collection(lcms_collection)
+        
         # Combine induced mass features into the collection-level dataframe if any were loaded
         if lcms_collection.missing_mass_features_searched:
             lcms_collection._combine_mass_features(induced_features=True)
+        
+        # Load representative mass features if requested
+        if load_representatives:
+            self._load_representative_mass_features(lcms_collection)
+        
+        # Load EICs for clustered features if requested
+        if load_eics:
+            self._load_eics_for_clusters(lcms_collection)
 
         return lcms_collection
     
@@ -1338,9 +1431,9 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
                 for mf_id_str in sample_group.keys():
                     mf_group = sample_group[mf_id_str]
                     
-                    # The mf_id in HDF5 is stored as a string of the integer ID
-                    # (induced_mass_features dict uses integer keys)
-                    mf_id = int(mf_id_str)
+                    # Note: Induced mass feature IDs are strings like 'c2923_0_i', not integers
+                    # Keep them as strings since that's how they're stored
+                    mf_id = mf_id_str
                     
                     # Instantiate the LCMSMassFeature object with required attributes
                     mass_feature = LCMSMassFeature(
@@ -1373,4 +1466,197 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
                     
                     # Add to the LCMS object's induced_mass_features dictionary
                     lcms_obj.induced_mass_features[mf_id] = mass_feature
+    
+    def _load_induced_eics_from_collection(self, lcms_collection):
+        """Load EICs for induced mass features from the collection HDF5 file.
+        
+        Induced mass features are gap-filled features. Their EICs are saved at the
+        collection level and need to be loaded and associated with the induced mass features.
+        
+        Parameters
+        ----------
+        lcms_collection : LCMSCollection
+            The LCMS collection object with induced mass features to associate EICs with.
+        """
+        with h5py.File(self.collection_hdf5_path, 'r') as f:
+            if "induced_eics" not in f:
+                return
+            
+            # Access the top-level induced EICs group
+            induced_eics_group = f["induced_eics"]
+            
+            # Iterate through each sample's induced EICs
+            for sample_idx in induced_eics_group.keys():
+                lcms_obj = lcms_collection[int(sample_idx)]
+                sample_group = induced_eics_group[sample_idx]
+                
+                # Use the static helper to load EICs
+                loaded_eics = ReadCoreMSHDFMassSpectra._load_eics_from_hdf5_group(sample_group, lcms_obj)
+                
+                # Add to lcms_obj.eics dictionary and associate with induced mass features
+                for eic_mz, eic in loaded_eics.items():
+                    lcms_obj.eics[eic_mz] = eic
+                
+                # Associate EICs with induced mass features using tolerance-based matching
+                lcms_obj.associate_eics_with_mass_features(induced=True)
+    
+    def _load_representative_mass_features(self, lcms_collection):
+        """Load representative mass features for all clusters from HDF5 files.
+        
+        This method uses the same logic as process_consensus_features() when loading
+        representatives, calling get_sample_mf_map_for_representatives() (DRY helper)
+        to determine which features to load.
+        
+        Parameters
+        ----------
+        lcms_collection : LCMSCollection
+            The LCMS collection object to populate with representative mass features.
+        """
+        # Get cluster assignments from the mass_features_dataframe
+        if "cluster" not in lcms_collection.mass_features_dataframe.columns:
+            return
+        
+        # Use DRY helper method to build sample_mf_map with cluster IDs
+        sample_mf_map = lcms_collection.get_sample_mf_map_for_representatives(include_cluster_id=True)
+        
+        # Load mass features for each sample
+        for sample_id, mf_list in sample_mf_map.items():
+            lcms_obj = lcms_collection[sample_id]
+            
+            # Load each mass feature
+            for mf_id, cluster_id in mf_list:
+                self._load_single_mass_feature(lcms_obj, mf_id, cluster_id)
+    
+    def _load_single_mass_feature(self, lcms_obj, feature_id, cluster_index=None):
+        """Load a single mass feature from an LCMS object's HDF5 file.
+        
+        Parameters
+        ----------
+        lcms_obj : LCMSBase
+            The LCMS object to add the mass feature to.
+        feature_id : int
+            The ID of the mass feature to load.
+        cluster_index : int, optional
+            The cluster index to assign to the loaded mass feature.
+        """
+        hdf5_path = lcms_obj.file_location.with_suffix('.hdf5')
+        
+        if not hdf5_path.exists():
+            return
+        
+        with h5py.File(hdf5_path, 'r') as f:
+            if 'mass_features' not in f:
+                return
+            
+            mf_group = f['mass_features']
+            feature_id_str = str(feature_id)
+            
+            if feature_id_str not in mf_group:
+                return
+            
+            mf_data = mf_group[feature_id_str]
+            
+            # Create LCMSMassFeature object
+            mass_feature = LCMSMassFeature(
+                lcms_obj,
+                mz=mf_data.attrs["_mz_exp"],
+                retention_time=mf_data.attrs["_retention_time"],
+                intensity=mf_data.attrs["_intensity"],
+                apex_scan=mf_data.attrs["_apex_scan"],
+                persistence=mf_data.attrs.get("_persistence", 0),
+                id=feature_id,
+            )
+            
+            # Set cluster_index if provided
+            if cluster_index is not None:
+                mass_feature.cluster_index = cluster_index
+            
+            # Populate additional attributes from HDF5 attributes
+            for key in mf_data.attrs.keys() - {
+                "_mz_exp",
+                "_mz_cal",
+                "_retention_time",
+                "_intensity",
+                "_apex_scan",
+                "_persistence",
+            }:
+                setattr(mass_feature, key, mf_data.attrs[key])
+            
+            # Populate attributes from HDF5 datasets (arrays)
+            for key in mf_data.keys():
+                setattr(mass_feature, key, mf_data[key][:])
+                # Convert _noise_score from array to tuple
+                if key == "_noise_score":
+                    mass_feature._noise_score = tuple(mass_feature._noise_score)
+            
+            # Add to the LCMS object's mass_features dictionary
+            lcms_obj.mass_features[feature_id] = mass_feature
+    
+    def _load_eics_for_clusters(self, lcms_collection):
+        """Load EIC data for loaded representative mass features from individual LCMS HDF5 files.
+        
+        This method loads EIC data from individual LCMS object HDF5 files for representative
+        mass features that were loaded into the mass_features dictionary. EICs for induced
+        mass features are loaded separately from the collection HDF5 file.
+        
+        Parameters
+        ----------
+        lcms_collection : LCMSCollection
+            The LCMS collection object with loaded representative mass features.
+        """
+        for lcms_obj in lcms_collection:
+            # Collect m/z values from both representative and induced mass features
+            # Representative EICs come from individual LCMS HDF5 files
+            # Induced EICs were already loaded by _load_induced_eics_from_collection
+            mz_values = []
+            feature_ids = []
+            
+            # Add representative mass features
+            if len(lcms_obj.mass_features) > 0:
+                mz_values.extend([mf.mz for mf in lcms_obj.mass_features.values()])
+                feature_ids.extend(list(lcms_obj.mass_features.keys()))
+            
+            # Note: Induced mass features already have their EICs loaded from collection HDF5,
+            # so we don't need to load them again from individual files
+            
+            if mz_values:
+                # Load EICs for representative features from individual LCMS HDF5 file
+                self._load_eics_from_hdf5(lcms_obj, mz_values, feature_ids)
+    
+    def _load_eics_from_hdf5(self, lcms_obj, mz_values, feature_ids):
+        """Load EIC data from HDF5 file and associate with mass features.
+        
+        This method loads EIC_Data objects from the HDF5 file for the specified m/z values
+        and associates them with the corresponding mass features using tolerance-based matching.
+        
+        Parameters
+        ----------
+        lcms_obj : LCMSBase
+            The LCMS object to load EICs for.
+        mz_values : list
+            List of m/z values to load EICs for.
+        feature_ids : list
+            List of feature IDs corresponding to the m/z values.
+        """
+        hdf5_path = lcms_obj.file_location.with_suffix('.hdf5')
+        
+        if not hdf5_path.exists():
+            return
+        
+        with h5py.File(hdf5_path, 'r') as f:
+            if 'eics' not in f:
+                return
+            
+            eic_group = f['eics']
+            
+            # Use the static helper to load EICs with m/z filtering
+            loaded_eics = ReadCoreMSHDFMassSpectra._load_eics_from_hdf5_group(eic_group, lcms_obj, mz_filter=mz_values)
+            
+            # Add to lcms_obj.eics dictionary and associate with mass features
+            for eic_mz, eic in loaded_eics.items():
+                lcms_obj.eics[eic_mz] = eic
+            
+            # Associate EICs with both regular and induced mass features
+            lcms_obj.associate_eics_with_mass_features(induced=False)
+            lcms_obj.associate_eics_with_mass_features(induced=True)
 

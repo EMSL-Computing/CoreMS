@@ -469,6 +469,74 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         self.induced_mass_features = {}
         self.spectral_search_results = {}
 
+    def get_eic_mz_for_mass_feature(self, mf_mz, tolerance=0.0001):
+        """Get the EIC dictionary key (m/z) that best matches a mass feature's m/z.
+        
+        Finds the closest EIC m/z key within the specified tolerance.
+        
+        Parameters
+        ----------
+        mf_mz : float
+            The m/z value of the mass feature to match.
+        tolerance : float, optional
+            Maximum m/z difference for matching. Default is 0.0001 Da.
+            
+        Returns
+        -------
+        float or None
+            The EIC dictionary key (m/z) of the closest matching EIC,
+            or None if no EIC is within tolerance.
+        """
+        if not hasattr(self, 'eics') or not self.eics:
+            return None
+        
+        best_eic_mz = None
+        best_diff = tolerance
+        for eic_mz in self.eics.keys():
+            diff = abs(mf_mz - eic_mz)
+            if diff < best_diff:
+                best_diff = diff
+                best_eic_mz = eic_mz
+        return best_eic_mz
+    
+    def associate_eics_with_mass_features(self, tolerance=0.0001, induced=False):
+        """Associate EICs with mass features using tolerance-based m/z matching.
+        
+        Associates EIC_Data objects from self.eics with mass features by finding
+        the closest EIC within the specified m/z tolerance. This is more robust
+        than exact matching which can fail due to floating point precision issues.
+        
+        Parameters
+        ----------
+        tolerance : float, optional
+            Maximum m/z difference for matching EICs to mass features. Default is 0.0001 Da.
+        induced : bool, optional
+            If True, associates EICs with induced_mass_features instead of mass_features.
+            Default is False.
+            
+        Notes
+        -----
+        For each mass feature, this method finds the EIC with the closest m/z value
+        within the tolerance window and assigns it to the mass feature's _eic_data attribute.
+        If multiple EICs are within tolerance, the one with the smallest m/z difference is chosen.
+        """
+        # Select which mass features dictionary to use
+        mf_dict = self.induced_mass_features if induced else self.mass_features
+        
+        # Use the _eic_mz attribute on each mass_feature to find the closest matching EIC
+        for idx in mf_dict.keys():
+            mf_mz = mf_dict[idx]._eic_mz
+            # Find closest EIC within tolerance
+            best_match = None
+            best_diff = tolerance
+            for eic_mz, eic_data in self.eics.items():
+                diff = abs(mf_mz - eic_mz)
+                if diff < best_diff:
+                    best_diff = diff
+                    best_match = eic_data
+            if best_match is not None:
+                mf_dict[idx]._eic_data = best_match
+
     def get_parameters_json(self):
         """Returns the parameters stored for the LC-MS object in JSON format.
 
@@ -874,7 +942,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "isotopologue_type",
             "mass_spectrum_deconvoluted_parent",
             "ms2_scan_numbers",
-            "type",
+            "type"
         ]
 
         df_mf_list = []

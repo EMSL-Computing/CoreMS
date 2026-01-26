@@ -11,6 +11,8 @@ from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFil
 from corems.encapsulation.factory.parameters import LCMSParameters
 from corems.molecular_id.search.database_interfaces import MSPInterface
 from corems.encapsulation.factory.parameters import hush_output
+from corems.mass_spectra.output.export import LCMSCollectionExport
+
 """
 Example showing the new pipeline-based sample processing approach.
 
@@ -322,13 +324,13 @@ if __name__ == "__main__":
     # =============================================================================
     ncores = 1
     reprocess_samples = False  # Set to True to reprocess raw data
-    perform_ms2_search = True  # Set to True to perform MS2 spectral library search
+    perform_ms2_search = False  # Set to True to perform MS2 spectral library search
 
     # Paths
     base_path = Path("/Volumes/LaCie/nmdc_data/collection_testing/dev_test/")
     collection_save_path = base_path / "collection"
     raw_data_path = base_path / "raw"
-    processed_folder = base_path / "processed"
+    processed_folder = base_path / "processed2"
     msp_file_location = Path("/Users/heal742/LOCAL/05_NMDC/02_MetaMS/metams/test_data/test_lcms_metab_data/20250407_database.msp")
     new_raw_data_path = raw_data_path  # Update raw file paths in collection if moved after the first step
     
@@ -451,40 +453,43 @@ if __name__ == "__main__":
     # Step 8: Save and Export Results
     # =============================================================================
     print("\n=== Exporting LCMS Collection ===")
-    #exporter = LCMSCollectionExport(
-    #    out_file_path="/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/collection",
-    #    mass_spectra_collection=lcms_collection)
-    #exporter.export_to_hdf5(overwrite=True, save_parameters=True, parameter_format="toml")
-
-    """
-    # Check save and load functionality for LCMSCollection
-    print("Saving and re-loading LCMS collection to test save/load functionality")
-    print(f"Before saving: missing_mass_features_searched = {lcms_collection.missing_mass_features_searched}")
-
+    exporter = LCMSCollectionExport(
+        out_file_path=str(collection_save_path),
+        mass_spectra_collection=lcms_collection)
+    exporter.export_to_hdf5(overwrite=True, save_parameters=True, parameter_format="toml")
     
-    # Reload the collection
+    # =============================================================================
+    # Test Save/Load Functionality
+    # =============================================================================
+    print("\n" + "="*60)
+    print("SAVE/LOAD VALIDATION TEST")
+    print("="*60)
+    
+    # Reload
+    from corems.mass_spectra.input.corems_hdf5 import ReadSavedLCMSCollection
     reader = ReadSavedLCMSCollection(
-        collection_hdf5_path="/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/collection.hdf5",
+        collection_hdf5_path=str(collection_save_path.with_suffix('.hdf5')),
         cores=ncores)
-    lcms_collection2 = reader.get_lcms_collection(load_raw=False, load_light=True)
-    
-    # Verify parameters, induced features, and missing mass features searched flag upon reload
-    assert lcms_collection2.parameters.lcms_collection.alignment_acceptance_fraction_improved_threshold == -1, \
-        f"Re-loaded threshold parameter should be -1, got {lcms_collection2.parameters.lcms_collection.alignment_acceptance_fraction_improved_threshold}"
-    assert lcms_collection2.missing_mass_features_searched, "Re-loaded collection should have missing_mass_features_searched=True"
-    original_induced_count = sum([len(lcms_obj.induced_mass_features) for lcms_obj in lcms_collection])
-    reloaded_induced_count = sum([len(lcms_obj.induced_mass_features) for lcms_obj in lcms_collection2])
-    assert reloaded_induced_count == original_induced_count, \
-        f"Re-loaded induced mass features count mismatch: {reloaded_induced_count} vs {original_induced_count}"
-    assert reloaded_induced_count > 0, "Collection should have some induced mass features after gap filling"
+    lcms_collection2 = reader.get_lcms_collection(
+        load_raw=False, load_light=True,
+        load_representatives=True, load_eics=True)
 
-    # Verify the pivot table outputs are the same before and after save/load
-    original_pivot = lcms_collection.collection_pivot_table()
-    reloaded_pivot = lcms_collection2.collection_pivot_table()
-    pd.testing.assert_frame_equal(original_pivot, reloaded_pivot, check_dtype=False)
-
-    print('Test completed successfully! LCMSCollection save and load functionality works as expected.')
+    # Check that len of mass features matches
+    assert len(lcms_collection.mass_features_dataframe) == len(lcms_collection2.mass_features_dataframe), \
+        "Mass feature count mismatch after reload!"
+    print("✓ Mass feature count matches after reload")
+    # Check that the len of induced mass features matches
+    assert len(lcms_collection.induced_mass_features_dataframe) == len(lcms_collection2.induced_mass_features_dataframe), \
+        "Induced mass feature count mismatch after reload!"
+    print("✓ Induced mass feature count matches after reload")
+    # Check that the len of loaded EICs matches
+    total_eics_1 = sum(len(lcms_obj.eics) for lcms_obj in lcms_collection)
+    total_eics_2 = sum(len(lcms_obj.eics) for lcms_obj in lcms_collection2)
+    assert total_eics_1 == total_eics_2, \
+        "Total loaded EIC count mismatch after reload!"
+    print("✓ Total loaded EIC count matches after reload")
     
+    """
     # Make some more plots
     lcms_collection.plot_mz_features_across_samples()
     lcms_collection.plot_mz_features_per_cluster()

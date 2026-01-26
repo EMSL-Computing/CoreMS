@@ -1121,6 +1121,47 @@ class LCMSExport(HighResMassSpectraExport):
                                         v2 = np.float32(v2)
                                     mass_features_group[str(k)].attrs[str(k2)] = v2
     
+    @staticmethod
+    def _save_eics_dict_to_hdf5(eics_dict, eics_group, overwrite=False):
+        """Save a dictionary of EICs to an HDF5 group.
+        
+        This is a static helper method that can be reused by different export classes
+        to save EIC data in a consistent format.
+        
+        Parameters
+        ----------
+        eics_dict : dict
+            Dictionary of EIC_Data objects, keyed by m/z value.
+        eics_group : h5py.Group
+            The HDF5 group to save the EICs to.
+        overwrite : bool, optional
+            Whether to overwrite existing EICs. Default is False.
+        """
+        for mz, eic_data in eics_dict.items():
+            mz_str = str(mz)
+            if mz_str not in eics_group or overwrite:
+                if mz_str in eics_group and overwrite:
+                    del eics_group[mz_str]
+                eic_grp = eics_group.create_group(mz_str)
+                eic_grp.attrs["mz"] = mz
+                
+                # Save all EIC_Data attributes as datasets
+                for attr_name, attr_value in eic_data.__dict__.items():
+                    if attr_value is not None:
+                        array = np.array(attr_value)
+                        # Apply data type optimization and compression
+                        if array.dtype == np.int64:
+                            array = array.astype(np.int32)
+                        elif array.dtype == np.float64:
+                            array = array.astype(np.float32)
+                        elif array.dtype.str[0:2] == "<U":
+                            # Convert Unicode strings to UTF-8 encoded strings
+                            string_data = [str(item) for item in array]
+                            string_dtype = h5py.string_dtype(encoding='utf-8')
+                            eic_grp.create_dataset(str(attr_name), data=string_data, dtype=string_dtype, compression="gzip", compression_opts=9, chunks=True)
+                            continue
+                        eic_grp.create_dataset(str(attr_name), data=array, compression="gzip", compression_opts=9, chunks=True)
+    
     def _save_mass_features_to_hdf5(self, hdf_handle, group_name = "mass_features", overwrite=False):
         """Save the mass features to the HDF5 file.
 
@@ -1221,29 +1262,8 @@ class LCMSExport(HighResMassSpectraExport):
                 else:
                     eic_group = hdf_handle.get("eics")
 
-                # Create group for each eic
-                for k, v in self.mass_spectra.eics.items():
-                    if str(k) not in eic_group or overwrite:
-                        if str(k) in eic_group and overwrite:
-                            del eic_group[str(k)]
-                        eic_group.create_group(str(k))
-                        eic_group[str(k)].attrs["mz"] = k
-                        # Loop through each of the attributes and add them as datasets (if array)
-                        for k2, v2 in v.__dict__.items():
-                            if v2 is not None:
-                                array = np.array(v2)
-                                # Apply data type optimization and compression
-                            if array.dtype == np.int64:
-                                array = array.astype(np.int32)
-                            elif array.dtype == np.float64:
-                                array = array.astype(np.float32)
-                            elif array.dtype.str[0:2] == "<U":
-                                # Convert Unicode strings to UTF-8 encoded strings
-                                string_data = [str(item) for item in array]
-                                string_dtype = h5py.string_dtype(encoding='utf-8')
-                                eic_group[str(k)].create_dataset(str(k2), data=string_data, dtype=string_dtype, compression="gzip", compression_opts=9, chunks=True)
-                                continue
-                            eic_group[str(k)].create_dataset(str(k2), data=array, compression="gzip", compression_opts=9, chunks=True)
+                # Use the static helper method to save the EICs
+                self._save_eics_dict_to_hdf5(self.mass_spectra.eics, eic_group, overwrite)
 
             # Add ms2_search results to hdf5 file (parameterized)
             if len(self.mass_spectra.spectral_search_results) > 0:
@@ -2216,9 +2236,15 @@ class LCMSCollectionExport():
         if hasattr(self.mass_spectra_collection, 'raw_files_relocated') and self.mass_spectra_collection.raw_files_relocated:
             self._update_raw_file_locations_in_hdf5()
 
-        # Save induced mass features onto the LCMSBase objects, only if lcms_collection.missing_mass_features_searched is True
+        # Save induced mass features to the collection with associations to each individual, only if lcms_collection.missing_mass_features_searched is True
         if self.mass_spectra_collection.missing_mass_features_searched:
             self._save_induced_mass_features_to_hdf5(overwrite)
+            # Save EICs for induced mass features at collection level
+            self._save_induced_eics_to_hdf5(overwrite)
+        
+        # Save updated mass features for each LCMS object
+        # This implements selective update: only loaded features are updated, non-cluster features are preserved
+        self._save_lcms_objects_to_hdf5(overwrite)
 
         # Save collection-level parameters as separate file
         if save_parameters:
@@ -2364,3 +2390,205 @@ class LCMSCollectionExport():
                     sample_group, 
                     overwrite=overwrite
                 )
+    
+    def _save_induced_eics_to_hdf5(self, overwrite):
+        """Save EICs for induced mass features to the collection HDF5 file.
+        
+        Induced mass features are gap-filled features created during process_consensus_features.
+        Their associated EICs need to be saved at the collection level so they can be reloaded.
+        
+        Parameters
+        ----------
+        overwrite : bool
+            If True, overwrites existing induced EICs group. If False, skips if group exists.
+        """
+        # Open the collection HDF5 file to save induced EICs
+        with h5py.File(self.out_file_path.with_suffix(".hdf5"), "a") as hdf_handle:
+            group_name = "induced_eics"
+            
+            # Check if group exists and handle overwrite logic
+            if group_name in hdf_handle:
+                if not overwrite:
+                    return
+                del hdf_handle[group_name]
+            
+            # Create top-level group for induced EICs
+            induced_eics_group = hdf_handle.create_group(group_name)
+            
+            # Iterate through each LCMS object and save EICs for induced mass features
+            for lcms_idx, lcms_obj in enumerate(self.mass_spectra_collection):
+                if len(lcms_obj.induced_mass_features) == 0:
+                    continue
+                
+                # Collect EICs for induced mass features in this sample
+                induced_eics = {}
+                for mf_id, mass_feature in lcms_obj.induced_mass_features.items():
+                    # Check if this mass feature has an associated EIC
+                    if hasattr(mass_feature, '_eic_data') and mass_feature._eic_data is not None:
+                        # Use the mass feature's mz as the key (EIC_Data doesn't have mz attribute)
+                        eic_mz = mass_feature.mz
+                        induced_eics[eic_mz] = mass_feature._eic_data
+                
+                if not induced_eics:
+                    continue
+                
+                # Create a subgroup for this sample's induced EICs
+                sample_group = induced_eics_group.create_group(str(lcms_idx))
+                
+                # Use the static helper method from LCMSExport to save the EICs
+                LCMSExport._save_eics_dict_to_hdf5(induced_eics, sample_group, overwrite)
+    
+    def _regenerate_mass_features_from_dataframe(self, lcms_obj):
+        """Regenerate induced mass features from the induced_mass_features_dataframe.
+        
+        This method creates LCMSMassFeature objects from the induced_mass_features_dataframe
+        for a specific LCMS object (sample). The regenerated features will be saved to the
+        individual LCMS HDF5 file.
+        
+        Parameters
+        ----------
+        lcms_obj : LCMSBase
+            The LCMS object to regenerate induced mass features for.
+            
+        Returns
+        -------
+        dict
+            Dictionary of regenerated LCMSMassFeature objects keyed by feature ID.
+        """
+        from corems.mass_spectrum.factory.LC_Class import LCMSMassFeature
+        
+        # Get the sample_id for this LCMS object from the collection
+        sample_id = None
+        for idx, obj in enumerate(self.mass_spectra_collection):
+            if obj is lcms_obj:
+                sample_id = idx
+                break
+        
+        if sample_id is None:
+            return {}
+        
+        # Get the induced_mass_features_dataframe from the collection
+        induced_df = self.mass_spectra_collection.induced_mass_features_dataframe
+        
+        if induced_df is None or induced_df.empty:
+            return {}
+        
+        # Filter to only features for this sample
+        sample_df = induced_df[induced_df['sample_id'] == sample_id].copy()
+        
+        if sample_df.empty:
+            return {}
+        
+        # Regenerate mass features from the dataframe
+        regenerated_features = {}
+        for _, row in sample_df.iterrows():
+            # Create a new LCMSMassFeature
+            # Note: Using retention_time parameter, NOT scan_time
+            mass_feature = LCMSMassFeature(
+                mz=row['mz'],
+                retention_time=row['retention_time'],  # Use retention_time parameter
+                intensity=row['intensity'],
+                apex_scan=row['apex_scan'],
+                persistence=row.get('persistence', None),
+                tailing_factor=row.get('tailing_factor', None),
+                fronting_factor=row.get('fronting_factor', None),
+                half_height_width=row.get('half_height_width', None),
+            )
+            
+            # Set the ID
+            mass_feature.id = int(row['id'])
+            
+            # Set cluster_index if present
+            if 'cluster' in row and pd.notna(row['cluster']):
+                mass_feature.cluster_index = int(row['cluster'])
+            
+            regenerated_features[mass_feature.id] = mass_feature
+        
+        return regenerated_features
+    
+    def _save_lcms_objects_to_hdf5(self, overwrite):
+        """Save updated mass features for each LCMS object.
+        
+        This method implements a "selective update" strategy for mass features:
+        - For mass features that were loaded from HDF5 (have cluster_index), we selectively
+          update them by deleting their old entries and re-saving with new attributes.
+        - Non-cluster features (not loaded) are never touched/overwritten.
+        
+        Note: EICs are NOT saved here. Induced feature EICs are saved at the collection level.
+        
+        Parameters
+        ----------
+        overwrite : bool
+            If True, allows overwriting of existing data. If False, skips if data exists.
+        """
+        for lcms_obj in self.mass_spectra_collection:
+            hdf5_path = lcms_obj.file_location.with_suffix('.hdf5')
+            
+            if not hdf5_path.exists():
+                # If HDF5 doesn't exist, we can't do selective update
+                continue
+            
+            # Check if this object has any loaded features (features with cluster_index)
+            has_loaded_features = any(
+                hasattr(mf, 'cluster_index') and mf.cluster_index is not None 
+                for mf in lcms_obj.mass_features.values()
+            )
+            
+            if not has_loaded_features:
+                # Nothing loaded, nothing to update
+                continue
+            
+            # Perform selective update of mass features
+            self._selective_update_mass_features(lcms_obj, hdf5_path, overwrite)
+    
+    def _selective_update_mass_features(self, lcms_obj, hdf5_path, overwrite):
+        """Selectively update mass features in HDF5 file.
+        
+        This method deletes only the mass features that were loaded (have cluster_index),
+        then re-saves them with their potentially updated attributes. Non-cluster features
+        in the HDF5 file are left untouched.
+        
+        Parameters
+        ----------
+        lcms_obj : LCMSBase
+            The LCMS object with mass features to update.
+        hdf5_path : Path
+            Path to the HDF5 file.
+        overwrite : bool
+            If True, allows overwriting. If False, skips if group exists.
+        """
+        # Collect IDs of loaded features (those with cluster_index)
+        loaded_feature_ids = [
+            mf.id for mf in lcms_obj.mass_features.values()
+            if hasattr(mf, 'cluster_index') and mf.cluster_index is not None
+        ]
+        
+        if not loaded_feature_ids:
+            return
+        
+        # Open HDF5 file and delete loaded feature IDs, then re-save
+        with h5py.File(hdf5_path, 'a') as hdf_handle:
+            if 'mass_features' not in hdf_handle:
+                return
+            
+            mf_group = hdf_handle['mass_features']
+            
+            # Delete loaded features
+            for feature_id in loaded_feature_ids:
+                feature_id_str = str(feature_id)
+                if feature_id_str in mf_group:
+                    del mf_group[feature_id_str]
+            
+            # Re-save loaded features with updated attributes
+            loaded_features = {
+                mf.id: mf for mf in lcms_obj.mass_features.values()
+                if mf.id in loaded_feature_ids
+            }
+            
+            if loaded_features:
+                LCMSExport._save_mass_features_dict_to_hdf5(
+                    loaded_features,
+                    mf_group,
+                    overwrite=overwrite
+                )
+    
