@@ -878,6 +878,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             A pandas dataframe of mass features with the following columns:
             mf_id, mz, apex_scan, scan_time, intensity, persistence, area.
         """
+        import pandas as pd
 
         def mass_spectrum_to_string(
             mass_spec, normalize=True, min_normalized_abun=0.01
@@ -917,10 +918,9 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             mf_dict = self.mass_features
         
         if len(mf_dict) == 0:
-            # Warn that no mass features were found, quit function
-            raise ValueError(
-                "No mass features found in dataset. Have the mass features been added? If this is part of a collection, summary data is aggregated in the attribute 'mass_features_dataframe'"
-                )
+            # Return an empty dataframe with the expected structure
+            # This allows collection processing to continue even if some samples have no features
+            return pd.DataFrame()
             
         cols_in_df = [
             "id",
@@ -1730,6 +1730,18 @@ class LCMSCollection(LCMSCollectionCalculations):
             mf_df = lcms_obj.light_mf_df
         else:
             mf_df = lcms_obj.mass_features_to_df()
+        
+        # If dataframe is empty, add minimal required columns and return
+        if len(mf_df) == 0:
+            import pandas as pd
+            mf_df["sample_name"] = []
+            mf_df["sample_id"] = []
+            mf_df["coll_mf_id"] = []
+            mf_df["mf_id"] = []
+            if induced_features:
+                mf_df["cluster"] = []
+            return mf_df
+        
         # Remove index
         mf_df = mf_df.reset_index(drop=False)
         # Add sample name and sample id to the dataframe

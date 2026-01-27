@@ -3027,11 +3027,46 @@ class LCMSCollectionCalculations:
             index_steps = (1, -1)
             # Run this twice, once going forward (+1 indexing) and once going backward (-1 indexing)
             for index_step in index_steps:
+                # Initialize spline for propagation to samples without features
+                spl = None
+                use_spline_alignment = False
+                
                 # Loop through the other LCMS objects in the collection (going forward)
                 i = center_obj_id + index_step
                 if i < len(self) and i >= 0:
+                    # Check if this sample has any features in the dataframe
+                    sample_name = self.samples[i]
+                    if sample_name not in full_mf_df.index.get_level_values('sample_name'):
+                        # For samples with no mass features, use the same alignment as the previous sample
+                        if use_spline_alignment and spl is not None:
+                            # Use the spline from the adjacent sample
+                            self[i]._scan_info["scan_time_aligned"] = {k: spl(v) for k, v in self[i]._scan_info["scan_time"].items()}
+                        else:
+                            # No spline available, use original times
+                            self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"]
+                        self.rt_alignment_attempted = True
+                        
+                        # Move to next sample
+                        i += index_step
+                        while i < len(self) and i >= 0:
+                            sample_name = self.samples[i]
+                            if sample_name not in full_mf_df.index.get_level_values('sample_name'):
+                                # Apply same alignment to this empty sample
+                                if use_spline_alignment and spl is not None:
+                                    self[i]._scan_info["scan_time_aligned"] = {k: spl(v) for k, v in self[i]._scan_info["scan_time"].items()}
+                                else:
+                                    self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"]
+                                i += index_step
+                            else:
+                                # Found a sample with features, exit inner loop to process it
+                                break
+                        
+                        # If we've processed all remaining empty samples, continue to next index_step
+                        if i >= len(self) or i < 0:
+                            continue
+                    
                     # Grab the first LCMS object after the center object
-                    mf_df_i = full_mf_df.loc[self.samples[i]].copy()
+                    mf_df_i = full_mf_df.loc[sample_name].copy()
                     mf_df_i["scan_time_og"] = mf_df_i["scan_time"]
 
                     while mf_df_i is not None:
@@ -3075,13 +3110,50 @@ class LCMSCollectionCalculations:
                             if i >= len(self) or i < 0:
                                 mf_df_i = None
                             else:
-                                # Grab the next LCMS object and use the previous spline fitting to get a better starting point
-                                mf_df_i = full_mf_df.loc[self.samples[i]].copy()
-                                mf_df_i["scan_time_og"] = mf_df_i["scan_time"]
-                                mf_df_i = mf_df_i.reset_index(drop=False)
-                                if use_spline_alignment:
-                                    # Set scan_time to previous sample's predicted scan_time to find closer matches
-                                    mf_df_i["scan_time"] = spl(mf_df_i["scan_time"])
+                                # Check if this sample has any features in the dataframe
+                                sample_name_next = self.samples[i]
+                                if sample_name_next not in full_mf_df.index.get_level_values('sample_name'):
+                                    # For samples with no mass features, apply the same alignment transformation
+                                    if use_spline_alignment and spl is not None:
+                                        self[i]._scan_info["scan_time_aligned"] = {k: spl(v) for k, v in self[i]._scan_info["scan_time"].items()}
+                                    else:
+                                        self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"]
+                                    self.rt_alignment_attempted = True
+                                    
+                                    # Continue to the next sample
+                                    i += index_step
+                                    while i < len(self) and i >= 0:
+                                        sample_name = self.samples[i]
+                                        if sample_name not in full_mf_df.index.get_level_values('sample_name'):
+                                            # Apply same alignment to consecutive empty samples
+                                            if use_spline_alignment and spl is not None:
+                                                self[i]._scan_info["scan_time_aligned"] = {k: spl(v) for k, v in self[i]._scan_info["scan_time"].items()}
+                                            else:
+                                                self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"]
+                                            i += index_step
+                                        else:
+                                            # Found a sample with features
+                                            break
+                                    
+                                    # Check if we're done
+                                    if i >= len(self) or i < 0:
+                                        mf_df_i = None
+                                    else:
+                                        # Grab the next LCMS object with features
+                                        mf_df_i = full_mf_df.loc[self.samples[i]].copy()
+                                        mf_df_i["scan_time_og"] = mf_df_i["scan_time"]
+                                        mf_df_i = mf_df_i.reset_index(drop=False)
+                                        if use_spline_alignment:
+                                            # Set scan_time to previous sample's predicted scan_time to find closer matches
+                                            mf_df_i["scan_time"] = spl(mf_df_i["scan_time"])
+                                else:
+                                    # Grab the next LCMS object and use the previous spline fitting to get a better starting point
+                                    mf_df_i = full_mf_df.loc[sample_name_next].copy()
+                                    mf_df_i["scan_time_og"] = mf_df_i["scan_time"]
+                                    mf_df_i = mf_df_i.reset_index(drop=False)
+                                    if use_spline_alignment:
+                                        # Set scan_time to previous sample's predicted scan_time to find closer matches
+                                        mf_df_i["scan_time"] = spl(mf_df_i["scan_time"])
                         else:
                             raise ValueError(
                                 f"No matches found between the center object and {self.samples[i]}"
