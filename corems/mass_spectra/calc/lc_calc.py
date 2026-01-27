@@ -2767,16 +2767,23 @@ class LCMSCollectionCalculations:
         v1 = mf_c[dims].values / tol
         v2 = mf_i[dims].values / tol
         dist3d = scipy.spatial.distance.cdist(v1, v2, "cityblock")
-        dist3d = np.multiply(dist3d, idx)
+        
+        # Separate features within tolerance from those outside
+        # Features outside tolerance should be inf, features within tolerance keep their distance
+        # Use idx mask: True for within tolerance, False for outside
+        dist3d_within_tol = np.where(idx, dist3d, np.inf)
 
-        # Normalize to 0-1
-        mx = dist3d.max()
+        # Normalize to 0-1 (only affects within-tolerance distances)
+        mx = np.max(dist3d_within_tol[idx]) if np.sum(idx) > 0 else 0
         if mx > 0:
-            # Lower distance is better
-            dist3d = dist3d / dist3d.max()
-
-        # Turn zeros to inf (no match)
-        dist3d[dist3d == 0] = np.inf
+            # Lower distance is better - normalize only the within-tolerance values
+            dist3d_within_tol = np.where(idx, dist3d_within_tol / mx, np.inf)
+        else:
+            # All matches are perfect (distance=0), assign tiny value to within-tolerance pairs
+            dist3d_within_tol = np.where(idx, 1e-10, np.inf)
+        
+        # Use the masked distance matrix
+        dist3d = dist3d_within_tol
 
         # Min over dims
         mincols = np.min(dist3d, axis=0, keepdims=True)
@@ -3043,7 +3050,7 @@ class LCMSCollectionCalculations:
                             self[i]._scan_info["scan_time_aligned"] = {k: spl(v) for k, v in self[i]._scan_info["scan_time"].items()}
                         else:
                             # No spline available, use original times
-                            self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"]
+                            self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"].copy()
                         self.rt_alignment_attempted = True
                         
                         # Move to next sample
@@ -3055,7 +3062,7 @@ class LCMSCollectionCalculations:
                                 if use_spline_alignment and spl is not None:
                                     self[i]._scan_info["scan_time_aligned"] = {k: spl(v) for k, v in self[i]._scan_info["scan_time"].items()}
                                 else:
-                                    self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"]
+                                    self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"].copy()
                                 i += index_step
                             else:
                                 # Found a sample with features, exit inner loop to process it
@@ -3101,7 +3108,7 @@ class LCMSCollectionCalculations:
                                 self.rt_alignment_attempted = True
                             else:
                                 # Set aligned retention times on scan_df for lc_obj using the original retention times
-                                self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"]
+                                self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"].copy()
                                 # Switch the rt_attempted flag to True
                                 self.rt_aligned = False
                                 self.rt_alignment_attempted = True
@@ -3117,7 +3124,7 @@ class LCMSCollectionCalculations:
                                     if use_spline_alignment and spl is not None:
                                         self[i]._scan_info["scan_time_aligned"] = {k: spl(v) for k, v in self[i]._scan_info["scan_time"].items()}
                                     else:
-                                        self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"]
+                                        self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"].copy()
                                     self.rt_alignment_attempted = True
                                     
                                     # Continue to the next sample
@@ -3129,7 +3136,7 @@ class LCMSCollectionCalculations:
                                             if use_spline_alignment and spl is not None:
                                                 self[i]._scan_info["scan_time_aligned"] = {k: spl(v) for k, v in self[i]._scan_info["scan_time"].items()}
                                             else:
-                                                self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"]
+                                                self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"].copy()
                                             i += index_step
                                         else:
                                             # Found a sample with features
@@ -3346,7 +3353,18 @@ class LCMSCollectionCalculations:
             self.mass_features_dataframe = mfs_with_clusters
             
         # Filter out clusters that don't meet minimum sample fraction
+        print(f"DEBUG: Before filtering - total features: {len(self.mass_features_dataframe)}")
+        if 'cluster' in self.mass_features_dataframe.columns:
+            print(f"DEBUG: Number of unique clusters before filtering: {self.mass_features_dataframe['cluster'].nunique()}")
+            print(f"DEBUG: Cluster sample counts:")
+            cluster_counts = self.mass_features_dataframe.groupby('cluster')['sample_id'].nunique()
+            print(cluster_counts.head(10))
+        
         self._filter_clusters_by_sample_presence()
+        
+        print(f"DEBUG: After filtering - total features: {len(self.mass_features_dataframe)}")
+        if 'cluster' in self.mass_features_dataframe.columns:
+            print(f"DEBUG: Number of unique clusters after filtering: {self.mass_features_dataframe['cluster'].nunique()}")
             
         # TODO KRH: Deal with isomers better? Pool them together and then split them out using samples with 2 as the template?
     
@@ -3465,20 +3483,29 @@ class LCMSCollectionCalculations:
             mf_df = mf_df.dropna(subset=['cluster'])
             mf_df['cluster'] = mf_df['cluster'].astype(int)
 
+        # Build aggregation dictionary based on available columns
+        agg_dict = {
+            "mz": ["median", "mean", "std", "max", "min"],
+            "scan_time_aligned": ["median", "mean", "std", "max", "min"],
+            "sample_id": ["nunique"],
+            "intensity": ["max", "median", "mean", "std", "min"],
+        }
+        
+        # Add optional columns if they exist
+        optional_columns = {
+            "half_height_width": ["median", "mean", "std", "max", "min"],
+            "tailing_factor": ["median", "mean", "std", "max", "min"],
+            "dispersity_index": ["median", "mean", "std", "max", "min"],
+            "persistence": ["max", "median", "mean", "std", "min"],
+        }
+        
+        for col, funcs in optional_columns.items():
+            if col in mf_df.columns:
+                agg_dict[col] = funcs
+
         summary_df = (
             mf_df.groupby("cluster")
-            .agg(
-                {
-                    "mz": ["median", "mean", "std", "max", "min"],
-                    "scan_time_aligned": ["median", "mean", "std", "max", "min"],
-                    "half_height_width": ["median", "mean", "std", "max", "min"],
-                    "tailing_factor": ["median", "mean", "std", "max", "min"],
-                    "dispersity_index": ["median", "mean", "std", "max", "min"],
-                    "sample_id": ["nunique"],
-                    "intensity": ["max", "median", "mean", "std", "max", "min"],
-                    "persistence": ["max", "median", "mean", "std", "max", "min"],
-                }
-            )
+            .agg(agg_dict)
             .reset_index()
         )
 
@@ -4379,8 +4406,24 @@ class LCMSCollectionCalculations:
             # the larger the max_tol, the slower this operation is
             sdm = tree.sparse_distance_matrix(tree, max_tol, output_type="coo_matrix")
 
+            # Debug: Check initial sdm
+            print(f"\nDEBUG dimension {dims[i]}:")
+            print(f"  Initial sdm.nnz: {sdm.nnz}")
+            if sdm.nnz > 0:
+                print(f"  Initial sdm min/max: {sdm.data.min():.10f} / {sdm.data.max():.10f}")
+
             # Only consider forward case, exclude diagonal
             sdm = sparse.triu(sdm, k=1)
+
+            print(f"  After triu sdm.nnz: {sdm.nnz}")
+            if sdm.nnz > 0:
+                n_show = min(10, sdm.nnz)
+                print(f"  First {n_show} pairs (row, col): {list(zip(sdm.row[:n_show], sdm.col[:n_show]))}")
+                print(f"  Sample IDs for these pairs:")
+                for r, c in list(zip(sdm.row[:5], sdm.col[:5])):
+                    sample_r = features.iloc[r]['sample_id'] if 'sample_id' in features.columns else '?'
+                    sample_c = features.iloc[c]['sample_id'] if 'sample_id' in features.columns else '?'
+                    print(f"    ({r},{c}): samples ({sample_r},{sample_c}), {dims[i]}=({values[r]:.6f},{values[c]:.6f}), diff={abs(values[r]-values[c]):.10f}")
 
             # Filter relative distances
             if relative[i] is True:
@@ -4403,7 +4446,10 @@ class LCMSCollectionCalculations:
             if distances is None:
                 sdm.data = sdm.data * dist_weight[i]
                 distances = sdm
+                print(f"  First dimension, setting distances.nnz = {distances.nnz}")
             else:
+                print(f"  Before stacking, distances.nnz = {distances.nnz}, sdm.nnz = {sdm.nnz}")
+                
                 # Prepare sdm to match shape of existing distances
                 distances_truth = distances.copy()
                 # make new sparse matrix with same positions as previous 
@@ -4412,6 +4458,9 @@ class LCMSCollectionCalculations:
                 # multiply the new sparse matrix (sdm) by this mask to remove 
                 # data that doesn't exist in original sparse matrix
                 sdm = distances_truth.multiply(sdm)
+                
+                print(f"  After multiply by distances_truth, sdm.nnz = {sdm.nnz}")
+                
                 sdm.data = sdm.data * dist_weight[i]
 
                 # use same process as before to remove data from previous
@@ -4421,12 +4470,53 @@ class LCMSCollectionCalculations:
 
                 # remove the distances that are not sdm
                 distances = distances.multiply(sdm_truth)
+                
+                print(f"  After removing non-overlapping from distances, distances.nnz = {distances.nnz}")
 
                 # Sum the new distances
                 distances = distances + sdm
+                
+                print(f"  After adding sdm, distances.nnz = {distances.nnz}")
 
+        # Debug: Check distances before cmat multiplication
+        print(f"\nDEBUG add_sparse_distance_matrix before cmat multiply:")
+        print(f"  distances.nnz before cmat: {distances.nnz}")
+        if distances.nnz > 0:
+            print(f"  Min/Max distance before cmat: {distances.data.min():.10f} / {distances.data.max():.10f}")
+        print(f"  cmat.nnz: {cmat.nnz if cmat is not None else 'None'}")
+        
+        # Debug: Check if specific problematic pairs exist
+        if distances.nnz > 0:
+            print(f"  Checking if m/z match (16,133) is in combined distances: ", end="")
+            combined_coo = distances.tocoo()
+            pair_exists = any((combined_coo.row == 16) & (combined_coo.col == 133))
+            print(pair_exists)
+            print(f"  Checking if RT match (74,157) is in combined distances: ", end="")
+            pair_exists = any((combined_coo.row == 74) & (combined_coo.col == 157))
+            print(pair_exists)
+            
+        # Also check what the m/z values are for the RT-matching pair (74, 157)
+        if 'mz' in features.columns:
+            print(f"  Feature 74: sample_id={features.iloc[74]['sample_id']}, mz={features.iloc[74]['mz']:.6f}, RT={features.iloc[74]['scan_time_aligned']:.6f}")
+            print(f"  Feature 157: sample_id={features.iloc[157]['sample_id']}, mz={features.iloc[157]['mz']:.6f}, RT={features.iloc[157]['scan_time_aligned']:.6f}")
+            print(f"  m/z difference: {abs(features.iloc[74]['mz'] - features.iloc[157]['mz']):.10f}")
+        
         # Multiply by connectivity matrix for more masking
         distances = distances.multiply(cmat)
+
+        # Debug: Check distances before epsilon fix
+        print(f"\nDEBUG add_sparse_distance_matrix after cmat multiply:")
+        print(f"  distances.nnz: {distances.nnz}")
+        if distances.nnz > 0:
+            print(f"  Min distance: {distances.data.min()}")
+            print(f"  Max distance: {distances.data.max()}")
+            print(f"  Number of zeros: {np.sum(distances.data == 0)}")
+        
+        # Replace perfect matches (distance = 0) with small epsilon to distinguish from 
+        # "no entry" zeros when converting to dense matrix
+        # This ensures perfect matches cluster together while other zeros are treated as infinite distance
+        epsilon = 1e-10
+        distances.data = np.where(distances.data == 0, epsilon, distances.data)
 
         # Set attribute holding distance matrix
         self._sparse_distance_matrix = distances
@@ -4547,6 +4637,15 @@ class LCMSCollectionCalculations:
         # Convert to full matrix
         distances = distances.todense()
 
+        # Debug: Check distance matrix values
+        print(f"\nDEBUG cluster_mass_features_agg_cluster:")
+        print(f"  Sparse matrix nnz: {self._sparse_distance_matrix.nnz}")
+        print(f"  Dense matrix shape: {distances.shape}")
+        print(f"  Number of zeros in dense: {np.sum(distances == 0)}")
+        print(f"  Number of epsilon values (< 1e-9): {np.sum((distances > 0) & (distances < 1e-9))}")
+        print(f"  Min non-zero value: {distances[distances > 0].min() if np.any(distances > 0) else 'N/A'}")
+        print(f"  Max value: {distances.max()}")
+        
         # Cast all 0s to 1s for a distance matrix
         distances[distances == 0] = 1
         distances = np.asarray(distances)

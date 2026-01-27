@@ -57,17 +57,14 @@ def lcms_collection_folder(tmp_path, lcms_obj):
     exporter1 = LCMSMetabolomicsExport(str(processed_folder / sample_name_1), lcms_obj)
     exporter1.to_hdf(overwrite=True)
     
-    # Create SAMPLE 2: Keep only first 50 mass features (PARTIAL)
-    # Using 50 instead of 10 to ensure enough matches for alignment validation
+    # Create SAMPLE 2: Exact copy of Sample 1 (all features identical for easier debugging)
+    # This ensures that sample 1's feature 0 should cluster with sample 2's feature 0, etc.
     sample_name_2 = "test_sample_02"
     
-    # Get the first 50 mass features sorted by m/z to ensure they match between samples
-    # Sort by m/z so we get consistent features that will align properly
-    sorted_mfs = sorted(all_mass_features.items(), key=lambda x: x[1].mz)
-    mf_ids = [mf_id for mf_id, mf in sorted_mfs[:50]]
-    lcms_obj.mass_features = {mf_id: all_mass_features[mf_id] for mf_id in mf_ids}
+    # Keep ALL mass features - just save a second copy
+    # Don't modify lcms_obj.mass_features, it already has all features
     
-    # Export sample 2 with partial mass features
+    # Export sample 2 with same mass features as sample 1
     exporter2 = LCMSMetabolomicsExport(str(processed_folder / sample_name_2), lcms_obj)
     exporter2.to_hdf(overwrite=True)
     
@@ -128,9 +125,9 @@ def lcms_collection(lcms_collection_folder):
     collection.parameters.lcms_collection.mass_feature_anchor_technique = ['relative_intensity']
     collection.parameters.lcms_collection.mass_feature_anchor_relative_intensity_threshold = 0.0
     
-    # Set lenient alignment tolerances
-    collection.parameters.lcms_collection.alignment_mz_tol_ppm = 10  # More lenient m/z tolerance
-    collection.parameters.lcms_collection.alignment_rt_tol = 1.0  # More lenient RT tolerance (seconds)
+    # Set reasonable alignment tolerances
+    collection.parameters.lcms_collection.alignment_mz_tol_ppm = 5  # Tight m/z tolerance  
+    collection.parameters.lcms_collection.alignment_rt_tol = 0.2  # 12 second RT tolerance
     
     return collection
 
@@ -244,8 +241,61 @@ def test_lcms_collection_consensus_features(lcms_collection):
     if not lcms_collection.rt_aligned:
         lcms_collection.align_lcms_objects()
     
+    # Debug: Check if alignment was used for each sample
+    print(f"\nAlignment results:")
+    for sample_name, manifest_data in lcms_collection._manifest_dict.items():
+        use_alignment = manifest_data.get('use_rt_alignment', None)
+        print(f"  {sample_name}: use_rt_alignment={use_alignment}")
+    
+    # Debug: Check mass features dataframe before clustering
+    mf_df = lcms_collection.mass_features_dataframe
+    print(f"\nBefore clustering:")
+    print(f"  Total mass features: {len(mf_df)}")
+    print(f"  Columns: {mf_df.columns.tolist()}")
+    print(f"  Has scan_time_aligned: {'scan_time_aligned' in mf_df.columns}")
+    print(f"\nSample breakdown:")
+    for sample in mf_df['sample_name'].unique():
+        sample_features = mf_df[mf_df['sample_name'] == sample]
+        print(f"  {sample}: {len(sample_features)} features")
+        print(f"    m/z range: {sample_features['mz'].min():.4f} - {sample_features['mz'].max():.4f}")
+        print(f"    RT range: {sample_features['scan_time_aligned'].min():.2f} - {sample_features['scan_time_aligned'].max():.2f}")
+        print(f"    First 5 m/z values: {sample_features['mz'].head().tolist()}")
+    
+    # Check if the features actually match between samples
+    s1_mz = set(mf_df[mf_df['sample_name'] == 'test_sample_01']['mz'].round(4))
+    s2_mz = set(mf_df[mf_df['sample_name'] == 'test_sample_02']['mz'].round(4))
+    print(f"\n  Overlapping m/z values (rounded to 4 decimals): {len(s1_mz & s2_mz)} out of {len(s2_mz)} in sample 2")
+    
+    # Check scan_time_aligned values for matching features
+    s1_df = mf_df[mf_df['sample_name'] == 'test_sample_01'].sort_values('mz')
+    s2_df = mf_df[mf_df['sample_name'] == 'test_sample_02'].sort_values('mz')
+    print(f"\nFirst 5 features comparison:")
+    print(f"  Sample 1: m/z={s1_df['mz'].head().tolist()}")
+    print(f"           RT={s1_df['scan_time_aligned'].head().tolist()}")
+    print(f"  Sample 2: m/z={s2_df['mz'].head().tolist()}")
+    print(f"           RT={s2_df['scan_time_aligned'].head().tolist()}")
+    
+    # Debug: Check if scan_time values are the same (before alignment)
+    print(f"\nOriginal scan_time values (before alignment):")
+    print(f"  Sample 1: scan_time={s1_df['scan_time'].head().tolist()}")
+    print(f"  Sample 2: scan_time={s2_df['scan_time'].head().tolist()}")
+    print(f"  Are they equal? {np.allclose(s1_df['scan_time'].head().values, s2_df['scan_time'].head().values)}")
+    
+    print(f"\nClustering parameters:")
+    print(f"  consensus_mz_tol_ppm: {lcms_collection.parameters.lcms_collection.consensus_mz_tol_ppm}")
+    print(f"  consensus_rt_tol: {lcms_collection.parameters.lcms_collection.consensus_rt_tol}")
+    print(f"  consensus_min_sample_fraction: {lcms_collection.parameters.lcms_collection.consensus_min_sample_fraction}")
+    
     # Generate consensus features
     lcms_collection.add_consensus_mass_features()
+    
+    # Debug: Check after clustering
+    mf_df_after = lcms_collection.mass_features_dataframe
+    print(f"\nAfter clustering:")
+    print(f"  Total mass features: {len(mf_df_after)}")
+    print(f"  Has cluster column: {'cluster' in mf_df_after.columns}")
+    if 'cluster' in mf_df_after.columns:
+        print(f"  Unique clusters: {mf_df_after['cluster'].nunique()}")
     
     # Check cluster summary dataframe
     cluster_summary = lcms_collection.cluster_summary_dataframe
