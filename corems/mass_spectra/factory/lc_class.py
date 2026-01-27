@@ -2171,9 +2171,8 @@ class LCMSCollection(LCMSCollectionCalculations):
             )
         return mf_pivot.pivot(index = 'cluster', columns = 'sample_id', values = attribute)
 
-    def collection_consensus_report(self):
-        """Generate a consensus report of consensus mass features 
-        in a collection using the representative feature from each cluster.
+    def cluster_representatives_table(self):
+        """Generate a table of representative mass features from each consensus cluster.
         
         This method returns a DataFrame containing all attributes for the
         representative mass feature from each consensus cluster. The representative
@@ -2182,8 +2181,12 @@ class LCMSCollection(LCMSCollectionCalculations):
         Returns
         --------
         pd.DataFrame
-            A DataFrame that displays all attributes for each cluster's 
-            representative mass feature, indexed by cluster ID.
+            A DataFrame with one row per cluster containing all attributes for 
+            each cluster's representative mass feature. Includes:
+            - cluster: cluster ID (as a column for easy joining)
+            - polarity: ionization polarity from the collection
+            - n_samples_detected: number of samples where the cluster was detected
+            - All other mass feature attributes from the representative
             
         Notes
         -----
@@ -2203,6 +2206,9 @@ class LCMSCollection(LCMSCollectionCalculations):
         mf_df.reset_index(drop = True, inplace = True)
         mf_df['cluster'] = mf_df['cluster'].astype(int)
         
+        # Calculate number of samples per cluster
+        cluster_sample_counts = mf_df.groupby('cluster')['sample_id'].nunique().to_dict()
+        
         # Use the same representative selection logic as process_consensus_features
         # This uses the configured representative_metric from parameters
         representatives = self.get_representative_mass_features_for_all_clusters()
@@ -2211,7 +2217,165 @@ class LCMSCollection(LCMSCollectionCalculations):
         representative_ids = representatives['coll_mf_id'].tolist()
         
         # Filter mf_df to only include representative features
-        return mf_df[mf_df.coll_mf_id.isin(representative_ids)].sort_values(by = 'cluster').set_index('cluster')
+        consensus_report = mf_df[mf_df.coll_mf_id.isin(representative_ids)].copy()
+        
+        # Add polarity (get from first sample in collection)
+        if len(self) > 0:
+            polarity = self[0].polarity
+        else:
+            polarity = 'unknown'
+        consensus_report['polarity'] = polarity
+        
+        # Add number of samples detected
+        consensus_report['n_samples_detected'] = consensus_report['cluster'].map(cluster_sample_counts)
+        
+        # Reorder columns to put cluster at the front
+        cols = consensus_report.columns.tolist()
+        if 'cluster' in cols:
+            cols.remove('cluster')
+            cols = ['cluster'] + cols
+            consensus_report = consensus_report[cols]
+        
+        # Sort by cluster and return with cluster as a regular column
+        return consensus_report.sort_values(by='cluster')
+
+    def feature_annotations_table(self, molecular_metadata=None, drop_unannotated=False):
+        """Generate a comprehensive annotation table for all loaded mass features across samples.
+        
+        This method consolidates MS1 molecular formula assignments and MS2 spectral 
+        search results for all mass features across all samples in the collection.
+        Only includes representative mass features (one per cluster per sample).
+        
+        Parameters
+        ----------
+        molecular_metadata : dict, optional
+            Dictionary of MolecularMetadata objects, keyed by metabref_mol_id.
+            Required for including molecular metadata in MS2 annotations.
+            Default is None.
+        drop_unannotated : bool, optional
+            If True, drops rows where all annotation columns (everything except 
+            cluster, MS2 Spectrum, and representative_sample) are NaN.
+            Default is False.
+        
+        Returns
+        -------
+        pd.DataFrame
+            Consolidated annotation report with columns including:
+            - cluster: cluster ID
+            - sample_name: sample name
+            - sample_id: sample ID
+            - Mass Feature ID: mass feature ID within the sample
+            - Mass feature attributes (mz, scan_time, intensity, etc.)
+            - MS1 annotations (if molecular_formula_search was run)
+            - MS2 annotations (if ms2_spectral_search was run)
+        
+        Notes
+        -----
+        This method uses the standard LCMSMetabolomicsExport.to_report() workflow
+        for each sample, then consolidates all results and adds cluster information.
+        
+        Only mass features that are loaded in each sample's mass_features dict
+        are included (typically the representative features if load_representatives
+        was used in process_consensus_features).
+        """
+        from corems.mass_spectra.output.export import LCMSMetabolomicsExport
+        
+        # Collect reports from all samples
+        all_sample_reports = []
+        
+        for sample_id, lcms_obj in enumerate(self):
+            # Skip samples with no loaded mass features
+            if not hasattr(lcms_obj, 'mass_features') or len(lcms_obj.mass_features) == 0:
+                continue
+            
+            sample_name = self.samples[sample_id]
+            
+            # Create exporter and generate report using standard workflow
+            exporter = LCMSMetabolomicsExport("temp", lcms_obj)
+            sample_report = exporter.to_report(molecular_metadata=molecular_metadata)
+            
+            # Add sample information
+            sample_report['representative_sample'] = sample_name
+            sample_report['sample_id'] = sample_id
+            
+            # Get cluster information from the mass_features_dataframe
+            # Build coll_mf_id for each row to look up cluster
+            sample_report['coll_mf_id'] = sample_report['sample_id'].astype(str) + "_" + sample_report['Mass Feature ID'].astype(str)
+            
+            # Get cluster from mass_features_dataframe
+            if self.mass_features_dataframe is not None and 'cluster' in self.mass_features_dataframe.columns:
+                mf_df = self.mass_features_dataframe.reset_index()
+                cluster_lookup = mf_df.set_index('coll_mf_id')['cluster'].to_dict()
+                sample_report['cluster'] = sample_report['coll_mf_id'].map(cluster_lookup)
+            else:
+                sample_report['cluster'] = None
+            
+            # Drop temporary coll_mf_id column
+            sample_report = sample_report.drop(columns=['coll_mf_id'])
+            
+            all_sample_reports.append(sample_report)
+        
+        # Combine all sample reports
+        if len(all_sample_reports) == 0:
+            raise ValueError("No samples with loaded mass features found in collection")
+        
+        collection_report = pd.concat(all_sample_reports, ignore_index=True)
+        
+        # Reorder columns to match specified order
+        desired_cols = [
+            'cluster',
+            'Isotopologue Type',
+            'Is Largest Ion after Deconvolution',
+            'MS2 Spectrum',
+            'Calculated m/z',
+            'm/z Error (ppm)',
+            'm/z Error Score',
+            'Isotopologue Similarity',
+            'Confidence Score',
+            'Ion Formula',
+            'Ion Type',
+            'Molecular Formula',
+            'inchikey',
+            'name',
+            'ref_ms_id',
+            'Entropy Similarity',
+            'Library mzs in Query (fraction)',
+            'Spectra with Annotation (n)',
+            'representative_sample'
+        ]
+        
+        # Include only desired columns that exist, maintaining order
+        cols = [col for col in desired_cols if col in collection_report.columns]
+        collection_report = collection_report[cols]
+        
+        # Optionally drop rows without any annotations
+        if drop_unannotated:
+            # Columns to exclude from the "all NA" check
+            exclude_cols = ['cluster', 'MS2 Spectrum', 'representative_sample']
+            # Get annotation columns (everything except the excluded ones)
+            annot_cols = [col for col in collection_report.columns if col not in exclude_cols]
+            # Keep rows where at least one annotation column is not NA
+            if len(annot_cols) > 0:
+                collection_report = collection_report[collection_report[annot_cols].notna().any(axis=1)]
+        
+        # Sort by cluster, then by annotation quality
+        sort_cols = ['cluster']
+        if 'Entropy Similarity' in collection_report.columns:
+            sort_cols.extend(['Entropy Similarity', 'Confidence Score'])
+            collection_report = collection_report.sort_values(
+                by=sort_cols,
+                ascending=[True, False, False]
+            )
+        elif 'Confidence Score' in collection_report.columns:
+            sort_cols.append('Confidence Score')
+            collection_report = collection_report.sort_values(
+                by=sort_cols,
+                ascending=[True, False]
+            )
+        else:
+            collection_report = collection_report.sort_values(by=sort_cols)
+        
+        return collection_report
 
     @property
     def parameters(self):

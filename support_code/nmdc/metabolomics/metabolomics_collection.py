@@ -421,9 +421,9 @@ if __name__ == "__main__":
     # =============================================================================
     # Configuration
     # =============================================================================
-    ncores = 3
+    ncores = 1
     reprocess_samples = False  # Set to True to reprocess raw data
-    perform_ms2_search = False  # Set to True to perform MS2 spectral library search
+    perform_ms2_search = True  # Set to True to perform MS2 spectral library search
 
     # Paths
     base_path = Path("/Volumes/LaCie/nmdc_data/collection_testing/dev_test/")
@@ -552,13 +552,27 @@ if __name__ == "__main__":
     # Step 8: Save and Export Results
     # =============================================================================
     print("\n=== Exporting LCMS Collection ===")
+    # Create pivot tables summarizing the collection across samples
     pivot_table_intensity = lcms_collection.collection_pivot_table(attribute='intensity', verbose=False)
     pivot_table_ids = lcms_collection.collection_pivot_table(verbose=False)
+    pivot_table_intensity.to_csv("example_collection_pivot_intensity.csv")
 
-    # Make a table of the annotations of the consensus features (using representative features)
-    consensus_report = lcms_collection.collection_consensus_report()
-    print(f"Consensus annotations table: {len(consensus_report)} clusters")
+    # Describe each cluster with its representative mass feature
+    cluster_reps = lcms_collection.cluster_representatives_table()
+    cluster_reps.to_csv("example_cluster_representatives.csv", index=False)
+    print(f"Cluster representatives table: {len(cluster_reps)} clusters")
+    
+    # Summarize the annotations for each cluster
+    feature_annotations = lcms_collection.feature_annotations_table(
+        molecular_metadata=molecular_metadata,
+        drop_unannotated=False
+    )
+    print(f"Feature annotations table: {len(feature_annotations)} rows across {feature_annotations['cluster'].nunique()} clusters")
 
+    # Save the feature annotations table to CSV for inspection
+    feature_annotations.to_csv("example_feature_annotations.csv", index=False)
+
+    # Save the entire collection to HDF5
     exporter = LCMSCollectionExport(
         out_file_path=str(collection_save_path),
         mass_spectra_collection=lcms_collection)
@@ -595,6 +609,5 @@ if __name__ == "__main__":
     results2 = lcms_collection.collection_consensus_report(how = 'intensity')
     results3 = lcms_collection.collection_consensus_report(how = 'median')
     
-    #TODO KRH: Add visualization of a consensus mass feature
     #TODO KRH: Add visualization of matched spectrum with consensus mass feature
     """
