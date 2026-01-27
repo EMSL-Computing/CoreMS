@@ -565,7 +565,7 @@ if __name__ == "__main__":
     # Summarize the annotations for each cluster
     feature_annotations = lcms_collection.feature_annotations_table(
         molecular_metadata=molecular_metadata,
-        drop_unannotated=False
+        drop_unannotated=True
     )
     print(f"Feature annotations table: {len(feature_annotations)} rows across {feature_annotations['cluster'].nunique()} clusters")
 

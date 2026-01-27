@@ -2163,13 +2163,13 @@ class LCMSCollection(LCMSCollectionCalculations):
         if verbose:
             print(
                 'Attributes available for pivot table:\n',
-                [x for x in mf_pivot.columns if x not in ['cluster', 'sample_id', 'mf_id', 'partition_idx', 'idx']]
+                [x for x in mf_pivot.columns if x not in ['cluster', 'sample_name', 'mf_id', 'partition_idx', 'idx']]
             )
             print(
                 '\nAttributes that have no value for induced mass features:\n',
                 imf_pivot.columns[imf_pivot.isna().all()].tolist()            
             )
-        return mf_pivot.pivot(index = 'cluster', columns = 'sample_id', values = attribute)
+        return mf_pivot.pivot(index = 'cluster', columns = 'sample_name', values = attribute)
 
     def cluster_representatives_table(self):
         """Generate a table of representative mass features from each consensus cluster.
