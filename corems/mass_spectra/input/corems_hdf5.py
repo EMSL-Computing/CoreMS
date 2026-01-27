@@ -1300,17 +1300,28 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
     
     def _load_rt_alignments(self, lcms_collection):
         """Load retention time alignments from the saved collection HDF5 file."""
+        #TODO KRH: START HERE - test this function
+        # First Set the rt_aligned flag from the collection-level attribute saved directly
         with h5py.File(self.collection_hdf5_path, 'r') as f:
-            if "rt_alignments" in f:
-                # Set the lcms_collection 
-                lcms_collection.rt_aligned = True
-                # Iterate over the group `rt_alignments` containing datasets and add to the corresponding lcms object
-                rt_alignments_group = f["rt_alignments"]
-                for sample_idx, lcms_obj in zip(rt_alignments_group.keys(), lcms_collection):
-                    alignment_data = rt_alignments_group[sample_idx][:]
-                    scan_df = lcms_obj.scan_df
-                    scan_df["scan_time_aligned"] = alignment_data
-                    lcms_obj.scan_df = scan_df
+            lcms_collection.rt_aligned = f.attrs.get('rt_aligned', False)
+            lcms_collection.rt_alignment_attempted = f.attrs.get('rt_alignment_attempted', False)
+        
+        if lcms_collection.rt_aligned:
+            with h5py.File(self.collection_hdf5_path, 'r') as f:
+                if "rt_alignments" in f:
+                    # Iterate over the group `rt_alignments` containing datasets and add to the corresponding lcms object
+                    rt_alignments_group = f["rt_alignments"]
+                    for sample_idx, lcms_obj in zip(rt_alignments_group.keys(), lcms_collection):
+                        alignment_data = rt_alignments_group[sample_idx][:]
+                        scan_df = lcms_obj.scan_df
+                        scan_df["scan_time_aligned"] = alignment_data
+                        lcms_obj.scan_df = scan_df
+        elif lcms_collection.rt_alignment_attempted:
+            # This means it was attempted and not used, so we populate the "scan_time_aligned"
+            for lcms_obj in lcms_collection:
+                scan_df = lcms_obj.scan_df
+                scan_df["scan_time_aligned"] = scan_df["scan_time"]
+                lcms_obj.scan_df = scan_df
 
     def _load_cluster_assignments(self, lcms_collection):
         """Load cluster assignments from the saved collection HDF5 file."""
@@ -1333,7 +1344,7 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
                 # Drop rows with NaN cluster values
                 lcms_collection.mass_features_dataframe.dropna(subset=['cluster'], inplace=True)
 
-    def get_lcms_collection(self, load_raw=False, load_light=False, load_representatives=False, load_eics=False):
+    def get_lcms_collection(self, load_raw=False, load_light=False, load_representatives=False, load_eics=False, load_ms1=False, load_ms2=False):
         """Get the LCMS collection from the saved HDF5 file.
         
         Parameters
@@ -1346,6 +1357,10 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
             If True, load representative mass features from clusters. Default is False.
         load_eics : bool, optional
             If True, load EIC data for clustered mass features. Default is False.
+        load_ms1 : bool, optional
+            If True, load MS1 spectra for loaded mass features. Default is False.
+        load_ms2 : bool, optional
+            If True, load MS2 spectra for loaded mass features. Default is False.
             
         Returns
         -------
@@ -1382,6 +1397,14 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
         # Load representative mass features if requested
         if load_representatives:
             self._load_representative_mass_features(lcms_collection)
+        
+        # Load MS1 and/or MS2 spectra for loaded mass features if requested
+        if load_ms1 or load_ms2:
+            # Reuse the existing ReloadFeaturesOperation from the pipeline system
+            from corems.mass_spectra.calc.lc_calc_operations import ReloadFeaturesOperation
+            
+            operations = [ReloadFeaturesOperation('reload_spectra', add_ms1=load_ms1, add_ms2=load_ms2)]
+            lcms_collection.process_samples_pipeline(operations, keep_raw_data=False, show_progress=False)
         
         # Load EICs for clustered features if requested
         if load_eics:

@@ -1701,6 +1701,7 @@ class LCMSCollection(LCMSCollectionCalculations):
 
         # These attributes are set during processing
         self.rt_aligned = False
+        self.rt_alignment_attempted = False
         self.missing_mass_features_searched = False
 
     def _reorder_lcms_objects(self):

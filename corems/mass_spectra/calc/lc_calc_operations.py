@@ -1005,7 +1005,6 @@ class LoadEICsOperation(SampleOperation):
         from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
         
         sample = collection[sample_id]
-        sample_name = collection.samples[sample_id]
         
         # If no cluster info provided or no m/z values for this sample, return early
         if cluster_mz_dict is None or sample_id not in cluster_mz_dict:

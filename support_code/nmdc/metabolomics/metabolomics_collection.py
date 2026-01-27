@@ -267,7 +267,7 @@ def get_configured_lcms_parameters():
     
     # Reporting settings
     params.lc_ms.export_eics = True
-    params.lc_ms.export_profile_spectra = True
+    params.lc_ms.export_profile_spectra = False
     
     # Peak metrics filtering settings
     params.lc_ms.remove_mass_features_by_peak_metrics = True
@@ -415,8 +415,8 @@ if __name__ == "__main__":
     pipeline_results = lcms_collection.process_consensus_features(
         load_representatives=True,
         perform_gap_filling=True,
-        add_ms1=False,  
-        add_ms2=False,
+        add_ms1=True,  
+        add_ms2=True,
         molecular_formula_search=False,
         ms2_spectral_search=False,
         spectral_lib=spectral_lib,
@@ -472,7 +472,8 @@ if __name__ == "__main__":
         cores=ncores)
     lcms_collection2 = reader.get_lcms_collection(
         load_raw=False, load_light=True,
-        load_representatives=True, load_eics=True)
+        load_representatives=True, load_eics=True,
+        load_ms1=True, load_ms2=True)
 
     # Check that len of mass features matches
     mf_count_1 = len(lcms_collection.mass_features_dataframe)
@@ -497,6 +498,41 @@ if __name__ == "__main__":
         print(f"✓ Total loaded EIC count matches after reload: {total_eics_1}")
     else:
         print(f"✗ Total loaded EIC count mismatch after reload! Original: {total_eics_1}, Reloaded: {total_eics_2}")
+    
+    # Check that the _ms dictionary matches (mass spectra loaded)
+    total_ms_1 = sum(len(lcms_obj._ms) for lcms_obj in lcms_collection)
+    total_ms_2 = sum(len(lcms_obj._ms) for lcms_obj in lcms_collection2)
+    if total_ms_1 == total_ms_2:
+        print(f"✓ Total loaded mass spectra (_ms) count matches after reload: {total_ms_1}")
+    else:
+        print(f"✗ Total loaded mass spectra (_ms) count mismatch after reload! Original: {total_ms_1}, Reloaded: {total_ms_2}")
+    
+    # Check that we can replot the first cluster from the reloaded collection
+    if len(lcms_collection2.cluster_summary_dataframe) > 0:
+        first_cluster_id = lcms_collection2.cluster_summary_dataframe.index[0]
+        print(f"Re-plotting cluster {first_cluster_id} from reloaded collection")
+        lcms_collection2.plot_cluster(
+            cluster_id=first_cluster_id,
+            to_plot=["EIC", "MS1", "MS2"],
+            plot_smoothed_eic=False,
+            plot_eic_datapoints=False
+        )
+
+    # Check that scan numbers in _ms match for first sample
+    if len(lcms_collection) > 0 and len(lcms_collection2) > 0:
+        ms_scans_1 = set(lcms_collection[0]._ms.keys())
+        ms_scans_2 = set(lcms_collection2[0]._ms.keys())
+        if ms_scans_1 == ms_scans_2:
+            print(f"✓ Mass spectra scan numbers match for first sample: {len(ms_scans_1)} scans")
+        else:
+            print(f"✗ Mass spectra scan numbers mismatch for first sample!")
+            print(f"  Original: {len(ms_scans_1)} scans, Reloaded: {len(ms_scans_2)} scans")
+            only_in_1 = ms_scans_1 - ms_scans_2
+            only_in_2 = ms_scans_2 - ms_scans_1
+            if only_in_1:
+                print(f"  Only in original: {list(sorted(only_in_1))[:10]}...")
+            if only_in_2:
+                print(f"  Only in reloaded: {list(sorted(only_in_2))[:10]}...")
 
 
     """

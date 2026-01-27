@@ -3061,11 +3061,15 @@ class LCMSCollectionCalculations:
                                 # Retrieve the new aligned times for all scans in the LCMS object
                                 new_times = [x for k, x in sorted(self[i]._scan_info["scan_time_aligned"].items())]
                                 
-                                # Switch the rt_aligned flag to True
+                                # Switch the rt_aligned flag to True and attempted to True
                                 self.rt_aligned = True
+                                self.rt_alignment_attempted = True
                             else:
                                 # Set aligned retention times on scan_df for lc_obj using the original retention times
                                 self[i]._scan_info["scan_time_aligned"] = self[i]._scan_info["scan_time"]
+                                # Switch the rt_attempted flag to True
+                                self.rt_aligned = False
+                                self.rt_alignment_attempted = True
 
                             i += index_step
                             if i >= len(self) or i < 0:
@@ -5214,7 +5218,7 @@ class LCMSCollectionCalculations:
             # Group by sample_id and collect all m/z values
             for sample_id in clustered_mf['sample_id'].unique():
                 sample_df = clustered_mf[clustered_mf['sample_id'] == sample_id]
-                cluster_mz_dict[sample_id] = sample_df['mz'].unique().tolist()
+                cluster_mz_dict[sample_id] = sample_df['_eic_mz'].unique().tolist()
             
             runtime_params['cluster_mz_dict'] = cluster_mz_dict
         

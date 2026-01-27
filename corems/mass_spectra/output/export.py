@@ -2222,6 +2222,8 @@ class LCMSCollectionExport():
             hdf_handle.attrs["date_utc"] = timenow
             hdf_handle.attrs["lcms_objects_folder"] = str(self.mass_spectra_collection.collection_parser.folder_location)
             hdf_handle.attrs["missing_mass_features_searched"] = self.mass_spectra_collection.missing_mass_features_searched
+            hdf_handle.attrs["rt_aligned"] = self.mass_spectra_collection.rt_aligned
+            hdf_handle.attrs["rt_alignment_attempted"] = self.mass_spectra_collection.rt_alignment_attempted
 
             # Add the manifest to the HDF5 file, always overwrite this
             hdf_handle.attrs["manifest"] = self._convert_manifest_to_json()
@@ -2242,9 +2244,13 @@ class LCMSCollectionExport():
             # Save EICs for induced mass features at collection level
             self._save_induced_eics_to_hdf5(overwrite)
         
+        # Build cluster mass feature map to know which features to update
+        # This uses the same logic as process_consensus_features to determine loaded features
+        cluster_mf_map = self._build_cluster_mf_map()
+        
         # Save updated mass features for each LCMS object
         # This implements selective update: only loaded features are updated, non-cluster features are preserved
-        self._save_lcms_objects_to_hdf5(overwrite)
+        self._save_lcms_objects_to_hdf5(cluster_mf_map, overwrite)
 
         # Save collection-level parameters as separate file
         if save_parameters:
@@ -2331,6 +2337,41 @@ class LCMSCollectionExport():
             
             # Save the "cluster" column
             grp.create_dataset("cluster", data=cluster_assignments["cluster"].values)
+    
+    def _build_cluster_mf_map(self):
+        """Build a mapping of which mass features should be saved for each sample.
+        
+        This uses the same logic as process_consensus_features to determine which
+        mass features were loaded and should be updated in HDF5 files.
+        
+        Returns
+        -------
+        dict
+            Dictionary mapping sample_id to list of tuples (mf_id, cluster_id).
+            Only includes samples that have loaded representative features.
+            Returns empty dict if no clusters exist.
+        
+        Notes
+        -----
+        This follows the DRY principle by using the same get_sample_mf_map_for_representatives
+        method used by process_consensus_features and ReadSavedLCMSCollection.
+        """
+        # Check if clusters exist
+        if "cluster" not in self.mass_spectra_collection.mass_features_dataframe.columns:
+            return {}
+        
+        # Check if cluster_summary_dataframe exists (needed by get_sample_mf_map_for_representatives)
+        if not hasattr(self.mass_spectra_collection, 'cluster_summary_dataframe') or \
+           self.mass_spectra_collection.cluster_summary_dataframe is None:
+            return {}
+        
+        # Use the same DRY helper method that process_consensus_features uses
+        # This ensures consistency across the codebase
+        cluster_mf_map = self.mass_spectra_collection.get_sample_mf_map_for_representatives(
+            include_cluster_id=True
+        )
+        
+        return cluster_mf_map
     
     def _update_raw_file_locations_in_hdf5(self):
         """Update raw file locations in each LCMS object's HDF5 file.
@@ -2561,11 +2602,11 @@ class LCMSCollectionExport():
         
         return regenerated_features
     
-    def _save_lcms_objects_to_hdf5(self, overwrite):
+    def _save_lcms_objects_to_hdf5(self, cluster_mf_map, overwrite):
         """Save updated mass features for each LCMS object.
         
         This method implements a "selective update" strategy for mass features:
-        - For mass features that were loaded from HDF5 (have cluster_index), we selectively
+        - For mass features specified in cluster_mf_map (loaded representatives), we selectively
           update them by deleting their old entries and re-saving with new attributes.
         - Non-cluster features (not loaded) are never touched/overwritten.
         
@@ -2573,33 +2614,106 @@ class LCMSCollectionExport():
         
         Parameters
         ----------
+        cluster_mf_map : dict
+            Dictionary mapping sample_id to list of tuples (mf_id, cluster_id).
+            This explicitly defines which mass features should be updated.
         overwrite : bool
             If True, allows overwriting of existing data. If False, skips if data exists.
         """
-        for lcms_obj in self.mass_spectra_collection:
+        for sample_id, lcms_obj in enumerate(self.mass_spectra_collection):
             hdf5_path = lcms_obj.file_location.with_suffix('.hdf5')
             
             if not hdf5_path.exists():
-                # If HDF5 doesn't exist, we can't do selective update
+                # If HDF5 doesn't exist, we can't do selective update, raise error
+                raise FileNotFoundError(
+                    f"HDF5 file for LCMS object {lcms_obj.sample_name} not found at {hdf5_path}"
+                )
+            
+            # Check if this sample has any loaded features in the map
+            if sample_id not in cluster_mf_map or not cluster_mf_map[sample_id]:
+                # Nothing loaded for this sample, nothing to update
                 continue
             
-            # Check if this object has any loaded features (features with cluster_index)
-            has_loaded_features = any(
-                hasattr(mf, 'cluster_index') and mf.cluster_index is not None 
-                for mf in lcms_obj.mass_features.values()
-            )
-            
-            if not has_loaded_features:
-                # Nothing loaded, nothing to update
-                continue
+            # Extract mf_ids from the map (cluster_mf_map contains tuples of (mf_id, cluster_id))
+            mf_ids_to_update = [mf_id for mf_id, cluster_id in cluster_mf_map[sample_id]]
             
             # Perform selective update of mass features
-            self._selective_update_mass_features(lcms_obj, hdf5_path, overwrite)
+            self._selective_update_mass_features(lcms_obj, hdf5_path, mf_ids_to_update, overwrite)
+            
+            # Save any new mass spectra that were added during processing
+            self._save_new_mass_spectra(lcms_obj, hdf5_path, overwrite)
     
-    def _selective_update_mass_features(self, lcms_obj, hdf5_path, overwrite):
+    def _save_new_mass_spectra(self, lcms_obj, hdf5_path, overwrite):
+        """Save new mass spectra that were added during processing.
+        
+        This method checks what mass spectra are in lcms_obj._ms and saves any
+        that aren't already in the HDF5 file's mass_spectra group. Uses the
+        existing add_mass_spectrum_to_hdf5 method for consistency with original
+        export logic.
+        
+        Parameters
+        ----------
+        lcms_obj : LCMSBase
+            The LCMS object with potentially new mass spectra.
+        hdf5_path : Path
+            Path to the HDF5 file.
+        overwrite : bool
+            If True, allows overwriting existing spectra.
+        """
+        # Check if there are any mass spectra to save
+        if not hasattr(lcms_obj, '_ms') or not lcms_obj._ms:
+            return
+        
+        # Create an LCMS exporter instance for this LCMS object
+        # This gives us access to add_mass_spectrum_to_hdf5 method inherited from HighResMassSpecExport
+        # Turn hdf5_path into str without suffix for LCMSExport
+        hdf5_path_str = str(hdf5_path.with_suffix(''))
+        exporter = LCMSExport(
+            out_file_path=hdf5_path_str,
+            mass_spectra=lcms_obj
+        )
+        
+        # Open HDF5 file and check existing mass spectra
+        with h5py.File(hdf5_path, 'a') as hdf_handle:
+            # Create mass_spectra group if it doesn't exist
+            if 'mass_spectra' not in hdf_handle:
+                ms_group = hdf_handle.create_group('mass_spectra')
+                existing_scan_numbers = set()
+            else:
+                ms_group = hdf_handle['mass_spectra']
+                existing_scan_numbers = set(int(k) for k in ms_group.keys())
+            
+            # Find new mass spectra (in _ms but not in HDF5)
+            new_scan_numbers = set(lcms_obj._ms.keys()) - existing_scan_numbers
+                        
+            if not new_scan_numbers:
+                return
+            
+            # Save new mass spectra using existing add_mass_spectrum_to_hdf5 method
+            export_profile = lcms_obj.parameters.lc_ms.export_profile_spectra
+            for scan_number in new_scan_numbers:
+                mass_spec = lcms_obj._ms[scan_number]
+                scan_group_name = str(scan_number)
+                
+                # Delete existing group if overwrite is True
+                if scan_group_name in ms_group and overwrite:
+                    del ms_group[scan_group_name]
+                elif scan_group_name in ms_group:
+                    continue
+                
+                # Use the existing method from HighResMassSpecExport
+                exporter.add_mass_spectrum_to_hdf5(
+                    hdf_handle=hdf_handle,
+                    mass_spectrum=mass_spec,
+                    group_key=scan_group_name,
+                    mass_spectra_group=ms_group,
+                    export_raw=export_profile
+                )
+    
+    def _selective_update_mass_features(self, lcms_obj, hdf5_path, mf_ids_to_update, overwrite):
         """Selectively update mass features in HDF5 file.
         
-        This method deletes only the mass features that were loaded (have cluster_index),
+        This method deletes only the mass features specified in mf_ids_to_update,
         then re-saves them with their potentially updated attributes. Non-cluster features
         in the HDF5 file are left untouched.
         
@@ -2609,40 +2723,37 @@ class LCMSCollectionExport():
             The LCMS object with mass features to update.
         hdf5_path : Path
             Path to the HDF5 file.
+        mf_ids_to_update : list of int
+            List of mass feature IDs that should be updated. This explicitly defines
+            which features were loaded and should be saved.
         overwrite : bool
             If True, allows overwriting. If False, skips if group exists.
         """
-        # Collect IDs of loaded features (those with cluster_index)
-        loaded_feature_ids = [
-            mf.id for mf in lcms_obj.mass_features.values()
-            if hasattr(mf, 'cluster_index') and mf.cluster_index is not None
-        ]
-        
-        if not loaded_feature_ids:
+        if not mf_ids_to_update:
             return
         
-        # Open HDF5 file and delete loaded feature IDs, then re-save
+        # Open HDF5 file and delete specified feature IDs, then re-save
         with h5py.File(hdf5_path, 'a') as hdf_handle:
             if 'mass_features' not in hdf_handle:
                 return
             
             mf_group = hdf_handle['mass_features']
             
-            # Delete loaded features
-            for feature_id in loaded_feature_ids:
+            # Delete features that are being updated
+            for feature_id in mf_ids_to_update:
                 feature_id_str = str(feature_id)
                 if feature_id_str in mf_group:
                     del mf_group[feature_id_str]
             
-            # Re-save loaded features with updated attributes
-            loaded_features = {
+            # Re-save updated features (only those that exist in mass_features dict)
+            updated_features = {
                 mf.id: mf for mf in lcms_obj.mass_features.values()
-                if mf.id in loaded_feature_ids
+                if mf.id in mf_ids_to_update
             }
             
-            if loaded_features:
+            if updated_features:
                 LCMSExport._save_mass_features_dict_to_hdf5(
-                    loaded_features,
+                    updated_features,
                     mf_group,
                     overwrite=overwrite
                 )
