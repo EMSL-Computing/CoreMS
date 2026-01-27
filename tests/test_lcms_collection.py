@@ -57,14 +57,15 @@ def lcms_collection_folder(tmp_path, lcms_obj):
     exporter1 = LCMSMetabolomicsExport(str(processed_folder / sample_name_1), lcms_obj)
     exporter1.to_hdf(overwrite=True)
     
-    # Create SAMPLE 2: Exact copy of Sample 1 (all features identical for easier debugging)
-    # This ensures that sample 1's feature 0 should cluster with sample 2's feature 0, etc.
+    # Create SAMPLE 2: Partial set (first 50 mass features only)
     sample_name_2 = "test_sample_02"
     
-    # Keep ALL mass features - just save a second copy
-    # Don't modify lcms_obj.mass_features, it already has all features
+    # Take only the first 50 mass features
+    first_50_mf_ids = list(lcms_obj.mass_features.keys())[:50]
+    first_mass_features = {mf_id: lcms_obj.mass_features[mf_id] for mf_id in first_50_mf_ids}
+    lcms_obj.mass_features = first_mass_features
     
-    # Export sample 2 with same mass features as sample 1
+    # Export sample 2 with partial mass features
     exporter2 = LCMSMetabolomicsExport(str(processed_folder / sample_name_2), lcms_obj)
     exporter2.to_hdf(overwrite=True)
     
@@ -200,102 +201,29 @@ def test_lcms_collection_rt_alignment(lcms_collection):
     # Check initial state
     assert not lcms_collection.rt_aligned
     
-    # Debug: Print anchor parameters
-    print(f"\nAnchor technique: {lcms_collection.parameters.lcms_collection.mass_feature_anchor_technique}")
-    print(f"Anchor absolute threshold: {lcms_collection.parameters.lcms_collection.mass_feature_anchor_absolute_intensity_threshold}")
-    print(f"Anchor relative threshold: {lcms_collection.parameters.lcms_collection.mass_feature_anchor_relative_intensity_threshold}")
-    
-    # Debug: Check which sample is center
-    print(f"\nManifest center values:")
-    for sample_name, manifest_data in lcms_collection._manifest_dict.items():
-        print(f"  {sample_name}: center={manifest_data.get('center', False)}")
-    
-    # Debug: Print feature counts
-    mf_df = lcms_collection.mass_features_dataframe
-    print(f"\nMass features per sample:")
-    for sample in lcms_collection.samples:
-        sample_mfs = mf_df[mf_df['sample_name'] == sample]
-        print(f"  {sample}: {len(sample_mfs)} features")
-    
     # Perform alignment - this should succeed
     lcms_collection.align_lcms_objects()
     
     # Check that alignment was attempted (it may not use spline if already well-aligned)
     assert lcms_collection.rt_alignment_attempted
     
+    # Check that alignment was rejected
+    assert not lcms_collection.rt_aligned
+
     # Check that scan_time_aligned was added to all samples
     for i, lcms_obj in enumerate(lcms_collection):
         sample_name = lcms_collection.samples[i]
-        print(f"\nChecking {sample_name}: {lcms_obj.scan_df.columns.tolist()}")
         assert 'scan_time_aligned' in lcms_obj.scan_df.columns, f"Missing scan_time_aligned in {sample_name}"
 
 
 def test_lcms_collection_consensus_features(lcms_collection):
     """Test generation of consensus mass features (clustering)."""
-    # Debug: Check which sample is the center
-    print(f"\nManifest dict center values:")
-    for sample_name, manifest_data in lcms_collection._manifest_dict.items():
-        print(f"  {sample_name}: center={manifest_data.get('center', False)}")
-    
     # Ensure alignment is done first
     if not lcms_collection.rt_aligned:
         lcms_collection.align_lcms_objects()
     
-    # Debug: Check if alignment was used for each sample
-    print(f"\nAlignment results:")
-    for sample_name, manifest_data in lcms_collection._manifest_dict.items():
-        use_alignment = manifest_data.get('use_rt_alignment', None)
-        print(f"  {sample_name}: use_rt_alignment={use_alignment}")
-    
-    # Debug: Check mass features dataframe before clustering
-    mf_df = lcms_collection.mass_features_dataframe
-    print(f"\nBefore clustering:")
-    print(f"  Total mass features: {len(mf_df)}")
-    print(f"  Columns: {mf_df.columns.tolist()}")
-    print(f"  Has scan_time_aligned: {'scan_time_aligned' in mf_df.columns}")
-    print(f"\nSample breakdown:")
-    for sample in mf_df['sample_name'].unique():
-        sample_features = mf_df[mf_df['sample_name'] == sample]
-        print(f"  {sample}: {len(sample_features)} features")
-        print(f"    m/z range: {sample_features['mz'].min():.4f} - {sample_features['mz'].max():.4f}")
-        print(f"    RT range: {sample_features['scan_time_aligned'].min():.2f} - {sample_features['scan_time_aligned'].max():.2f}")
-        print(f"    First 5 m/z values: {sample_features['mz'].head().tolist()}")
-    
-    # Check if the features actually match between samples
-    s1_mz = set(mf_df[mf_df['sample_name'] == 'test_sample_01']['mz'].round(4))
-    s2_mz = set(mf_df[mf_df['sample_name'] == 'test_sample_02']['mz'].round(4))
-    print(f"\n  Overlapping m/z values (rounded to 4 decimals): {len(s1_mz & s2_mz)} out of {len(s2_mz)} in sample 2")
-    
-    # Check scan_time_aligned values for matching features
-    s1_df = mf_df[mf_df['sample_name'] == 'test_sample_01'].sort_values('mz')
-    s2_df = mf_df[mf_df['sample_name'] == 'test_sample_02'].sort_values('mz')
-    print(f"\nFirst 5 features comparison:")
-    print(f"  Sample 1: m/z={s1_df['mz'].head().tolist()}")
-    print(f"           RT={s1_df['scan_time_aligned'].head().tolist()}")
-    print(f"  Sample 2: m/z={s2_df['mz'].head().tolist()}")
-    print(f"           RT={s2_df['scan_time_aligned'].head().tolist()}")
-    
-    # Debug: Check if scan_time values are the same (before alignment)
-    print(f"\nOriginal scan_time values (before alignment):")
-    print(f"  Sample 1: scan_time={s1_df['scan_time'].head().tolist()}")
-    print(f"  Sample 2: scan_time={s2_df['scan_time'].head().tolist()}")
-    print(f"  Are they equal? {np.allclose(s1_df['scan_time'].head().values, s2_df['scan_time'].head().values)}")
-    
-    print(f"\nClustering parameters:")
-    print(f"  consensus_mz_tol_ppm: {lcms_collection.parameters.lcms_collection.consensus_mz_tol_ppm}")
-    print(f"  consensus_rt_tol: {lcms_collection.parameters.lcms_collection.consensus_rt_tol}")
-    print(f"  consensus_min_sample_fraction: {lcms_collection.parameters.lcms_collection.consensus_min_sample_fraction}")
-    
     # Generate consensus features
     lcms_collection.add_consensus_mass_features()
-    
-    # Debug: Check after clustering
-    mf_df_after = lcms_collection.mass_features_dataframe
-    print(f"\nAfter clustering:")
-    print(f"  Total mass features: {len(mf_df_after)}")
-    print(f"  Has cluster column: {'cluster' in mf_df_after.columns}")
-    if 'cluster' in mf_df_after.columns:
-        print(f"  Unique clusters: {mf_df_after['cluster'].nunique()}")
     
     # Check cluster summary dataframe
     cluster_summary = lcms_collection.cluster_summary_dataframe
