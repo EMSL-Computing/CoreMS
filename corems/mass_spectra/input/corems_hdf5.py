@@ -1300,7 +1300,6 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
     
     def _load_rt_alignments(self, lcms_collection):
         """Load retention time alignments from the saved collection HDF5 file."""
-        #TODO KRH: START HERE - test this function
         # First Set the rt_aligned flag from the collection-level attribute saved directly
         with h5py.File(self.collection_hdf5_path, 'r') as f:
             lcms_collection.rt_aligned = f.attrs.get('rt_aligned', False)

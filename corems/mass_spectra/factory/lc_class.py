@@ -2171,27 +2171,27 @@ class LCMSCollection(LCMSCollectionCalculations):
             )
         return mf_pivot.pivot(index = 'cluster', columns = 'sample_id', values = attribute)
 
-    def collection_consensus_report(self, how = 'intensity'):
-        """Generate a consensus report of all regular and induced mass features 
-        in a collection. Default is to select feature of highest intensity in
-        a cluster and report back all the attributes.
-
-        Parameters
-        -----------
-        how : str
-            The preferred method to report back the consensus information.
-            Option 'intensity' assigns peak of highest intensity in each 
-            cluster as the representative consensus feaature and reports data
-            on that peak. Option 'mean' reports the mean values for available 
-            attributes by cluster, and option 'median' is the same but reports
-            median values.
+    def collection_consensus_report(self):
+        """Generate a consensus report of consensus mass features 
+        in a collection using the representative feature from each cluster.
+        
+        This method returns a DataFrame containing all attributes for the
+        representative mass feature from each consensus cluster. The representative
+        is selected using the same logic as process_consensus_features().
 
         Returns
         --------
         pd.DataFrame
-            A DataFrame that displays all attributes for each cluster in a 
-            collection based on either the peak of highest intensity or means
-            across all data in a cluster
+            A DataFrame that displays all attributes for each cluster's 
+            representative mass feature, indexed by cluster ID.
+            
+        Notes
+        -----
+        The representative metric used is determined by
+        self.parameters.lcms_collection.consensus_representative_metric and
+        is the same metric used by process_consensus_features() for consistency.
+        Common options include 'intensity' (highest intensity) or 
+        'intensity_prefer_ms2' (highest intensity with preference for MS2 data).
         """
         
         mf_df = self.mass_features_dataframe.copy()
@@ -2203,37 +2203,15 @@ class LCMSCollection(LCMSCollectionCalculations):
         mf_df.reset_index(drop = True, inplace = True)
         mf_df['cluster'] = mf_df['cluster'].astype(int)
         
-        # If how == intensity, find the sample with highest intensity in each cluster and return that mass feature's data
-        if how == 'intensity':
-            int_table = self.collection_pivot_table(attribute = 'intensity', verbose = False).idxmax(axis = 1)
-            id_list = []
-            for i in range(len(int_table)):
-                id_list.append(
-                    mf_df[
-                        (mf_df.sample_id == int_table.iloc[i]) & (mf_df.cluster == int_table.index[i])
-                    ].coll_mf_id.values[0]
-                )
-            return mf_df[mf_df.coll_mf_id.isin(id_list)].sort_values(by = 'cluster').set_index('cluster')
-
-        # If how == mean or median, group by cluster and calculate mean or median for each attribute
-        elif how == 'mean' or how == 'median':
-            #TODO KRH: Clean up this section
-            ## will have to go back and check mf_df.dtypes to see what ends up on list
-            ## this format removes int columns like 'sample_id' and 'cluster'
-            l = mf_df.select_dtypes(include='float64').columns.tolist()
-            ## for some reason, the following 4 items get saved as floats instead of ints
-            ## can either leave this or track down how they're recorded and fix it at the source
-            ## possible they're recorded as ints for regular mass features and floats for induced, making the column default to the more general
-            l = [x for x in l if x not in ['scan_time', 'apex_scan', 'partition_idx', 'idx']]
-            agg_dict = {k: [how] for k in l}
-            agg_dict['sample_id'] = ['nunique']
-
-            df = (mf_df.groupby("cluster").agg(agg_dict).reset_index())
-
-            return df.sort_values(by = 'cluster').set_index('cluster')
-
-        else:
-            print("Assign 'how' argument as either 'intensity', 'mean', or 'median'")
+        # Use the same representative selection logic as process_consensus_features
+        # This uses the configured representative_metric from parameters
+        representatives = self.get_representative_mass_features_for_all_clusters()
+        
+        # Get the coll_mf_ids of the representatives
+        representative_ids = representatives['coll_mf_id'].tolist()
+        
+        # Filter mf_df to only include representative features
+        return mf_df[mf_df.coll_mf_id.isin(representative_ids)].sort_values(by = 'cluster').set_index('cluster')
 
     @property
     def parameters(self):

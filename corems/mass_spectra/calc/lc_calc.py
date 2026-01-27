@@ -3800,6 +3800,8 @@ class LCMSCollectionCalculations:
             representative_metric = self.parameters.lcms_collection.consensus_representative_metric
         
         mf_df = self.mass_features_dataframe.copy()
+        # Reset index to make coll_mf_id a column we can work with
+        mf_df = mf_df.reset_index(drop=False)
         
         # Handle special metric 'intensity_prefer_ms2'
         if representative_metric == 'intensity_prefer_ms2':
@@ -3853,10 +3855,7 @@ class LCMSCollectionCalculations:
             
             # Get the index of max value for each cluster
             idx = mf_df.groupby('cluster')[representative_metric].idxmax()
-            representatives = mf_df.loc[idx].reset_index(drop=True)
-        
-        # Store the collection-level index as coll_mf_id
-        representatives['coll_mf_id'] = representatives.index
+            representatives = mf_df.loc[idx].copy()
         
         # Select only the columns we need
         result_cols = ['cluster', 'sample_id', 'mf_id', 'coll_mf_id', 'has_ms2', 'intensity']
@@ -5215,7 +5214,7 @@ class LCMSCollectionCalculations:
             # Get all mass features that belong to clusters (cluster is not NaN)
             clustered_mf = mfdf[mfdf['cluster'].notna()]
             
-            # Group by sample_id and collect all m/z values
+            # Group by sample_id and collect all m/z values associated with eics
             for sample_id in clustered_mf['sample_id'].unique():
                 sample_df = clustered_mf[clustered_mf['sample_id'] == sample_id]
                 cluster_mz_dict[sample_id] = sample_df['_eic_mz'].unique().tolist()
@@ -5515,7 +5514,6 @@ class LCMSCollectionCalculations:
         if ms2_spectral_search and hasattr(self, '_spectral_search_molecular_metadata'):
             # This allows users to access the metadata for reporting
             self.spectral_search_molecular_metadata = self._spectral_search_molecular_metadata
-        #TODO KRH: Update mass_features_dataframe with updated mz for representative mass features if ms1 was added?
         # Post-processing
         if perform_gap_filling:
             # Combine induced mass features into dataframe

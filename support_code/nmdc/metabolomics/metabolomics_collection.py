@@ -162,6 +162,105 @@ def summarize_processing_results(lcms_collection):
     print("\n" + "="*60)
 
 
+def validate_save_load(lcms_collection, collection_save_path, ncores=1):
+    """
+    Validate that the LCMS collection can be saved and reloaded correctly.
+    
+    This function tests the save/load functionality by reloading the collection
+    from HDF5 and comparing various attributes to ensure data integrity.
+    
+    Parameters
+    ----------
+    lcms_collection : LCMSCollection
+        The original LCMS collection to validate against
+    collection_save_path : Path
+        Path to the saved collection HDF5 file (without extension)
+    ncores : int, optional
+        Number of cores to use for loading. Default is 1.
+    
+    Returns
+    -------
+    LCMSCollection
+        The reloaded LCMS collection for further testing
+    """
+    print("\n" + "="*60)
+    print("SAVE/LOAD VALIDATION TEST")
+    print("="*60)
+    
+    # Reload the collection from HDF5
+    from corems.mass_spectra.input.corems_hdf5 import ReadSavedLCMSCollection
+    reader = ReadSavedLCMSCollection(
+        collection_hdf5_path=str(collection_save_path.with_suffix('.hdf5')),
+        cores=ncores)
+    lcms_collection2 = reader.get_lcms_collection(
+        load_raw=False, load_light=True,
+        load_representatives=True, load_eics=True,
+        load_ms1=True, load_ms2=True)
+
+    # Check that len of mass features matches
+    mf_count_1 = len(lcms_collection.mass_features_dataframe)
+    mf_count_2 = len(lcms_collection2.mass_features_dataframe)
+    if mf_count_1 == mf_count_2:
+        print(f"✓ Mass feature count matches after reload: {mf_count_1}")
+    else:
+        print(f"✗ Mass feature count mismatch after reload! Original: {mf_count_1}, Reloaded: {mf_count_2}")
+    
+    # Check that the len of induced mass features matches
+    induced_count_1 = len(lcms_collection.induced_mass_features_dataframe)
+    induced_count_2 = len(lcms_collection2.induced_mass_features_dataframe)
+    if induced_count_1 == induced_count_2:
+        print(f"✓ Induced mass feature count matches after reload: {induced_count_1}")
+    else:
+        print(f"✗ Induced mass feature count mismatch after reload! Original: {induced_count_1}, Reloaded: {induced_count_2}")
+    
+    # Check that the len of loaded EICs matches
+    total_eics_1 = sum(len(lcms_obj.eics) for lcms_obj in lcms_collection)
+    total_eics_2 = sum(len(lcms_obj.eics) for lcms_obj in lcms_collection2)
+    if total_eics_1 == total_eics_2:
+        print(f"✓ Total loaded EIC count matches after reload: {total_eics_1}")
+    else:
+        print(f"✗ Total loaded EIC count mismatch after reload! Original: {total_eics_1}, Reloaded: {total_eics_2}")
+    
+    # Check that the _ms dictionary matches (mass spectra loaded)
+    total_ms_1 = sum(len(lcms_obj._ms) for lcms_obj in lcms_collection)
+    total_ms_2 = sum(len(lcms_obj._ms) for lcms_obj in lcms_collection2)
+    if total_ms_1 == total_ms_2:
+        print(f"✓ Total loaded mass spectra (_ms) count matches after reload: {total_ms_1}")
+    else:
+        print(f"✗ Total loaded mass spectra (_ms) count mismatch after reload! Original: {total_ms_1}, Reloaded: {total_ms_2}")
+    
+    # Check that we can replot the first cluster from the reloaded collection
+    if len(lcms_collection2.cluster_summary_dataframe) > 0:
+        first_cluster_id = lcms_collection2.cluster_summary_dataframe.index[0]
+        print(f"Re-plotting cluster {first_cluster_id} from reloaded collection")
+        lcms_collection2.plot_cluster(
+            cluster_id=first_cluster_id,
+            to_plot=["EIC", "MS1", "MS2"],
+            plot_smoothed_eic=False,
+            plot_eic_datapoints=False
+        )
+
+    # Check that scan numbers in _ms match for first sample
+    if len(lcms_collection) > 0 and len(lcms_collection2) > 0:
+        ms_scans_1 = set(lcms_collection[0]._ms.keys())
+        ms_scans_2 = set(lcms_collection2[0]._ms.keys())
+        if ms_scans_1 == ms_scans_2:
+            print(f"✓ Mass spectra scan numbers match for first sample: {len(ms_scans_1)} scans")
+        else:
+            print(f"✗ Mass spectra scan numbers mismatch for first sample!")
+            print(f"  Original: {len(ms_scans_1)} scans, Reloaded: {len(ms_scans_2)} scans")
+            only_in_1 = ms_scans_1 - ms_scans_2
+            only_in_2 = ms_scans_2 - ms_scans_1
+            if only_in_1:
+                print(f"  Only in original: {list(sorted(only_in_1))[:10]}...")
+            if only_in_2:
+                print(f"  Only in reloaded: {list(sorted(only_in_2))[:10]}...")
+    
+    print("\n" + "="*60)
+    
+    return lcms_collection2
+
+
 def preprocess_raw_samples(raw_data_path, processed_folder, ncores=1, reprocess=False):
     """
     Preprocess raw LCMS sample files into HDF5 format.
@@ -322,7 +421,7 @@ if __name__ == "__main__":
     # =============================================================================
     # Configuration
     # =============================================================================
-    ncores = 1
+    ncores = 3
     reprocess_samples = False  # Set to True to reprocess raw data
     perform_ms2_search = False  # Set to True to perform MS2 spectral library search
 
@@ -418,7 +517,7 @@ if __name__ == "__main__":
         add_ms1=True,  
         add_ms2=True,
         molecular_formula_search=False,
-        ms2_spectral_search=False,
+        ms2_spectral_search=perform_ms2_search,
         spectral_lib=spectral_lib,
         molecular_metadata=molecular_metadata,
         gather_eics=True,
@@ -453,86 +552,22 @@ if __name__ == "__main__":
     # Step 8: Save and Export Results
     # =============================================================================
     print("\n=== Exporting LCMS Collection ===")
+    pivot_table_intensity = lcms_collection.collection_pivot_table(attribute='intensity', verbose=False)
+    pivot_table_ids = lcms_collection.collection_pivot_table(verbose=False)
+
+    # Make a table of the annotations of the consensus features (using representative features)
+    consensus_report = lcms_collection.collection_consensus_report()
+    print(f"Consensus annotations table: {len(consensus_report)} clusters")
+
     exporter = LCMSCollectionExport(
         out_file_path=str(collection_save_path),
         mass_spectra_collection=lcms_collection)
     exporter.export_to_hdf5(overwrite=True, save_parameters=True, parameter_format="toml")
     
     # =============================================================================
-    # Test Save/Load Functionality
+    # Step 9: Validate Save/Load Functionality
     # =============================================================================
-    print("\n" + "="*60)
-    print("SAVE/LOAD VALIDATION TEST")
-    print("="*60)
-    
-    # Reload
-    from corems.mass_spectra.input.corems_hdf5 import ReadSavedLCMSCollection
-    reader = ReadSavedLCMSCollection(
-        collection_hdf5_path=str(collection_save_path.with_suffix('.hdf5')),
-        cores=ncores)
-    lcms_collection2 = reader.get_lcms_collection(
-        load_raw=False, load_light=True,
-        load_representatives=True, load_eics=True,
-        load_ms1=True, load_ms2=True)
-
-    # Check that len of mass features matches
-    mf_count_1 = len(lcms_collection.mass_features_dataframe)
-    mf_count_2 = len(lcms_collection2.mass_features_dataframe)
-    if mf_count_1 == mf_count_2:
-        print(f"✓ Mass feature count matches after reload: {mf_count_1}")
-    else:
-        print(f"✗ Mass feature count mismatch after reload! Original: {mf_count_1}, Reloaded: {mf_count_2}")
-    
-    # Check that the len of induced mass features matches
-    induced_count_1 = len(lcms_collection.induced_mass_features_dataframe)
-    induced_count_2 = len(lcms_collection2.induced_mass_features_dataframe)
-    if induced_count_1 == induced_count_2:
-        print(f"✓ Induced mass feature count matches after reload: {induced_count_1}")
-    else:
-        print(f"✗ Induced mass feature count mismatch after reload! Original: {induced_count_1}, Reloaded: {induced_count_2}")
-    
-    # Check that the len of loaded EICs matches
-    total_eics_1 = sum(len(lcms_obj.eics) for lcms_obj in lcms_collection)
-    total_eics_2 = sum(len(lcms_obj.eics) for lcms_obj in lcms_collection2)
-    if total_eics_1 == total_eics_2:
-        print(f"✓ Total loaded EIC count matches after reload: {total_eics_1}")
-    else:
-        print(f"✗ Total loaded EIC count mismatch after reload! Original: {total_eics_1}, Reloaded: {total_eics_2}")
-    
-    # Check that the _ms dictionary matches (mass spectra loaded)
-    total_ms_1 = sum(len(lcms_obj._ms) for lcms_obj in lcms_collection)
-    total_ms_2 = sum(len(lcms_obj._ms) for lcms_obj in lcms_collection2)
-    if total_ms_1 == total_ms_2:
-        print(f"✓ Total loaded mass spectra (_ms) count matches after reload: {total_ms_1}")
-    else:
-        print(f"✗ Total loaded mass spectra (_ms) count mismatch after reload! Original: {total_ms_1}, Reloaded: {total_ms_2}")
-    
-    # Check that we can replot the first cluster from the reloaded collection
-    if len(lcms_collection2.cluster_summary_dataframe) > 0:
-        first_cluster_id = lcms_collection2.cluster_summary_dataframe.index[0]
-        print(f"Re-plotting cluster {first_cluster_id} from reloaded collection")
-        lcms_collection2.plot_cluster(
-            cluster_id=first_cluster_id,
-            to_plot=["EIC", "MS1", "MS2"],
-            plot_smoothed_eic=False,
-            plot_eic_datapoints=False
-        )
-
-    # Check that scan numbers in _ms match for first sample
-    if len(lcms_collection) > 0 and len(lcms_collection2) > 0:
-        ms_scans_1 = set(lcms_collection[0]._ms.keys())
-        ms_scans_2 = set(lcms_collection2[0]._ms.keys())
-        if ms_scans_1 == ms_scans_2:
-            print(f"✓ Mass spectra scan numbers match for first sample: {len(ms_scans_1)} scans")
-        else:
-            print(f"✗ Mass spectra scan numbers mismatch for first sample!")
-            print(f"  Original: {len(ms_scans_1)} scans, Reloaded: {len(ms_scans_2)} scans")
-            only_in_1 = ms_scans_1 - ms_scans_2
-            only_in_2 = ms_scans_2 - ms_scans_1
-            if only_in_1:
-                print(f"  Only in original: {list(sorted(only_in_1))[:10]}...")
-            if only_in_2:
-                print(f"  Only in reloaded: {list(sorted(only_in_2))[:10]}...")
+    lcms_collection2 = validate_save_load(lcms_collection, collection_save_path, ncores=ncores)
 
 
     """
