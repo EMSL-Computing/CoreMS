@@ -469,6 +469,74 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         self.induced_mass_features = {}
         self.spectral_search_results = {}
 
+    def get_eic_mz_for_mass_feature(self, mf_mz, tolerance=0.0001):
+        """Get the EIC dictionary key (m/z) that best matches a mass feature's m/z.
+        
+        Finds the closest EIC m/z key within the specified tolerance.
+        
+        Parameters
+        ----------
+        mf_mz : float
+            The m/z value of the mass feature to match.
+        tolerance : float, optional
+            Maximum m/z difference for matching. Default is 0.0001 Da.
+            
+        Returns
+        -------
+        float or None
+            The EIC dictionary key (m/z) of the closest matching EIC,
+            or None if no EIC is within tolerance.
+        """
+        if not hasattr(self, 'eics') or not self.eics:
+            return None
+        
+        best_eic_mz = None
+        best_diff = tolerance
+        for eic_mz in self.eics.keys():
+            diff = abs(mf_mz - eic_mz)
+            if diff < best_diff:
+                best_diff = diff
+                best_eic_mz = eic_mz
+        return best_eic_mz
+    
+    def associate_eics_with_mass_features(self, tolerance=0.0001, induced=False):
+        """Associate EICs with mass features using tolerance-based m/z matching.
+        
+        Associates EIC_Data objects from self.eics with mass features by finding
+        the closest EIC within the specified m/z tolerance. This is more robust
+        than exact matching which can fail due to floating point precision issues.
+        
+        Parameters
+        ----------
+        tolerance : float, optional
+            Maximum m/z difference for matching EICs to mass features. Default is 0.0001 Da.
+        induced : bool, optional
+            If True, associates EICs with induced_mass_features instead of mass_features.
+            Default is False.
+            
+        Notes
+        -----
+        For each mass feature, this method finds the EIC with the closest m/z value
+        within the tolerance window and assigns it to the mass feature's _eic_data attribute.
+        If multiple EICs are within tolerance, the one with the smallest m/z difference is chosen.
+        """
+        # Select which mass features dictionary to use
+        mf_dict = self.induced_mass_features if induced else self.mass_features
+        
+        # Use the _eic_mz attribute on each mass_feature to find the closest matching EIC
+        for idx in mf_dict.keys():
+            mf_mz = mf_dict[idx]._eic_mz
+            # Find closest EIC within tolerance
+            best_match = None
+            best_diff = tolerance
+            for eic_mz, eic_data in self.eics.items():
+                diff = abs(mf_mz - eic_mz)
+                if diff < best_diff:
+                    best_diff = diff
+                    best_match = eic_data
+            if best_match is not None:
+                mf_dict[idx]._eic_data = best_match
+
     def get_parameters_json(self):
         """Returns the parameters stored for the LC-MS object in JSON format.
 
@@ -810,6 +878,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             A pandas dataframe of mass features with the following columns:
             mf_id, mz, apex_scan, scan_time, intensity, persistence, area.
         """
+        import pandas as pd
 
         def mass_spectrum_to_string(
             mass_spec, normalize=True, min_normalized_abun=0.01
@@ -849,10 +918,9 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             mf_dict = self.mass_features
         
         if len(mf_dict) == 0:
-            # Warn that no mass features were found, quit function
-            raise ValueError(
-                "No mass features found in dataset. Have the mass features been added? If this is part of a collection, summary data is aggregated in the attribute 'mass_features_dataframe'"
-                )
+            # Return an empty dataframe with the expected structure
+            # This allows collection processing to continue even if some samples have no features
+            return pd.DataFrame()
             
         cols_in_df = [
             "id",
@@ -874,7 +942,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "isotopologue_type",
             "mass_spectrum_deconvoluted_parent",
             "ms2_scan_numbers",
-            "type",
+            "type"
         ]
 
         df_mf_list = []
@@ -1633,6 +1701,7 @@ class LCMSCollection(LCMSCollectionCalculations):
 
         # These attributes are set during processing
         self.rt_aligned = False
+        self.rt_alignment_attempted = False
         self.missing_mass_features_searched = False
 
     def _reorder_lcms_objects(self):
@@ -1661,6 +1730,18 @@ class LCMSCollection(LCMSCollectionCalculations):
             mf_df = lcms_obj.light_mf_df
         else:
             mf_df = lcms_obj.mass_features_to_df()
+        
+        # If dataframe is empty, add minimal required columns and return
+        if len(mf_df) == 0:
+            import pandas as pd
+            mf_df["sample_name"] = []
+            mf_df["sample_id"] = []
+            mf_df["coll_mf_id"] = []
+            mf_df["mf_id"] = []
+            if induced_features:
+                mf_df["cluster"] = []
+            return mf_df
+        
         # Remove index
         mf_df = mf_df.reset_index(drop=False)
         # Add sample name and sample id to the dataframe
@@ -2094,35 +2175,38 @@ class LCMSCollection(LCMSCollectionCalculations):
         if verbose:
             print(
                 'Attributes available for pivot table:\n',
-                [x for x in mf_pivot.columns if x not in ['cluster', 'sample_id', 'mf_id', 'partition_idx', 'idx']]
+                [x for x in mf_pivot.columns if x not in ['cluster', 'sample_name', 'mf_id', 'partition_idx', 'idx']]
             )
             print(
                 '\nAttributes that have no value for induced mass features:\n',
                 imf_pivot.columns[imf_pivot.isna().all()].tolist()            
             )
-        return mf_pivot.pivot(index = 'cluster', columns = 'sample_id', values = attribute)
+        return mf_pivot.pivot(index = 'cluster', columns = 'sample_name', values = attribute)
 
-    def collection_consensus_report(self, how = 'intensity'):
-        """Generate a consensus report of all regular and induced mass features 
-        in a collection. Default is to select feature of highest intensity in
-        a cluster and report back all the attributes.
-
-        Parameters
-        -----------
-        how : str
-            The preferred method to report back the consensus information.
-            Option 'intensity' assigns peak of highest intensity in each 
-            cluster as the representative consensus feaature and reports data
-            on that peak. Option 'mean' reports the mean values for available 
-            attributes by cluster, and option 'median' is the same but reports
-            median values.
+    def cluster_representatives_table(self):
+        """Generate a table of representative mass features from each consensus cluster.
+        
+        This method returns a DataFrame containing all attributes for the
+        representative mass feature from each consensus cluster. The representative
+        is selected using the same logic as process_consensus_features().
 
         Returns
         --------
         pd.DataFrame
-            A DataFrame that displays all attributes for each cluster in a 
-            collection based on either the peak of highest intensity or means
-            across all data in a cluster
+            A DataFrame with one row per cluster containing all attributes for 
+            each cluster's representative mass feature. Includes:
+            - cluster: cluster ID (as a column for easy joining)
+            - polarity: ionization polarity from the collection
+            - n_samples_detected: number of samples where the cluster was detected
+            - All other mass feature attributes from the representative
+            
+        Notes
+        -----
+        The representative metric used is determined by
+        self.parameters.lcms_collection.consensus_representative_metric and
+        is the same metric used by process_consensus_features() for consistency.
+        Common options include 'intensity' (highest intensity) or 
+        'intensity_prefer_ms2' (highest intensity with preference for MS2 data).
         """
         
         mf_df = self.mass_features_dataframe.copy()
@@ -2134,37 +2218,176 @@ class LCMSCollection(LCMSCollectionCalculations):
         mf_df.reset_index(drop = True, inplace = True)
         mf_df['cluster'] = mf_df['cluster'].astype(int)
         
-        # If how == intensity, find the sample with highest intensity in each cluster and return that mass feature's data
-        if how == 'intensity':
-            int_table = self.collection_pivot_table(attribute = 'intensity', verbose = False).idxmax(axis = 1)
-            id_list = []
-            for i in range(len(int_table)):
-                id_list.append(
-                    mf_df[
-                        (mf_df.sample_id == int_table.iloc[i]) & (mf_df.cluster == int_table.index[i])
-                    ].coll_mf_id.values[0]
-                )
-            return mf_df[mf_df.coll_mf_id.isin(id_list)].sort_values(by = 'cluster').set_index('cluster')
-
-        # If how == mean or median, group by cluster and calculate mean or median for each attribute
-        elif how == 'mean' or how == 'median':
-            #TODO KRH: Clean up this section
-            ## will have to go back and check mf_df.dtypes to see what ends up on list
-            ## this format removes int columns like 'sample_id' and 'cluster'
-            l = mf_df.select_dtypes(include='float64').columns.tolist()
-            ## for some reason, the following 4 items get saved as floats instead of ints
-            ## can either leave this or track down how they're recorded and fix it at the source
-            ## possible they're recorded as ints for regular mass features and floats for induced, making the column default to the more general
-            l = [x for x in l if x not in ['scan_time', 'apex_scan', 'partition_idx', 'idx']]
-            agg_dict = {k: [how] for k in l}
-            agg_dict['sample_id'] = ['nunique']
-
-            df = (mf_df.groupby("cluster").agg(agg_dict).reset_index())
-
-            return df.sort_values(by = 'cluster').set_index('cluster')
-
+        # Calculate number of samples per cluster
+        cluster_sample_counts = mf_df.groupby('cluster')['sample_id'].nunique().to_dict()
+        
+        # Use the same representative selection logic as process_consensus_features
+        # This uses the configured representative_metric from parameters
+        representatives = self.get_representative_mass_features_for_all_clusters()
+        
+        # Get the coll_mf_ids of the representatives
+        representative_ids = representatives['coll_mf_id'].tolist()
+        
+        # Filter mf_df to only include representative features
+        consensus_report = mf_df[mf_df.coll_mf_id.isin(representative_ids)].copy()
+        
+        # Add polarity (get from first sample in collection)
+        if len(self) > 0:
+            polarity = self[0].polarity
         else:
-            print("Assign 'how' argument as either 'intensity', 'mean', or 'median'")
+            polarity = 'unknown'
+        consensus_report['polarity'] = polarity
+        
+        # Add number of samples detected
+        consensus_report['n_samples_detected'] = consensus_report['cluster'].map(cluster_sample_counts)
+        
+        # Reorder columns to put cluster at the front
+        cols = consensus_report.columns.tolist()
+        if 'cluster' in cols:
+            cols.remove('cluster')
+            cols = ['cluster'] + cols
+            consensus_report = consensus_report[cols]
+        
+        # Sort by cluster and return with cluster as a regular column
+        return consensus_report.sort_values(by='cluster')
+
+    def feature_annotations_table(self, molecular_metadata=None, drop_unannotated=False):
+        """Generate a comprehensive annotation table for all loaded mass features across samples.
+        
+        This method consolidates MS1 molecular formula assignments and MS2 spectral 
+        search results for all mass features across all samples in the collection.
+        Only includes representative mass features (one per cluster per sample).
+        
+        Parameters
+        ----------
+        molecular_metadata : dict, optional
+            Dictionary of MolecularMetadata objects, keyed by metabref_mol_id.
+            Required for including molecular metadata in MS2 annotations.
+            Default is None.
+        drop_unannotated : bool, optional
+            If True, drops rows where all annotation columns (everything except 
+            cluster, MS2 Spectrum, and representative_sample) are NaN.
+            Default is False.
+        
+        Returns
+        -------
+        pd.DataFrame
+            Consolidated annotation report with columns including:
+            - cluster: cluster ID
+            - sample_name: sample name
+            - sample_id: sample ID
+            - Mass Feature ID: mass feature ID within the sample
+            - Mass feature attributes (mz, scan_time, intensity, etc.)
+            - MS1 annotations (if molecular_formula_search was run)
+            - MS2 annotations (if ms2_spectral_search was run)
+        
+        Notes
+        -----
+        This method uses the standard LCMSMetabolomicsExport.to_report() workflow
+        for each sample, then consolidates all results and adds cluster information.
+        
+        Only mass features that are loaded in each sample's mass_features dict
+        are included (typically the representative features if load_representatives
+        was used in process_consensus_features).
+        """
+        from corems.mass_spectra.output.export import LCMSMetabolomicsExport
+        
+        # Collect reports from all samples
+        all_sample_reports = []
+        
+        for sample_id, lcms_obj in enumerate(self):
+            # Skip samples with no loaded mass features
+            if not hasattr(lcms_obj, 'mass_features') or len(lcms_obj.mass_features) == 0:
+                continue
+            
+            sample_name = self.samples[sample_id]
+            
+            # Create exporter and generate report using standard workflow
+            exporter = LCMSMetabolomicsExport("temp", lcms_obj)
+            sample_report = exporter.to_report(molecular_metadata=molecular_metadata)
+            
+            # Add sample information
+            sample_report['representative_sample'] = sample_name
+            sample_report['sample_id'] = sample_id
+            
+            # Get cluster information from the mass_features_dataframe
+            # Build coll_mf_id for each row to look up cluster
+            sample_report['coll_mf_id'] = sample_report['sample_id'].astype(str) + "_" + sample_report['Mass Feature ID'].astype(str)
+            
+            # Get cluster from mass_features_dataframe
+            if self.mass_features_dataframe is not None and 'cluster' in self.mass_features_dataframe.columns:
+                mf_df = self.mass_features_dataframe.reset_index()
+                cluster_lookup = mf_df.set_index('coll_mf_id')['cluster'].to_dict()
+                sample_report['cluster'] = sample_report['coll_mf_id'].map(cluster_lookup)
+            else:
+                sample_report['cluster'] = None
+            
+            # Drop temporary coll_mf_id column
+            sample_report = sample_report.drop(columns=['coll_mf_id'])
+            
+            all_sample_reports.append(sample_report)
+        
+        # Combine all sample reports
+        if len(all_sample_reports) == 0:
+            raise ValueError("No samples with loaded mass features found in collection")
+        
+        collection_report = pd.concat(all_sample_reports, ignore_index=True)
+        
+        # Reorder columns to match specified order
+        desired_cols = [
+            'cluster',
+            'Isotopologue Type',
+            'Is Largest Ion after Deconvolution',
+            'MS2 Spectrum',
+            'Calculated m/z',
+            'm/z Error (ppm)',
+            'm/z Error Score',
+            'Isotopologue Similarity',
+            'Confidence Score',
+            'Ion Formula',
+            'Ion Type',
+            'Molecular Formula',
+            'inchikey',
+            'name',
+            'ref_ms_id',
+            'Entropy Similarity',
+            'Library mzs in Query (fraction)',
+            'Spectra with Annotation (n)',
+            'representative_sample'
+        ]
+        
+        # Include only desired columns that exist, maintaining order
+        cols = [col for col in desired_cols if col in collection_report.columns]
+        collection_report = collection_report[cols]
+        
+        # Optionally drop rows without any annotations
+        if drop_unannotated:
+            # Columns to exclude from the "all NA" check
+            exclude_cols = ['cluster', 'MS2 Spectrum', 'representative_sample']
+            # Get annotation columns (everything except the excluded ones)
+            annot_cols = [col for col in collection_report.columns if col not in exclude_cols]
+            # Keep rows where at least one annotation column is not NA
+            if len(annot_cols) > 0:
+                collection_report = collection_report[collection_report[annot_cols].notna().any(axis=1)]
+        
+        # Sort by cluster, then by annotation quality
+        sort_cols = ['cluster']
+        if 'Entropy Similarity' in collection_report.columns:
+            sort_cols.extend(['Entropy Similarity', 'Confidence Score'])
+            collection_report = collection_report.sort_values(
+                by=sort_cols,
+                ascending=[True, False, False]
+            )
+        elif 'Confidence Score' in collection_report.columns:
+            sort_cols.append('Confidence Score')
+            collection_report = collection_report.sort_values(
+                by=sort_cols,
+                ascending=[True, False]
+            )
+        else:
+            collection_report = collection_report.sort_values(by=sort_cols)
+        
+        return collection_report
 
     @property
     def parameters(self):

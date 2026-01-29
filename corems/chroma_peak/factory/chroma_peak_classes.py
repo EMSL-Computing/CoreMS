@@ -139,6 +139,9 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         The persistence of the feature.
     _eic_data : EIC_Data
         The EIC data object associated with the feature.
+    _eic_mz : float
+        The m/z value used to extract the EIC data,
+        sometimes different from the observed m/z due to calibration, centroiding, or other processing.
     _dispersity_index : float
         The dispersity index of the feature, in minutes.
     _normalized_dispersity_index : float
@@ -256,6 +259,194 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         if abs(mz_diff) < 0.01:
             self._mz_exp = new_mz
 
+    def _plot_ms1_spectrum(self, ax, deconvoluted=False, sample_name=None):
+        """Internal method to plot MS1 spectrum on a given axis.
+        
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes
+            The axis to plot on.
+        deconvoluted : bool, optional
+            If True and deconvoluted spectrum exists, plot both raw and deconvoluted. Default is False.
+        sample_name : str, optional
+            Sample name to include in title. Default is None.
+        """
+        if self.mass_spectrum is None:
+            raise ValueError("MS1 spectrum is not available")
+        
+        title_prefix = "MS1 (deconvoluted)" if deconvoluted else "MS1 (raw)"
+        if sample_name:
+            ax.set_title(f"{title_prefix} - {sample_name}", loc="left")
+        else:
+            ax.set_title(title_prefix, loc="left")
+        
+        if deconvoluted and self._ms_deconvoluted_idx is not None:
+            # Plot both raw and deconvoluted
+            ax.vlines(
+                self.mass_spectrum.mz_exp,
+                0,
+                self.mass_spectrum.abundance,
+                color="k",
+                alpha=0.2,
+                label="Raw MS1",
+            )
+            ax.vlines(
+                self.mass_spectrum_deconvoluted.mz_exp,
+                0,
+                self.mass_spectrum_deconvoluted.abundance,
+                color="k",
+                label="Deconvoluted MS1",
+            )
+            ax.set_xlim(
+                self.mass_spectrum_deconvoluted.mz_exp.min() * 0.8,
+                self.mass_spectrum_deconvoluted.mz_exp.max() * 1.1,
+            )
+            ax.set_ylim(
+                0, self.mass_spectrum_deconvoluted.abundance.max() * 1.1
+            )
+        else:
+            # Plot raw only
+            ax.vlines(
+                self.mass_spectrum.mz_exp,
+                0,
+                self.mass_spectrum.abundance,
+                color="k",
+                label="Raw MS1",
+            )
+            ax.set_xlim(
+                self.mass_spectrum.mz_exp.min() * 0.8,
+                self.mass_spectrum.mz_exp.max() * 1.1,
+            )
+            ax.set_ylim(bottom=0)
+        
+        # Highlight the feature m/z if close enough
+        if abs(self.ms1_peak.mz_exp - self.mz) < 0.01:
+            ax.vlines(
+                self.ms1_peak.mz_exp,
+                0,
+                self.ms1_peak.abundance,
+                color="m",
+                label="Feature m/z",
+            )
+        else:
+            if self.chromatogram_parent.parameters.lc_ms.verbose_processing:
+                print(
+                    f"The m/z of the mass feature {self.id} is different from the m/z of MS1 peak, "
+                    "the MS1 peak will not be plotted"
+                )
+        
+        ax.legend(loc="upper left")
+        ax.set_ylabel("Intensity")
+        ax.set_xlabel("m/z")
+        ax.yaxis.set_tick_params(labelleft=False)
+    
+    def _plot_ms2_spectrum(self, ax, sample_name=None):
+        """Internal method to plot MS2 spectrum on a given axis.
+        
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes
+            The axis to plot on.
+        sample_name : str, optional
+            Sample name to include in title. Default is None.
+        """
+        if len(self.ms2_mass_spectra) == 0:
+            raise ValueError("MS2 spectrum is not available")
+        
+        if sample_name:
+            ax.set_title(f"MS2 - {sample_name}", loc="left")
+        else:
+            ax.set_title("MS2", loc="left")
+        
+        ax.vlines(
+            self.best_ms2.mz_exp, 0, self.best_ms2.abundance, color="k"
+        )
+        ax.set_ylabel("Intensity")
+        ax.set_xlabel("m/z")
+        ax.set_ylim(bottom=0)
+        ax.yaxis.get_major_formatter().set_scientific(False)
+        ax.yaxis.get_major_formatter().set_useOffset(False)
+    
+    def _plot_single_eic(self, ax, plot_smoothed=False, plot_datapoints=False, 
+                         eic_buffer_time=None, show_ms2_scan=True):
+        """Internal method to plot a single EIC on a given axis.
+        
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes
+            The axis to plot on.
+        plot_smoothed : bool, optional
+            If True, plot smoothed EIC. Default is False.
+        plot_datapoints : bool, optional
+            If True, plot EIC datapoints. Default is False.
+        eic_buffer_time : float, optional
+            Time buffer around the peak (minutes). If None, uses parameter setting. Default is None.
+        show_ms2_scan : bool, optional
+            If True and MS2 scans exist, show vertical line at MS2 scan time. Default is True.
+        """
+        if self._eic_data is None:
+            raise ValueError("EIC data is not available")
+        
+        if eic_buffer_time is None:
+            eic_buffer_time = self.chromatogram_parent.parameters.lc_ms.eic_buffer_time
+        
+        ax.set_title("EIC", loc="left")
+        ax.plot(
+            self._eic_data.time, self._eic_data.eic, c="tab:blue", label="EIC"
+        )
+        
+        if plot_datapoints:
+            ax.scatter(
+                self._eic_data.time,
+                self._eic_data.eic,
+                c="tab:blue",
+                label="EIC Data Points",
+            )
+        
+        if plot_smoothed and hasattr(self._eic_data, 'eic_smoothed'):
+            ax.plot(
+                self._eic_data.time,
+                self._eic_data.eic_smoothed,
+                c="tab:red",
+                label="Smoothed EIC",
+            )
+        
+        # Fill integrated area if available
+        if self.start_scan is not None:
+            ax.fill_between(
+                self.eic_rt_list, self.eic_list, color="b", alpha=0.2
+            )
+        else:
+            if self.chromatogram_parent.parameters.lc_ms.verbose_processing:
+                print(
+                    f"No start and final scan numbers were provided for mass feature {self.id}"
+                )
+        
+        ax.set_ylabel("Intensity")
+        ax.set_xlabel("Time (minutes)")
+        ax.set_ylim(0, self.eic_list.max() * 1.1)
+        ax.set_xlim(
+            self.retention_time - eic_buffer_time,
+            self.retention_time + eic_buffer_time,
+        )
+        ax.axvline(
+            x=self.retention_time, color="k", label="MS1 scan time (apex)"
+        )
+        
+        # Show MS2 scan time if available and requested
+        if show_ms2_scan and len(self.ms2_scan_numbers) > 0:
+            ax.axvline(
+                x=self.chromatogram_parent.get_time_of_scan_id(
+                    self.best_ms2.scan_number
+                ),
+                color="grey",
+                linestyle="--",
+                label="MS2 scan time",
+            )
+        
+        ax.legend(loc="upper left")
+        ax.yaxis.get_major_formatter().set_useOffset(False)
+
     def plot(
         self,
         to_plot=["EIC", "MS1", "MS2"],
@@ -284,10 +475,6 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             The figure object if `return_fig` is True.
             Otherwise None and the figure is displayed.
         """
-
-        # EIC plot preparation
-        eic_buffer_time = self.chromatogram_parent.parameters.lc_ms.eic_buffer_time
-
         # Adjust to_plot list if there are not spectra added to the mass features
         if self.mass_spectrum is None:
             to_plot = [x for x in to_plot if x != "MS1"]
@@ -295,160 +482,36 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             to_plot = [x for x in to_plot if x != "MS2"]
         if self._eic_data is None:
             to_plot = [x for x in to_plot if x != "EIC"]
-        if self._ms_deconvoluted_idx is not None:
-            deconvoluted = True
-        else:
-            deconvoluted = False
+        
+        deconvoluted = self._ms_deconvoluted_idx is not None
 
         fig, axs = plt.subplots(
             len(to_plot), 1, figsize=(9, len(to_plot) * 4), squeeze=False
         )
         fig.suptitle(
-            "Mass Feature "
-            + str(self.id)
-            + ": m/z = "
-            + str(round(self.mz, ndigits=4))
-            + "; time = "
-            + str(round(self.retention_time, ndigits=1))
-            + " minutes"
+            f"Mass Feature {self.id}: m/z = {round(self.mz, ndigits=4)}; "
+            f"time = {round(self.retention_time, ndigits=1)} minutes"
         )
 
         i = 0
         # EIC plot
         if "EIC" in to_plot:
-            if self._eic_data is None:
-                raise ValueError(
-                    "EIC data is not available, cannot plot the mass feature's EIC"
-                )
-            axs[i][0].set_title("EIC", loc="left")
-            axs[i][0].plot(
-                self._eic_data.time, self._eic_data.eic, c="tab:blue", label="EIC"
+            self._plot_single_eic(
+                axs[i][0], 
+                plot_smoothed=plot_smoothed_eic,
+                plot_datapoints=plot_eic_datapoints
             )
-            if plot_eic_datapoints:
-                axs[i][0].scatter(
-                    self._eic_data.time,
-                    self._eic_data.eic,
-                    c="tab:blue",
-                    label="EIC Data Points",
-                )
-            if plot_smoothed_eic:
-                axs[i][0].plot(
-                    self._eic_data.time,
-                    self._eic_data.eic_smoothed,
-                    c="tab:red",
-                    label="Smoothed EIC",
-                )
-            if self.start_scan is not None:
-                axs[i][0].fill_between(
-                    self.eic_rt_list, self.eic_list, color="b", alpha=0.2
-                )
-            else:
-                if self.chromatogram_parent.parameters.lc_ms.verbose_processing:
-                    print(
-                        "No start and final scan numbers were provided for mass feature "
-                        + str(self.id)
-                    )
-            axs[i][0].set_ylabel("Intensity")
-            axs[i][0].set_xlabel("Time (minutes)")
-            axs[i][0].set_ylim(0, self.eic_list.max() * 1.1)
-            axs[i][0].set_xlim(
-                self.retention_time - eic_buffer_time,
-                self.retention_time + eic_buffer_time,
-            )
-            axs[i][0].axvline(
-                x=self.retention_time, color="k", label="MS1 scan time (apex)"
-            )
-            if len(self.ms2_scan_numbers) > 0:
-                axs[i][0].axvline(
-                    x=self.chromatogram_parent.get_time_of_scan_id(
-                        self.best_ms2.scan_number
-                    ),
-                    color="grey",
-                    linestyle="--",
-                    label="MS2 scan time",
-                )
-            axs[i][0].legend(loc="upper left")
-            axs[i][0].yaxis.get_major_formatter().set_useOffset(False)
             i += 1
 
         # MS1 plot
         if "MS1" in to_plot:
-            if deconvoluted:
-                axs[i][0].set_title("MS1 (deconvoluted)", loc="left")
-                axs[i][0].vlines(
-                    self.mass_spectrum.mz_exp,
-                    0,
-                    self.mass_spectrum.abundance,
-                    color="k",
-                    alpha=0.2,
-                    label="Raw MS1",
-                )
-                axs[i][0].vlines(
-                    self.mass_spectrum_deconvoluted.mz_exp,
-                    0,
-                    self.mass_spectrum_deconvoluted.abundance,
-                    color="k",
-                    label="Deconvoluted MS1",
-                )
-                axs[i][0].set_xlim(
-                    self.mass_spectrum_deconvoluted.mz_exp.min() * 0.8,
-                    self.mass_spectrum_deconvoluted.mz_exp.max() * 1.1,
-                )
-                axs[i][0].set_ylim(
-                    0, self.mass_spectrum_deconvoluted.abundance.max() * 1.1
-                )
-            else:
-                axs[i][0].set_title("MS1 (raw)", loc="left")
-                axs[i][0].vlines(
-                    self.mass_spectrum.mz_exp,
-                    0,
-                    self.mass_spectrum.abundance,
-                    color="k",
-                    label="Raw MS1",
-                )
-                axs[i][0].set_xlim(
-                    self.mass_spectrum.mz_exp.min() * 0.8,
-                    self.mass_spectrum.mz_exp.max() * 1.1,
-                )
-                axs[i][0].set_ylim(bottom=0)
-
-            if (self.ms1_peak.mz_exp - self.mz) < 0.01:
-                axs[i][0].vlines(
-                    self.ms1_peak.mz_exp,
-                    0,
-                    self.ms1_peak.abundance,
-                    color="m",
-                    label="Feature m/z",
-                )
-
-            else:
-                if self.chromatogram_parent.parameters.lc_ms.verbose_processing:
-                    print(
-                        "The m/z of the mass feature "
-                        + str(self.id)
-                        + " is different from the m/z of MS1 peak, the MS1 peak will not be plotted"
-                    )
-            axs[i][0].legend(loc="upper left")
-            axs[i][0].set_ylabel("Intensity")
-            axs[i][0].set_xlabel("m/z")
-            axs[i][0].yaxis.set_tick_params(labelleft=False)
+            self._plot_ms1_spectrum(axs[i][0], deconvoluted=deconvoluted)
             i += 1
 
         # MS2 plot
         if "MS2" in to_plot:
-            axs[i][0].set_title("MS2", loc="left")
-            axs[i][0].vlines(
-                self.best_ms2.mz_exp, 0, self.best_ms2.abundance, color="k"
-            )
-            axs[i][0].set_ylabel("Intensity")
-            axs[i][0].set_xlabel("m/z")
-            axs[i][0].set_ylim(bottom=0)
-            axs[i][0].yaxis.get_major_formatter().set_scientific(False)
-            axs[i][0].yaxis.get_major_formatter().set_useOffset(False)
-            axs[i][0].set_xlim(
-                self.best_ms2.mz_exp.min() * 0.8, self.best_ms2.mz_exp.max() * 1.1
-            )
-            axs[i][0].yaxis.set_tick_params(labelleft=False)
+            self._plot_ms2_spectrum(axs[i][0])
+            i += 1
 
         # Add space between subplots
         plt.tight_layout()
