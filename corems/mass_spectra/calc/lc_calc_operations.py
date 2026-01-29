@@ -1005,7 +1005,6 @@ class LoadEICsOperation(SampleOperation):
         from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
         
         sample = collection[sample_id]
-        sample_name = collection.samples[sample_id]
         
         # If no cluster info provided or no m/z values for this sample, return early
         if cluster_mz_dict is None or sample_id not in cluster_mz_dict:
@@ -1017,15 +1016,11 @@ class LoadEICsOperation(SampleOperation):
         # Load EICs for each of the sample_cluster_mz
         hdf5_path = sample.file_location
         if hdf5_path and hdf5_path.exists():
-            try:
-                reader = ReadCoreMSHDFMassSpectra(str(hdf5_path))
-                reader.import_eics(sample, mz_list=list(sample_cluster_mz))
-                # Return the loaded EICs for multiprocessing collection
-                # (modifications in worker process don't persist to main process)
-                return sample.eics.copy()
-            except (KeyError, AttributeError):
-                # No EIC data in HDF5 file for these m/z values
-                return {}
+            reader = ReadCoreMSHDFMassSpectra(str(hdf5_path))
+            reader.import_eics(sample, mz_list=list(sample_cluster_mz))
+            # Return the loaded EICs for multiprocessing collection
+            # (modifications in worker process don't persist to main process)
+            return sample.eics.copy()
         
         return {}
     
@@ -1049,10 +1044,6 @@ class LoadEICsOperation(SampleOperation):
         if result:
             # Update sample.eics with loaded EICs
             collection[sample_id].eics.update(result)
-            
-            # Re-associate EICs with mass features (same logic as import_eics)
-            sample = collection[sample_id]
-            for idx in sample.mass_features.keys():
-                mz = sample.mass_features[idx].mz
-                if mz in sample.eics.keys():
-                    sample.mass_features[idx]._eic_data = sample.eics[mz]
+            # Note: EIC association with mass features happens after pipeline completes
+            # to avoid multiprocessing issues (modifications in worker processes don't
+            # persist to main process objects)
