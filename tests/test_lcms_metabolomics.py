@@ -124,6 +124,19 @@ def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
     assert report['Ion Formula'][1] == 'C24 H47 O2'
     assert report['chebi'][1] == 28866
 
+    # Test plotting mass feature with MS2 mirror plot
+    # Get mass feature ID from the second row of the report
+    mass_feature_id_to_plot = report['Mass Feature ID'][1]
+    mass_feature_to_plot = lcms_obj.mass_features[mass_feature_id_to_plot]
+    
+    # Plot with MS2 mirror plot
+    fig = mass_feature_to_plot.plot(
+        to_plot=["EIC", "MS1", "MS2_mirror"],
+        return_fig=True,
+        msp_interface=my_msp
+    )
+    assert fig is not None
+
     # Reload the saved lcms object and check that mass features are still present
     parser = ReadCoreMSHDFMassSpectra(
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab.corems/Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab.hdf5"

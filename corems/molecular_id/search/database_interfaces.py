@@ -5,6 +5,7 @@ from io import StringIO
 from pathlib import Path
 import time
 import json
+import warnings
 
 import numpy as np
 import requests
@@ -1112,6 +1113,31 @@ class MSPInterface(SpectralDatabaseInterface):
                     df[column] = pd.to_numeric(df[column], errors="raise")
                 except:
                     pass
+        
+        # Standardize spectra ID column name
+        # Check for common variations and create a standard 'spectra_id' column
+        spectra_id_variants = ['spectrum_id', 'gnps_spectra_id']
+        for variant in spectra_id_variants:
+            if variant in df.columns and 'spectra_id' not in df.columns:
+                df['spectra_id'] = df[variant]
+                break
+        
+        # If no spectra_id column exists after checking variants, create one with sequential IDs
+        if 'spectra_id' not in df.columns:
+            df['spectra_id'] = [f"spectrum_{i:06d}" for i in range(len(df))]
+        
+        # Standardize compound name column
+        # Ensure 'compound_name' column exists, using 'name' field
+        if 'name' in df.columns and 'compound_name' not in df.columns:
+            df['compound_name'] = df['name']
+        elif 'compound_name' not in df.columns:
+            warnings.warn(
+                "MSP file does not contain 'name' or 'compound_name' field. "
+                "Compound names will be set to 'Unknown'. This may affect plot labels and annotations.",
+                UserWarning
+            )
+            df['compound_name'] = 'Unknown'
+        
         return df
 
     def _to_df(self, input_dataframe, normalize=True):
