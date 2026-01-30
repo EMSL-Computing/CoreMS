@@ -1743,9 +1743,13 @@ class LCMSMetabolomicsExport(LCMSExport):
         mf_report = mf_report.reset_index(drop=False)
 
         # Get and clean ms1 annotation dataframe
-        ms1_annot_report = self.mass_spectra.mass_features_ms1_annot_to_df().copy()
-        ms1_annot_report = self.clean_ms1_report(ms1_annot_report)
-        ms1_annot_report = ms1_annot_report.reset_index(drop=False)
+        ms1_annot_report = self.mass_spectra.mass_features_ms1_annot_to_df()
+        if ms1_annot_report is not None:
+            ms1_annot_report = ms1_annot_report.copy()
+            ms1_annot_report = self.clean_ms1_report(ms1_annot_report)
+            ms1_annot_report = ms1_annot_report.reset_index(drop=False)
+        else:
+            ms1_annot_report = None
 
         # Get, summarize, and clean ms2 annotation dataframe
         ms2_annot_report = self.mass_spectra.mass_features_ms2_annot_to_df(

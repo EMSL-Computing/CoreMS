@@ -2306,8 +2306,31 @@ class LCMSCollection(LCMSCollectionCalculations):
         Only mass features that are loaded in each sample's mass_features dict
         are included (typically the representative features if load_representatives
         was used in process_consensus_features).
+        
+        Raises
+        ------
+        ValueError
+            If no representative features have been loaded. Call process_consensus_features
+            with load_representatives=True first.
+        ValueError
+            If no samples with loaded mass features are found in the collection.
         """
         from corems.mass_spectra.output.export import LCMSMetabolomicsExport
+        import warnings
+        
+        # Check if representative features have been loaded
+        # Count samples with mass features loaded
+        samples_with_features = sum(
+            1 for lcms_obj in self 
+            if hasattr(lcms_obj, 'mass_features') and len(lcms_obj.mass_features) > 0
+        )
+        
+        if samples_with_features == 0:
+            raise ValueError(
+                "No representative mass features have been loaded into individual samples. "
+                "Call process_consensus_features() with load_representatives=True before "
+                "calling feature_annotations_table()."
+            )
         
         # Collect reports from all samples
         all_sample_reports = []

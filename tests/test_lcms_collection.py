@@ -519,6 +519,74 @@ def test_lcms_collection_feature_annotations_table(lcms_collection, msp_file_loc
         raise AssertionError("Expected 'Entropy Similarity' column in annotations table after MS2 spectral search")
 
 
+def test_lcms_collection_molecular_formula_search(lcms_collection, postgres_database):
+    """Test molecular formula search on consensus features."""
+    # Setup: align and cluster
+    if not lcms_collection.rt_aligned:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
+    
+    # Set molecular search parameters for all samples (negative mode)
+    for lcms_obj in lcms_collection:
+        ms1_params = lcms_obj.parameters.mass_spectrum['ms1']
+        ms1_params.molecular_search.url_database = postgres_database
+        ms1_params.molecular_search.error_method = "None"
+        ms1_params.molecular_search.min_ppm_error = -5
+        ms1_params.molecular_search.max_ppm_error = 5
+        ms1_params.molecular_search.mz_error_range = 1
+        ms1_params.molecular_search.isProtonated = True  # Deprotonated in negative mode
+        ms1_params.molecular_search.isRadical = False
+        ms1_params.molecular_search.isAdduct = False
+        ms1_params.molecular_search.usedAtoms = {
+            'C': (1, 90),
+            'H': (4, 200),
+            'O': (0, 30),
+            'N': (0, 3),
+            'P': (0, 2),
+            'S': (0, 2),
+        }
+    
+    # Process consensus features with molecular formula search
+    pipeline_results = lcms_collection.process_consensus_features(
+        load_representatives=True,
+        perform_gap_filling=False,
+        add_ms1=True,
+        add_ms2=False,
+        molecular_formula_search=True,
+        ms2_spectral_search=False,
+        spectral_lib=False,
+        molecular_metadata=None,
+        gather_eics=False,
+        keep_raw_data=False
+    )
+    
+    # Get annotations table
+    annotations_table = lcms_collection.feature_annotations_table(
+        molecular_metadata=None,
+        drop_unannotated=False
+    )
+    
+    assert annotations_table is not None
+    assert isinstance(annotations_table, pd.DataFrame)
+    assert len(annotations_table) > 0
+    
+    # Check that molecular formula columns are present (column is called 'Ion Formula')
+    assert 'Ion Formula' in annotations_table.columns
+    assert 'Calculated m/z' in annotations_table.columns
+    
+    # Check that at least some features got molecular formula assignments
+    assigned_formulas = annotations_table[annotations_table['Ion Formula'].notna()]
+    assert len(assigned_formulas) > 0, "Should have at least some molecular formula assignments"
+    
+    # Verify the formulas are reasonable (contain expected elements)
+    first_formula = assigned_formulas['Ion Formula'].iloc[0]
+    assert 'C' in first_formula or 'H' in first_formula, "Molecular formulas should contain C or H"
+    
+    # Check that m/z error columns exist (indicates matching happened)
+    assert 'm/z Error (ppm)' in annotations_table.columns
+    assert 'm/z Error Score' in annotations_table.columns
+
+
 def test_lcms_collection_sample_access(lcms_collection):
     """Test various ways to access samples in the collection."""
     # Test indexing
@@ -568,8 +636,7 @@ def test_lcms_collection_update_raw_file_locations(lcms_collection, tmp_path):
     assert lcms_collection.raw_files_relocated
 
 
-#TODO KRH: fix this test
-def xtest_lcms_collection_minimal_workflow(lcms_collection):
+def test_lcms_collection_minimal_workflow(lcms_collection):
     """
     Test a minimal end-to-end workflow with the collection.
     
@@ -591,8 +658,20 @@ def xtest_lcms_collection_minimal_workflow(lcms_collection):
     cluster_count = len(lcms_collection.cluster_summary_dataframe)
     assert cluster_count > 0
     
-    # Step 4: Perform gap filling
-    lcms_collection.search_for_missing_mass_features()
+    # Step 4: Perform gap filling using process_consensus_features
+    # Load representatives and add MS1 so we can create annotations table
+    lcms_collection.process_consensus_features(
+        load_representatives=True,
+        perform_gap_filling=True,
+        add_ms1=True,
+        add_ms2=False,
+        molecular_formula_search=False,
+        ms2_spectral_search=False,
+        spectral_lib=False,
+        molecular_metadata=None,
+        gather_eics=True,
+        keep_raw_data=False
+    )
     
     # Step 5: Create reports
     pivot_table = lcms_collection.collection_pivot_table(verbose=False)
@@ -601,11 +680,16 @@ def xtest_lcms_collection_minimal_workflow(lcms_collection):
     cluster_reps = lcms_collection.cluster_representatives_table()
     assert len(cluster_reps) == cluster_count
     
+    # Create annotations table (requires load_representatives=True and add_ms1=True)
     annotations = lcms_collection.feature_annotations_table(
         molecular_metadata=None,
         drop_unannotated=False
     )
     assert annotations is not None
+    assert len(annotations) > 0
+    
+    # Verify we have cluster information in the annotations
+    assert 'cluster' in annotations.columns
     
     # Verify workflow completed successfully
     assert lcms_collection.rt_aligned or lcms_collection.rt_alignment_attempted
