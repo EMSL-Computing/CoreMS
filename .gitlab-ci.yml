@@ -15,6 +15,7 @@ variables:
 
 stages:
   - Pytest
+  - Test Notebooks
   - Build Python Package
   - Push to PyPi
   - Push to Gitlab Registry
@@ -40,6 +41,28 @@ test-source:
   artifacts:
     paths:
       - doc/coverage_html_report  
+
+test-notebooks:
+  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1005
+  stage: Test Notebooks
+  tags:
+    - k8s 
+    - rzr
+    - codebuilds
+  script:
+    - python3 -V  # Print out python version for debugging
+    - python3 -m pip install --upgrade pip
+    - python3 -m pip install -r requirements.txt
+    - python3 -m pip install jupyter nbconvert
+    - python3 -m pip install psycopg2
+    - python3 -m pip install -e .
+    - export PYTHONNET_RUNTIME=coreclr
+    - cd examples && python3 test_notebooks.py
+  
+  artifacts:
+    when: on_failure
+    paths:
+      - /tmp/*_test.ipynb
  
 build:
   
