@@ -541,12 +541,21 @@ def test_lcms_collection_sample_access(lcms_collection):
     assert len(raw_files) == len(lcms_collection)
 
 
-#TODO KRH: fix this test
-def xtest_lcms_collection_update_raw_file_locations(lcms_collection, tmp_path):
+def test_lcms_collection_update_raw_file_locations(lcms_collection, tmp_path):
     """Test updating raw file locations in the collection."""
+    import shutil
+    
     # Create a new path for raw files
     new_raw_folder = tmp_path / "new_raw_location"
     new_raw_folder.mkdir()
+    
+    # Copy the original raw file to the new location for each sample
+    # The samples all use the same original raw file but have different sample names
+    for lcms_obj in lcms_collection:
+        original_raw = lcms_obj.raw_file_location
+        # Create a copy with the sample name in the new location
+        new_raw_file = new_raw_folder / f"{lcms_obj.sample_name}.raw"
+        shutil.copy2(original_raw, new_raw_file)
     
     # Update raw file locations
     lcms_collection.update_raw_file_locations(str(new_raw_folder))
