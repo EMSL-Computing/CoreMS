@@ -5368,10 +5368,11 @@ class LCMSCollectionCalculations:
             # Check if operation can execute on this sample
             sample = self[sample_id]
             if not op.can_execute(sample, self):
-                raise RuntimeError(
-                    f"Operation '{op.name}' cannot execute on sample {sample_id} "
-                    f"({sample.sample_name}). Prerequisites not met."
-                )
+                # Skip this operation for this sample if prerequisites aren't met
+                # This allows processing to continue for samples that don't have
+                # all required data (e.g., MS2 spectra)
+                results[op.name] = None
+                continue
             
             # Prepare operation-specific runtime params
             op_runtime_params = {}

@@ -130,6 +130,12 @@ def lcms_collection(lcms_collection_folder):
     collection.parameters.lcms_collection.alignment_mz_tol_ppm = 5  # Tight m/z tolerance  
     collection.parameters.lcms_collection.alignment_rt_tol = 0.2  # 12 second RT tolerance
     
+    # Set MS2 processing parameters for centroid data
+    for lcms_obj in collection:
+        ms2_params = lcms_obj.parameters.mass_spectrum['ms2']
+        ms2_params.mass_spectrum.noise_threshold_method = "relative_abundance"
+        ms2_params.mass_spectrum.noise_threshold_min_relative_abundance = 1.0
+    
     return collection
 
 
@@ -348,8 +354,7 @@ def test_lcms_collection_pivot_table(lcms_collection):
     assert len(pivot_intensity.columns) == len(lcms_collection.samples)
 
 
-#TODO KRH: fix this test
-def xtest_lcms_collection_cluster_representatives(lcms_collection):
+def test_lcms_collection_cluster_representatives(lcms_collection):
     """Test extraction of representative features for each cluster."""
     # Setup: ensure we have clustered features
     if not lcms_collection.rt_aligned:
@@ -449,25 +454,51 @@ def test_lcms_collection_plot_tics(lcms_collection):
         pytest.fail(f"plot_tics raised an exception: {e}")
 
 
-#TODO KRH: fix this test
-def xtest_lcms_collection_feature_annotations_table(lcms_collection, msp_file_location):
+def test_lcms_collection_feature_annotations_table(lcms_collection, msp_file_location):
     """Test creation of feature annotations table with molecular metadata."""
     # Setup: align and cluster
     if not lcms_collection.rt_aligned:
         lcms_collection.align_lcms_objects()
     lcms_collection.add_consensus_mass_features()
     
-    # Load molecular metadata from MSP file
+    # Load molecular metadata from MSP file with same parameters as test_lcms_metabolomics
     my_msp = MSPInterface(file_path=msp_file_location)
     msp_lib, molecular_metadata = my_msp.get_metabolomics_spectra_library(
         polarity="negative",
         format="flashentropy",
-        normalize=True
+        normalize=True,
+        fe_kwargs={
+            "normalize_intensity": True,
+            "min_ms2_difference_in_da": 0.02,  # for cleaning spectra
+            "max_ms2_tolerance_in_da": 0.01,  # for setting search space
+            "max_indexed_mz": 3000,
+            "precursor_ions_removal_da": None,
+            "noise_threshold": 0,
+        },
     )
     
-    # Create annotations table without metadata first
+    # Set MS2 score threshold to match test_lcms_metabolomics
+    for lcms_obj in lcms_collection:
+        lcms_obj.parameters.lc_ms.ms2_min_fe_score = 0.3
+    
+    # Process consensus features with MS1, MS2, and spectral search
+    # This should add molecular annotations before creating the annotations table
+    pipeline_results = lcms_collection.process_consensus_features(
+        load_representatives=True,
+        perform_gap_filling=False,
+        add_ms1=True,
+        add_ms2=True,
+        molecular_formula_search=False,
+        ms2_spectral_search=True,
+        spectral_lib=msp_lib,
+        molecular_metadata=molecular_metadata,
+        gather_eics=False,
+        keep_raw_data=False
+    )
+    
+    # Create annotations table with metadata
     annotations_table = lcms_collection.feature_annotations_table(
-        molecular_metadata=None,
+        molecular_metadata=molecular_metadata,
         drop_unannotated=False
     )
     
@@ -477,6 +508,15 @@ def xtest_lcms_collection_feature_annotations_table(lcms_collection, msp_file_lo
     
     # Check that cluster information is present
     assert 'cluster' in annotations_table.columns
+    
+    # Check that we got some spectral matches after processing
+    # Look for Entropy Similarity column which indicates MS2 spectral search results
+    if 'Entropy Similarity' in annotations_table.columns:
+        matched_features = annotations_table[annotations_table['Entropy Similarity'].notna()]
+        assert len(matched_features) > 0, "Should have at least some MS2 spectral matches after search"
+    else:
+        # If column doesn't exist, the test should fail
+        raise AssertionError("Expected 'Entropy Similarity' column in annotations table after MS2 spectral search")
 
 
 def test_lcms_collection_sample_access(lcms_collection):
