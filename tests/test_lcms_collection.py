@@ -244,7 +244,6 @@ def test_lcms_collection_consensus_features(lcms_collection):
         assert cluster_id in cluster_dict
 
 
-#TODO KRH: fix this test
 def test_lcms_collection_gap_filling(lcms_collection):
     """Test gap filling to create induced mass features."""
     # Setup: align and cluster first
@@ -296,23 +295,49 @@ def test_lcms_collection_gap_filling(lcms_collection):
     assert len(lcms_collection[2].induced_mass_features) == 0
 
 
-#TODO KRH: fix this test
-def xtest_lcms_collection_pivot_table(lcms_collection):
+def test_lcms_collection_pivot_table(lcms_collection):
     """Test creation of pivot tables for collection data."""
     # Setup: ensure we have clustered features
     if not lcms_collection.rt_aligned:
         lcms_collection.align_lcms_objects()
     lcms_collection.add_consensus_mass_features()
     
-    # Create pivot table with default attribute (coll_mf_id)
+    # Create pivot table with default attribute (coll_mf_id) before gap-filling
     pivot_df = lcms_collection.collection_pivot_table(verbose=False)
     
     # Check that pivot table was created
     assert pivot_df is not None
     assert isinstance(pivot_df, pd.DataFrame)
     
-    # Check dimensions: rows should be clusters, columns should be samples
+    # Check that all samples are included (even sample 3 with no features)
     assert len(pivot_df.columns) == len(lcms_collection.samples)
+    assert 'test_sample_03' in pivot_df.columns
+    
+    # Sample 3 should have all NAs before gap-filling
+    assert pivot_df['test_sample_03'].isna().all(), "Sample 3 should have all NAs before gap-filling"
+    
+    # Perform gap-filling
+    lcms_collection.process_consensus_features(
+        load_representatives=False,
+        perform_gap_filling=True,
+        add_ms1=False,
+        add_ms2=False,
+        molecular_formula_search=False,
+        ms2_spectral_search=False,
+        spectral_lib=False,
+        molecular_metadata=None,
+        gather_eics=True,
+        keep_raw_data=False
+    )
+    
+    # Create pivot table again after gap-filling
+    pivot_df_after = lcms_collection.collection_pivot_table(verbose=False)
+    
+    # Sample 3 should no longer have all NAs after gap-filling
+    assert not pivot_df_after['test_sample_03'].isna().all(), "Sample 3 should have filled features after gap-filling"
+    
+    # Check that sample 3 has exactly 50 non-NA values (one for each cluster)
+    assert pivot_df_after['test_sample_03'].notna().sum() == 50, "Sample 3 should have 50 gap-filled features"
     
     # Create pivot table with intensity attribute
     pivot_intensity = lcms_collection.collection_pivot_table(

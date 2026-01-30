@@ -2159,11 +2159,17 @@ class LCMSCollection(LCMSCollectionCalculations):
         
         mf_pivot = self.mass_features_dataframe.copy()
         mf_pivot.reset_index(inplace = True)
-        imf_pivot = self.induced_mass_features_dataframe.copy()
-        imf_pivot.reset_index(inplace = True)
-        # Cluster column extracted from mf_id in _prepare_lcms_mass_features_for_combination
-        mf_pivot = pd.concat([mf_pivot, imf_pivot], axis = 0)
-        mf_pivot.reset_index(drop = True, inplace = True)
+        
+        # Only include induced mass features if gap-filling has been performed
+        if self.induced_mass_features_dataframe is not None:
+            imf_pivot = self.induced_mass_features_dataframe.copy()
+            imf_pivot.reset_index(inplace = True)
+            # Cluster column extracted from mf_id in _prepare_lcms_mass_features_for_combination
+            mf_pivot = pd.concat([mf_pivot, imf_pivot], axis = 0)
+            mf_pivot.reset_index(drop = True, inplace = True)
+        else:
+            imf_pivot = None
+            
         mf_pivot['cluster'] = mf_pivot['cluster'].astype(int)
 
         if verbose:
@@ -2171,11 +2177,20 @@ class LCMSCollection(LCMSCollectionCalculations):
                 'Attributes available for pivot table:\n',
                 [x for x in mf_pivot.columns if x not in ['cluster', 'sample_name', 'mf_id', 'partition_idx', 'idx']]
             )
-            print(
-                '\nAttributes that have no value for induced mass features:\n',
-                imf_pivot.columns[imf_pivot.isna().all()].tolist()            
-            )
-        return mf_pivot.pivot(index = 'cluster', columns = 'sample_name', values = attribute)
+            if imf_pivot is not None:
+                print(
+                    '\nAttributes that have no value for induced mass features:\n',
+                    imf_pivot.columns[imf_pivot.isna().all()].tolist()            
+                )
+        
+        # Create pivot table and reindex to include all samples (even those with no features)
+        pivot = mf_pivot.pivot(index = 'cluster', columns = 'sample_name', values = attribute)
+        
+        # Reindex columns to include all samples in the collection
+        all_samples = self.samples
+        pivot = pivot.reindex(columns=all_samples)
+        
+        return pivot
 
     def cluster_representatives_table(self):
         """Generate a table of representative mass features from each consensus cluster.
