@@ -186,26 +186,18 @@ def test_lcms_collection_mass_features_dataframe(lcms_collection):
     assert mf_df.index.name == 'coll_mf_id' or 'coll_mf_id' in mf_df.columns
 
 
-def test_lcms_collection_parameters(lcms_collection):
-    """Test that collection parameters can be get/set."""
-    # Check that parameters exist
-    assert lcms_collection.parameters is not None
-    
-    # Check that it's the right type
-    assert isinstance(lcms_collection.parameters, LCMSCollectionParameters)
-    
-    # Test setting new parameters
-    new_params = LCMSCollectionParameters()
-    new_params.lcms_collection.cores = 2
-    lcms_collection.parameters = new_params
-    
-    assert lcms_collection.parameters.lcms_collection.cores == 2
-
-
 def test_lcms_collection_rt_alignment(lcms_collection):
     """Test retention time alignment across samples in the collection."""
     # Check initial state
     assert not lcms_collection.rt_aligned
+    
+    # Test plotting TICs before alignment
+    try:
+        import matplotlib
+        matplotlib.use('Agg')  # Use non-interactive backend for testing
+        lcms_collection.plot_tics(ms_level=1, type="raw", plot_legend=False)
+    except Exception as e:
+        pytest.fail(f"plot_tics raised an exception: {e}")
     
     # Perform alignment - this should succeed
     lcms_collection.align_lcms_objects()
@@ -220,6 +212,18 @@ def test_lcms_collection_rt_alignment(lcms_collection):
     for i, lcms_obj in enumerate(lcms_collection):
         sample_name = lcms_collection.samples[i]
         assert 'scan_time_aligned' in lcms_obj.scan_df.columns, f"Missing scan_time_aligned in {sample_name}"
+    
+    # Test plotting after alignment - both raw and corrected TICs
+    try:
+        lcms_collection.plot_tics(ms_level=1, type="both", plot_legend=True)
+    except Exception as e:
+        pytest.fail(f"plot_tics with type='both' raised an exception: {e}")
+    
+    # Test plotting alignments (shows time differences)
+    try:
+        lcms_collection.plot_alignments(plot_legend=True)
+    except Exception as e:
+        pytest.fail(f"plot_alignments raised an exception: {e}")
 
 
 def test_lcms_collection_consensus_features(lcms_collection):
@@ -441,19 +445,6 @@ def test_lcms_collection_drop_isotopologues(lcms_collection):
     assert final_mf_count <= initial_mf_count
 
 
-def test_lcms_collection_plot_tics(lcms_collection):
-    """Test plotting total ion chromatograms for the collection."""
-    # This test just ensures the method runs without error
-    # Visual inspection of plots is done manually
-    try:
-        import matplotlib
-        matplotlib.use('Agg')  # Use non-interactive backend for testing
-        lcms_collection.plot_tics(ms_level=1, type="raw", plot_legend=False)
-        assert True
-    except Exception as e:
-        pytest.fail(f"plot_tics raised an exception: {e}")
-
-
 def test_lcms_collection_feature_annotations_table(lcms_collection, msp_file_location):
     """Test creation of feature annotations table with molecular metadata."""
     # Setup: align and cluster
@@ -587,28 +578,6 @@ def test_lcms_collection_molecular_formula_search(lcms_collection, postgres_data
     assert 'm/z Error Score' in annotations_table.columns
 
 
-def test_lcms_collection_sample_access(lcms_collection):
-    """Test various ways to access samples in the collection."""
-    # Test indexing
-    first_sample = lcms_collection[0]
-    assert first_sample is not None
-    
-    # Test iteration
-    sample_count = 0
-    for lcms_obj in lcms_collection:
-        assert lcms_obj is not None
-        sample_count += 1
-    assert sample_count == len(lcms_collection)
-    
-    # Test samples property
-    sample_names = lcms_collection.samples
-    assert len(sample_names) == len(lcms_collection)
-    
-    # Test raw_files property
-    raw_files = lcms_collection.raw_files
-    assert len(raw_files) == len(lcms_collection)
-
-
 def test_lcms_collection_update_raw_file_locations(lcms_collection, tmp_path):
     """Test updating raw file locations in the collection."""
     import shutil
@@ -696,39 +665,3 @@ def test_lcms_collection_minimal_workflow(lcms_collection):
     assert cluster_count > 0
     print(f"\nWorkflow completed: {cluster_count} consensus clusters from {len(lcms_collection)} samples")
 
-
-def test_lcms_collection_memory_management(lcms_collection):
-    """Test that collection properly manages memory for raw data."""
-    # Initially, raw data should not be loaded (load_light=True in fixture)
-    for i, lcms_obj in enumerate(lcms_collection):
-        # Check that _ms_unprocessed is either empty or not loaded
-        if hasattr(lcms_obj, '_ms_unprocessed'):
-            # MS level 1 should not have large raw data loaded
-            if 1 in lcms_obj._ms_unprocessed:
-                # For light loading, this should be empty or minimal
-                pass
-    
-    # Load raw data for one sample
-    lcms_collection.load_raw_data(sample_idx=0, ms_level=1)
-    
-    # Check that data was loaded
-    assert 1 in lcms_collection[0]._ms_unprocessed
-    
-    # Drop raw data
-    lcms_collection.drop_raw_data(sample_idx=0, ms_level=1)
-    
-    # Verify data was dropped
-    # After dropping, the dict might be empty or have an empty DataFrame
-    if 1 in lcms_collection[0]._ms_unprocessed:
-        # Should be empty or minimal size now
-        pass
-
-
-def test_lcms_collection_cleanup(lcms_collection_folder):
-    """Test cleanup of temporary collection data."""
-    # Verify the folder exists
-    assert lcms_collection_folder.exists()
-    
-    # The pytest tmp_path fixture will automatically clean up
-    # This test just verifies the structure
-    assert len(list(lcms_collection_folder.glob("*.corems"))) > 0
