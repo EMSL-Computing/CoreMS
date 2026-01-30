@@ -1738,6 +1738,7 @@ class LCMSCollection(LCMSCollectionCalculations):
             mf_df["sample_id"] = []
             mf_df["coll_mf_id"] = []
             mf_df["mf_id"] = []
+            mf_df["_eic_mz"] = []  # Include _eic_mz for consistency with non-empty dataframes
             if induced_features:
                 mf_df["cluster"] = []
             return mf_df
@@ -1822,14 +1823,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         for lcms_obj in self:
             # Skip samples with no induced mass features if processing induced features
             if induced_features:
-                has_attr = hasattr(lcms_obj, 'induced_mass_features')
-                if has_attr:
-                    dict_len = len(lcms_obj.induced_mass_features)
-                    print(f"Sample {lcms_obj.sample_name}: has_attr={has_attr}, len={dict_len}")
-                    if dict_len == 0:
-                        continue
-                else:
-                    print(f"Sample {lcms_obj.sample_name}: has_attr={has_attr}")
+                if not hasattr(lcms_obj, 'induced_mass_features') or len(lcms_obj.induced_mass_features) == 0:
                     continue
             mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj, induced_features)
             mf_df_list.append(mf_df)

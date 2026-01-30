@@ -5005,6 +5005,7 @@ class LCMSCollectionCalculations:
         mfdf = self.mass_features_dataframe
         
         sample_ct = len(self.samples)
+        
         # Identify clusters present in sufficient samples but not all samples
         missingdf = summarydf[[
             'cluster', 
@@ -5019,15 +5020,15 @@ class LCMSCollectionCalculations:
         
         # Check if there are any clusters to gap-fill
         if len(missingdf) == 0:
-            print(f"No clusters found requiring gap-filling with min_cluster_presence={min_cluster_presence}")
-            print(f"All clusters are either present in all samples or below the {min_cluster_presence*100:.0f}% threshold.")
             return
 
         # Find which samples are missing for each cluster
+        # Use range(sample_ct) to include all samples, even those with no mass features
+        all_sample_ids = list(range(sample_ct))
         missing_samples_list = []
         for c in missingdf.cluster.to_numpy():
             cludf = mfdf[mfdf.cluster == c]
-            missing = [x for x in mfdf.sample_id.unique() if x not in cludf.sample_id.unique()]
+            missing = [x for x in all_sample_ids if x not in cludf.sample_id.unique()]
             missing_samples_list.append(missing)
         missingdf['missing_samples'] = missing_samples_list
         
@@ -5266,10 +5267,12 @@ class LCMSCollectionCalculations:
             
             if len(missingdf) > 0:
                 # Find which samples are missing for each cluster
+                # Use range(sample_ct) to include all samples, even those with no mass features
+                all_sample_ids = list(range(sample_ct))
                 missing_samples_list = []
                 for c in missingdf.cluster.to_numpy():
                     cludf = mfdf[mfdf.cluster == c]
-                    missing = [x for x in mfdf.sample_id.unique() if x not in cludf.sample_id.unique()]
+                    missing = [x for x in all_sample_ids if x not in cludf.sample_id.unique()]
                     missing_samples_list.append(missing)
                 missingdf['missing_samples'] = missing_samples_list
                 
@@ -5618,17 +5621,18 @@ class LCMSCollectionCalculations:
             # Mark that gap-filling has been performed
             self.missing_mass_features_searched = True
 
-            # Add ._eic_mz to induced_mass_features_dataframe
-            eics_mz = []
-            for i, row in self.induced_mass_features_dataframe.iterrows():
-                sample_id = row['sample_id']
-                sample = self[sample_id]
-                if row['mf_id'] in sample.induced_mass_features.keys():
-                    eic_mz = sample.induced_mass_features[row['mf_id']]._eic_mz
-                    eics_mz.append(eic_mz)
-                else:
-                    eics_mz.append(None)
-            self.induced_mass_features_dataframe['_eic_mz'] = eics_mz
+            # Add ._eic_mz to induced_mass_features_dataframe if it exists
+            if self.induced_mass_features_dataframe is not None and len(self.induced_mass_features_dataframe) > 0:
+                eics_mz = []
+                for i, row in self.induced_mass_features_dataframe.iterrows():
+                    sample_id = row['sample_id']
+                    sample = self[sample_id]
+                    if row['mf_id'] in sample.induced_mass_features.keys():
+                        eic_mz = sample.induced_mass_features[row['mf_id']]._eic_mz
+                        eics_mz.append(eic_mz)
+                    else:
+                        eics_mz.append(None)
+                self.induced_mass_features_dataframe['_eic_mz'] = eics_mz
 
             # Clear mass features from samples to free memory
             for sample_name in self.samples:
