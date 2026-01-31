@@ -1682,6 +1682,7 @@ class LCMSCollection(LCMSCollectionCalculations):
     Notes
     ------
     This class is not intended to be instantiated directly, but rather instantiated using a parser object and then interacted with.
+    #TODO KRH: add docstrings
     """
 
     def __init__(

@@ -2543,7 +2543,7 @@ class LCMSCollectionCalculations:
         
         # Plot regular (non-induced) mass features
         for _, row in cluster_mfs.iterrows():
-            sample_id = row['sample_id']
+            sample_id = int(row['sample_id'])
             mf_id = row['mf_id']
             sample = lcms_collection[sample_id]
             sample_name = row['sample_name']
@@ -2610,7 +2610,7 @@ class LCMSCollectionCalculations:
         # Plot induced (gap-filled) mass features if available
         if induced_cluster_mfs is not None and not induced_cluster_mfs.empty:
             for _, row in induced_cluster_mfs.iterrows():
-                sample_id = row['sample_id']
+                sample_id = int(row['sample_id'])
                 mf_id = row['mf_id']
                 sample = lcms_collection[sample_id]
                 sample_name = row['sample_name']
@@ -3653,7 +3653,7 @@ class LCMSCollectionCalculations:
 
         kw = dict(
             prop = 'sizes',
-            num = len(df.sample_id_nunique.unique())/3,
+            num = max(1, int(len(df.sample_id_nunique.unique())/3)),
             color = 'tab:orange',
             alpha = 0.7,
             func = lambda s: np.sqrt(s*5)
@@ -3682,6 +3682,8 @@ class LCMSCollectionCalculations:
         plot_eic_datapoints=False,
         eic_buffer_time=None,
         label_samples=False,
+        molecular_metadata=None,
+        spectral_library=None,
     ):
         """
         Plot a consensus mass feature cluster across all samples.
@@ -3694,7 +3696,7 @@ class LCMSCollectionCalculations:
         cluster_id : int
             The cluster ID to plot
         to_plot : list, optional
-            List of strings specifying what to plot: "EIC", "MS1", "MS2".
+            List of strings specifying what to plot: "EIC", "MS1", "MS2", "MS2_mirror".
             Default is ["EIC", "MS1", "MS2"].
         return_fig : bool, optional
             If True, returns the figure object. Default is False.
@@ -3707,6 +3709,12 @@ class LCMSCollectionCalculations:
             If None, uses parameter setting. Default is None.
         label_samples : bool, optional
             If True, labels each sample in the legend. Default is False.
+        molecular_metadata : dict, optional
+            Dictionary mapping molecular IDs to MetaboliteMetadata objects.
+            Required for MS2_mirror plots. Default is None.
+        spectral_library : FlashEntropySearch, optional
+            FlashEntropy spectral library containing MS2 spectra.
+            Required for MS2_mirror plots to retrieve library spectra. Default is None.
             
         Returns
         -------
@@ -3752,7 +3760,7 @@ class LCMSCollectionCalculations:
         if rep_mf.mass_spectrum is None:
             to_plot = [x for x in to_plot if x != "MS1"]
         if len(rep_mf.ms2_mass_spectra) == 0:
-            to_plot = [x for x in to_plot if x != "MS2"]
+            to_plot = [x for x in to_plot if x not in ["MS2", "MS2_mirror"]]
         
         # Check if EICs are available
         cluster_mfs = self.mass_features_dataframe[
@@ -3762,7 +3770,7 @@ class LCMSCollectionCalculations:
         has_eics = False
         # Check regular features
         for _, row in cluster_mfs.iterrows():
-            sample_id = row['sample_id']
+            sample_id = int(row['sample_id'])
             sample = self[sample_id]
             if hasattr(sample, 'eics') and sample.eics:
                 has_eics = True
@@ -3775,7 +3783,7 @@ class LCMSCollectionCalculations:
                 self.induced_mass_features_dataframe['cluster'] == cluster_id
             ]
             for _, row in induced_cluster_mfs.iterrows():
-                sample_id = row['sample_id']
+                sample_id = int(row['sample_id'])
                 sample = self[sample_id]
                 if hasattr(sample, 'eics') and sample.eics:
                     has_eics = True
@@ -3843,6 +3851,11 @@ class LCMSCollectionCalculations:
         # MS2 plot - from representative using helper method
         if "MS2" in to_plot:
             rep_mf._plot_ms2_spectrum(axs[i][0], sample_name=rep_sample.sample_name)
+            i += 1
+        
+        # MS2 mirror plot - from representative using helper method
+        if "MS2_mirror" in to_plot:
+            rep_mf._plot_ms2_mirror(axs[i][0], molecular_metadata=molecular_metadata, spectral_library=spectral_library)
             i += 1
         
         plt.tight_layout()
@@ -4062,11 +4075,12 @@ class LCMSCollectionCalculations:
         # Get the representative row (should only be one)
         rep_row = cluster_rep.iloc[0]
         
-        # Get sample name from sample_id
-        sample_name = self.samples[rep_row['sample_id']]
+        # Get sample name from sample_id (convert to int for list indexing)
+        sample_id = int(rep_row['sample_id'])
+        sample_name = self.samples[sample_id]
         
         return {
-            'sample_id': rep_row['sample_id'],
+            'sample_id': sample_id,
             'sample_name': sample_name,
             'mf_id': rep_row['mf_id'],
             'coll_mf_id': rep_row['coll_mf_id'],
@@ -5645,14 +5659,12 @@ class LCMSCollectionCalculations:
             print("\nAssociating EICs with mass features:")
             from tqdm import tqdm
             
-            # Dictionary to store EIC m/z values for each feature
-            eic_mz_map = {}  # {coll_mf_id: eic_mz}
-            
             for sample_id in tqdm(range(len(self.samples)), unit="sample", ncols=80):
                 sample = self[sample_id]
                 if sample.eics:  # Only if EICs were loaded
                     # Associate EICs with regular mass features
                     sample.associate_eics_with_mass_features(induced=False)
                     # Associate EICs with induced mass features
-                    sample.associate_eics_with_mass_features(induced=True)       
+                    sample.associate_eics_with_mass_features(induced=True)
+                
         return results

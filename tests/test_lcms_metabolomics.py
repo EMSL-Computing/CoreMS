@@ -133,7 +133,7 @@ def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
     fig = mass_feature_to_plot.plot(
         to_plot=["EIC", "MS1", "MS2_mirror"],
         return_fig=True,
-        msp_interface=my_msp
+        molecular_metadata=metabolite_metadata_negative
     )
     assert fig is not None
 

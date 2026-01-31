@@ -367,7 +367,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         ax.yaxis.get_major_formatter().set_scientific(False)
         ax.yaxis.get_major_formatter().set_useOffset(False)
     
-    def _plot_ms2_mirror(self, ax, msp_interface):
+    def _plot_ms2_mirror(self, ax, molecular_metadata=None, spectral_library=None):
         """Internal method to plot MS2 mirror spectrum on a given axis.
         
         Plots experimental MS2 on top (positive) and library MS2 on bottom (negative/mirrored)
@@ -378,8 +378,14 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         ----------
         ax : matplotlib.axes.Axes
             The axis to plot on.
-        msp_interface : MSPInterface
-            MSP interface object to access library spectra.
+        molecular_metadata : dict, optional
+            Dictionary mapping molecular IDs to MetaboliteMetadata objects.
+            If provided, uses metadata for compound names.
+            Default is None.
+        spectral_library : FlashEntropySearch, optional
+            FlashEntropy spectral library containing MS2 spectra.
+            If provided, uses library to retrieve MS2 spectra by ref_ms_id.
+            Default is None.
         """
         if len(self.ms2_mass_spectra) == 0:
             ax.text(0.5, 0.5, 'No MS2 data available', 
@@ -409,7 +415,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         library_ms2_peaks = None
         entropy_similarity = None
         molecule_name = None
-        ms_id = None
+        mol_id = None
         
         if len(self.ms2_similarity_results) > 0:
             # Get all results as dataframes and find the best match
@@ -420,19 +426,21 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             # Get the best match
             best_result = results_df.iloc[0]
             entropy_similarity = best_result['entropy_similarity']
-            ms_id = best_result['ref_ms_id']
+            mol_id = best_result.get('ref_mol_id', None)
+            ref_ms_id = best_result.get('ref_ms_id', None)
             
-            # Get library spectrum from MSP interface
-            msp_df = msp_interface._data_frame
-            msp_matches = msp_df[msp_df['spectra_id'] == ms_id]
+            # Get library spectrum from spectral_library using ref_ms_id
+            if spectral_library is not None and ref_ms_id is not None:
+                # Get the IDs in the spectral library
+                fe_spec_index = [x["id"] for x in spectral_library].index(ref_ms_id)
+                library_ms2_peaks = spectral_library[fe_spec_index]['peaks']
             
-            if len(msp_matches) > 0:
-                msp_entry = msp_matches.iloc[0]
-                # Get compound name from the MSP entry
-                molecule_name = msp_entry.get('compound_name', msp_entry.get('name', 'Unknown'))
-                peaks = msp_entry['peaks']
-                if peaks is not None and len(peaks) > 0:
-                    library_ms2_peaks = np.array(peaks)
+            # Get compound name from molecular_metadata using mol_id
+            if molecular_metadata is not None and mol_id is not None:
+                if mol_id in molecular_metadata:
+                    metadata = molecular_metadata[mol_id]
+                    # Get compound name from metadata
+                    molecule_name = getattr(metadata, 'common_name', getattr(metadata, 'name', 'Unknown'))
         
         # Plot library MS2 on bottom (negative/mirrored)
         if library_ms2_peaks is not None and len(library_ms2_peaks) > 0:
@@ -444,12 +452,12 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             # Mirror to negative
             lib_int_mirror = -lib_int
             
-            # Create label with molecule name and MS ID
+            # Create label with molecule name and molecular ID
             lib_label = f'Library MS2'
             if molecule_name:
                 lib_label += f' ({molecule_name})'
-            if ms_id:
-                lib_label += f' [ID: {ms_id}]'
+            if mol_id:
+                lib_label += f' [ID: {mol_id}]'
             
             ax.vlines(lib_mz, 0, lib_int_mirror, colors='red', alpha=0.7, linewidths=1.5, label=lib_label)
         
@@ -554,7 +562,8 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         return_fig=True,
         plot_smoothed_eic=False,
         plot_eic_datapoints=False,
-        msp_interface=None,
+        molecular_metadata=None,
+        spectral_library=None,
     ):
         """Plot the mass feature.
 
@@ -570,8 +579,11 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             If True, the smoothed EIC is plotted. Default is False.
         plot_eic_datapoints : bool, optional
             If True, the EIC data points are plotted. Default is False.
-        msp_interface : MSPInterface, optional
-            MSP interface object to access library spectra for MS2 mirror plot.
+        molecular_metadata : dict, optional
+            Dictionary mapping molecular IDs to MetaboliteMetadata objects.
+            Required if "MS2_mirror" is in to_plot. Default is None.
+        spectral_library : FlashEntropySearch, optional
+            FlashEntropy spectral library containing MS2 spectra.
             Required if "MS2_mirror" is in to_plot. Default is None.
 
         Returns
@@ -588,9 +600,9 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         if self._eic_data is None:
             to_plot = [x for x in to_plot if x != "EIC"]
         
-        # Check if MS2_mirror is requested without msp_interface
-        if "MS2_mirror" in to_plot and msp_interface is None:
-            raise ValueError("msp_interface is required when 'MS2_mirror' is in to_plot")
+        # Check if MS2_mirror is requested without molecular_metadata
+        if "MS2_mirror" in to_plot and molecular_metadata is None:
+            raise ValueError("molecular_metadata is required when 'MS2_mirror' is in to_plot")
         
         # Check if both MS2 and MS2_mirror are requested (not allowed)
         if "MS2" in to_plot and "MS2_mirror" in to_plot:
@@ -629,7 +641,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         
         # MS2 mirror plot
         if "MS2_mirror" in to_plot:
-            self._plot_ms2_mirror(axs[i][0], msp_interface)
+            self._plot_ms2_mirror(axs[i][0], molecular_metadata=molecular_metadata, spectral_library=spectral_library)
             i += 1
 
         # Add space between subplots
