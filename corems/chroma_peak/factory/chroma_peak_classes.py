@@ -386,6 +386,11 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             FlashEntropy spectral library containing MS2 spectra.
             If provided, uses library to retrieve MS2 spectra by ref_ms_id.
             Default is None.
+            
+        Raises
+        ------
+        ValueError
+            If MS2 similarity results exist but molecular_metadata or spectral_library is None.
         """
         if len(self.ms2_mass_spectra) == 0:
             ax.text(0.5, 0.5, 'No MS2 data available', 
@@ -398,6 +403,14 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         if len(self.ms2_similarity_results) == 0:
             self._plot_ms2_spectrum(ax)
             return
+        
+        # If we have MS2 similarity results, we need both molecular_metadata and spectral_library
+        if molecular_metadata is None or spectral_library is None:
+            raise ValueError(
+                "MS2 mirror plot requires both 'molecular_metadata' and 'spectral_library' "
+                "parameters when MS2 similarity results are present. "
+                "Please provide both parameters to plot_cluster() or plot()."
+            )
         
         # Get experimental MS2
         sample_ms2 = self.best_ms2

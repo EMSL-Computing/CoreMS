@@ -571,7 +571,8 @@ def test_lcms_collection_plot_cluster_with_ms2_mirror(lcms_collection, msp_file_
             lcms_collection.plot_cluster(
                 cluster_with_ms2, 
                 to_plot=["EIC", "MS1", "MS2_mirror"],
-                molecular_metadata=molecular_metadata
+                molecular_metadata=molecular_metadata,
+                spectral_library=msp_lib
             )
         except Exception as e:
             pytest.fail(f"plot_cluster with MS2_mirror raised exception: {e}")

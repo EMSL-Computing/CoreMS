@@ -516,7 +516,7 @@ if __name__ == "__main__":
         perform_gap_filling=True,
         add_ms1=True,  
         add_ms2=True,
-        molecular_formula_search=False,
+        molecular_formula_search=True,
         ms2_spectral_search=perform_ms2_search,
         spectral_lib=spectral_lib,
         molecular_metadata=molecular_metadata,
@@ -568,6 +568,21 @@ if __name__ == "__main__":
         drop_unannotated=True
     )
     print(f"Feature annotations table: {len(feature_annotations)} rows across {feature_annotations['cluster'].nunique()} clusters")
+
+
+    # Plot the first mass feature with an annotation with MS2_mirror
+    if not feature_annotations.empty:
+        # Find first annotated cluster with non-null value in ref_ms_id
+        first_annotated_cluster = feature_annotations.loc[
+            feature_annotations['ref_ms_id'].notnull(), 'cluster'
+        ].iloc[0]
+        print(f"Plotting annotated feature for cluster {first_annotated_cluster}")
+        lcms_collection.plot_cluster(
+            cluster_id=first_annotated_cluster,
+            to_plot=["EIC", "MS1", "MS2_mirror"],
+            molecular_metadata=molecular_metadata,
+            spectral_library=spectral_lib
+        )
 
     # Save the feature annotations table to CSV for inspection
     feature_annotations.to_csv("example_feature_annotations.csv", index=False)
