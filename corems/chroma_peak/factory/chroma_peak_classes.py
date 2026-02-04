@@ -382,8 +382,8 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             Dictionary mapping molecular IDs to MetaboliteMetadata objects.
             If provided, uses metadata for compound names.
             Default is None.
-        spectral_library : FlashEntropySearch, optional
-            FlashEntropy spectral library containing MS2 spectra.
+        spectral_library : FlashEntropySearch or list of FlashEntropySearch, optional
+            FlashEntropy spectral library (or list of libraries) containing MS2 spectra.
             If provided, uses library to retrieve MS2 spectra by ref_ms_id.
             Default is None.
             
@@ -444,9 +444,26 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             
             # Get library spectrum from spectral_library using ref_ms_id
             if spectral_library is not None and ref_ms_id is not None:
-                # Get the IDs in the spectral library
-                fe_spec_index = [x["id"] for x in spectral_library].index(ref_ms_id)
-                library_ms2_peaks = spectral_library[fe_spec_index]['peaks']
+                # Handle both single library and list of libraries
+                libraries = spectral_library if isinstance(spectral_library, list) else [spectral_library]
+                
+                # Search through all libraries to find the ref_ms_id
+                for library in libraries:
+                    try:
+                        # Get the IDs in the spectral library
+                        fe_spec_index = [x["id"] for x in library].index(ref_ms_id)
+                        library_ms2_peaks = library[fe_spec_index]['peaks']
+                        break  # Found the spectrum, exit the loop
+                    except ValueError:
+                        # ref_ms_id not found in this library, continue to next
+                        continue
+                
+                # If ref_ms_id was not found in any library, raise an error
+                if library_ms2_peaks is None:
+                    raise ValueError(
+                        f"Reference MS ID '{ref_ms_id}' not found in any of the provided spectral libraries. "
+                        f"Please ensure the spectral library contains the matching reference spectrum."
+                    )
             
             # Get compound name from molecular_metadata using mol_id
             if molecular_metadata is not None and mol_id is not None:
