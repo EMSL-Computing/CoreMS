@@ -27,7 +27,7 @@ from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.mass_spectra.input import rawFileReader
 from corems.encapsulation.factory.parameters import MSParameters
 from support_code.nmdc.metadata.nmdc_registration import DMS_Mapping, NMDC_Metadata
-from support_code.filefinder import get_dirnames, get_filename
+from support_code.nmdc.filefinder import get_dirnames, get_filename
 
 def run_bruker(file_location):
 
