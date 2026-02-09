@@ -28,7 +28,7 @@ from corems.mass_spectra.input import rawFileReader
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.factory.parameters import MSParameters
 
-from support_code.filefinder import get_filename, get_filenames
+from support_code.nmdc.filefinder import get_filename, get_filenames
 
 def mzdomain_calibration(mass_spectrum):
 

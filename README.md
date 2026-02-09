@@ -25,7 +25,6 @@
 - Execution     
   - [Jupyter Notebook and Docker containers](#docker-stack)  
   - [Example for FT-ICR Data Processing](#simple-script-example)  
-  - [Python Examples](examples/scripts)
   - [Jupyter Notebook Examples](examples/notebooks)  
 - Sibling Projects    
     - [EnviroMS](https://github.com/EMSL-Computing/EnviroMS)  
@@ -151,7 +150,7 @@ As an open source project, CoreMS welcomes contributions of all forms. Before co
 - Calculated ICR Resolving Power based on magnetic field (B), and transient time(T)
 
 ### LC-MS Signal Processing, Molecular Formula Search and Assignment, and Spectral Similarity Searches
-See walkthough in [this notebook](examples/notebooks/LCMS_data_walkthrough.ipynb)
+See walkthrough in [this notebook](examples/notebooks/LCMS_Tutorial.ipynb)
 - Two dimensional (m/z and retention time) peak picking using persistent homology
 - Smoothing, cetroid detection, and integration of extracted ion chromatograms
 - Peak shape metric calculations including half peak height, tailing factor, and dispersity index
@@ -254,7 +253,7 @@ If you don't have docker installed, the easiest way is to [install docker for de
 
 ## Example for FT-ICR Data Processing
 
-More examples can be found under the directory examples/scripts, examples/notebooks
+More examples can be found in the [examples/notebooks](examples/notebooks) directory
 
 - Basic functionality example
 
