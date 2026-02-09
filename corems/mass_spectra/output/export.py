@@ -1722,13 +1722,16 @@ class LCMSMetabolomicsExport(LCMSExport):
 
         return mf_report
     
-    def to_report(self, molecular_metadata=None):
+    def to_report(self, molecular_metadata=None, suppress_warnings=False):
         """Create a report of the mass features and their annotations.
 
         Parameters
         ----------
         molecular_metadata : dict, optional
             The molecular metadata. Default is None.
+        suppress_warnings : bool, optional
+            If True, suppresses warnings from mass_features_ms2_annot_to_df.
+            Default is False.
 
         Returns
         -------
@@ -1740,13 +1743,18 @@ class LCMSMetabolomicsExport(LCMSExport):
         mf_report = mf_report.reset_index(drop=False)
 
         # Get and clean ms1 annotation dataframe
-        ms1_annot_report = self.mass_spectra.mass_features_ms1_annot_to_df().copy()
-        ms1_annot_report = self.clean_ms1_report(ms1_annot_report)
-        ms1_annot_report = ms1_annot_report.reset_index(drop=False)
+        ms1_annot_report = self.mass_spectra.mass_features_ms1_annot_to_df()
+        if ms1_annot_report is not None:
+            ms1_annot_report = ms1_annot_report.copy()
+            ms1_annot_report = self.clean_ms1_report(ms1_annot_report)
+            ms1_annot_report = ms1_annot_report.reset_index(drop=False)
+        else:
+            ms1_annot_report = None
 
         # Get, summarize, and clean ms2 annotation dataframe
         ms2_annot_report = self.mass_spectra.mass_features_ms2_annot_to_df(
-            molecular_metadata=molecular_metadata
+            molecular_metadata=molecular_metadata,
+            suppress_warnings=suppress_warnings
         )
         if ms2_annot_report is not None and molecular_metadata is not None:
             ms2_annot_report = self.summarize_metabolomics_report(ms2_annot_report)

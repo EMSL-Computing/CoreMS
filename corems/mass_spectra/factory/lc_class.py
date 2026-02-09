@@ -1109,13 +1109,16 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         return annot_ms1_df_full
 
-    def mass_features_ms2_annot_to_df(self, molecular_metadata=None):
+    def mass_features_ms2_annot_to_df(self, molecular_metadata=None, suppress_warnings=False):
         """Returns a pandas dataframe summarizing the MS2 annotations for the mass features in the dataset.
 
         Parameters
         -----------
         molecular_metadata :  dict of MolecularMetadata objects
             A dictionary of MolecularMetadata objects, keyed by metabref_mol_id.  Defaults to None.
+        suppress_warnings : bool, optional
+            If True, suppresses the warning when no MS2 annotations are found.
+            Useful when calling from collection-level methods. Default is False.
 
         Returns
         --------
@@ -1126,7 +1129,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         Raises
         ------
         Warning
-            If no MS2 annotations were found for the mass features in the dataset.
+            If no MS2 annotations were found for the mass features in the dataset
+            (unless suppress_warnings=True).
         """
         annot_df_list_ms2 = []
         for mf_id in self.mass_features.keys():
@@ -1160,11 +1164,12 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             annot_ms2_df_full.index.name = "mf_id"
         else:
             annot_ms2_df_full = None
-            # Warn that no ms2 annotations were found
-            warnings.warn(
-                "No MS2 annotations found for mass features in dataset, were MS2 spectra added and searched against a database?",
-                UserWarning,
-            )
+            # Warn that no ms2 annotations were found (unless suppressed)
+            if not suppress_warnings:
+                warnings.warn(
+                    "No MS2 annotations found for mass features in dataset, were MS2 spectra added and searched against a database?",
+                    UserWarning,
+                )
 
         return annot_ms2_df_full
 
@@ -1677,6 +1682,7 @@ class LCMSCollection(LCMSCollectionCalculations):
     Notes
     ------
     This class is not intended to be instantiated directly, but rather instantiated using a parser object and then interacted with.
+    #TODO KRH: add docstrings
     """
 
     def __init__(
@@ -1738,6 +1744,7 @@ class LCMSCollection(LCMSCollectionCalculations):
             mf_df["sample_id"] = []
             mf_df["coll_mf_id"] = []
             mf_df["mf_id"] = []
+            mf_df["_eic_mz"] = []  # Include _eic_mz for consistency with non-empty dataframes
             if induced_features:
                 mf_df["cluster"] = []
             return mf_df
@@ -1822,14 +1829,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         for lcms_obj in self:
             # Skip samples with no induced mass features if processing induced features
             if induced_features:
-                has_attr = hasattr(lcms_obj, 'induced_mass_features')
-                if has_attr:
-                    dict_len = len(lcms_obj.induced_mass_features)
-                    print(f"Sample {lcms_obj.sample_name}: has_attr={has_attr}, len={dict_len}")
-                    if dict_len == 0:
-                        continue
-                else:
-                    print(f"Sample {lcms_obj.sample_name}: has_attr={has_attr}")
+                if not hasattr(lcms_obj, 'induced_mass_features') or len(lcms_obj.induced_mass_features) == 0:
                     continue
             mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj, induced_features)
             mf_df_list.append(mf_df)
@@ -2165,11 +2165,17 @@ class LCMSCollection(LCMSCollectionCalculations):
         
         mf_pivot = self.mass_features_dataframe.copy()
         mf_pivot.reset_index(inplace = True)
-        imf_pivot = self.induced_mass_features_dataframe.copy()
-        imf_pivot.reset_index(inplace = True)
-        # Cluster column extracted from mf_id in _prepare_lcms_mass_features_for_combination
-        mf_pivot = pd.concat([mf_pivot, imf_pivot], axis = 0)
-        mf_pivot.reset_index(drop = True, inplace = True)
+        
+        # Only include induced mass features if gap-filling has been performed
+        if self.induced_mass_features_dataframe is not None:
+            imf_pivot = self.induced_mass_features_dataframe.copy()
+            imf_pivot.reset_index(inplace = True)
+            # Cluster column extracted from mf_id in _prepare_lcms_mass_features_for_combination
+            mf_pivot = pd.concat([mf_pivot, imf_pivot], axis = 0)
+            mf_pivot.reset_index(drop = True, inplace = True)
+        else:
+            imf_pivot = None
+            
         mf_pivot['cluster'] = mf_pivot['cluster'].astype(int)
 
         if verbose:
@@ -2177,11 +2183,20 @@ class LCMSCollection(LCMSCollectionCalculations):
                 'Attributes available for pivot table:\n',
                 [x for x in mf_pivot.columns if x not in ['cluster', 'sample_name', 'mf_id', 'partition_idx', 'idx']]
             )
-            print(
-                '\nAttributes that have no value for induced mass features:\n',
-                imf_pivot.columns[imf_pivot.isna().all()].tolist()            
-            )
-        return mf_pivot.pivot(index = 'cluster', columns = 'sample_name', values = attribute)
+            if imf_pivot is not None:
+                print(
+                    '\nAttributes that have no value for induced mass features:\n',
+                    imf_pivot.columns[imf_pivot.isna().all()].tolist()            
+                )
+        
+        # Create pivot table and reindex to include all samples (even those with no features)
+        pivot = mf_pivot.pivot(index = 'cluster', columns = 'sample_name', values = attribute)
+        
+        # Reindex columns to include all samples in the collection
+        all_samples = self.samples
+        pivot = pivot.reindex(columns=all_samples)
+        
+        return pivot
 
     def cluster_representatives_table(self):
         """Generate a table of representative mass features from each consensus cluster.
@@ -2211,11 +2226,14 @@ class LCMSCollection(LCMSCollectionCalculations):
         
         mf_df = self.mass_features_dataframe.copy()
         mf_df.reset_index(inplace = True)
-        imf_df = self.induced_mass_features_dataframe.copy()
-        imf_df.reset_index(inplace = True)
-        # Cluster column extracted from mf_id in _prepare_lcms_mass_features_for_combination
-        mf_df = pd.concat([mf_df, imf_df], axis = 0)
-        mf_df.reset_index(drop = True, inplace = True)
+        
+        # Include induced mass features if they exist (from gap-filling)
+        if self.induced_mass_features_dataframe is not None:
+            imf_df = self.induced_mass_features_dataframe.copy()
+            imf_df.reset_index(inplace = True)
+            # Cluster column extracted from mf_id in _prepare_lcms_mass_features_for_combination
+            mf_df = pd.concat([mf_df, imf_df], axis = 0)
+            mf_df.reset_index(drop = True, inplace = True)
         mf_df['cluster'] = mf_df['cluster'].astype(int)
         
         # Calculate number of samples per cluster
@@ -2289,11 +2307,35 @@ class LCMSCollection(LCMSCollectionCalculations):
         Only mass features that are loaded in each sample's mass_features dict
         are included (typically the representative features if load_representatives
         was used in process_consensus_features).
+        
+        Raises
+        ------
+        ValueError
+            If no representative features have been loaded. Call process_consensus_features
+            with load_representatives=True first.
+        ValueError
+            If no samples with loaded mass features are found in the collection.
         """
         from corems.mass_spectra.output.export import LCMSMetabolomicsExport
+        import warnings
+        
+        # Check if representative features have been loaded
+        # Count samples with mass features loaded
+        samples_with_features = sum(
+            1 for lcms_obj in self 
+            if hasattr(lcms_obj, 'mass_features') and len(lcms_obj.mass_features) > 0
+        )
+        
+        if samples_with_features == 0:
+            raise ValueError(
+                "No representative mass features have been loaded into individual samples. "
+                "Call process_consensus_features() with load_representatives=True before "
+                "calling feature_annotations_table()."
+            )
         
         # Collect reports from all samples
         all_sample_reports = []
+        has_any_ms2_annotations = False
         
         for sample_id, lcms_obj in enumerate(self):
             # Skip samples with no loaded mass features
@@ -2303,8 +2345,14 @@ class LCMSCollection(LCMSCollectionCalculations):
             sample_name = self.samples[sample_id]
             
             # Create exporter and generate report using standard workflow
+            # Suppress individual warnings - we'll warn at collection level if needed
             exporter = LCMSMetabolomicsExport("temp", lcms_obj)
-            sample_report = exporter.to_report(molecular_metadata=molecular_metadata)
+            sample_report = exporter.to_report(molecular_metadata=molecular_metadata, suppress_warnings=True)
+            
+            # Check if this sample has any MS2 annotations
+            ms2_cols = [col for col in sample_report.columns if 'Entropy Similarity' in col or 'spectral_similarity' in col.lower()]
+            if ms2_cols and sample_report[ms2_cols].notna().any().any():
+                has_any_ms2_annotations = True
             
             # Add sample information
             sample_report['representative_sample'] = sample_name
@@ -2332,6 +2380,13 @@ class LCMSCollection(LCMSCollectionCalculations):
             raise ValueError("No samples with loaded mass features found in collection")
         
         collection_report = pd.concat(all_sample_reports, ignore_index=True)
+        
+        # Warn only if NO samples in the collection have MS2 annotations
+        if not has_any_ms2_annotations:
+            warnings.warn(
+                "No MS2 annotations found across any samples in collection, were MS2 spectra added and searched against a database?",
+                UserWarning,
+            )
         
         # Reorder columns to match specified order
         desired_cols = [

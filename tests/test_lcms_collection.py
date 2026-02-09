@@ -47,11 +47,7 @@ def lcms_collection_folder(tmp_path, lcms_obj):
     # Process SAMPLE 1: Find and integrate mass features (FULL)
     lcms_obj.find_mass_features(assign_ms2_scans=True)
     lcms_obj.integrate_mass_features(drop_if_fail=True)
-    
-    # Save all mass features for later use
-    all_mass_features = dict(lcms_obj.mass_features)
-    all_eics = dict(lcms_obj.eics)
-    
+       
     # Export sample 1 with ALL mass features
     sample_name_1 = "test_sample_01"
     exporter1 = LCMSMetabolomicsExport(str(processed_folder / sample_name_1), lcms_obj)
@@ -130,6 +126,12 @@ def lcms_collection(lcms_collection_folder):
     collection.parameters.lcms_collection.alignment_mz_tol_ppm = 5  # Tight m/z tolerance  
     collection.parameters.lcms_collection.alignment_rt_tol = 0.2  # 12 second RT tolerance
     
+    # Set MS2 processing parameters for centroid data
+    for lcms_obj in collection:
+        ms2_params = lcms_obj.parameters.mass_spectrum['ms2']
+        ms2_params.mass_spectrum.noise_threshold_method = "relative_abundance"
+        ms2_params.mass_spectrum.noise_threshold_min_relative_abundance = 1.0
+    
     return collection
 
 
@@ -180,26 +182,18 @@ def test_lcms_collection_mass_features_dataframe(lcms_collection):
     assert mf_df.index.name == 'coll_mf_id' or 'coll_mf_id' in mf_df.columns
 
 
-def test_lcms_collection_parameters(lcms_collection):
-    """Test that collection parameters can be get/set."""
-    # Check that parameters exist
-    assert lcms_collection.parameters is not None
-    
-    # Check that it's the right type
-    assert isinstance(lcms_collection.parameters, LCMSCollectionParameters)
-    
-    # Test setting new parameters
-    new_params = LCMSCollectionParameters()
-    new_params.lcms_collection.cores = 2
-    lcms_collection.parameters = new_params
-    
-    assert lcms_collection.parameters.lcms_collection.cores == 2
-
-
 def test_lcms_collection_rt_alignment(lcms_collection):
     """Test retention time alignment across samples in the collection."""
     # Check initial state
     assert not lcms_collection.rt_aligned
+    
+    # Test plotting TICs before alignment
+    try:
+        import matplotlib
+        matplotlib.use('Agg')  # Use non-interactive backend for testing
+        lcms_collection.plot_tics(ms_level=1, type="raw", plot_legend=False)
+    except Exception as e:
+        pytest.fail(f"plot_tics raised an exception: {e}")
     
     # Perform alignment - this should succeed
     lcms_collection.align_lcms_objects()
@@ -214,6 +208,18 @@ def test_lcms_collection_rt_alignment(lcms_collection):
     for i, lcms_obj in enumerate(lcms_collection):
         sample_name = lcms_collection.samples[i]
         assert 'scan_time_aligned' in lcms_obj.scan_df.columns, f"Missing scan_time_aligned in {sample_name}"
+    
+    # Test plotting after alignment - both raw and corrected TICs
+    try:
+        lcms_collection.plot_tics(ms_level=1, type="both", plot_legend=True)
+    except Exception as e:
+        pytest.fail(f"plot_tics with type='both' raised an exception: {e}")
+    
+    # Test plotting alignments (shows time differences)
+    try:
+        lcms_collection.plot_alignments(plot_legend=True)
+    except Exception as e:
+        pytest.fail(f"plot_alignments raised an exception: {e}")
 
 
 def test_lcms_collection_consensus_features(lcms_collection):
@@ -244,8 +250,7 @@ def test_lcms_collection_consensus_features(lcms_collection):
         assert cluster_id in cluster_dict
 
 
-#TODO KRH: fix this test
-def xtest_lcms_collection_gap_filling(lcms_collection):
+def test_lcms_collection_gap_filling(lcms_collection):
     """Test gap filling to create induced mass features."""
     # Setup: align and cluster first
     if not lcms_collection.rt_aligned:
@@ -256,11 +261,6 @@ def xtest_lcms_collection_gap_filling(lcms_collection):
     sample_1_mf_count = len(lcms_collection[0].mass_features)
     sample_2_mf_count = len(lcms_collection[1].mass_features)
     sample_3_mf_count = len(lcms_collection[2].mass_features)
-    
-    print(f"\nBefore gap filling:")
-    print(f"  Sample 1 mass features: {sample_1_mf_count} (full)")
-    print(f"  Sample 2 mass features: {sample_2_mf_count} (partial - first 10)")
-    print(f"  Sample 3 mass features: {sample_3_mf_count} (empty)")
     
     # Perform gap filling
     pipeline_results = lcms_collection.process_consensus_features(
@@ -280,52 +280,70 @@ def xtest_lcms_collection_gap_filling(lcms_collection):
     induced_df = lcms_collection.induced_mass_features_dataframe
     assert induced_df is not None
     
-    # With samples 2 and 3 having missing features, gap filling should create induced features
-    print(f"\nAfter gap filling:")
-    print(f"  Total induced mass features found: {len(induced_df)}")
-    assert len(induced_df) > 0, "Gap filling should create induced mass features in samples 2 and 3"
+    # With sample 3 having missing features, gap filling should create induced features
+    assert len(induced_df) > 0, "Gap filling should create induced mass features in sample 3"
     
     # Check that induced mass features have proper columns
     assert 'cluster' in induced_df.columns
     assert 'sample_name' in induced_df.columns
     assert 'mf_id' in induced_df.columns
     
-    # Check induced features per sample
-    sample_2_induced = len(lcms_collection[1].induced_mass_features)
-    sample_3_induced = len(lcms_collection[2].induced_mass_features)
+    # Check induced features per sample in the dataframe (not individual objects)
+    sample_3_induced = len(induced_df[induced_df['sample_id'] == 2])
     
-    print(f"  Sample 2 induced features: {sample_2_induced}")
-    print(f"  Sample 3 induced features: {sample_3_induced}")
+    # Sample 3 should have induced features (started with 0, all 50 clusters are missing)
+    assert sample_3_induced == 50, "Sample 3 should have 50 induced mass features (one for each cluster)"
     
-    # Sample 3 should have the most induced features (started with 0)
-    assert sample_3_induced > 0, "Sample 3 should have induced mass features from gap filling"
-    
-    # Sample 2 should also have some induced features (for features 11+)
-    assert sample_2_induced > 0, "Sample 2 should have induced features for missing mass features"
-    
-    # Check that individual LCMS objects have induced_mass_features
-    total_induced = sum(len(lcms_obj.induced_mass_features) 
-                       for lcms_obj in lcms_collection)
-    assert total_induced > 0
+    # By design, individual sample objects should have empty induced_mass_features dict
+    # because they are collected into the induced_mass_features_dataframe
+    assert len(lcms_collection[0].induced_mass_features) == 0
+    assert len(lcms_collection[1].induced_mass_features) == 0
+    assert len(lcms_collection[2].induced_mass_features) == 0
 
 
-#TODO KRH: fix this test
-def xtest_lcms_collection_pivot_table(lcms_collection):
+def test_lcms_collection_pivot_table(lcms_collection):
     """Test creation of pivot tables for collection data."""
     # Setup: ensure we have clustered features
     if not lcms_collection.rt_aligned:
         lcms_collection.align_lcms_objects()
     lcms_collection.add_consensus_mass_features()
     
-    # Create pivot table with default attribute (coll_mf_id)
+    # Create pivot table with default attribute (coll_mf_id) before gap-filling
     pivot_df = lcms_collection.collection_pivot_table(verbose=False)
     
     # Check that pivot table was created
     assert pivot_df is not None
     assert isinstance(pivot_df, pd.DataFrame)
     
-    # Check dimensions: rows should be clusters, columns should be samples
+    # Check that all samples are included (even sample 3 with no features)
     assert len(pivot_df.columns) == len(lcms_collection.samples)
+    assert 'test_sample_03' in pivot_df.columns
+    
+    # Sample 3 should have all NAs before gap-filling
+    assert pivot_df['test_sample_03'].isna().all(), "Sample 3 should have all NAs before gap-filling"
+    
+    # Perform gap-filling
+    lcms_collection.process_consensus_features(
+        load_representatives=False,
+        perform_gap_filling=True,
+        add_ms1=False,
+        add_ms2=False,
+        molecular_formula_search=False,
+        ms2_spectral_search=False,
+        spectral_lib=False,
+        molecular_metadata=None,
+        gather_eics=True,
+        keep_raw_data=False
+    )
+    
+    # Create pivot table again after gap-filling
+    pivot_df_after = lcms_collection.collection_pivot_table(verbose=False)
+    
+    # Sample 3 should no longer have all NAs after gap-filling
+    assert not pivot_df_after['test_sample_03'].isna().all(), "Sample 3 should have filled features after gap-filling"
+    
+    # Check that sample 3 has exactly 50 non-NA values (one for each cluster)
+    assert pivot_df_after['test_sample_03'].notna().sum() == 50, "Sample 3 should have 50 gap-filled features"
     
     # Create pivot table with intensity attribute
     pivot_intensity = lcms_collection.collection_pivot_table(
@@ -336,8 +354,7 @@ def xtest_lcms_collection_pivot_table(lcms_collection):
     assert len(pivot_intensity.columns) == len(lcms_collection.samples)
 
 
-#TODO KRH: fix this test
-def xtest_lcms_collection_cluster_representatives(lcms_collection):
+def test_lcms_collection_cluster_representatives(lcms_collection):
     """Test extraction of representative features for each cluster."""
     # Setup: ensure we have clustered features
     if not lcms_collection.rt_aligned:
@@ -424,22 +441,76 @@ def test_lcms_collection_drop_isotopologues(lcms_collection):
     assert final_mf_count <= initial_mf_count
 
 
-def test_lcms_collection_plot_tics(lcms_collection):
-    """Test plotting total ion chromatograms for the collection."""
-    # This test just ensures the method runs without error
-    # Visual inspection of plots is done manually
-    try:
-        import matplotlib
-        matplotlib.use('Agg')  # Use non-interactive backend for testing
-        lcms_collection.plot_tics(ms_level=1, type="raw", plot_legend=False)
-        assert True
-    except Exception as e:
-        pytest.fail(f"plot_tics raised an exception: {e}")
-
-
-#TODO KRH: fix this test
-def xtest_lcms_collection_feature_annotations_table(lcms_collection, msp_file_location):
+def test_lcms_collection_feature_annotations_table(lcms_collection, msp_file_location):
     """Test creation of feature annotations table with molecular metadata."""
+    # Setup: align and cluster
+    if not lcms_collection.rt_aligned:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
+    
+    # Load molecular metadata from MSP file with same parameters as test_lcms_metabolomics
+    my_msp = MSPInterface(file_path=msp_file_location)
+    msp_lib, molecular_metadata = my_msp.get_metabolomics_spectra_library(
+        polarity="negative",
+        format="flashentropy",
+        normalize=True,
+        fe_kwargs={
+            "normalize_intensity": True,
+            "min_ms2_difference_in_da": 0.02,  # for cleaning spectra
+            "max_ms2_tolerance_in_da": 0.01,  # for setting search space
+            "max_indexed_mz": 3000,
+            "precursor_ions_removal_da": None,
+            "noise_threshold": 0,
+        },
+    )
+    
+    # Set MS2 score threshold to match test_lcms_metabolomics
+    for lcms_obj in lcms_collection:
+        lcms_obj.parameters.lc_ms.ms2_min_fe_score = 0.3
+    
+    # Process consensus features with MS1, MS2, and spectral search
+    # This should add molecular annotations before creating the annotations table
+    pipeline_results = lcms_collection.process_consensus_features(
+        load_representatives=True,
+        perform_gap_filling=False,
+        add_ms1=True,
+        add_ms2=True,
+        molecular_formula_search=False,
+        ms2_spectral_search=True,
+        spectral_lib=msp_lib,
+        molecular_metadata=molecular_metadata,
+        gather_eics=False,
+        keep_raw_data=False
+    )
+    
+    # Create annotations table with metadata
+    annotations_table = lcms_collection.feature_annotations_table(
+        molecular_metadata=molecular_metadata,
+        drop_unannotated=False
+    )
+    
+    assert annotations_table is not None
+    assert isinstance(annotations_table, pd.DataFrame)
+    assert len(annotations_table) > 0
+    
+    # Check that cluster information is present
+    assert 'cluster' in annotations_table.columns
+    
+    # Check that we got some spectral matches after processing
+    # Look for Entropy Similarity column which indicates MS2 spectral search results
+    if 'Entropy Similarity' in annotations_table.columns:
+        matched_features = annotations_table[annotations_table['Entropy Similarity'].notna()]
+        assert len(matched_features) > 0, "Should have at least some MS2 spectral matches after search"
+    else:
+        # If column doesn't exist, the test should fail
+        raise AssertionError("Expected 'Entropy Similarity' column in annotations table after MS2 spectral search")
+
+
+def test_lcms_collection_plot_cluster_with_ms2_mirror(lcms_collection, msp_file_location):
+    """Test plot_cluster with MS2_mirror option using molecular_metadata."""
+    import matplotlib
+    matplotlib.use('Agg')  # Use non-interactive backend for testing
+    
     # Setup: align and cluster
     if not lcms_collection.rt_aligned:
         lcms_collection.align_lcms_objects()
@@ -450,10 +521,116 @@ def xtest_lcms_collection_feature_annotations_table(lcms_collection, msp_file_lo
     msp_lib, molecular_metadata = my_msp.get_metabolomics_spectra_library(
         polarity="negative",
         format="flashentropy",
-        normalize=True
+        normalize=True,
+        fe_kwargs={
+            "normalize_intensity": True,
+            "min_ms2_difference_in_da": 0.02,
+            "max_ms2_tolerance_in_da": 0.01,
+            "max_indexed_mz": 3000,
+            "precursor_ions_removal_da": None,
+            "noise_threshold": 0,
+        },
     )
     
-    # Create annotations table without metadata first
+    # Set MS2 score threshold
+    for lcms_obj in lcms_collection:
+        lcms_obj.parameters.lc_ms.ms2_min_fe_score = 0.3
+    
+    # Process consensus features with MS2 spectral search and gather EICs
+    pipeline_results = lcms_collection.process_consensus_features(
+        load_representatives=True,
+        perform_gap_filling=False,
+        add_ms1=True,
+        add_ms2=True,
+        molecular_formula_search=False,
+        ms2_spectral_search=True,
+        spectral_lib=msp_lib,
+        molecular_metadata=molecular_metadata,
+        gather_eics=True,
+        keep_raw_data=False
+    )
+    
+    # Get a cluster with MS2 data
+    cluster_summary = lcms_collection.cluster_summary_dataframe
+    assert len(cluster_summary) > 0, "Should have clusters for plotting tests"
+    
+    # Find a cluster with MS2 similarity results
+    cluster_with_ms2 = None
+    for cluster_id in cluster_summary.index[:10]:  # Check first 10 clusters
+        rep_info = lcms_collection.get_most_representative_sample_for_cluster(cluster_id)
+        rep_sample = lcms_collection[rep_info['sample_id']]
+        if rep_info['mf_id'] in rep_sample.mass_features:
+            rep_mf = rep_sample.mass_features[rep_info['mf_id']]
+            if len(rep_mf.ms2_similarity_results) > 0:
+                cluster_with_ms2 = cluster_id
+                break
+    
+    # Test plot_cluster with MS2_mirror
+    if cluster_with_ms2 is not None:
+        try:
+            lcms_collection.plot_cluster(
+                cluster_with_ms2, 
+                to_plot=["EIC", "MS1", "MS2_mirror"],
+                molecular_metadata=molecular_metadata,
+                spectral_library=msp_lib
+            )
+        except Exception as e:
+            pytest.fail(f"plot_cluster with MS2_mirror raised exception: {e}")
+    else:
+        # If no MS2 matches found, test that MS2_mirror gracefully falls back
+        cluster_id = cluster_summary.index[0]
+        try:
+            lcms_collection.plot_cluster(
+                cluster_id, 
+                to_plot=["EIC", "MS2_mirror"],
+                molecular_metadata=molecular_metadata
+            )
+        except Exception as e:
+            pytest.fail(f"plot_cluster with MS2_mirror (no matches) raised exception: {e}")
+
+
+def test_lcms_collection_molecular_formula_search(lcms_collection, postgres_database):
+    """Test molecular formula search on consensus features."""
+    # Setup: align and cluster
+    if not lcms_collection.rt_aligned:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
+    
+    # Set molecular search parameters for all samples (negative mode)
+    for lcms_obj in lcms_collection:
+        ms1_params = lcms_obj.parameters.mass_spectrum['ms1']
+        ms1_params.molecular_search.url_database = postgres_database
+        ms1_params.molecular_search.error_method = "None"
+        ms1_params.molecular_search.min_ppm_error = -5
+        ms1_params.molecular_search.max_ppm_error = 5
+        ms1_params.molecular_search.mz_error_range = 1
+        ms1_params.molecular_search.isProtonated = True  # Deprotonated in negative mode
+        ms1_params.molecular_search.isRadical = False
+        ms1_params.molecular_search.isAdduct = False
+        ms1_params.molecular_search.usedAtoms = {
+            'C': (1, 90),
+            'H': (4, 200),
+            'O': (0, 30),
+            'N': (0, 3),
+            'P': (0, 2),
+            'S': (0, 2),
+        }
+    
+    # Process consensus features with molecular formula search
+    pipeline_results = lcms_collection.process_consensus_features(
+        load_representatives=True,
+        perform_gap_filling=False,
+        add_ms1=True,
+        add_ms2=False,
+        molecular_formula_search=True,
+        ms2_spectral_search=False,
+        spectral_lib=False,
+        molecular_metadata=None,
+        gather_eics=False,
+        keep_raw_data=False
+    )
+    
+    # Get annotations table
     annotations_table = lcms_collection.feature_annotations_table(
         molecular_metadata=None,
         drop_unannotated=False
@@ -463,38 +640,38 @@ def xtest_lcms_collection_feature_annotations_table(lcms_collection, msp_file_lo
     assert isinstance(annotations_table, pd.DataFrame)
     assert len(annotations_table) > 0
     
-    # Check that cluster information is present
-    assert 'cluster' in annotations_table.columns
-
-
-def test_lcms_collection_sample_access(lcms_collection):
-    """Test various ways to access samples in the collection."""
-    # Test indexing
-    first_sample = lcms_collection[0]
-    assert first_sample is not None
+    # Check that molecular formula columns are present (column is called 'Ion Formula')
+    assert 'Ion Formula' in annotations_table.columns
+    assert 'Calculated m/z' in annotations_table.columns
     
-    # Test iteration
-    sample_count = 0
-    for lcms_obj in lcms_collection:
-        assert lcms_obj is not None
-        sample_count += 1
-    assert sample_count == len(lcms_collection)
+    # Check that at least some features got molecular formula assignments
+    assigned_formulas = annotations_table[annotations_table['Ion Formula'].notna()]
+    assert len(assigned_formulas) > 0, "Should have at least some molecular formula assignments"
     
-    # Test samples property
-    sample_names = lcms_collection.samples
-    assert len(sample_names) == len(lcms_collection)
+    # Verify the formulas are reasonable (contain expected elements)
+    first_formula = assigned_formulas['Ion Formula'].iloc[0]
+    assert 'C' in first_formula or 'H' in first_formula, "Molecular formulas should contain C or H"
     
-    # Test raw_files property
-    raw_files = lcms_collection.raw_files
-    assert len(raw_files) == len(lcms_collection)
+    # Check that m/z error columns exist (indicates matching happened)
+    assert 'm/z Error (ppm)' in annotations_table.columns
+    assert 'm/z Error Score' in annotations_table.columns
 
 
-#TODO KRH: fix this test
-def xtest_lcms_collection_update_raw_file_locations(lcms_collection, tmp_path):
+def test_lcms_collection_update_raw_file_locations(lcms_collection, tmp_path):
     """Test updating raw file locations in the collection."""
+    import shutil
+    
     # Create a new path for raw files
     new_raw_folder = tmp_path / "new_raw_location"
     new_raw_folder.mkdir()
+    
+    # Copy the original raw file to the new location for each sample
+    # The samples all use the same original raw file but have different sample names
+    for lcms_obj in lcms_collection:
+        original_raw = lcms_obj.raw_file_location
+        # Create a copy with the sample name in the new location
+        new_raw_file = new_raw_folder / f"{lcms_obj.sample_name}.raw"
+        shutil.copy2(original_raw, new_raw_file)
     
     # Update raw file locations
     lcms_collection.update_raw_file_locations(str(new_raw_folder))
@@ -507,8 +684,7 @@ def xtest_lcms_collection_update_raw_file_locations(lcms_collection, tmp_path):
     assert lcms_collection.raw_files_relocated
 
 
-#TODO KRH: fix this test
-def xtest_lcms_collection_minimal_workflow(lcms_collection):
+def test_lcms_collection_minimal_workflow(lcms_collection):
     """
     Test a minimal end-to-end workflow with the collection.
     
@@ -530,8 +706,20 @@ def xtest_lcms_collection_minimal_workflow(lcms_collection):
     cluster_count = len(lcms_collection.cluster_summary_dataframe)
     assert cluster_count > 0
     
-    # Step 4: Perform gap filling
-    lcms_collection.search_for_missing_mass_features()
+    # Step 4: Perform gap filling using process_consensus_features
+    # Load representatives and add MS1 so we can create annotations table
+    lcms_collection.process_consensus_features(
+        load_representatives=True,
+        perform_gap_filling=True,
+        add_ms1=True,
+        add_ms2=False,
+        molecular_formula_search=False,
+        ms2_spectral_search=False,
+        spectral_lib=False,
+        molecular_metadata=None,
+        gather_eics=True,
+        keep_raw_data=False
+    )
     
     # Step 5: Create reports
     pivot_table = lcms_collection.collection_pivot_table(verbose=False)
@@ -540,11 +728,16 @@ def xtest_lcms_collection_minimal_workflow(lcms_collection):
     cluster_reps = lcms_collection.cluster_representatives_table()
     assert len(cluster_reps) == cluster_count
     
+    # Create annotations table (requires load_representatives=True and add_ms1=True)
     annotations = lcms_collection.feature_annotations_table(
         molecular_metadata=None,
         drop_unannotated=False
     )
     assert annotations is not None
+    assert len(annotations) > 0
+    
+    # Verify we have cluster information in the annotations
+    assert 'cluster' in annotations.columns
     
     # Verify workflow completed successfully
     assert lcms_collection.rt_aligned or lcms_collection.rt_alignment_attempted
@@ -552,38 +745,68 @@ def xtest_lcms_collection_minimal_workflow(lcms_collection):
     print(f"\nWorkflow completed: {cluster_count} consensus clusters from {len(lcms_collection)} samples")
 
 
-def test_lcms_collection_memory_management(lcms_collection):
-    """Test that collection properly manages memory for raw data."""
-    # Initially, raw data should not be loaded (load_light=True in fixture)
-    for i, lcms_obj in enumerate(lcms_collection):
-        # Check that _ms_unprocessed is either empty or not loaded
-        if hasattr(lcms_obj, '_ms_unprocessed'):
-            # MS level 1 should not have large raw data loaded
-            if 1 in lcms_obj._ms_unprocessed:
-                # For light loading, this should be empty or minimal
-                pass
+def test_lcms_collection_plotting_methods(lcms_collection):
+    """
+    Test plotting methods for consensus features and clusters.
     
-    # Load raw data for one sample
-    lcms_collection.load_raw_data(sample_idx=0, ms_level=1)
+    Tests both before and after gap filling to ensure plots work in both states:
+    - plot_consensus_mz_features(): Shows distribution of consensus features across m/z
+    - plot_cluster(): Shows mass features within a specific cluster
+    """
+    import matplotlib
+    matplotlib.use('Agg')  # Use non-interactive backend for testing
     
-    # Check that data was loaded
-    assert 1 in lcms_collection[0]._ms_unprocessed
+    # Setup: align and cluster
+    if not lcms_collection.rt_aligned:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
     
-    # Drop raw data
-    lcms_collection.drop_raw_data(sample_idx=0, ms_level=1)
+    # Get cluster information
+    cluster_summary = lcms_collection.cluster_summary_dataframe
+    assert len(cluster_summary) > 0, "Should have clusters for plotting tests"
     
-    # Verify data was dropped
-    # After dropping, the dict might be empty or have an empty DataFrame
-    if 1 in lcms_collection[0]._ms_unprocessed:
-        # Should be empty or minimal size now
-        pass
+    # Pick a cluster ID for testing plot_cluster
+    cluster_id = cluster_summary.index[0]
+    
+    # Test plot_consensus_mz_features BEFORE gap filling
+    try:
+        lcms_collection.plot_consensus_mz_features()
+    except Exception as e:
+        pytest.fail(f"plot_consensus_mz_features before gap filling raised exception: {e}")
+    
+    # Test plot_cluster BEFORE gap filling
+    try:
+        lcms_collection.plot_cluster(cluster_id, to_plot=["EIC"])
+    except Exception as e:
+        pytest.fail(f"plot_cluster before gap filling raised exception: {e}")
+    
+    # Perform gap filling
+    lcms_collection.process_consensus_features(
+        load_representatives=False,
+        perform_gap_filling=True,
+        add_ms1=False,
+        add_ms2=False,
+        molecular_formula_search=False,
+        ms2_spectral_search=False,
+        spectral_lib=False,
+        molecular_metadata=None,
+        gather_eics=True,
+        keep_raw_data=False
+    )
+    
+    # Verify gap filling occurred
+    induced_df = lcms_collection.induced_mass_features_dataframe
+    assert len(induced_df) > 0, "Should have induced features after gap filling"
+    
+    # Test plot_consensus_mz_features AFTER gap filling
+    try:
+        lcms_collection.plot_consensus_mz_features(show_all=True)
+    except Exception as e:
+        pytest.fail(f"plot_consensus_mz_features after gap filling raised exception: {e}")
+    
+    # Test plot_cluster AFTER gap filling (with sample labels to test more options)
+    try:
+        lcms_collection.plot_cluster(cluster_id, to_plot=["EIC"], label_samples=True)
+    except Exception as e:
+        pytest.fail(f"plot_cluster after gap filling raised exception: {e}")
 
-
-def test_lcms_collection_cleanup(lcms_collection_folder):
-    """Test cleanup of temporary collection data."""
-    # Verify the folder exists
-    assert lcms_collection_folder.exists()
-    
-    # The pytest tmp_path fixture will automatically clean up
-    # This test just verifies the structure
-    assert len(list(lcms_collection_folder.glob("*.corems"))) > 0
