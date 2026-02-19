@@ -31,6 +31,7 @@ from corems.molecular_id.calc.SpectralSimilarity import methods_name
 ion_type_dict = {
     # adduct : [atoms to add, atoms to subtract when calculating formula of ion
     "M+": [{}, {}],
+    "[M]+": [{}, {}],
     "protonated": [{"H": 1}, {}],
     "[M+H]+": [{"H": 1}, {}],
     "[M+NH4]+": [{"N": 1, "H": 4}, {}],  # ammonium
