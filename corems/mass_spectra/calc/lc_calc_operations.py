@@ -207,7 +207,7 @@ class GapFillOperation(SampleOperation):
         return hasattr(collection, 'cluster_summary_dataframe') and \
                collection.cluster_summary_dataframe is not None
     
-    def execute(self, sample_id, collection, missingdf, cluster_dict, expand_on_miss, **runtime_params):
+    def execute(self, sample_id, collection, **runtime_params):
         """
         Execute gap-filling for a single sample.
         
@@ -217,20 +217,27 @@ class GapFillOperation(SampleOperation):
             Sample index to process
         collection : LCMSBaseCollection
             The collection
-        missingdf : pd.DataFrame
-            DataFrame with cluster information and missing samples
-        cluster_dict : dict
-            Cluster feature dictionary
-        expand_on_miss : bool
-            Whether to expand search window on miss
         **runtime_params
-            Additional runtime parameters (ignored)
+            Runtime parameters including:
+            - missingdf : pd.DataFrame - Cluster information and missing samples (optional)
+            - cluster_dict : dict - Cluster feature dictionary (optional)
+            - expand_on_miss : bool - Whether to expand search window on miss (optional)
+            If these are not provided, returns empty dict (no gaps to fill).
             
         Returns
         -------
         dict
-            Dictionary of induced mass features
+            Dictionary of induced mass features (empty if no gaps to fill)
         """
+        # Extract gap-fill parameters from runtime_params
+        # If not present, there are no gaps to fill, so return early
+        if 'missingdf' not in runtime_params:
+            return {}
+        
+        missingdf = runtime_params['missingdf']
+        cluster_dict = runtime_params['cluster_dict']
+        expand_on_miss = runtime_params['expand_on_miss']
+        
         # This is essentially the same logic as _search_for_targeted_mass_features_in_sample
         # but extracted into an operation
         
