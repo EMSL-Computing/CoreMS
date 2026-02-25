@@ -1174,7 +1174,7 @@ class LCMSCollectionSettings:
         Default is ('intensity', 'intensity_prefer_ms2').
     """
     # Settings for general processing
-    cores = 1
+    cores: int = 1
     drop_isotopologues: bool = False
 
     # Settings for doing mass feature alignment
@@ -1190,11 +1190,11 @@ class LCMSCollectionSettings:
     alignment_rt_tol: float = 0.4      
 
     # Consensus mass feature settings
-    consensus_mz_tol_ppm = alignment_mz_tol_ppm
-    consensus_rt_tol = 0.3
-    consensus_partition_size = 10000
-    filter_consensus_mass_features = True
-    consensus_min_sample_fraction = 0.5
+    consensus_mz_tol_ppm: int = alignment_mz_tol_ppm
+    consensus_rt_tol: float = 0.3
+    consensus_partition_size: int = 10000
+    filter_consensus_mass_features: bool = True
+    consensus_min_sample_fraction: float = 0.5
 
     # Gap-filling settings
     gap_fill_expand_on_miss: bool = True
