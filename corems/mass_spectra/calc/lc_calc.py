@@ -2044,10 +2044,13 @@ class PHCalculations:
         # Process in chunks if required
         if len(data_thres) > 10000:
             return self._find_mass_features_ph_partition(
-                data_thres, dims, persistence_threshold, mf_type
+                data_thres, dims, persistence_threshold, mf_type, accumulate_features
             )
         else:
             # Process all at once
+            return self._find_mass_features_ph_single(
+                data_thres, dims, persistence_threshold, mf_type, accumulate_features
+            )
             return self._find_mass_features_ph_single(
                 data_thres, dims, persistence_threshold, mf_type
             )
