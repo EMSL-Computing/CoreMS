@@ -1633,7 +1633,7 @@ class LCMSMetabolomicsExport(LCMSExport):
             The MS2 annotation report DataFrame.
         """
         # If there is an ms1_annot_report, merge it with the mf_report
-        if not ms1_annot_report.empty:
+        if ms1_annot_report is not None and not ms1_annot_report.empty:
             # MS1 has been run and has molecular formula information
             mf_report = pd.merge(
                 mf_report,
@@ -1744,7 +1744,7 @@ class LCMSMetabolomicsExport(LCMSExport):
         mf_report = mf_report.reset_index(drop=False)
 
         # Get and clean ms1 annotation dataframe
-        ms1_annot_report = self.mass_spectra.mass_features_ms1_annot_to_df()
+        ms1_annot_report = self.mass_spectra.mass_features_ms1_annot_to_df(suppress_warnings=suppress_warnings)
         if ms1_annot_report is not None:
             ms1_annot_report = ms1_annot_report.copy()
             ms1_annot_report = self.clean_ms1_report(ms1_annot_report)

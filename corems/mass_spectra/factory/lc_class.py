@@ -1049,8 +1049,14 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         
         return df_mf
 
-    def mass_features_ms1_annot_to_df(self):
+    def mass_features_ms1_annot_to_df(self, suppress_warnings=False):
         """Returns a pandas dataframe summarizing the MS1 annotations for the mass features in the dataset.
+
+        Parameters
+        -----------
+        suppress_warnings : bool, optional
+            If True, suppresses the warning when no MS1 annotations are found.
+            Useful when calling from collection-level methods. Default is False.
 
         Returns
         --------
@@ -1061,7 +1067,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         Raises
         ------
         Warning
-            If no MS1 annotations were found for the mass features in the dataset.
+            If no MS1 annotations were found for the mass features in the dataset
+            (unless suppress_warnings=True).
         """
         annot_df_list_ms1 = []
         for mf_id in self.mass_features.keys():
@@ -1101,11 +1108,12 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         else:
             annot_ms1_df_full = None
-            # Warn that no ms1 annotations were found
-            warnings.warn(
-                "No MS1 annotations found for mass features in dataset, were MS1 spectra added and processed within the dataset?",
-                UserWarning,
-            )
+            # Warn that no ms1 annotations were found (unless suppressed)
+            if not suppress_warnings:
+                warnings.warn(
+                    "No MS1 annotations found for mass features in dataset, were MS1 spectra added and processed within the dataset?",
+                    UserWarning,
+                )
 
         return annot_ms1_df_full
 
