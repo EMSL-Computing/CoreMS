@@ -935,7 +935,8 @@ class ReadCoreMSHDFMassSpectraCollection:
     manifest_file : Path, optional
         Manifest CSV with columns: sample_name, order, batch, center, time.
         One sample must have center='TRUE' for RT alignment.
-        If None, auto-generates from folder contents. Default: None.
+        If None, checks if auto-generated manifest_auto.csv exists in the folder. If not,
+        auto-generates from folder contents. Default: None.
     cores : int, optional
         Number of cores for multiprocessing. Default: 1.
     auto_manifest_batch_threshold_hours : float, optional
@@ -968,14 +969,20 @@ class ReadCoreMSHDFMassSpectraCollection:
         
         # Auto-generate manifest if not provided
         if manifest_file is None:
-            print(f"No manifest file provided. Auto-generating manifest from {folder_location}")
-            manifest_file = create_manifest_from_folder(
-                folder_path=folder_location,
-                output_path=folder_location / "manifest_auto.csv",
-                batch_time_threshold_hours=auto_manifest_batch_threshold_hours,
-                center_name=auto_manifest_center_name,
-                overwrite=True
-            )
+            # Check if manifest_auto.csv already exists
+            auto_manifest_path = folder_location / "manifest_auto.csv"
+            if auto_manifest_path.exists():
+                print(f"No manifest file provided. Using existing manifest_auto.csv from {folder_location}")
+                manifest_file = auto_manifest_path
+            else:
+                print(f"No manifest file provided. Auto-generating manifest from {folder_location}")
+                manifest_file = create_manifest_from_folder(
+                    folder_path=folder_location,
+                    output_path=auto_manifest_path,
+                    batch_time_threshold_hours=auto_manifest_batch_threshold_hours,
+                    center_name=auto_manifest_center_name,
+                    overwrite=True
+                )
         else:
             manifest_file = Path(manifest_file)
             if not manifest_file.exists():
