@@ -1,5 +1,6 @@
 from collections import defaultdict
 from pathlib import Path
+from typing import Optional, Union, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -95,20 +96,27 @@ class MZMLSpectraParser(SpectraParserInterface):
         data = pymzml.run.Reader(self.file_location)
         return data
 
-    def get_scan_df(self, data):
+    def get_scan_df(self, data=None, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
         """
         Return scan data as a pandas DataFrame.
 
         Parameters
         ----------
-        data : pymzml.run.Reader
-            The mass spectra data.
+        data : pymzml.run.Reader, optional
+            The mass spectra data. If None, will load the data.
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to filter scans. Can be:
+            - Single range: (start_time, end_time) in minutes
+            - Multiple ranges: [(start1, end1), (start2, end2), ...] in minutes
+            If None, returns all scans.
 
         Returns
         -------
         pandas.DataFrame
             A pandas DataFrame containing metadata for each scan, including scan number, MS level, polarity, and scan time.
         """
+        if data is None:
+            data = self.load()
         # Scan dict
         # instatinate scan dict, with empty lists of size of scans
         n_scans = data.get_spectrum_count()
@@ -159,10 +167,19 @@ class MZMLSpectraParser(SpectraParserInterface):
                 scan_dict["ms_format"][i] = None
 
         scan_df = pd.DataFrame(scan_dict)
+        
+        # Apply time range filtering if specified
+        if time_range is not None:
+            time_ranges = self._normalize_time_range(time_range)
+            # Create a mask for scans within any of the time ranges
+            mask = np.zeros(len(scan_df), dtype=bool)
+            for start_time, end_time in time_ranges:
+                mask |= (scan_df["scan_time"] >= start_time) & (scan_df["scan_time"] <= end_time)
+            scan_df = scan_df[mask].reset_index(drop=True)
 
         return scan_df
 
-    def get_ms_raw(self, spectra, scan_df, data):
+    def get_ms_raw(self, spectra, scan_df, data=None, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
         """Return a dictionary of mass spectra data as a pandas DataFrame.
 
         Parameters
@@ -172,8 +189,13 @@ class MZMLSpectraParser(SpectraParserInterface):
             Options: None, "ms1", "ms2", "all".
         scan_df : pandas.DataFrame
             Scan dataframe. Output from get_scan_df().
-        data : pymzml.run.Reader
-            The mass spectra data.
+        data : pymzml.run.Reader, optional
+            The mass spectra data. If None, will load the data.
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to filter scans. Can be:
+            - Single range: (start_time, end_time) in minutes
+            - Multiple ranges: [(start1, end1), (start2, end2), ...] in minutes
+            If None, returns all scans. Note: filtering is typically done at scan_df level.
 
         Returns
         -------
@@ -181,6 +203,8 @@ class MZMLSpectraParser(SpectraParserInterface):
             A dictionary containing the mass spectra data as pandas DataFrames, with keys corresponding to the MS level.
 
         """
+        if data is None:
+            data = self.load()
         if spectra == "all":
             scan_df_forspec = scan_df
         elif spectra == "ms1":
@@ -205,7 +229,7 @@ class MZMLSpectraParser(SpectraParserInterface):
         # First pass: get nrows
         N = defaultdict(lambda: 0)
         for i, spec in enumerate(data):
-            if i in scan_df_forspec.scan:
+            if spec.ID in scan_df_forspec.scan.values:
                 # Get ms level
                 level = "ms{}".format(spec.ms_level)
 
@@ -214,7 +238,7 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         # Second pass: parse
         for i, spec in enumerate(data):
-            if i in scan_df_forspec.scan:
+            if spec.ID in scan_df_forspec.scan.values:
                 # Number of rows
                 n = spec.mz.shape[0]
 
@@ -273,7 +297,7 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         return res
 
-    def run(self, spectra="all", scan_df=None):
+    def run(self, spectra="all", scan_df=None, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
         """Parse the mzML file and return a dictionary of spectra dataframes and a scan metadata dataframe.
 
         Parameters
@@ -283,6 +307,11 @@ class MZMLSpectraParser(SpectraParserInterface):
             Other options: None, "ms1", "ms2".
         scan_df : pandas.DataFrame, optional
             Scan dataframe.  If not provided, the scan dataframe is created from the mzML file.
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to load. Can be:
+            - Single range: (start_time, end_time) in minutes
+            - Multiple ranges: [(start1, end1), (start2, end2), ...] in minutes
+            If None, loads all scans.
 
         Returns
         -------
@@ -296,7 +325,7 @@ class MZMLSpectraParser(SpectraParserInterface):
         data = self.load()
 
         if scan_df is None:
-            scan_df = self.get_scan_df(data)
+            scan_df = self.get_scan_df(data, time_range=time_range)
 
         if spectra != "none":
             res = self.get_ms_raw(spectra, scan_df, data)
@@ -440,9 +469,16 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         return mass_spectrum_objects
 
-    def get_mass_spectra_obj(self):
+    def get_mass_spectra_obj(self, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
         """Instatiate a MassSpectraBase object from the mzML file.
 
+        Parameters
+        ----------
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to load. Can be:
+            - Single range: (start_time, end_time) in minutes
+            - Multiple ranges: [(start1, end1), (start2, end2), ...] in minutes
+            If None, loads all scans.
 
         Returns
         -------
@@ -450,7 +486,7 @@ class MZMLSpectraParser(SpectraParserInterface):
             The MassSpectra object containing the parsed mass spectra.
             The object is instatiated with the mzML file, analyzer, instrument, sample name, and scan dataframe.
         """
-        _, scan_df = self.run(spectra=False)
+        _, scan_df = self.run(spectra=False, time_range=time_range)
         mass_spectra_obj = MassSpectraBase(
             self.file_location,
             self.analyzer,
@@ -463,13 +499,18 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         return mass_spectra_obj
 
-    def get_lcms_obj(self, spectra="all"):
+    def get_lcms_obj(self, spectra="all", time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
         """Instatiates a LCMSBase object from the mzML file.
 
         Parameters
         ----------
         spectra : str, optional
             Which mass spectra data to include in the output. Default is all.  Other options: none, ms1, ms2.
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to load. Can be:
+            - Single range: (start_time, end_time) in minutes
+            - Multiple ranges: [(start1, end1), (start2, end2), ...] in minutes
+            If None, loads all scans. Useful for targeted workflows to improve performance.
 
         Returns
         -------
@@ -478,10 +519,10 @@ class MZMLSpectraParser(SpectraParserInterface):
             The object is instatiated with the mzML file, analyzer, instrument, sample name, scan dataframe,
             and mz dataframe(s), as well as lists of scan numbers, retention times, and TICs.
         """
-        _, scan_df = self.run(spectra="none")  # first run it to just get scan info
+        _, scan_df = self.run(spectra="none", time_range=time_range)  # first run it to just get scan info
         if spectra != "none":
             res, scan_df = self.run(
-                scan_df=scan_df, spectra=spectra
+                scan_df=scan_df, spectra=spectra, time_range=time_range
             )  # second run to parse data
         lcms_obj = LCMSBase(
             self.file_location,
@@ -506,6 +547,53 @@ class MZMLSpectraParser(SpectraParserInterface):
         lcms_obj._tic_list = list(scan_df.tic)
 
         return lcms_obj
+
+    def get_scans_in_time_range(
+        self, 
+        time_range: Union[Tuple[float, float], List[Tuple[float, float]]],
+        ms_level: Optional[int] = None
+    ) -> List[int]:
+        """
+        Return scan numbers within specified retention time range(s).
+        
+        This method provides efficient filtering of scans by retention time,
+        which is particularly useful for targeted workflows where only specific
+        time windows are of interest.
+        
+        Parameters
+        ----------
+        time_range : tuple or list of tuples
+            Retention time range(s) in minutes. Can be:
+            - Single range: (start_time, end_time)
+            - Multiple ranges: [(start1, end1), (start2, end2), ...]
+        ms_level : int, optional
+            If specified, only return scans of this MS level (e.g., 1 for MS1, 2 for MS2).
+            If None, returns scans of all MS levels.
+        
+        Returns
+        -------
+        list of int
+            List of scan numbers within the specified time range(s) and MS level.
+        
+        Examples
+        --------
+        Get MS1 scans between 1.0 and 2.0 minutes:
+        
+        >>> scans = parser.get_scans_in_time_range((1.0, 2.0), ms_level=1)
+        
+        Get scans in multiple time windows:
+        
+        >>> scans = parser.get_scans_in_time_range([(0.5, 1.5), (3.0, 4.0)])
+        """
+        # Get scan dataframe filtered by time range
+        scan_df = self.get_scan_df(time_range=time_range)
+        
+        # Further filter by MS level if specified
+        if ms_level is not None:
+            scan_df = scan_df[scan_df.ms_level == ms_level]
+        
+        # Return list of scan numbers
+        return scan_df.scan.tolist()
 
     def get_instrument_info(self):
         """

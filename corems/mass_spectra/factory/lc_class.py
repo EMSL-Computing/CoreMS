@@ -1991,7 +1991,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         self._combined_mass_features = cmb_mf_df2
     
 
-    def load_raw_data(self, sample_idx: int, ms_level = 1) -> None:
+    def load_raw_data(self, sample_idx: int, ms_level = 1, time_range = None) -> None:
         """Load raw data for a specific sample index in the collection.
         
         Parameters
@@ -2000,6 +2000,9 @@ class LCMSCollection(LCMSCollectionCalculations):
             The index of the sample in the collection.
         ms_level : int, optional
             The MS level to load raw data for. Defaults to 1.
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to load. Can be a single tuple (min, max) or
+            a list of tuples for multiple ranges. If None, loads all data. Defaults to None.
             
         Raises
         -------
@@ -2034,7 +2037,8 @@ class LCMSCollection(LCMSCollectionCalculations):
         if parser_class_name == "ImportMassSpectraThermoMSFileReader":
             self[sample_idx]._ms_unprocessed[ms_level] = parser.get_ms_raw(
                 spectra=f"ms{ms_level}",
-                scan_df=scan_df
+                scan_df=scan_df,
+                time_range=time_range
             )[f"ms{ms_level}"]
 
         elif parser_class_name == "MZMLSpectraParser":
@@ -2042,7 +2046,8 @@ class LCMSCollection(LCMSCollectionCalculations):
             self[sample_idx]._ms_unprocessed[ms_level] = parser.get_ms_raw(
                 spectra=f"ms{ms_level}",
                 scan_df=scan_df,
-                data=data
+                data=data,
+                time_range=time_range
                 )[f"ms{ms_level}"]
 
         elif parser_class_name == "ReadCoreMSHDFMassSpectra":

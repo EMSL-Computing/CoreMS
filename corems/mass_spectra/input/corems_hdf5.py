@@ -9,6 +9,7 @@ import json
 import multiprocessing
 from pathlib import Path
 import datetime
+from typing import Union, Tuple, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -340,7 +341,7 @@ class ReadCoreMSHDFMassSpectra(
         """ """
         pass
 
-    def get_ms_raw(self, spectra=None, scan_df=None) -> dict:
+    def get_ms_raw(self, spectra=None, scan_df=None, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None) -> dict:
         """ """
         # Warn if spectra or scan_df are not None that they are not used for CoreMS HDF5 files and should be rerun after instantiation
         if spectra is not None or scan_df is not None:
@@ -357,7 +358,7 @@ class ReadCoreMSHDFMassSpectra(
             )
         return ms_unprocessed
 
-    def get_scan_df(self) -> pd.DataFrame:
+    def get_scan_df(self, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None) -> pd.DataFrame:
         scan_info = {}
         dict_group_load = self.h5pydata["scan_info"]
         dict_group_keys = dict_group_load.keys()
@@ -369,6 +370,15 @@ class ReadCoreMSHDFMassSpectra(
         str_df = str_df.stack().str.decode("utf-8").unstack()
         for col in str_df:
             scan_df[col] = str_df[col]
+        
+        # Apply time range filtering if specified
+        if time_range is not None:
+            time_ranges = self._normalize_time_range(time_range)
+            mask = pd.Series([False] * len(scan_df), index=scan_df.index)
+            for start_time, end_time in time_ranges:
+                mask |= (scan_df.scan_time >= start_time) & (scan_df.scan_time <= end_time)
+            scan_df = scan_df[mask]
+        
         return scan_df
 
     def run(self, mass_spectra, load_raw=True, load_light=False) -> None:
@@ -724,7 +734,7 @@ class ReadCoreMSHDFMassSpectra(
                             ]
                         )
 
-    def get_mass_spectra_obj(self, load_raw=True, load_light=False) -> MassSpectraBase:
+    def get_mass_spectra_obj(self, load_raw=True, load_light=False, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None) -> MassSpectraBase:
         """
         Return mass spectra data object, populating the _ms list on MassSpectraBase object from the HDF5 file.
 
@@ -734,6 +744,12 @@ class ReadCoreMSHDFMassSpectra(
             If True, load raw data (unprocessed) from HDF5 files for overall spectra object and individual mass spectra. Default is True.
         load_light : bool
             If True, only load the parameters, mass features, and scan info. Default is False.
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to load. Can be:
+            - Single range: (start_time, end_time) in minutes
+            - Multiple ranges: [(start1, end1), (start2, end2), ...] in minutes
+            If None, loads all scans. Note: For HDF5 files, this parameter is accepted for
+            interface consistency but not currently used in filtering.
 
         """
         # Instantiate the LCMS object
@@ -750,7 +766,7 @@ class ReadCoreMSHDFMassSpectra(
         return spectra_obj
 
     def get_lcms_obj(
-        self, load_raw=True, load_light=False, use_original_parser=True, raw_file_path=None
+        self, load_raw=True, load_light=False, use_original_parser=True, raw_file_path=None, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None
     ) -> LCMSBase:
         """
         Return LCMSBase object, populating attributes on the LCMSBase object from the HDF5 file.
@@ -767,6 +783,13 @@ class ReadCoreMSHDFMassSpectra(
             The location of the raw file to parse if attempting to use original parser.
             Default is None, which attempts to get the raw file path from the HDF5 file.
             If the original file path has moved, this parameter can be used to specify the new location.
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to load. Can be:
+            - Single range: (start_time, end_time) in minutes
+            - Multiple ranges: [(start1, end1), (start2, end2), ...] in minutes
+            If None, loads all scans. Note: For HDF5 files, this parameter is accepted for
+            interface consistency. If use_original_parser=True, time_range can be passed to the
+            original parser for filtering.
         """
         # Instantiate the LCMS object
         lcms_obj = LCMSBase(
@@ -923,6 +946,47 @@ class ReadCoreMSHDFMassSpectra(
             "This should be accessed through the original parser.",
         )
         return None
+    
+    def get_scans_in_time_range(
+        self, 
+        time_range: Union[Tuple[float, float], List[Tuple[float, float]]],
+        ms_level: Optional[int] = None
+    ) -> List[int]:
+        """Return scan numbers within specified retention time range(s).
+        
+        Parameters
+        ----------
+        time_range : tuple or list of tuples
+            Retention time range(s) in minutes. Can be:
+            - Single range: (start_time, end_time)
+            - Multiple ranges: [(start1, end1), (start2, end2), ...]
+        ms_level : int, optional
+            If specified, only return scans of this MS level (e.g., 1 for MS1, 2 for MS2).
+            If None, returns scans of all MS levels.
+        
+        Returns
+        -------
+        list of int
+            List of scan numbers within the specified time range(s) and MS level.
+        """
+        # Normalize time range to list of tuples
+        time_ranges = self._normalize_time_range(time_range)
+        
+        # Get all scan data
+        scan_df = self.get_scan_df()
+        
+        # Filter by time range
+        mask = pd.Series([False] * len(scan_df), index=scan_df.index)
+        for start_time, end_time in time_ranges:
+            mask |= (scan_df.scan_time >= start_time) & (scan_df.scan_time <= end_time)
+        
+        filtered_df = scan_df[mask]
+        
+        # Filter by MS level if specified
+        if ms_level is not None:
+            filtered_df = filtered_df[filtered_df.ms_level == ms_level]
+        
+        return filtered_df.scan.tolist()
 
 
 class ReadCoreMSHDFMassSpectraCollection:

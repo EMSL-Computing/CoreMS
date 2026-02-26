@@ -180,6 +180,11 @@ class GapFillOperation(SampleOperation):
     windows for clusters that are present in other samples but missing from
     this sample.
     
+    Uses time range filtering for efficient data loading - only loads the 
+    retention time windows where gaps need to be filled, plus a buffer 
+    (controlled by eic_buffer_time parameter) for complete EIC extraction. 
+    Multiple time ranges are automatically merged if they overlap.
+    
     Parameters
     ----------
     name : str
@@ -191,6 +196,8 @@ class GapFillOperation(SampleOperation):
     -----
     Requires that add_consensus_mass_features() has been run on the collection.
     This operation loads raw MS1 data which will be available for subsequent operations.
+    Time range filtering significantly reduces memory usage and loading time for
+    large datasets with sparse gaps.
     """
     
     @property
@@ -250,8 +257,41 @@ class GapFillOperation(SampleOperation):
         if len(sampledf) == 0:
             return {}
 
-        # Load raw data for this sample
-        collection.load_raw_data(sample_id, 1)
+        # Get buffer time from LCMS parameters for EIC extraction
+        # This ensures we capture the full chromatographic peak beyond cluster bounds
+        buffer_rt = collection[sample_id].parameters.lc_ms.eic_buffer_time
+        
+        # Calculate time ranges for efficient loading with buffer for EIC extraction
+        time_ranges = []
+        
+        for _, row in sampledf.iterrows():
+            rt_min = row['scan_time_aligned_min']
+            rt_max = row['scan_time_aligned_max']
+            
+            # If expand_on_miss, also consider the allowed bounds
+            if expand_on_miss:
+                rt_min = min(rt_min, row['sta_min_allowed'])
+                rt_max = max(rt_max, row['sta_max_allowed'])
+            
+            # Apply buffer AFTER considering expand_on_miss bounds
+            # This ensures buffer is added beyond even the expanded search window
+            time_ranges.append((max(0, rt_min - buffer_rt), rt_max + buffer_rt))
+        
+        # Merge overlapping time ranges to reduce number of separate loads
+        time_ranges = sorted(time_ranges)
+        merged_ranges = []
+        if time_ranges:
+            current_min, current_max = time_ranges[0]
+            for rt_min, rt_max in time_ranges[1:]:
+                if rt_min <= current_max:  # Overlapping or adjacent
+                    current_max = max(current_max, rt_max)
+                else:
+                    merged_ranges.append((current_min, current_max))
+                    current_min, current_max = rt_min, rt_max
+            merged_ranges.append((current_min, current_max))
+
+        # Load raw data for this sample with time range filtering
+        collection.load_raw_data(sample_id, 1, time_range=merged_ranges)
         
         # Get MS1 data
         ms1df = collection[sample_id]._ms_unprocessed[1].copy()

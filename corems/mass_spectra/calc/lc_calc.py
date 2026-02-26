@@ -2973,11 +2973,9 @@ class LCMSCollectionCalculations:
         # Check if there are enough matches to attempt alignment
         minimum_matches = self.parameters.lcms_collection.alignment_minimum_matches
         if len(matches_c) < minimum_matches:
-            warnings.warn(
-                f"Insufficient matches ({len(matches_c)}) for alignment. "
-                f"Minimum required: {minimum_matches}. Skipping alignment for this sample."
-            )
-            # Return False (no alignment) and identity function (returns original time)
+            # Return False (no alignment) and identity function (returns original time) 
+            # which isn't used but is a placeholder to avoid errors in downstream code since 
+            # the function expects a callable to be returned
             return False, lambda x: x
 
         # Rearrange matches_c and matches_i to be in the order of the scan_time of matches_c
@@ -5234,8 +5232,10 @@ class LCMSCollectionCalculations:
                     sample_id, operations, runtime_params, inplace=True
                 )
                 # Collect results (collect_results already called in _execute_sample_pipeline when inplace=True)
+                # Skip 'sample_id' key which is added for tracking
                 for op_name, result in sample_results.items():
-                    results_by_operation[op_name][sample_id] = result
+                    if op_name != 'sample_id':
+                        results_by_operation[op_name][sample_id] = result
         else:
             # Parallel processing
             import multiprocessing
@@ -5253,30 +5253,48 @@ class LCMSCollectionCalculations:
                 for sample_id in range(sample_ct)
             ]
             
-            # Execute in parallel
-            mp_results = pool.starmap(self._execute_sample_pipeline, args_list)
-            pool.close()
-            pool.join()
-            
-            # Collect results back into collection
+            # Execute in parallel with progress tracking
             results_by_operation = {op.name: {} for op in operations}
             
             if show_progress:
                 from tqdm import tqdm
-                print(f"\nCollecting {description} results:")
-                iterator = tqdm(range(sample_ct), unit="sample", ncols=80)
-            else:
-                iterator = range(sample_ct)
-            
-            for sample_id in iterator:
-                sample_results = mp_results[sample_id]
+                import time
+                print(f"\nProcessing {sample_ct} samples with {ncores} cores ({description}):")
                 
-                # Let each operation collect its results
-                for i, op in enumerate(operations):
-                    result = sample_results.get(op.name)
-                    if result is not None:
-                        op.collect_results(sample_id, result, self)
-                        results_by_operation[op.name][sample_id] = result
+                # Use starmap_async for parallel execution with progress tracking
+                async_result = pool.starmap_async(self._execute_sample_pipeline, args_list)
+                
+                # Poll for completion and update progress bar
+                pbar = tqdm(total=sample_ct, unit="sample", ncols=80)
+                while not async_result.ready():
+                    # Get number of completed tasks by checking remaining
+                    completed = sample_ct - async_result._number_left
+                    pbar.n = completed
+                    pbar.refresh()
+                    time.sleep(0.1)  # Poll every 100ms
+                
+                # Final update to 100%
+                pbar.n = sample_ct
+                pbar.refresh()
+                pbar.close()
+                
+                # Get all results
+                mp_results = async_result.get()
+            else:
+                # Execute without progress
+                mp_results = pool.starmap(self._execute_sample_pipeline, args_list)
+            
+            pool.close()
+            pool.join()
+            
+            # Collect results back into collection
+            for result in mp_results:
+                sample_id = result.get('sample_id')
+                for op in operations:
+                    op_result = result.get(op.name)
+                    if op_result is not None:
+                        op.collect_results(sample_id, op_result, self)
+                        results_by_operation[op.name][sample_id] = op_result
         
         return results_by_operation
     
@@ -5485,6 +5503,8 @@ class LCMSCollectionCalculations:
                 if ms_level in self[sample_id]._ms_unprocessed:
                     del self[sample_id]._ms_unprocessed[ms_level]
         
+        # Include sample_id in results for tracking (especially important for imap_unordered)
+        results['sample_id'] = sample_id
         return results
     
     def process_consensus_features(self, load_representatives=True, perform_gap_filling=True,
@@ -5493,7 +5513,8 @@ class LCMSCollectionCalculations:
                                    ms2_spectral_search=False, spectral_lib=None,
                                    molecular_metadata=None,
                                    gather_eics=False,
-                                   keep_raw_data=False):
+                                   keep_raw_data=False,
+                                   show_progress=True):
         """
         Process consensus mass features across the collection in a single parallelized pass.
         
@@ -5544,6 +5565,9 @@ class LCMSCollectionCalculations:
         keep_raw_data : bool, optional
             If True, keeps raw MS data loaded in memory after pipeline completes.
             If False, cleans up raw data to free memory. Default is False.
+        show_progress : bool, optional
+            If True, displays progress bars during processing. If False, runs silently.
+            Default is True.
             
         Returns
         -------
@@ -5671,7 +5695,8 @@ class LCMSCollectionCalculations:
         # Execute pipeline (description auto-generated from operations)
         results = self.process_samples_pipeline(
             operations,
-            keep_raw_data=keep_raw_data
+            keep_raw_data=keep_raw_data,
+            show_progress=show_progress
         )
         
         # Store molecular metadata if spectral search was performed
