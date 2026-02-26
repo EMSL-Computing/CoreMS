@@ -358,7 +358,7 @@ class LCCalculations:
         return ms
 
     def find_mass_features(self, ms_level=1, grid=True, assign_ms2_scans=False, ms2_scan_filter=None, 
-                          targeted_search=False, target_search_dict=None):
+                          targeted_search=False, target_search_dict=None, accumulate_features=False):
         """Find mass features within an LCMSBase object
 
         Note that this is a wrapper function that calls the find_mass_features_ph function, but can be extended to support other peak picking methods in the future.
@@ -392,6 +392,10 @@ class LCCalculations:
                 - 'type': type label for mass features (e.g., "internal standard")
                   If not provided, defaults to "targeted"
             Default is None.
+        accumulate_features : bool, optional
+            If True, new mass features will be added to existing features rather than replacing them.
+            This allows multiple sequential calls to find_mass_features to build up a combined set.
+            Default is False (replace existing features for backwards compatibility).
 
         Raises
         ------
@@ -431,7 +435,8 @@ class LCCalculations:
                 self.find_mass_features_ph(ms_level=ms_level, grid=grid, 
                                           targeted_search=targeted_search, 
                                           target_search_dict=target_search_dict,
-                                          mf_type=mf_type)
+                                          mf_type=mf_type,
+                                          accumulate_features=accumulate_features)
             else:
                 raise ValueError(
                     "MS{} scans are not profile mode, which is required for persistent homology peak picking.".format(
@@ -449,7 +454,8 @@ class LCCalculations:
                 self.find_mass_features_ph_centroid(ms_level=ms_level, 
                                                     targeted_search=targeted_search, 
                                                     target_search_dict=target_search_dict,
-                                                    mf_type=mf_type)
+                                                    mf_type=mf_type,
+                                                    accumulate_features=accumulate_features)
             else:
                 raise ValueError(
                     "MS{} scans are not centroid mode, which is required for persistent homology centroided peak picking.".format(
@@ -1950,7 +1956,7 @@ class PHCalculations:
         
         return data[mask].reset_index(drop=True)
     
-    def find_mass_features_ph(self, ms_level=1, grid=True, targeted_search=False, target_search_dict=None, mf_type="untargeted"):
+    def find_mass_features_ph(self, ms_level=1, grid=True, targeted_search=False, target_search_dict=None, mf_type="untargeted", accumulate_features=False):
         """Find mass features within an LCMSBase object using persistent homology.
 
         Assigns the mass_features attribute to the object (a dictionary of LCMSMassFeature objects, keyed by mass feature id)
@@ -1967,6 +1973,8 @@ class PHCalculations:
             Dictionary with target parameters for targeted search. Default is None.
         mf_type : str, optional
             Type label for the mass features. Default is "untargeted".
+        accumulate_features : bool, optional
+            If True, add to existing features rather than replacing them. Default is False.
 
         Raises
         ------
@@ -2044,7 +2052,7 @@ class PHCalculations:
                 data_thres, dims, persistence_threshold, mf_type
             )
 
-    def _find_mass_features_ph_single(self, data_thres, dims, persistence_threshold, mf_type="untargeted"):
+    def _find_mass_features_ph_single(self, data_thres, dims, persistence_threshold, mf_type="untargeted", accumulate_features=False):
         """Process all data at once (original logic)."""
         # Build factors
         factors = {
@@ -2077,9 +2085,9 @@ class PHCalculations:
         mass_features_df = mass_features_df.reset_index(drop=True)
 
         # Populate mass_features attribute
-        self._populate_mass_features(mass_features_df, mf_type)
+        self._populate_mass_features(mass_features_df, mf_type, accumulate_features)
 
-    def _find_mass_features_ph_partition(self, data_thres, dims, persistence_threshold, mf_type="untargeted"):
+    def _find_mass_features_ph_partition(self, data_thres, dims, persistence_threshold, mf_type="untargeted", accumulate_features=False):
         """Partition the persistent homology mass feature detection for large datasets.
 
         This method splits the input data into overlapping scan partitions, processes each partition to detect mass features
@@ -2095,6 +2103,8 @@ class PHCalculations:
             Minimum persistence value required for a detected mass feature to be retained.
         mf_type : str, optional
             Type label for the mass features. Default is "untargeted".
+        accumulate_features : bool, optional
+            If True, add to existing features rather than replacing them. Default is False.
 
         Returns
         -------
@@ -2198,7 +2208,7 @@ class PHCalculations:
             combined_features = combined_features.reset_index(drop=True)
 
             # Populate mass_features attribute
-            self._populate_mass_features(combined_features, mf_type)
+            self._populate_mass_features(combined_features, mf_type, accumulate_features)
         else:
             self.mass_features = {}
 
@@ -2261,7 +2271,7 @@ class PHCalculations:
 
         return mass_features
 
-    def _populate_mass_features(self, mass_features_df, mf_type="untargeted"):
+    def _populate_mass_features(self, mass_features_df, mf_type="untargeted", accumulate_features=False):
         """Populate the mass_features attribute from a DataFrame.
 
         Parameters
@@ -2271,28 +2281,47 @@ class PHCalculations:
             Note that the order of this DataFrame will determine the order of mass features in the mass_features attribute.
         mf_type : str, optional
             Type label for the mass features. Default is "untargeted".
+        accumulate_features : bool, optional
+            If True, new features will be added to existing features rather than replacing them.
+            Mass feature IDs will be offset to avoid conflicts. Default is False.
 
         Returns
         -------
-        None, but assigns the mass_features attribute to the object.
+        None, but assigns or updates the mass_features attribute to the object.
         """
         # Rename scan column to apex_scan
         mass_features_df = mass_features_df.rename(
             columns={"scan": "apex_scan", "scan_time": "retention_time"}
         )
 
-        # Populate mass_features attribute
-        self.mass_features = {}
+        # Initialize or preserve existing mass_features attribute
+        if accumulate_features and self.mass_features is not None and len(self.mass_features) > 0:
+            # Find the maximum existing ID to offset new IDs and avoid conflicts
+            id_offset = max(self.mass_features.keys()) + 1
+            initial_count = len(self.mass_features)
+        else:
+            # Replace mode (default/backwards compatible)
+            self.mass_features = {}
+            id_offset = 0
+            initial_count = 0
+        
+        # Add new mass features
         for row in mass_features_df.itertuples():
             row_dict = mass_features_df.iloc[row.Index].to_dict()
             lcms_feature = LCMSMassFeature(self, **row_dict)
             lcms_feature.type = mf_type
-            self.mass_features[lcms_feature.id] = lcms_feature
+            # Use offset ID to avoid conflicts with existing features
+            new_id = lcms_feature.id + id_offset
+            lcms_feature._id = new_id  # Update the internal ID
+            self.mass_features[new_id] = lcms_feature
 
         if self.parameters.lc_ms.verbose_processing:
-            print("Found " + str(len(mass_features_df)) + " initial mass features")
+            if accumulate_features and initial_count > 0:
+                print(f"Found {len(mass_features_df)} new mass features (total: {len(self.mass_features)})")
+            else:
+                print("Found " + str(len(mass_features_df)) + " initial mass features")
 
-    def find_mass_features_ph_centroid(self, ms_level=1, targeted_search=False, target_search_dict=None, mf_type="untargeted"):
+    def find_mass_features_ph_centroid(self, ms_level=1, targeted_search=False, target_search_dict=None, mf_type="untargeted", accumulate_features=False):
         """Find mass features within an LCMSBase object using persistent homology-type approach but with centroided data.
 
         Parameters
@@ -2305,6 +2334,8 @@ class PHCalculations:
             Dictionary with target parameters for targeted search. Default is None.
         mf_type : str, optional
             Type label for the mass features. Default is "untargeted".
+        accumulate_features : bool, optional
+            If True, add to existing features rather than replacing them. Default is False.
 
         Raises
         ------
