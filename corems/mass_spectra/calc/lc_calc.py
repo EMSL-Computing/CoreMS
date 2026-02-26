@@ -2874,6 +2874,11 @@ class LCMSCollectionCalculations:
         arr = np.vstack((x, y)).T
         arr = np.unique(arr, axis=0)
 
+        # Safety check: ensure we have data to work with
+        if len(arr) == 0:
+            warnings.warn("No data points available for retention time fitting. Returning identity function.")
+            return lambda x: x
+
         # Check kwargs
         if "kernel" in kwargs:
             kernel = kwargs.get("kernel")
@@ -2964,6 +2969,16 @@ class LCMSCollectionCalculations:
         # Hold out a subset of matches_c and matches_i for spline fitting
         matches_c.reset_index(drop=False, inplace=True)
         matches_i.reset_index(drop=False, inplace=True)
+
+        # Check if there are enough matches to attempt alignment
+        minimum_matches = self.parameters.lcms_collection.alignment_minimum_matches
+        if len(matches_c) < minimum_matches:
+            warnings.warn(
+                f"Insufficient matches ({len(matches_c)}) for alignment. "
+                f"Minimum required: {minimum_matches}. Skipping alignment for this sample."
+            )
+            # Return False (no alignment) and identity function (returns original time)
+            return False, lambda x: x
 
         # Rearrange matches_c and matches_i to be in the order of the scan_time of matches_c
         matches_c = matches_c.sort_values(by="scan_time")

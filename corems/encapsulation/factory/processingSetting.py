@@ -1130,6 +1130,11 @@ class LCMSCollectionSettings:
         For example, 0.6 removes the lower 60% of intensity features.
         Used when mass_feature_anchor_technique includes 'relative_intensity'.
         Default is 0.6.
+    alignment_minimum_matches: int, optional
+        Minimum number of matched features required to attempt retention time alignment.
+        If fewer matches are found between samples, alignment will be skipped for that sample.
+        This is particularly useful when aligning blank samples or samples with very few features.
+        Default is 5.
     alignment_hold_out_fraction: float, optional
         Hold out fraction for testing retention time alignment.
         Default is 0.3.
@@ -1182,6 +1187,7 @@ class LCMSCollectionSettings:
     mass_feature_anchor_techniques_available: tuple = ("deconvoluted_mass_spectra", "absolute_intensity", "relative_intensity")
     mass_feature_anchor_absolute_intensity_threshold: int = 10000
     mass_feature_anchor_relative_intensity_threshold: float = 0.6
+    alignment_minimum_matches: int = 5
     alignment_hold_out_fraction: float = 0.3
     _alignment_acceptance_technique: list = dataclasses.field(default_factory=lambda: ["fraction_improved", "mean_squared_error_improved"])
     alignment_acceptance_techniques_available: tuple = ("fraction_improved", "mean_squared_error_improved")
