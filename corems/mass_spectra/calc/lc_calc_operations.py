@@ -909,12 +909,15 @@ class MS2SpectralSearchOperation(SampleOperation):
             )
         
         # Extract peak_sep_da from FlashEntropy library configuration
-        peak_sep_da = fe_lib.entropy_search.max_ms2_tolerance_in_da
-        if peak_sep_da is None:
+        # peak_sep_da should be 2 * max_ms2_tolerance_in_da to match the min_ms2_difference_in_da
+        # used when creating the library
+        tolerance_da = fe_lib.entropy_search.max_ms2_tolerance_in_da
+        if tolerance_da is None:
             raise ValueError(
                 f"Sample {sample_id}: Could not extract max_ms2_tolerance_in_da from FlashEntropy library. "
                 "Ensure the library was created with this parameter specified."
             )
+        peak_sep_da = 2 * tolerance_da
         
         # Verify that sample has _ms dictionary
         if not hasattr(sample, '_ms') or not sample._ms:

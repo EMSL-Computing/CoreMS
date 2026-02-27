@@ -5638,9 +5638,22 @@ class LCMSCollectionCalculations:
             MS2SpectralSearchOperation, LoadEICsOperation
         )
         
-        # Validate that at least one operation is enabled
-        if not perform_gap_filling and not load_representatives:
-            raise ValueError("At least one of perform_gap_filling or load_representatives must be True")
+        # Validate that at least one meaningful operation is enabled
+        has_operations = (
+            perform_gap_filling or 
+            load_representatives or 
+            molecular_formula_search or 
+            ms2_spectral_search or 
+            gather_eics or
+            add_ms1 or
+            add_ms2
+        )
+        
+        if not has_operations:
+            raise ValueError(
+                "At least one operation must be enabled: perform_gap_filling, load_representatives, "
+                "molecular_formula_search, ms2_spectral_search, gather_eics, add_ms1, or add_ms2"
+            )
         
         # Validate prerequisites for gap-filling
         if perform_gap_filling:
@@ -5652,15 +5665,27 @@ class LCMSCollectionCalculations:
         
         # Validate prerequisites for MS2 spectral search
         if ms2_spectral_search:
-            if not add_ms2:
-                raise ValueError(
-                    "MS2 spectral search requires add_ms2=True to load MS2 spectra."
-                )
             if spectral_lib is None:
                 raise ValueError(
                     "MS2 spectral search requires spectral_lib to be provided. "
                     "Create it using MSPInterface.get_metabolomics_spectra_library() before calling this method."
                 )
+            # Check if mass features will be loaded OR are already loaded
+            # (The operation's can_execute will check if MS2 spectra are actually present)
+            if not load_representatives and not perform_gap_filling:
+                # Check if at least one sample has mass features loaded
+                # This allows MS2 search on already-loaded features
+                has_loaded_features = any(
+                    len(self[i].mass_features) > 0 if hasattr(self[i], 'mass_features') and self[i].mass_features is not None else False
+                    for i in range(len(self.samples))
+                )
+                if not has_loaded_features:
+                    raise ValueError(
+                        "MS2 spectral search requires mass features to be loaded. "
+                        "Either set load_representatives=True or perform_gap_filling=True to load them, "
+                        "or load them in a previous call to process_consensus_features() before calling "
+                        "with ms2_spectral_search=True."
+                    )
         
         # Build pipeline
         operations = []
