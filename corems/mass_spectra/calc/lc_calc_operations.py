@@ -526,16 +526,20 @@ class ReloadFeaturesOperation(SampleOperation):
                 )
         
         # If add_ms2, associate MS2 spectra with the loaded mass features
-        if add_ms2 and local_mf_ids_to_load is not None:
+        if add_ms2 and len(sample.mass_features) > 0:
+            # Get the IDs of loaded mass features (use what was actually loaded)
+            mf_ids_for_ms2 = list(sample.mass_features.keys())
+            
             collection._associate_ms2_with_mass_features(
                 sample, 
-                list(local_mf_ids_to_load),
+                mf_ids_for_ms2,
                 auto_process=auto_process_ms2,
                 spectrum_mode=ms2_spectrum_mode,
                 scan_filter=ms2_scan_filter
             )
         
-        return sample.mass_features
+        # Return both mass_features and _ms so they can be collected in multiprocessing
+        return {'mass_features': sample.mass_features, '_ms': sample._ms}
         
     def collect_results(self, sample_id, result, collection):
         """
@@ -545,19 +549,27 @@ class ReloadFeaturesOperation(SampleOperation):
         into sample.mass_features for processing, while preserving the full
         mass_features_dataframe at the collection level. Sets a lock flag to
         prevent automatic rebuilding of the collection dataframe from individual
-        samples.
+        samples. Also collects loaded mass spectra.
         
         Parameters
         ----------
         sample_id : int
             Sample ID that was processed
         result : dict
-            Dictionary of reloaded mass features
+            Dictionary with 'mass_features' and '_ms' from execute()
         collection : LCMSBaseCollection
             The collection
         """
         # Update sample.mass_features with loaded features
-        collection[sample_id].mass_features = result
+        if isinstance(result, dict) and 'mass_features' in result:
+            collection[sample_id].mass_features = result['mass_features']
+            # Also collect the _ms dictionary (MS1 and MS2 spectra)
+            if '_ms' in result:
+                collection[sample_id]._ms.update(result['_ms'])
+        else:
+            # Backward compatibility - if result is just mass_features dict
+            collection[sample_id].mass_features = result
+        
         # Lock the collection dataframe to prevent rebuilding from individual samples
         # (since we've only loaded a subset, rebuilding would lose data)
         collection._mass_features_locked = True

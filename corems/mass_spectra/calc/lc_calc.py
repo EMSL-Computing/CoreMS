@@ -2309,12 +2309,12 @@ class PHCalculations:
             initial_count = 0
         
         # Add new mass features
-        for row in mass_features_df.itertuples():
+        for idx, row in enumerate(mass_features_df.itertuples()):
             row_dict = mass_features_df.iloc[row.Index].to_dict()
             lcms_feature = LCMSMassFeature(self, **row_dict)
             lcms_feature.type = mf_type
-            # Use offset ID to avoid conflicts with existing features
-            new_id = lcms_feature.id + id_offset
+            # Use sequential ID starting from id_offset to avoid conflicts with existing features
+            new_id = idx + id_offset
             lcms_feature._id = new_id  # Update the internal ID
             self.mass_features[new_id] = lcms_feature
 
@@ -4301,6 +4301,7 @@ class LCMSCollectionCalculations:
             scan_list=list(unique_dda_scans),
             auto_process=auto_process,
             spectrum_mode=spectrum_mode,
+            ms_level=2,
             use_parser=True,
             ms_params=ms_params,
         )
