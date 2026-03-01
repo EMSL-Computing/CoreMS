@@ -230,7 +230,7 @@ class LCCalculations:
         
         # Remove mass features by peak metrics if designated in parameters
         if self.parameters.lc_ms.remove_mass_features_by_peak_metrics and remove_by_metrics:
-            self._remove_mass_features_by_peak_metrics()
+            self._remove_mass_features_by_peak_metrics(induced_features=induced_features)
 
     def get_average_mass_spectrum(
         self,
@@ -1047,7 +1047,7 @@ class LCCalculations:
                     k: v for k, v in self.mass_features.items() if k not in non_representative_mf_id
                 }
 
-    def _remove_mass_features_by_peak_metrics(self) -> None:
+    def _remove_mass_features_by_peak_metrics(self, induced_features=False) -> None:
         """Remove mass features based on peak metrics defined in mass_feature_attribute_filter_dict.
         
         This method filters mass features based on various peak shape metrics and quality indicators
@@ -1070,18 +1070,31 @@ class LCCalculations:
         - {'dispersity_index': {'value': 0.1, 'operator': '<'}} - Keep features with dispersity_index < 0.1
         - {'gaussian_similarity': {'value': 0.7, 'operator': '>='}} - Keep features with gaussian_similarity >= 0.7
         
+        Parameters
+        ----------
+        induced_features : bool, optional
+            If True, filter induced_mass_features instead of regular mass_features. Default is False.
+        
         Returns
         -------
         None
-            Modifies self.mass_features in place by removing filtered features.
+            Modifies self.mass_features or self.induced_mass_features in place by removing filtered features.
             
         Raises
         ------
         ValueError
             If no mass features are found, if an invalid attribute is specified, or if filter specification is malformed.
         """
-        if self.mass_features is None or len(self.mass_features) == 0:
-            raise ValueError("No mass features found, run find_mass_features() first")
+        # Select the appropriate mass features dictionary
+        if induced_features:
+            mf_dict = self.induced_mass_features
+            mf_type = "induced mass features"
+        else:
+            mf_dict = self.mass_features
+            mf_type = "mass features"
+            
+        if mf_dict is None or len(mf_dict) == 0:
+            raise ValueError(f"No {mf_type} found, run {'gap filling' if induced_features else 'find_mass_features()'} first")
             
         filter_dict = self.parameters.lc_ms.mass_feature_attribute_filter_dict
         
@@ -1090,15 +1103,15 @@ class LCCalculations:
             return
             
         verbose = self.parameters.lc_ms.verbose_processing
-        initial_count = len(self.mass_features)
+        initial_count = len(mf_dict)
         
         if verbose:
-            print(f"Filtering mass features using peak metrics. Initial count: {initial_count}")
+            print(f"Filtering {mf_type} using peak metrics. Initial count: {initial_count}")
             
         # List to collect IDs of mass features to remove
         features_to_remove = []
         
-        for mf_id, mass_feature in self.mass_features.items():
+        for mf_id, mass_feature in mf_dict.items():
             should_remove = False
             
             for attribute_name, filter_spec in filter_dict.items():
@@ -1184,9 +1197,18 @@ class LCCalculations:
         
         # Remove filtered mass features
         for mf_id in features_to_remove:
-            del self.mass_features[mf_id]
+            del mf_dict[mf_id]
         
-        # Clean up unassociated EICs and ms1 data
+        if verbose and len(features_to_remove) > 0:
+            print(f"Removed {len(features_to_remove)} {mf_type} based on peak metrics. Remaining: {len(mf_dict)}")
+        
+        # Update the appropriate dictionary
+        if induced_features:
+            self.induced_mass_features = mf_dict
+        else:
+            self.mass_features = mf_dict
+        
+        # Clean up unassociated EICs and ms1 data (only for regular features)
         self._remove_unassociated_eics()
         self._remove_unassociated_ms1_spectra()
             
