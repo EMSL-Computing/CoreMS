@@ -5282,23 +5282,32 @@ class LCMSCollectionCalculations:
             if show_progress:
                 from tqdm import tqdm
                 import time
-                print(f"\nProcessing {sample_ct} samples with {ncores} cores ({description}):")
                 
                 # Use starmap_async for parallel execution with progress tracking
                 async_result = pool.starmap_async(self._execute_sample_pipeline, args_list)
                 
                 # Poll for completion and update progress bar
-                pbar = tqdm(total=sample_ct, unit="sample", ncols=80)
+                print(description)
+                pbar = tqdm(
+                    total=sample_ct, 
+                    desc="",
+                    unit="sample", 
+                    position=0,
+                    leave=True,
+                    dynamic_ncols=True
+                )
+                prev_completed = 0
                 while not async_result.ready():
                     # Get number of completed tasks by checking remaining
                     completed = sample_ct - async_result._number_left
-                    pbar.n = completed
-                    pbar.refresh()
-                    time.sleep(0.1)  # Poll every 100ms
+                    if completed > prev_completed:
+                        pbar.update(completed - prev_completed)
+                        prev_completed = completed
+                    time.sleep(0.5)  # Poll every 500ms to avoid spam
                 
                 # Final update to 100%
-                pbar.n = sample_ct
-                pbar.refresh()
+                if prev_completed < sample_ct:
+                    pbar.update(sample_ct - prev_completed)
                 pbar.close()
                 
                 # Get all results
