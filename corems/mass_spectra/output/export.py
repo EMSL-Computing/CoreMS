@@ -1642,24 +1642,31 @@ class LCMSMetabolomicsExport(LCMSExport):
                 on=["mf_id", "isotopologue_type"],
             )
         if ms2_annot_report is not None:
-            # pull out the records with ion_formula and drop the ion_formula column (these should be empty if MS1 molecular formula assignment is working correctly)
-            mf_no_ion_formula = mf_report[mf_report["ion_formula"].isna()]
-            mf_no_ion_formula = mf_no_ion_formula.drop(columns=["ion_formula"])
-            mf_no_ion_formula = pd.merge(
-                mf_no_ion_formula, ms2_annot_report, how="left", on=["mf_id"]
-            )
+            # Check if ion_formula column exists (it may not if MS1 formula search wasn't run)
+            if "ion_formula" in mf_report.columns:
+                # pull out the records with ion_formula and drop the ion_formula column (these should be empty if MS1 molecular formula assignment is working correctly)
+                mf_no_ion_formula = mf_report[mf_report["ion_formula"].isna()]
+                mf_no_ion_formula = mf_no_ion_formula.drop(columns=["ion_formula"])
+                mf_no_ion_formula = pd.merge(
+                    mf_no_ion_formula, ms2_annot_report, how="left", on=["mf_id"]
+                )
 
-            # pull out the records with ion_formula
-            mf_with_ion_formula = mf_report[~mf_report["ion_formula"].isna()]
-            mf_with_ion_formula = pd.merge(
-                mf_with_ion_formula,
-                ms2_annot_report,
-                how="left",
-                on=["mf_id", "ion_formula"],
-            )
+                # pull out the records with ion_formula
+                mf_with_ion_formula = mf_report[~mf_report["ion_formula"].isna()]
+                mf_with_ion_formula = pd.merge(
+                    mf_with_ion_formula,
+                    ms2_annot_report,
+                    how="left",
+                    on=["mf_id", "ion_formula"],
+                )
 
-            # put back together
-            mf_report = pd.concat([mf_no_ion_formula, mf_with_ion_formula])
+                # put back together
+                mf_report = pd.concat([mf_no_ion_formula, mf_with_ion_formula])
+            else:
+                # No ion_formula column (MS1 formula search wasn't run), merge on mf_id only
+                mf_report = pd.merge(
+                    mf_report, ms2_annot_report, how="left", on=["mf_id"]
+                )
 
         # Rename colums
         rename_dict = {
@@ -1704,10 +1711,15 @@ class LCMSMetabolomicsExport(LCMSExport):
         ]
 
         # Reorder rows by "Mass Feature ID", then "Entropy Similarity" (descending), then "Confidence Score" (descending)
-        if "Entropy Similarity" in mf_report.columns:
+        if "Entropy Similarity" in mf_report.columns and "Confidence Score" in mf_report.columns:
             mf_report = mf_report.sort_values(
                 by=["Mass Feature ID", "Entropy Similarity", "Confidence Score"],
                 ascending=[True, False, False],
+            )
+        elif "Entropy Similarity" in mf_report.columns:
+             mf_report = mf_report.sort_values(
+                by=["Mass Feature ID", "Entropy Similarity"],
+                ascending=[True, False],
             )
         elif "Confidence Score" in mf_report.columns:
              mf_report = mf_report.sort_values(
