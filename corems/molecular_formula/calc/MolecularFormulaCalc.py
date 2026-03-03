@@ -560,7 +560,7 @@ class MolecularFormulaCalc:
         )
         ai_d = ai_es["C"] - (0.5 * ai_es["O"]) - ai_es["N"] - ai_es["S"]
 
-        ai = ai_n / ai_d
+        ai = ai_n / ai_d if ai_d != 0 else 0
 
         if ai < 0:
             ai = 0
@@ -601,7 +601,7 @@ class MolecularFormulaCalc:
                 )
         ai_d = ai_es["C"] - (ai_es["O"]) - ai_es["N"] - ai_es["S"]
 
-        ai = ai_n / ai_d
+        ai = ai_n / ai_d if ai_d != 0 else 0
 
         if ai < 0:
             ai = 0
