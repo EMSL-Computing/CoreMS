@@ -136,7 +136,9 @@ class MolecularFormulaBase(MolecularFormulaCalc):
                 self._mspeak_parent._ms_parent.mspeaks_settings.kendrick_base
             )
         else:
-            kendrick_dict_base = {"C": 1, "H": 2}
+            from corems.encapsulation.factory.parameters import MSParameters
+
+            kendrick_dict_base = MSParameters.ms_peak.kendrick_base
         self._kmd, self._kendrick_mass, self._nominal_km = self._calc_kmd(
             kendrick_dict_base
         )
