@@ -977,8 +977,9 @@ class MolecularFormulaSearchSettings:
 
     min_peaks_per_class: int = 15
 
-    url_database: str = (
-        "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
+    url_database: str = os.getenv(
+        "COREMS_DATABASE_URL",
+        "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp",
     )
 
     db_jobs: int = 3
