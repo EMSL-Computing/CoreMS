@@ -571,6 +571,44 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             raise ValueError("ms_level must be 1 or 2")
         self._ms_unprocessed[ms_level] = None
 
+    def _filter_ms2_scans_by_integration_bounds(self, mf_dict=None):
+        """Filter MS2 scans to only include those within integration bounds.
+        
+        Removes MS2 scan numbers that fall outside the start_scan to final_scan range
+        for each mass feature. This should be called after integration sets the bounds.
+        
+        Parameters
+        ----------
+        mf_dict : dict, optional
+            Dictionary of mass features to filter. If None, uses self.mass_features.
+            
+        Returns
+        -------
+        int
+            Number of MS2 scans removed across all mass features.
+        """
+        if mf_dict is None:
+            mf_dict = self.mass_features
+        
+        total_removed = 0
+        
+        for mf_id, mf in mf_dict.items():
+            # Only filter if integration bounds are set and MS2 scans exist
+            if (hasattr(mf, 'start_scan') and hasattr(mf, 'final_scan') and 
+                mf.start_scan is not None and mf.final_scan is not None and
+                mf.ms2_scan_numbers is not None and len(mf.ms2_scan_numbers) > 0):
+                
+                # Filter scan numbers to only those within bounds
+                original_count = len(mf.ms2_scan_numbers)
+                mf.ms2_scan_numbers = [
+                    scan for scan in mf.ms2_scan_numbers 
+                    if mf.start_scan <= scan <= mf.final_scan
+                ]
+                removed = original_count - len(mf.ms2_scan_numbers)
+                total_removed += removed
+        
+        return total_removed
+    
     def _find_ms2_scans_for_mass_features(self, mf_ids=None, scan_filter=None):
         """Find MS2 scans associated with mass features.
         
@@ -632,10 +670,18 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             ]
             scan_list = ms2_scans_filtered.scan.tolist()
             if scan_list:
-                self.mass_features[i].ms2_scan_numbers = (
-                    scan_list + list(self.mass_features[i].ms2_scan_numbers)
-                )
-                dda_scans.extend(scan_list)
+                # Filter scans by integration bounds if they exist
+                mf = self.mass_features[i]
+                if (hasattr(mf, 'start_scan') and hasattr(mf, 'final_scan') and 
+                    mf.start_scan is not None and mf.final_scan is not None):
+                    # Only keep scans within integration bounds
+                    scan_list = [s for s in scan_list if mf.start_scan <= s <= mf.final_scan]
+                
+                if scan_list:  # Only add if there are still scans after filtering
+                    self.mass_features[i].ms2_scan_numbers = (
+                        scan_list + list(self.mass_features[i].ms2_scan_numbers)
+                    )
+                    dda_scans.extend(scan_list)
         
         return list(set(dda_scans))
     

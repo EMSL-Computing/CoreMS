@@ -673,6 +673,13 @@ class LCCalculations:
                         ):
                             if idx2 in self.mass_features.keys():
                                 self.mass_features.pop(idx2)
+        
+        # Filter MS2 scans to only include those within integration bounds
+        # This ensures MS2 scans outside start_scan to final_scan are removed
+        if induced_features:
+            self._filter_ms2_scans_by_integration_bounds(mf_dict=self.induced_mass_features)
+        else:
+            self._filter_ms2_scans_by_integration_bounds(mf_dict=self.mass_features)
 
     def find_c13_mass_features(self):
         """Mark likely C13 isotopes and connect to monoisoitopic mass features.
