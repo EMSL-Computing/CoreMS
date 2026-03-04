@@ -699,14 +699,15 @@ class HeteroatomsClassification(Mapping):
             return ax
 
     def plot_van_krevelen(
-        self, classe, max_hc=2.5, max_oc=2, ticks_number=5, color="viridis"
+        self, classe=None, max_hc=2.5, max_oc=2, ticks_number=5, color="viridis",
+        alpha=0.5, log_abundance=False
     ):
-        """Plot Van Krevelen Diagram
+        """Plot Van Krevelen Diagram for a single class or all assigned classes
 
         Parameters
         ----------
-        classe : str
-            Class name
+        classe : str, optional
+            Class name or None to plot all assigned classes, by default None
         max_hc : float, optional
             Max H/C ratio, by default 2.5
         max_oc : float, optional
@@ -714,50 +715,91 @@ class HeteroatomsClassification(Mapping):
         ticks_number : int, optional
             Number of ticks, by default 5
         color : str, optional
-            Matplotlib color, by default "viridis"
+            Matplotlib color/colormap, by default "viridis"
+        alpha : float, optional
+            Transparency of points, by default 0.5
+        log_abundance : bool, optional
+            If True, use log10 scale for abundance values, by default False
 
         Returns
         -------
         ax : matplotlib.axes
             Matplotlib axes object
-        abun_perc : float
-            Class percentile of the relative abundance
+        abun_perc : float or None
+            Class percentile of the relative abundance (if classe specified)
         """
-        if classe != Labels.unassigned:
-            # get data
+        import numpy as np
+        ax = plt.gca()
+
+        if classe is not None and classe != Labels.unassigned:
+            # Single class plot
             abun_perc = self.abundance_count_percentile(classe)
             hc = self.atoms_ratio(classe, "H", "C")
             oc = self.atoms_ratio(classe, "O", "C")
             abundance = self.abundance(classe)
 
-            # plot data
-            ax = plt.gca()
+            if log_abundance:
+                abundance = [np.log10(a + 1e-10) for a in abundance]
+                colorbar_label = 'log\u2081\u2080(Abundance)'
+            else:
+                colorbar_label = 'Abundance'
 
-            ax.scatter(oc, hc, c=abundance, alpha=0.5, cmap=color)
+            # Sort by abundance so higher values are plotted on top
+            sorted_indices = sorted(range(len(abundance)), key=lambda i: abundance[i])
+            hc = [hc[i] for i in sorted_indices]
+            oc = [oc[i] for i in sorted_indices]
+            abundance = [abundance[i] for i in sorted_indices]
 
-            # ax.scatter(carbon_number, dbe, c=color, alpha=0.5)
+            scatter = ax.scatter(oc, hc, c=abundance, alpha=alpha, cmap=color)
+            plt.colorbar(scatter, label=colorbar_label)
 
             title = "%s, %.2f %%" % (classe, abun_perc)
             ax.set_title(title)
-            ax.set_xlabel("O/C", fontsize=16)
-            ax.set_ylabel("H/C", fontsize=16)
-            ax.tick_params(axis="both", which="major", labelsize=18)
-            ax.set_xticks(linspace(0, max_oc, ticks_number, endpoint=True))
-            ax.set_yticks(linspace(0, max_hc, ticks_number, endpoint=True))
 
-            # returns matplot axes obj and the class percentile of the relative abundance
+            return_val = ax, abun_perc
+        else:
+            # All assigned classes plot
+            hc = self.atoms_ratio_all("H", "C")
+            oc = self.atoms_ratio_all("O", "C")
+            abundance = self.abundance_assigned()
 
-            return ax, abun_perc
+            if log_abundance:
+                abundance = [np.log10(a + 1e-10) for a in abundance]
+                colorbar_label = 'log\u2081\u2080(Abundance)'
+            else:
+                colorbar_label = 'Abundance'
+
+            sorted_indices = sorted(range(len(abundance)), key=lambda i: abundance[i])
+            hc = [hc[i] for i in sorted_indices]
+            oc = [oc[i] for i in sorted_indices]
+            abundance = [abundance[i] for i in sorted_indices]
+
+            scatter = ax.scatter(oc, hc, c=abundance, alpha=alpha, cmap=color)
+            plt.colorbar(scatter, label=colorbar_label)
+
+            ax.set_title("Van Krevelen Diagram - All Assigned Classes")
+
+            return_val = ax
+
+        ax.set_xlabel("O/C", fontsize=16)
+        ax.set_ylabel("H/C", fontsize=16)
+        ax.tick_params(axis="both", which="major", labelsize=18)
+        ax.set_xticks(linspace(0, max_oc, ticks_number, endpoint=True))
+        ax.set_yticks(linspace(0, max_hc, ticks_number, endpoint=True))
+        ax.grid(alpha=0.3, linestyle='--')
+
+        return return_val
 
     def plot_dbe_vs_carbon_number(
-        self, classe, max_c=50, max_dbe=40, dbe_incr=5, c_incr=10, color="viridis"
+        self, classe=None, max_c=50, max_dbe=40, dbe_incr=5, c_incr=10, color="viridis",
+        alpha=0.5, log_abundance=False
     ):
-        """Plot DBE vs Carbon Number
+        """Plot DBE vs Carbon Number for a single class or all assigned classes
 
         Parameters
         ----------
-        classe : str
-            Class name
+        classe : str, optional
+            Class name or None to plot all assigned classes, by default None
         max_c : int, optional
             Max Carbon Number, by default 50
         max_dbe : int, optional
@@ -767,37 +809,76 @@ class HeteroatomsClassification(Mapping):
         c_incr : int, optional
             Carbon Number increment, by default 10
         color : str, optional
-            Matplotlib color, by default "viridis"
+            Matplotlib color/colormap, by default "viridis"
+        alpha : float, optional
+            Transparency of points, by default 0.5
+        log_abundance : bool, optional
+            If True, use log10 scale for abundance values, by default False
 
         Returns
         -------
         ax : matplotlib.axes
             Matplotlib axes object
-        abun_perc : float
-            Class percentile of the relative abundance
+        abun_perc : float or None
+            Class percentile of the relative abundance (if classe specified)
         """
-        if classe != Labels.unassigned:
-            # get data
+        import numpy as np
+        ax = plt.gca()
+
+        if classe is not None and classe != Labels.unassigned:
+            # Single class plot
             abun_perc = self.abundance_count_percentile(classe)
             carbon_number = self.carbon_number(classe)
             dbe = self.dbe(classe)
             abundance = self.abundance(classe)
 
-            # plot data
-            ax = plt.gca()
+            if log_abundance:
+                abundance = [np.log10(a + 1e-10) for a in abundance]
+                colorbar_label = 'log\u2081\u2080(Abundance)'
+            else:
+                colorbar_label = 'Abundance'
 
-            ax.scatter(carbon_number, dbe, c=abundance, alpha=0.5, cmap=color)
+            sorted_indices = sorted(range(len(abundance)), key=lambda i: abundance[i])
+            carbon_number = [carbon_number[i] for i in sorted_indices]
+            dbe = [dbe[i] for i in sorted_indices]
+            abundance = [abundance[i] for i in sorted_indices]
 
-            # ax.scatter(carbon_number, dbe, c=color, alpha=0.5)
+            scatter = ax.scatter(carbon_number, dbe, c=abundance, alpha=alpha, cmap=color)
+            plt.colorbar(scatter, label=colorbar_label)
 
             title = "%s, %.2f %%" % (classe, abun_perc)
             ax.set_title(title)
-            ax.set_xlabel("Carbon number", fontsize=16)
-            ax.set_ylabel("DBE", fontsize=16)
-            ax.tick_params(axis="both", which="major", labelsize=18)
-            ax.set_xticks(range(0, max_c, c_incr))
-            ax.set_yticks(range(0, max_dbe, dbe_incr))
 
-            # returns matplot axes obj and the class percentile of the relative abundance
+            return_val = ax, abun_perc
+        else:
+            # All assigned classes plot
+            carbon_number = self.carbon_number_all()
+            dbe = self.dbe_all()
+            abundance = self.abundance_assigned()
 
-            return ax, abun_perc
+            if log_abundance:
+                abundance = [np.log10(a + 1e-10) for a in abundance]
+                colorbar_label = 'log\u2081\u2080(Abundance)'
+            else:
+                colorbar_label = 'Abundance'
+
+            sorted_indices = sorted(range(len(abundance)), key=lambda i: abundance[i])
+            carbon_number = [carbon_number[i] for i in sorted_indices]
+            dbe = [dbe[i] for i in sorted_indices]
+            abundance = [abundance[i] for i in sorted_indices]
+
+            scatter = ax.scatter(carbon_number, dbe, c=abundance, alpha=alpha, cmap=color)
+            plt.colorbar(scatter, label=colorbar_label)
+
+            ax.set_title("DBE vs Carbon Number - All Assigned Classes")
+
+            return_val = ax
+
+        ax.set_xlabel("Carbon number", fontsize=16)
+        ax.set_ylabel("DBE", fontsize=16)
+        ax.tick_params(axis="both", which="major", labelsize=18)
+        ax.set_xticks(range(0, max_c, c_incr))
+        ax.set_yticks(range(0, max_dbe, dbe_incr))
+        ax.grid(alpha=0.3, linestyle='--')
+
+        return return_val
