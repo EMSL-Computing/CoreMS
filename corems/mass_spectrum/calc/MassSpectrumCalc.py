@@ -38,16 +38,35 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc):
         Calculate the weight average molecular weight
     """
 
-    def percentile_assigned(self, report_error: bool = False, mute_output: bool = False):
+    def percentage_assigned(self, report_error: bool = False, mute_output: bool = False):
         """Percentage of peaks which are assigned
+
+        Calculates the percentage and relative abundance of assigned peaks in the spectrum.
+        Includes protection against division by zero with explicit handling of edge cases.
 
         Parameters
         -----------
         report_error: bool, optional
-            Report the error of the assigned peaks. Default is False.
+            Report the RMS error of the assigned peaks. Default is False.
         mute_output: bool, optional
             Override the verbose setting. Default is False.
             If True, the function will silence results
+
+        Returns
+        -------
+        tuple
+            If report_error is False:
+                (assigned_count, unassigned_count, total_percent, total_relative_abundance)
+            If report_error is True:
+                (assigned_count, unassigned_count, total_percent, total_relative_abundance, rms_error)
+                where rms_error is None if no assigned peaks exist
+        
+        Notes
+        -----
+        Edge cases are handled with explicit reporting:
+        - If no peaks detected: returns (0, 0, 0.0, 0.0[, None]) with message
+        - If no abundance data: returns (i, j, 0.0, 0.0[, None]) with message
+        - If no assigned peaks but peaks exist: returns with rms_error=None and explanatory message
         """
         verbose = self.parameters.mass_spectrum.verbose_processing
         assign_abun = 0
@@ -67,15 +86,45 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc):
                 j += 1
                 not_assign_abun += mspeak.abundance
 
-        total_percent = (i / (i + j)) * 100
-        total_relative_abundance = (assign_abun / (not_assign_abun + assign_abun)) * 100
-        if report_error:
-            rms_error = sqrt(mean(array(error) ** 2))
+        # Protect against division by zero
+        total_peaks = i + j
+        total_abundance = assign_abun + not_assign_abun
+        
+        # Handle edge cases
+        if total_peaks == 0:
             if verbose and not mute_output:
-                print(
-                    "%i assigned peaks and %i unassigned peaks, total  = %.2f %%, relative abundance = %.2f %%, RMS error (best candidate) (ppm) = %.3f"
-                    % (i, j, total_percent, total_relative_abundance, rms_error)
-                )
+                print("No peaks detected in spectrum")
+            if report_error:
+                return i, j, 0.0, 0.0, None
+            else:
+                return i, j, 0.0, 0.0
+        
+        if total_abundance == 0:
+            if verbose and not mute_output:
+                print("No abundance data detected in spectrum")
+            if report_error:
+                return i, j, 0.0, 0.0, None
+            else:
+                return i, j, 0.0, 0.0
+        
+        total_percent = (i / total_peaks * 100) if total_peaks > 0 else 0.0
+        total_relative_abundance = (assign_abun / total_abundance * 100) if total_abundance > 0 else 0.0
+        
+        if report_error:
+            rms_error = None
+            if i > 0:
+                rms_error = sqrt(mean(array(error) ** 2))
+            if verbose and not mute_output:
+                if i == 0:
+                    print(
+                        "No assigned peaks detected - cannot calculate RMS error. %i unassigned peaks, total = %.2f %%, relative abundance = %.2f %%"
+                        % (j, total_percent, total_relative_abundance)
+                    )
+                else:
+                    print(
+                        "%i assigned peaks and %i unassigned peaks, total  = %.2f %%, relative abundance = %.2f %%, RMS error (best candidate) (ppm) = %.3f"
+                        % (i, j, total_percent, total_relative_abundance, rms_error)
+                    )
             return i, j, total_percent, total_relative_abundance, rms_error
 
         else:
@@ -90,6 +139,33 @@ class MassSpecCalc(PeakPicking, NoiseThresholdCalc):
                     )
                 )
             return i, j, total_percent, total_relative_abundance
+
+    def percentile_assigned(self, report_error: bool = False, mute_output: bool = False):
+        """Deprecated: Use percentage_assigned() instead.
+
+        This method is deprecated and will be removed in a future version.
+        The function returns a percentage, not a percentile, so the name has been corrected.
+
+        Parameters
+        -----------
+        report_error: bool, optional
+            Report the error of the assigned peaks. Default is False.
+        mute_output: bool, optional
+            Override the verbose setting. Default is False.
+
+        Returns
+        -------
+        tuple
+            Refer to percentage_assigned() for return value details.
+        """
+        import warnings
+        warnings.warn(
+            "percentile_assigned() is deprecated and will be removed in a future version. "
+            "Use percentage_assigned() instead, as the function returns a percentage, not a percentile.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.percentage_assigned(report_error=report_error, mute_output=mute_output)
 
     def resolving_power_calc(self, B: float, T: float):
         """Calculate the theoretical resolving power
