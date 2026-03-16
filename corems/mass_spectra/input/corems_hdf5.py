@@ -3,8 +3,15 @@ __date__ = "Oct 29, 2019"
 
 
 from threading import Thread
+import h5py
+import toml
+import json
+import multiprocessing
 from pathlib import Path
+import datetime
+from typing import Union, Tuple, List, Optional
 
+import numpy as np
 import pandas as pd
 import warnings
 
@@ -13,13 +20,179 @@ from corems.encapsulation.input.parameter_from_json import (
     load_and_set_json_parameters_lcms,
     load_and_set_toml_parameters_lcms,
 )
-from corems.mass_spectra.factory.lc_class import LCMSBase, MassSpectraBase
+from corems.mass_spectra.factory.lc_class import LCMSBase, MassSpectraBase, LCMSCollection
 from corems.mass_spectra.factory.chromat_data import EIC_Data
 from corems.mass_spectra.input.parserbase import SpectraParserInterface
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.molecular_id.factory.spectrum_search_results import SpectrumSearchResults
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 from corems.mass_spectra.input.mzml import MZMLSpectraParser
+
+
+def create_manifest_from_folder(
+    folder_path: Path,
+    output_path: Path = None,
+    batch_time_threshold_hours: float = 12.0,
+    center_name: str = None,
+    overwrite: bool = False
+) -> Path:
+    """
+    Create a manifest CSV file for ReadCoreMSHDFMassSpectraCollection from CoreMS HDF5 files.
+    
+    Scans a folder for .corems subdirectories and generates a manifest with columns:
+    sample_name, batch, order, center, time. Files are batched by creation time, and
+    one sample is designated as the retention time alignment center.
+    
+    Parameters
+    ----------
+    folder_path : Path
+        Path to folder containing .corems subdirectories with HDF5 files.
+    output_path : Path, optional
+        Output manifest CSV path. Default: folder_path/manifest.csv.
+    batch_time_threshold_hours : float, optional
+        Time gap in hours for batch separation. Default: 12.0.
+    center_name : str, optional
+        Sample name to designate as RT alignment center (must exist in samples).
+        If None, the middle sample (by creation time) is used.
+    overwrite : bool, optional
+        Whether to overwrite existing manifest. Default: False.
+        
+    Returns
+    -------
+    Path
+        Path to created manifest file.
+        
+    Raises
+    ------
+    FileNotFoundError
+        If folder_path doesn't exist or contains no .corems subdirectories.
+    FileExistsError
+        If output file exists and overwrite is False.
+    ValueError
+        If no HDF5 files found, or center_name doesn't match any sample.
+    """
+    if not folder_path.exists():
+        raise FileNotFoundError(f"Folder {folder_path} does not exist.")
+    
+    # Set default output path if not provided
+    if output_path is None:
+        output_path = folder_path / "manifest.csv"
+    
+    # Check if output file exists
+    if output_path.exists() and not overwrite:
+        raise FileExistsError(
+            f"Manifest file {output_path} already exists. "
+            "Set overwrite=True to replace it."
+        )
+    
+    # Find all .corems subdirectories
+    corems_dirs = sorted([d for d in folder_path.iterdir() if d.is_dir() and d.suffix == ".corems"])
+    
+    if not corems_dirs:
+        raise FileNotFoundError(
+            f"No .corems subdirectories found in {folder_path}. "
+            "Ensure the folder contains processed CoreMS data."
+        )
+    
+    # Collect sample information
+    sample_data = []
+    
+    for corems_dir in corems_dirs:
+        sample_name = corems_dir.stem  # Remove .corems extension
+        hdf5_file = corems_dir / f"{sample_name}.hdf5"
+        
+        if not hdf5_file.exists():
+            print(f"Warning: HDF5 file not found for {sample_name}, skipping.")
+            continue
+        
+        # Get creation time using the ReadCoreMSHDFMassSpectra method
+        try:
+            # Use context manager to ensure file is properly closed
+            with ReadCoreMSHDFMassSpectra(str(hdf5_file)) as parser:
+                # Use the get_original_creation_time() method which checks HDF5 attrs first,
+                # then falls back to original parser if needed
+                creation_time = parser.get_original_creation_time()
+                
+                # Skip sample if creation time unavailable
+                if creation_time is None:
+                    print(f"Warning: Could not get original creation time for {sample_name}, skipping.")
+                    continue
+            
+        except Exception as e:
+            print(f"Warning: Error getting creation time for {sample_name}: {e}, skipping.")
+            continue
+        
+        sample_data.append({
+            'sample_name': sample_name,
+            'creation_time': creation_time,
+            'hdf5_path': hdf5_file
+        })
+    
+    if not sample_data:
+        raise ValueError(
+            f"No valid HDF5 files found in {folder_path}. "
+            "Ensure .corems subdirectories contain .hdf5 files."
+        )
+    
+    # Sort by creation time
+    sample_data.sort(key=lambda x: x['creation_time'])
+    
+    # Assign batches based on time threshold
+    batch_assignments = []
+    current_batch = 1
+    
+    for i, sample in enumerate(sample_data):
+        if i == 0:
+            batch_assignments.append(current_batch)
+        else:
+            time_diff = sample['creation_time'] - sample_data[i-1]['creation_time']
+            time_diff_hours = time_diff.total_seconds() / 3600
+            
+            if time_diff_hours > batch_time_threshold_hours:
+                current_batch += 1
+            
+            batch_assignments.append(current_batch)
+    
+    # Determine which sample should be the center for retention time alignment
+    sample_names = [s['sample_name'] for s in sample_data]
+    
+    if center_name is not None:
+        # Validate that center_name is in the discovered samples
+        if center_name not in sample_names:
+            raise ValueError(
+                f"Specified center_name '{center_name}' not found in discovered samples. "
+                f"Available samples: {', '.join(sample_names)}"
+            )
+        center_sample = center_name
+    else:
+        # Use the middle sample (by creation time) as center
+        middle_idx = len(sample_data) // 2
+        center_sample = sample_data[middle_idx]['sample_name']
+        print(f"Auto-selected center sample: {center_sample} (index {middle_idx} of {len(sample_data)}, middle by creation time)")
+    
+    # Create manifest dataframe with center column as TRUE/FALSE
+    manifest_df = pd.DataFrame({
+        'sample_name': sample_names,
+        'batch': batch_assignments,
+        'order': list(range(1, len(sample_data) + 1)),
+        'center': ['TRUE' if name == center_sample else 'FALSE' for name in sample_names],
+        'time': [s['creation_time'].strftime('%Y-%m-%dT%H:%M:%SZ') for s in sample_data]
+    })
+    
+    # Sort manifest by time before saving to ensure proper order
+    manifest_df = manifest_df.sort_values('time').reset_index(drop=True)
+    # Update order column to reflect sorted order
+    manifest_df['order'] = list(range(1, len(manifest_df) + 1))
+    
+    # Save manifest
+    manifest_df.to_csv(output_path, index=False)
+    
+    print(f"Manifest created successfully at {output_path}")
+    print(f"Total samples: {len(sample_data)}")
+    print(f"Number of batches: {current_batch}")
+    print(f"Batch assignments: {dict(zip(range(1, current_batch + 1), [batch_assignments.count(b) for b in range(1, current_batch + 1)]))}")
+    
+    return output_path
 
 
 class ReadCoreMSHDFMassSpectra(
@@ -108,6 +281,21 @@ class ReadCoreMSHDFMassSpectra(
             self.parameters_location = [x for x in add_files if x.suffix == ".toml"][0]
         else:
             self.parameters_location = None
+    
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit - closes the HDF5 file."""
+        if hasattr(self, 'h5pydata') and self.h5pydata is not None:
+            self.h5pydata.close()
+        return False
+    
+    def close(self):
+        """Explicitly close the HDF5 file."""
+        if hasattr(self, 'h5pydata') and self.h5pydata is not None:
+            self.h5pydata.close()
 
     def get_mass_spectrum_from_scan(self, scan_number):
         """Return mass spectrum data object from scan number."""
@@ -153,7 +341,7 @@ class ReadCoreMSHDFMassSpectra(
         """ """
         pass
 
-    def get_ms_raw(self, spectra=None, scan_df=None) -> dict:
+    def get_ms_raw(self, spectra=None, scan_df=None, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None) -> dict:
         """ """
         # Warn if spectra or scan_df are not None that they are not used for CoreMS HDF5 files and should be rerun after instantiation
         if spectra is not None or scan_df is not None:
@@ -170,7 +358,7 @@ class ReadCoreMSHDFMassSpectra(
             )
         return ms_unprocessed
 
-    def get_scan_df(self) -> pd.DataFrame:
+    def get_scan_df(self, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None) -> pd.DataFrame:
         scan_info = {}
         dict_group_load = self.h5pydata["scan_info"]
         dict_group_keys = dict_group_load.keys()
@@ -182,9 +370,18 @@ class ReadCoreMSHDFMassSpectra(
         str_df = str_df.stack().str.decode("utf-8").unstack()
         for col in str_df:
             scan_df[col] = str_df[col]
+        
+        # Apply time range filtering if specified
+        if time_range is not None:
+            time_ranges = self._normalize_time_range(time_range)
+            mask = pd.Series([False] * len(scan_df), index=scan_df.index)
+            for start_time, end_time in time_ranges:
+                mask |= (scan_df.scan_time >= start_time) & (scan_df.scan_time <= end_time)
+            scan_df = scan_df[mask]
+        
         return scan_df
 
-    def run(self, mass_spectra, load_raw=True) -> None:
+    def run(self, mass_spectra, load_raw=True, load_light=False) -> None:
         """Runs the importer functions to populate a LCMS or MassSpectraBase object.
 
         Notes
@@ -204,6 +401,9 @@ class ReadCoreMSHDFMassSpectra(
             The LCMS or MassSpectraBase object to populate with mass spectra, generally instantiated with only the file_location, analyzer, and instrument_label attributes.
         load_raw : bool
             If True, load raw data (unprocessed) from HDF5 files for overall lcms object and individual mass spectra. Default is True.
+        load_light : bool
+            If True, only load the parameters, mass features, and scan info. Default is False.
+
         Returns
         -------
         None, but populates several attributes on the LCMS or MassSpectraBase object.
@@ -213,7 +413,7 @@ class ReadCoreMSHDFMassSpectra(
             # Populate the parameters attribute on the LCMS object
             self.import_parameters(mass_spectra)
 
-        if "mass_spectra" in self.h5pydata:
+        if "mass_spectra" in self.h5pydata and not load_light:
             # Populate the _ms list on the LCMS object
             self.import_mass_spectra(mass_spectra, load_raw=load_raw)
 
@@ -221,7 +421,7 @@ class ReadCoreMSHDFMassSpectra(
             # Populate the _scan_info attribute on the LCMS object
             self.import_scan_info(mass_spectra)
 
-        if "ms_unprocessed" in self.h5pydata and load_raw:
+        if "ms_unprocessed" in self.h5pydata and load_raw and not load_light:
             # Populate the _ms_unprocessed attribute on the LCMS object
             self.import_ms_unprocessed(mass_spectra)
 
@@ -229,11 +429,11 @@ class ReadCoreMSHDFMassSpectra(
             # Populate the mass_features attribute on the LCMS object
             self.import_mass_features(mass_spectra)
 
-        if "eics" in self.h5pydata:
+        if "eics" in self.h5pydata and not load_light:
             # Populate the eics attribute on the LCMS object
             self.import_eics(mass_spectra)
 
-        if "spectral_search_results" in self.h5pydata:
+        if "spectral_search_results" in self.h5pydata and not load_light:
             # Populate the spectral_search_results attribute on the LCMS object
             self.import_spectral_search_results(mass_spectra)
 
@@ -314,13 +514,15 @@ class ReadCoreMSHDFMassSpectra(
                 "Parameters file must be in JSON format, TOML format is not yet supported."
             )
 
-    def import_mass_features(self, mass_spectra) -> None:
+    def import_mass_features(self, mass_spectra, mf_ids=None) -> None:
         """Imports the mass features from the HDF5 file.
 
         Parameters
         ----------
         mass_spectra : LCMSBase | MassSpectraBase
             The MassSpectraBase or LCMSBase object to populate with mass features.
+        mf_ids : list, optional
+            A list of mass feature IDs to import. If None, all mass features are imported.
 
         Returns
         -------
@@ -331,6 +533,8 @@ class ReadCoreMSHDFMassSpectra(
         dict_group_load = self.h5pydata["mass_features"]
         dict_group_keys = dict_group_load.keys()
         for k in dict_group_keys:
+            if mf_ids is not None and int(k) not in mf_ids:
+                continue
             # Instantiate the MassFeature object
             mass_feature = LCMSMassFeature(
                 mass_spectra,
@@ -374,13 +578,18 @@ class ReadCoreMSHDFMassSpectra(
                             mass_spectra._ms[ms2_scan]
                         )
 
-    def import_eics(self, mass_spectra):
+    def import_eics(self, mass_spectra, mz_list=None, mz_tolerance=0.0001):
         """Imports the extracted ion chromatograms from the HDF5 file.
 
         Parameters
         ----------
         mass_spectra : LCMSBase | MassSpectraBase
             The MassSpectraBase or LCMSBase object to populate with extracted ion chromatograms.
+        mz_list : list of float, optional
+            List of m/z values to load EICs for. If None, loads all EICs. Default is None.
+        mz_tolerance : float, optional
+            Tolerance in Daltons for matching m/z values when mz_list is provided.
+            Default is 0.0001 Da.
 
         Returns
         -------
@@ -390,7 +599,17 @@ class ReadCoreMSHDFMassSpectra(
         """
         dict_group_load = self.h5pydata["eics"]
         dict_group_keys = dict_group_load.keys()
+
+        # Prefilter dict_group_keys if mz_list is provided to EICs within tolerance
+        if mz_list is not None:
+            target_mz_array = np.array(sorted(mz_list))
+            mzs = [float(k) for k in dict_group_keys if np.abs(float(k)-target_mz_array).min() < mz_tolerance]
+            dict_group_keys = [str(mz) for mz in mzs]
+
         for k in dict_group_keys:
+            # Check if we should load this EIC (filter by m/z if list provided)
+            eic_mz = dict_group_load[k].attrs["mz"]
+            
             my_eic = EIC_Data(
                 scans=dict_group_load[k]["scans"][:],
                 time=dict_group_load[k]["time"][:],
@@ -403,13 +622,64 @@ class ReadCoreMSHDFMassSpectra(
                     if key == "apexes" and len(my_eic.apexes) > 0:
                         my_eic.apexes = [tuple(x) for x in my_eic.apexes]
             # Add to mass_spectra object
-            mass_spectra.eics[dict_group_load[k].attrs["mz"]] = my_eic
+            mass_spectra.eics[eic_mz] = my_eic
 
-        # Add to mass features
-        for idx in mass_spectra.mass_features.keys():
-            mz = mass_spectra.mass_features[idx].mz
-            if mz in mass_spectra.eics.keys():
-                mass_spectra.mass_features[idx]._eic_data = mass_spectra.eics[mz]
+        # Associate EICs with mass features using tolerance-based matching
+        mass_spectra.associate_eics_with_mass_features()
+
+    @staticmethod
+    def _load_eics_from_hdf5_group(eics_group, lcms_obj, mz_filter=None):
+        """Load EICs from an HDF5 group.
+        
+        This is a static helper method that can be reused to load EIC data
+        from any HDF5 group in a consistent format.
+        
+        Parameters
+        ----------
+        eics_group : h5py.Group
+            The HDF5 group containing EIC data.
+        lcms_obj : LCMSBase
+            The LCMS object to associate EICs with (for reference, not modified).
+        mz_filter : list, optional
+            List of m/z values to load. If None, loads all EICs. Default is None.
+            Uses tolerance-based matching (0.0001).
+        
+        Returns
+        -------
+        dict
+            Dictionary of EIC_Data objects keyed by m/z value.
+        """
+        from corems.mass_spectra.factory.chromat_data import EIC_Data
+        
+        loaded_eics = {}
+        tolerance = 0.0001
+        
+        for eic_key_str in eics_group.keys():
+            eic_mz = float(eic_key_str) if eic_key_str.replace('.', '', 1).replace('-', '', 1).isdigit() else eics_group[eic_key_str].attrs.get("mz")
+            
+            # If mz_filter is provided, check if this EIC matches any requested m/z
+            if mz_filter is not None:
+                if not any(abs(eic_mz - mz) < tolerance for mz in mz_filter):
+                    continue
+            
+            eic_data = eics_group[eic_key_str]
+            
+            # Create EIC_Data object from datasets
+            eic = EIC_Data(
+                scans=list(eic_data["scans"][:]) if "scans" in eic_data else [],
+                time=list(eic_data["time"][:]) if "time" in eic_data else [],
+                eic=list(eic_data["eic"][:]) if "eic" in eic_data else [],
+                apexes=list(eic_data["apexes"][:]) if "apexes" in eic_data else [],
+            )
+            
+            # Load any additional datasets
+            for key in eic_data.keys():
+                if key not in ["scans", "time", "eic", "apexes"]:
+                    setattr(eic, key, eic_data[key][:])
+            
+            loaded_eics[eic_mz] = eic
+        
+        return loaded_eics
 
     def import_spectral_search_results(self, mass_spectra):
         """Imports the spectral search results from the HDF5 file.
@@ -464,7 +734,7 @@ class ReadCoreMSHDFMassSpectra(
                             ]
                         )
 
-    def get_mass_spectra_obj(self, load_raw=True) -> MassSpectraBase:
+    def get_mass_spectra_obj(self, load_raw=True, load_light=False, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None) -> MassSpectraBase:
         """
         Return mass spectra data object, populating the _ms list on MassSpectraBase object from the HDF5 file.
 
@@ -472,6 +742,14 @@ class ReadCoreMSHDFMassSpectra(
         ----------
         load_raw : bool
             If True, load raw data (unprocessed) from HDF5 files for overall spectra object and individual mass spectra. Default is True.
+        load_light : bool
+            If True, only load the parameters, mass features, and scan info. Default is False.
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to load. Can be:
+            - Single range: (start_time, end_time) in minutes
+            - Multiple ranges: [(start1, end1), (start2, end2), ...] in minutes
+            If None, loads all scans. Note: For HDF5 files, this parameter is accepted for
+            interface consistency but not currently used in filtering.
 
         """
         # Instantiate the LCMS object
@@ -483,12 +761,12 @@ class ReadCoreMSHDFMassSpectra(
         )
 
         # This will populate the _ms list on the LCMS or MassSpectraBase object
-        self.run(spectra_obj, load_raw=load_raw)
+        self.run(spectra_obj, load_raw=load_raw, load_light=load_light)
 
         return spectra_obj
 
     def get_lcms_obj(
-        self, load_raw=True, use_original_parser=True, raw_file_path=None
+        self, load_raw=True, load_light=False, use_original_parser=True, raw_file_path=None, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None
     ) -> LCMSBase:
         """
         Return LCMSBase object, populating attributes on the LCMSBase object from the HDF5 file.
@@ -497,12 +775,21 @@ class ReadCoreMSHDFMassSpectra(
         ----------
         load_raw : bool
             If True, load raw data (unprocessed) from HDF5 files for overall lcms object and individual mass spectra. Default is True.
+        load_light : bool
+            If True, only load the parameters, mass features, and scan info. Default is False.
         use_original_parser : bool
             If True, use the original parser to populate the LCMS object. Default is True.
         raw_file_path : str
             The location of the raw file to parse if attempting to use original parser.
             Default is None, which attempts to get the raw file path from the HDF5 file.
             If the original file path has moved, this parameter can be used to specify the new location.
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to load. Can be:
+            - Single range: (start_time, end_time) in minutes
+            - Multiple ranges: [(start1, end1), (start2, end2), ...] in minutes
+            If None, loads all scans. Note: For HDF5 files, this parameter is accepted for
+            interface consistency. If use_original_parser=True, time_range can be passed to the
+            original parser for filtering.
         """
         # Instantiate the LCMS object
         lcms_obj = LCMSBase(
@@ -513,7 +800,7 @@ class ReadCoreMSHDFMassSpectra(
         )
 
         # This will populate the majority of the attributes on the LCMS object
-        self.run(lcms_obj, load_raw=load_raw)
+        self.run(lcms_obj, load_raw=load_raw, load_light=load_light)
 
         # Set final attributes of the LCMS object
         lcms_obj.polarity = self.h5pydata.attrs["polarity"]
@@ -542,7 +829,7 @@ class ReadCoreMSHDFMassSpectra(
             return self.h5pydata.attrs["original_file_location"]
         else:
             return None
-
+    
     def add_original_parser(self, mass_spectra, raw_file_path=None):
         """
         Add the original parser to the mass spectra object.
@@ -564,31 +851,91 @@ class ReadCoreMSHDFMassSpectra(
                 raise ValueError(
                     "Raw file path not found in HDF5 file attributes, cannot instantiate original parser."
                 )
-
+            
         # Set the raw file path on the mass_spectra object so the parser knows where to find the raw file
         mass_spectra.raw_file_location = raw_file_path
 
         if og_parser_type == "ImportMassSpectraThermoMSFileReader":
             # Check that the parser can be instantiated with the raw file path
-            parser = ImportMassSpectraThermoMSFileReader(raw_file_path)
+            parser_class = ImportMassSpectraThermoMSFileReader
         elif og_parser_type == "MZMLSpectraParser":
             # Check that the parser can be instantiated with the raw file path
-            parser = MZMLSpectraParser(raw_file_path)
+            parser_class = MZMLSpectraParser
 
         # Set the spectra parser class on the mass_spectra object so the spectra_parser property can be used with the original parser
-        mass_spectra.spectra_parser_class = parser.__class__
+        mass_spectra.spectra_parser_class = parser_class
 
         return mass_spectra
 
+    def get_original_creation_time(self):
+        """
+        Get the creation time of the original raw data file.
+        
+        First checks if creation_time is saved in the HDF5 file attributes.
+        If not found, attempts to instantiate the original parser and get the creation time.
+        
+        Returns
+        -------
+        datetime
+            The creation time of the original raw data file, or None if not available.
+        """
+        # Check if creation_time is saved in HDF5 attributes
+        if "creation_time" in self.h5pydata.attrs:
+            from datetime import datetime
+            return datetime.fromisoformat(self.h5pydata.attrs["creation_time"])
+        
+        # Fall back to using original parser to get creation time
+        try:
+            # Get the original parser type and raw file path
+            og_parser_type = self.h5pydata.attrs.get("parser_type")
+            raw_file_path = self.get_raw_file_location()
+            
+            if og_parser_type is None or raw_file_path is None:
+                warnings.warn(
+                    "Cannot retrieve creation time: parser_type or original_file_location not found in HDF5 attributes."
+                )
+                return None
+            
+            # Check if raw file exists
+            from pathlib import Path
+            if not Path(raw_file_path).exists():
+                warnings.warn(
+                    f"Cannot retrieve creation time: original raw file not found at {raw_file_path}"
+                )
+                return None
+            
+            # Instantiate the original parser
+            if og_parser_type == "ImportMassSpectraThermoMSFileReader":
+                parser = ImportMassSpectraThermoMSFileReader(raw_file_path)
+            elif og_parser_type == "MZMLSpectraParser":
+                parser = MZMLSpectraParser(raw_file_path)
+            else:
+                warnings.warn(
+                    f"Unknown parser type: {og_parser_type}, cannot retrieve creation time."
+                )
+                return None
+            
+            # Get creation time from parser
+            return parser.get_creation_time()
+            
+        except Exception as e:
+            warnings.warn(
+                f"Failed to retrieve creation time from original parser: {e}"
+            )
+            return None
+    
     def get_creation_time(self):
         """
-        Raise a NotImplemented Warning, as creation time is not available in CoreMS HDF5 files and returning None.
+        Get the creation time of the original raw data file.
+        
+        This is an alias for get_original_creation_time() for backward compatibility.
+        
+        Returns
+        -------
+        datetime
+            The creation time of the original raw data file, or None if not available.
         """
-        warnings.warn(
-            "Creation time is not available in CoreMS HDF5 files, returning None."
-            "This should be accessed through the original parser.",
-        )
-        return None
+        return self.get_original_creation_time()
 
     def get_instrument_info(self):
         """
@@ -599,3 +946,761 @@ class ReadCoreMSHDFMassSpectra(
             "This should be accessed through the original parser.",
         )
         return None
+    
+    def get_scans_in_time_range(
+        self, 
+        time_range: Union[Tuple[float, float], List[Tuple[float, float]]],
+        ms_level: Optional[int] = None
+    ) -> List[int]:
+        """Return scan numbers within specified retention time range(s).
+        
+        Parameters
+        ----------
+        time_range : tuple or list of tuples
+            Retention time range(s) in minutes. Can be:
+            - Single range: (start_time, end_time)
+            - Multiple ranges: [(start1, end1), (start2, end2), ...]
+        ms_level : int, optional
+            If specified, only return scans of this MS level (e.g., 1 for MS1, 2 for MS2).
+            If None, returns scans of all MS levels.
+        
+        Returns
+        -------
+        list of int
+            List of scan numbers within the specified time range(s) and MS level.
+        """
+        # Normalize time range to list of tuples
+        time_ranges = self._normalize_time_range(time_range)
+        
+        # Get all scan data
+        scan_df = self.get_scan_df()
+        
+        # Filter by time range
+        mask = pd.Series([False] * len(scan_df), index=scan_df.index)
+        for start_time, end_time in time_ranges:
+            mask |= (scan_df.scan_time >= start_time) & (scan_df.scan_time <= end_time)
+        
+        filtered_df = scan_df[mask]
+        
+        # Filter by MS level if specified
+        if ms_level is not None:
+            filtered_df = filtered_df[filtered_df.ms_level == ms_level]
+        
+        return filtered_df.scan.tolist()
+
+
+class ReadCoreMSHDFMassSpectraCollection:
+    """Read a collection of CoreMS HDF5 files and populate an LCMSCollection object.
+    
+    Parameters
+    ----------
+    folder_location : Path
+        Folder containing .corems subdirectories with HDF5 files.
+    manifest_file : Path, optional
+        Manifest CSV with columns: sample_name, order, batch, center, time.
+        One sample must have center='TRUE' for RT alignment.
+        If None, checks if auto-generated manifest_auto.csv exists in the folder. If not,
+        auto-generates from folder contents. Default: None.
+    cores : int, optional
+        Number of cores for multiprocessing. Default: 1.
+    auto_manifest_batch_threshold_hours : float, optional
+        Time gap (hours) for auto-generated batch separation. Default: 12.0.
+    auto_manifest_center_name : str, optional
+        Sample name for RT alignment center when auto-generating.
+        Must match a discovered sample. If None, uses middle sample. Default: None.
+
+    Attributes
+    ----------
+    folder_location : Path
+        Folder containing CoreMS HDF5 files.
+    manifest_filepath : Path
+        Path to manifest file.
+    manifest : dict
+        Manifest data indexed by sample_name.
+    """
+    def __init__(
+            self, 
+            folder_location: Path, 
+            manifest_file: Path = None, 
+            cores: int = 1,
+            auto_manifest_batch_threshold_hours: float = 12.0,
+            auto_manifest_center_name: str = None
+            ):
+        # Check for folder location
+        folder_location = Path(folder_location)
+        if not folder_location.exists():
+            raise FileNotFoundError(f"Folder location {folder_location} not found.")
+        
+        # Auto-generate manifest if not provided
+        if manifest_file is None:
+            # Check if manifest_auto.csv already exists
+            auto_manifest_path = folder_location / "manifest_auto.csv"
+            if auto_manifest_path.exists():
+                print(f"No manifest file provided. Using existing manifest_auto.csv from {folder_location}")
+                manifest_file = auto_manifest_path
+            else:
+                print(f"No manifest file provided. Auto-generating manifest from {folder_location}")
+                manifest_file = create_manifest_from_folder(
+                    folder_path=folder_location,
+                    output_path=auto_manifest_path,
+                    batch_time_threshold_hours=auto_manifest_batch_threshold_hours,
+                    center_name=auto_manifest_center_name,
+                    overwrite=True
+                )
+        else:
+            manifest_file = Path(manifest_file)
+            if not manifest_file.exists():
+                raise FileNotFoundError(f"Manifest file {manifest_file} not found.")
+            
+            # Check if the manifest file is a CSV
+            if manifest_file.suffix != ".csv":
+                raise ValueError("Manifest file must be a CSV.")
+
+        self.folder_location = folder_location
+        self._manifest_dict = None
+        self._parse_manifest(manifest_file)
+        self._validate_manifest()
+        self._validate_parameters()
+        self._validate_cores(cores)
+    
+    def _validate_cores(self, cores):
+        # Check if the cores parameter is an integer greater than 0 and less than the number of cores available
+        if not isinstance(cores, int) or cores < 1:
+            raise ValueError("Cores must be an integer greater than 0.")
+        if cores > multiprocessing.cpu_count():
+            raise ValueError(
+                f"Cores must be less than or equal to the number of cores available ({multiprocessing.cpu_count()})."
+            )
+        self._cores = cores
+
+    def _parse_manifest(self, manifest_file):
+        """Parse the manifest file and set the manifest dictionary."""
+        self.manifest_filepath = manifest_file
+        manifest = pd.read_csv(manifest_file)
+        # Check if the following columns exisit in the manifest file
+        if not all(
+            col in manifest.columns for col in ["sample_name", "order", "batch"]
+        ):
+            raise ValueError(
+                "Manifest file must contain the following columns: 'sample_name', 'order', 'batch'."
+            )
+        # Set index to the 'sample_name' column
+        manifest.set_index("sample_name", inplace=True)
+        self._manifest_dict = manifest.to_dict(orient="index")
+
+    def _validate_manifest(self):
+        """Validate the manifest dictionary against the CoreMS folder location."""
+        # Check if the folder location contains HDF5 files for each sample
+        for sample_name in self._manifest_dict.keys():
+            corems_dir = self.folder_location / f"{sample_name}.corems"
+            if not corems_dir.exists():
+                raise FileNotFoundError(f"CoreMS folder for {sample_name} not found.")
+            hdf5_file = corems_dir / f"{sample_name}.hdf5"
+            if not hdf5_file.exists():
+                raise FileNotFoundError(f"HDF5 file for {sample_name} not found.")
+        
+        # Check that at least one sample has center='TRUE' for retention time alignment
+        center_values = [sample_data.get('center') for sample_data in self._manifest_dict.values()]
+        if not any(center_val == 'TRUE' or center_val == True for center_val in center_values):
+            raise ValueError(
+                "Manifest must contain at least one sample with center='TRUE' for retention time alignment. "
+                "None of the samples in the manifest have center='TRUE'."
+            )
+
+    def _validate_parameters(self):
+        """Validate that the parameters used for all samples within a batch are the same."""
+        # Check if parameters files are saved as JSON or TOML
+        if self.parameters_files[0].suffix == ".json":
+            importer = json
+            suffix = ".json"
+
+        elif self.parameters_files[0].suffix == ".toml":
+            importer = toml
+            suffix = ".toml"
+
+        manfiest_df = self.manifest_dataframe
+
+        # Split up samples by batch
+        batches = manfiest_df["batch"].unique()
+
+        for batch in batches:
+            samples = manfiest_df[manfiest_df["batch"] == batch].index
+            # check if self.parameters_files end with .json or .toml
+            batch_param_files = [
+                self.folder_location / f"{sample_name}.corems/{sample_name}{suffix}"
+                for sample_name in self._manifest_dict.keys()
+                if sample_name in samples
+            ]
+            with open(
+                batch_param_files[0],
+                "r",
+                encoding="utf8",
+            ) as stream:
+                first_parameters = importer.load(stream)
+            for parameters_file in batch_param_files[1:]:
+                with open(
+                    parameters_file,
+                    "r",
+                    encoding="utf8",
+                ) as stream:
+                    parameters = importer.load(stream)
+                if parameters != first_parameters:
+                    raise ValueError(
+                        f"Parameters files for samples in batch {batch} are not equal."
+                    )        
+    
+    def get_lcms_obj(self, sample_name: str, load_raw=False, load_light=True, use_original_parser=True, raw_file_path=None) -> LCMSBase:
+        """Return a LCMSBase object for a given sample name within the collection.
+        
+        Parameters
+        ----------
+        sample_name : str
+            The sample name to retrieve the LCMS object for.
+        load_raw : bool
+            If True, load raw data from HDF5 files. Default is False. 
+        load_light : bool
+            If True, only load the parameters, mass features, and scan info are initially loaded for each lcms object. Default is True.   
+        """
+        hdf5_file = self.folder_location / f"{sample_name}.corems/{sample_name}.hdf5"
+        with ReadCoreMSHDFMassSpectra(hdf5_file) as parser:
+            lcms_obj = parser.get_lcms_obj(load_raw=load_raw, load_light=load_light, use_original_parser=use_original_parser, raw_file_path=raw_file_path)
+            if load_light:
+                mf_df = lcms_obj.mass_features_to_df()
+                # Add ._eic_mz to mf_df for each mass_feature
+                eic_mz_list = []
+                for mf_id, mf in lcms_obj.mass_features.items():
+                    if hasattr(mf, "_eic_mz"):
+                        eic_mz_list.append(mf._eic_mz)
+                    else:
+                        eic_mz_list.append(None)
+                mf_df["_eic_mz"] = eic_mz_list               
+                lcms_obj.mass_features = {}
+                lcms_obj.light_mf_df = mf_df
+        return lcms_obj
+
+    def get_lcms_collection(self, load_raw = False, load_light = True, use_original_parser = True) -> LCMSCollection:
+        """Return a LCMSCollection object
+        
+        Parameters
+        ----------
+        load_raw : bool
+            If True, load raw data from HDF5 files. Default is False. 
+        load_light : bool
+            If True, only load the parameters, mass features, and scan info are initially loaded for each lcms object. 
+            After concatenating the mass_features, remove the mass_features attribute from the individual LCMS objects for memory efficiency. Default is True.
+            Default is True.   
+        """
+        # Instantiate the LCMSCollection object
+        lcms_coll = LCMSCollection(
+            collection_location=self.folder_location,
+            manifest=self.manifest,
+            collection_parser=self
+        )
+
+        # Set the number of cores on the LCMSCollection object from the ReadCoreMSHDFMassSpectraCollection object
+        lcms_coll.parameters.lcms_collection.cores = self._cores
+
+        # Add LCMS objects to the collection
+        samples = self._manifest_dict.keys()
+
+        # Initialize the LCMS object dictionary
+        if self._cores > 1:
+            if self._cores > len(samples):
+                ncores = len(samples)
+            else:
+                ncores = self._cores
+            # Create a pool of workers (one for each core or sample, whichever is smaller)
+            pool = multiprocessing.Pool(ncores)
+            args = [(sample, load_raw, load_light, use_original_parser) for sample in samples]
+            lcms_objs = pool.starmap(self.get_lcms_obj, args)
+            for sample_name, lcms_obj in zip(samples, lcms_objs):
+                lcms_coll._lcms[sample_name] = lcms_obj
+
+        elif self._cores == 1:
+            # Load the LCMS objects sequentially
+            for sample_name in samples:
+                lcms_coll._lcms[sample_name] = self.get_lcms_obj(sample_name, load_raw=load_raw, load_light=load_light, use_original_parser=use_original_parser)
+
+        else:
+            raise ValueError("Number of cores must be greater than 0 and set on the ReadCoreMSHDFMassSpectraCollection object.")
+
+        # Check that all LCMS objects have the same polarity
+        if len(set([x.polarity for k, x in lcms_coll._lcms.items()])) != 1:
+            raise ValueError("All samples must have the same polarity.")
+        
+        # Set ids on the LCMS objects in the manifest
+        i = 0
+        for sample in lcms_coll.samples:
+            lcms_coll._manifest_dict[sample]["collection_id"] = i
+            i += 1
+        
+        # Reorder the LCMS objects
+        lcms_coll._reorder_lcms_objects()
+
+        # Collect the mass features from the LCMS objects and combine them into a single dataframe for the collection
+        lcms_coll._combine_mass_features()
+        
+        # If load_light, remove the mass_feature attribute from the individual LCMS objects
+        if load_light:
+            for sample_name in lcms_coll.samples:
+                lcms_coll._lcms[sample_name].mass_features = {}
+                # Remove the light_mf_df attribute from the individual LCMS objects
+                del lcms_coll._lcms[sample_name].light_mf_df
+
+
+        return lcms_coll
+
+    @property
+    def manifest(self):
+        return self._manifest_dict
+
+    @property
+    def manifest_dataframe(self):
+        return pd.DataFrame(self._manifest_dict).T
+
+    @property
+    def hdf5_files(self):
+        return [
+            self.folder_location / f"{sample_name}.corems/{sample_name}.hdf5"
+            for sample_name in self._manifest_dict.keys()
+        ]
+
+    @property
+    def parameters_files(self):
+        # Check if parameters files are saved as JSON or TOML
+        json_files = [
+            self.folder_location / f"{sample_name}.corems/{sample_name}.json"
+            for sample_name in self._manifest_dict.keys()
+        ]
+        toml_files = [
+            self.folder_location / f"{sample_name}.corems/{sample_name}.toml"
+            for sample_name in self._manifest_dict.keys()
+        ]
+        if all([x.exists() for x in json_files]):
+            return json_files
+        elif all([x.exists() for x in toml_files]):
+            return toml_files
+        else:
+            raise ValueError("Parameters files are not saved for all samples.")
+
+class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
+    """
+    Subclass to read and re-instantiate a LCMSCollection from a saved HDF5 file.
+    
+    
+    Parameters
+    ----------
+    collection_hdf5_path : str or Path
+        Path to the saved LCMSCollection HDF5 file.
+    cores : int, optional
+        Number of cores for processing. Default is 1.
+    """
+    
+    def __init__(
+        self, 
+        collection_hdf5_path: str, 
+        cores: int = 1
+    ):
+        # Convert to Path objects
+        self.collection_hdf5_path = Path(collection_hdf5_path)
+        
+        # Validate the collection file exists
+        if not self.collection_hdf5_path.exists():
+            raise FileNotFoundError(f"Collection HDF5 file {self.collection_hdf5_path} not found.")
+        
+        # Validate cores
+        self._validate_cores(cores)
+
+        # Load metadata from saved collection
+        self._load_collection_metadata()
+
+        if not self.folder_location.exists():
+            raise FileNotFoundError(f"Folder location {self.folder_location} not found.")
+
+        # Load the mass spectra data
+        self._validate_manifest()
+        
+        # Set the parameters file location
+        self.parameters_location = self._get_parameters_location()
+
+    def _get_parameters_location(self):
+        """Find the parameters file (JSON or TOML) associated with the collection HDF5 file."""
+        # Check for TOML file first (preferred)
+        toml_path = self.collection_hdf5_path.with_suffix('.toml')
+        if toml_path.exists():
+            return toml_path
+        
+        # Check for JSON file
+        json_path = self.collection_hdf5_path.with_suffix('.json')
+        if json_path.exists():
+            return json_path
+        
+        # No parameters file found
+        return None
+
+    def _load_collection_metadata(self):
+        """Load metadata and manifest from the saved collection HDF5 file."""
+        with h5py.File(self.collection_hdf5_path, 'r') as f:
+            self.folder_location = Path(f.attrs.get('lcms_objects_folder', ''))
+            self.missing_mass_features_searched = f.attrs.get('missing_mass_features_searched', False)
+
+            # Call the _load_manifest function to process the manifest
+            self._manifest_dict = self._load_manifest(f)
+
+    def _load_manifest(self, hdf_handle):
+        """Load and clean the manifest from the HDF5 file."""
+        manifest_json = hdf_handle.attrs.get('manifest', '{}')
+        if isinstance(manifest_json, bytes):
+            manifest_json = manifest_json.decode('utf-8')
+        loaded_manifest = json.loads(manifest_json)
+
+        # Convert integer values for 'use_rt_alignment' back to booleans
+        def convert_back_to_bool(data):
+            if isinstance(data, dict):
+                # Process each key-value pair recursively
+                return {k: (bool(v) if k == 'use_rt_alignment' and isinstance(v, int) else convert_back_to_bool(v)) for k, v in data.items()}
+            elif isinstance(data, list):
+                # Recursively process lists
+                return [convert_back_to_bool(item) for item in data]
+            else:
+                # Return non-dict/list types unchanged
+                return data
+
+        # Clean the loaded manifest
+        return convert_back_to_bool(loaded_manifest)
+    
+    def _load_rt_alignments(self, lcms_collection):
+        """Load retention time alignments from the saved collection HDF5 file."""
+        # First Set the rt_aligned flag from the collection-level attribute saved directly
+        with h5py.File(self.collection_hdf5_path, 'r') as f:
+            lcms_collection.rt_aligned = f.attrs.get('rt_aligned', False)
+            lcms_collection.rt_alignment_attempted = f.attrs.get('rt_alignment_attempted', False)
+        
+        if lcms_collection.rt_aligned:
+            with h5py.File(self.collection_hdf5_path, 'r') as f:
+                if "rt_alignments" in f:
+                    # Iterate over the group `rt_alignments` containing datasets and add to the corresponding lcms object
+                    rt_alignments_group = f["rt_alignments"]
+                    for sample_idx, lcms_obj in zip(rt_alignments_group.keys(), lcms_collection):
+                        alignment_data = rt_alignments_group[sample_idx][:]
+                        scan_df = lcms_obj.scan_df
+                        scan_df["scan_time_aligned"] = alignment_data
+                        lcms_obj.scan_df = scan_df
+        elif lcms_collection.rt_alignment_attempted:
+            # This means it was attempted and not used, so we populate the "scan_time_aligned"
+            for lcms_obj in lcms_collection:
+                scan_df = lcms_obj.scan_df
+                scan_df["scan_time_aligned"] = scan_df["scan_time"]
+                lcms_obj.scan_df = scan_df
+
+    def _load_cluster_assignments(self, lcms_collection):
+        """Load cluster assignments from the saved collection HDF5 file."""
+        with h5py.File(self.collection_hdf5_path, 'r') as f:
+            if "cluster_assignments" in f:
+                # Access the group containing cluster assignments
+                cluster_grp = f["cluster_assignments"]
+                
+                # Reload index and cluster data
+                index = cluster_grp["index"][:]  # Extract index
+                index = [idx.decode('utf-8') for idx in index]  # Convert byte strings back to regular strings
+                cluster_data = cluster_grp["cluster"][:]  # Extract cluster column
+                
+                # Reassemble the DataFrame
+                cluster_df = pd.DataFrame({"cluster": cluster_data}, index=index)
+
+                # Assign cluster data back to lcms_collection.mass_features_dataframe
+                lcms_collection.mass_features_dataframe = lcms_collection.mass_features_dataframe.join(cluster_df, how='left')
+
+                # Drop rows with NaN cluster values
+                lcms_collection.mass_features_dataframe.dropna(subset=['cluster'], inplace=True)
+
+    def get_lcms_collection(self, load_raw=False, load_light=False, load_representatives=False, load_eics=False, load_ms1=False, load_ms2=False):
+        """Get the LCMS collection from the saved HDF5 file.
+        
+        Parameters
+        ----------
+        load_raw : bool, optional
+            If True, load raw data. Default is False.
+        load_light : bool, optional
+            If True, load light data (minimal). Default is False.
+        load_representatives : bool, optional
+            If True, load representative mass features from clusters. Default is False.
+        load_eics : bool, optional
+            If True, load EIC data for clustered mass features. Default is False.
+        load_ms1 : bool, optional
+            If True, load MS1 spectra for loaded mass features. Default is False.
+        load_ms2 : bool, optional
+            If True, load MS2 spectra for loaded mass features. Default is False.
+            
+        Returns
+        -------
+        LCMSCollection
+            The loaded LCMS collection object.
+        """
+        # First load the LCMSCollection object exactly as in the parent class
+        lcms_collection = super().get_lcms_collection(load_raw=load_raw, load_light=load_light)
+        
+        # Set the missing_mass_features_searched flag from saved metadata
+        lcms_collection.missing_mass_features_searched = self.missing_mass_features_searched
+
+        # Load parameters if a parameters file exists
+        if self.parameters_location:
+            self._load_parameters(lcms_collection)
+
+        # Add retention time alignments if they exist
+        self._load_rt_alignments(lcms_collection)
+
+        # Add cluster assignments if they exist
+        self._load_cluster_assignments(lcms_collection)
+        
+        # Load induced mass features if they exist
+        self._load_induced_mass_features(lcms_collection)
+        
+        # Load EICs for induced mass features from collection HDF5
+        if lcms_collection.missing_mass_features_searched and load_eics:
+            self._load_induced_eics_from_collection(lcms_collection)
+        
+        # Combine induced mass features into the collection-level dataframe if any were loaded
+        if lcms_collection.missing_mass_features_searched:
+            lcms_collection._combine_mass_features(induced_features=True)
+        
+        # Load representative mass features if requested
+        if load_representatives:
+            self._load_representative_mass_features(lcms_collection)
+        
+        # Load MS1 and/or MS2 spectra for loaded mass features if requested
+        if load_ms1 or load_ms2:
+            # Reuse the existing ReloadFeaturesOperation from the pipeline system
+            from corems.mass_spectra.calc.lc_calc_operations import ReloadFeaturesOperation
+            
+            operations = [ReloadFeaturesOperation('reload_spectra', add_ms1=load_ms1, add_ms2=load_ms2)]
+            lcms_collection.process_samples_pipeline(operations, keep_raw_data=False, show_progress=False)
+        
+        # Load EICs for clustered features if requested
+        if load_eics:
+            # Reuse the existing LoadEICsOperation from the pipeline system
+            from corems.mass_spectra.calc.lc_calc_operations import LoadEICsOperation
+            
+            operations = [LoadEICsOperation('load_eics')]
+            lcms_collection.process_samples_pipeline(operations, keep_raw_data=False, show_progress=False)
+            
+            # Associate EICs with mass features (same as in process_consensus_features)
+            for sample_id in range(len(lcms_collection.samples)):
+                sample = lcms_collection[sample_id]
+                if sample.eics:  # Only if EICs were loaded
+                    # Associate EICs with regular mass features
+                    sample.associate_eics_with_mass_features(induced=False)
+                    # Associate EICs with induced mass features
+                    sample.associate_eics_with_mass_features(induced=True)
+
+        return lcms_collection
+    
+    def _load_parameters(self, lcms_collection):
+        """Load collection-level parameters from the saved parameters file."""
+        from corems.encapsulation.input.parameter_from_json import (
+            load_and_set_json_parameters_lcms_collection,
+            load_and_set_toml_parameters_lcms_collection,
+        )
+        
+        if self.parameters_location.suffix == ".json":
+            load_and_set_json_parameters_lcms_collection(lcms_collection, self.parameters_location)
+        elif self.parameters_location.suffix == ".toml":
+            load_and_set_toml_parameters_lcms_collection(lcms_collection, self.parameters_location)
+        else:
+            warnings.warn(f"Unknown parameter file format: {self.parameters_location.suffix}. Skipping parameter loading.")
+    
+    def _load_induced_mass_features(self, lcms_collection):
+        """Load induced mass features from the saved collection HDF5 file.
+        
+        Induced mass features are gap-filled features that exist at the collection level.
+        This method loads them from the collection HDF5 file with all their attributes
+        and datasets, and distributes them to individual LCMS objects.
+        
+        Parameters
+        ----------
+        lcms_collection : LCMSCollection
+            The LCMS collection object to populate with induced mass features.
+        """
+        with h5py.File(self.collection_hdf5_path, 'r') as f:
+            if "induced_mass_features" not in f:
+                return
+            
+            # Access the top-level induced mass features group
+            imf_group = f["induced_mass_features"]
+            
+            # Iterate through each sample's induced mass features
+            for sample_idx in imf_group.keys():
+                lcms_obj = lcms_collection[int(sample_idx)]
+                sample_group = imf_group[sample_idx]
+                
+                # Load each mass feature for this sample
+                for mf_id_str in sample_group.keys():
+                    mf_group = sample_group[mf_id_str]
+                    
+                    # Note: Induced mass feature IDs are strings like 'c2923_0_i', not integers
+                    # Keep them as strings since that's how they're stored
+                    mf_id = mf_id_str
+                    
+                    # Instantiate the LCMSMassFeature object with required attributes
+                    mass_feature = LCMSMassFeature(
+                        lcms_obj,
+                        mz=mf_group.attrs["_mz_exp"],
+                        retention_time=mf_group.attrs["_retention_time"],
+                        intensity=mf_group.attrs["_intensity"],
+                        apex_scan=mf_group.attrs["_apex_scan"],
+                        persistence=mf_group.attrs.get("_persistence", 0),
+                        id=mf_id,
+                    )
+                    
+                    # Populate additional attributes from HDF5 attributes
+                    for key in mf_group.attrs.keys() - {
+                        "_mz_exp",
+                        "_mz_cal",
+                        "_retention_time",
+                        "_intensity",
+                        "_apex_scan",
+                        "_persistence",
+                    }:
+                        setattr(mass_feature, key, mf_group.attrs[key])
+                    
+                    # Populate attributes from HDF5 datasets (arrays)
+                    for key in mf_group.keys():
+                        setattr(mass_feature, key, mf_group[key][:])
+                        # Convert _noise_score from array to tuple
+                        if key == "_noise_score":
+                            mass_feature._noise_score = tuple(mass_feature._noise_score)
+                    
+                    # Add to the LCMS object's induced_mass_features dictionary
+                    lcms_obj.induced_mass_features[mf_id] = mass_feature
+    
+    def _load_induced_eics_from_collection(self, lcms_collection):
+        """Load EICs for induced mass features from the collection HDF5 file.
+        
+        Induced mass features are gap-filled features. Their EICs are saved at the
+        collection level and need to be loaded and associated with the induced mass features.
+        
+        Parameters
+        ----------
+        lcms_collection : LCMSCollection
+            The LCMS collection object with induced mass features to associate EICs with.
+        """
+        with h5py.File(self.collection_hdf5_path, 'r') as f:
+            if "induced_eics" not in f:
+                return
+            
+            # Access the top-level induced EICs group
+            induced_eics_group = f["induced_eics"]
+            
+            # Iterate through each sample's induced EICs
+            for sample_idx in induced_eics_group.keys():
+                lcms_obj = lcms_collection[int(sample_idx)]
+                sample_group = induced_eics_group[sample_idx]
+                
+                # Use the static helper to load EICs
+                loaded_eics = ReadCoreMSHDFMassSpectra._load_eics_from_hdf5_group(sample_group, lcms_obj)
+                
+                # Ensure eics dictionary exists (should already be initialized in __init__)
+                if not hasattr(lcms_obj, 'eics') or lcms_obj.eics is None:
+                    lcms_obj.eics = {}
+                
+                # Add to lcms_obj.eics dictionary
+                for eic_mz, eic in loaded_eics.items():
+                    lcms_obj.eics[eic_mz] = eic
+            
+            # Associate EICs with induced mass features after all samples processed
+            # This is done outside the loop to handle all samples at once
+            for lcms_obj in lcms_collection:
+                if len(lcms_obj.induced_mass_features) > 0:
+                    lcms_obj.associate_eics_with_mass_features(induced=True)
+    
+    def _load_representative_mass_features(self, lcms_collection):
+        """Load representative mass features for all clusters from HDF5 files.
+        
+        This method uses the same logic as process_consensus_features() when loading
+        representatives, calling get_sample_mf_map_for_representatives() (DRY helper)
+        to determine which features to load.
+        
+        Parameters
+        ----------
+        lcms_collection : LCMSCollection
+            The LCMS collection object to populate with representative mass features.
+        """
+        # Get cluster assignments from the mass_features_dataframe
+        if "cluster" not in lcms_collection.mass_features_dataframe.columns:
+            return
+        
+        # Use DRY helper method to build sample_mf_map with cluster IDs
+        sample_mf_map = lcms_collection.get_sample_mf_map_for_representatives(include_cluster_id=True)
+        
+        # Load mass features for each sample
+        for sample_id, mf_list in sample_mf_map.items():
+            lcms_obj = lcms_collection[sample_id]
+            
+            # Load each mass feature
+            for mf_id, cluster_id in mf_list:
+                self._load_single_mass_feature(lcms_obj, mf_id, cluster_id)
+    
+    def _load_single_mass_feature(self, lcms_obj, feature_id, cluster_index=None):
+        """Load a single mass feature from an LCMS object's HDF5 file.
+        
+        Parameters
+        ----------
+        lcms_obj : LCMSBase
+            The LCMS object to add the mass feature to.
+        feature_id : int
+            The ID of the mass feature to load.
+        cluster_index : int, optional
+            The cluster index to assign to the loaded mass feature.
+        """
+        hdf5_path = lcms_obj.file_location.with_suffix('.hdf5')
+        
+        if not hdf5_path.exists():
+            return
+        
+        with h5py.File(hdf5_path, 'r') as f:
+            if 'mass_features' not in f:
+                return
+            
+            mf_group = f['mass_features']
+            feature_id_str = str(feature_id)
+            
+            if feature_id_str not in mf_group:
+                return
+            
+            mf_data = mf_group[feature_id_str]
+            
+            # Create LCMSMassFeature object
+            mass_feature = LCMSMassFeature(
+                lcms_obj,
+                mz=mf_data.attrs["_mz_exp"],
+                retention_time=mf_data.attrs["_retention_time"],
+                intensity=mf_data.attrs["_intensity"],
+                apex_scan=mf_data.attrs["_apex_scan"],
+                persistence=mf_data.attrs.get("_persistence", 0),
+                id=feature_id,
+            )
+            
+            # Set cluster_index if provided
+            if cluster_index is not None:
+                mass_feature.cluster_index = cluster_index
+            
+            # Populate additional attributes from HDF5 attributes
+            for key in mf_data.attrs.keys() - {
+                "_mz_exp",
+                "_mz_cal",
+                "_retention_time",
+                "_intensity",
+                "_apex_scan",
+                "_persistence",
+            }:
+                setattr(mass_feature, key, mf_data.attrs[key])
+            
+            # Populate attributes from HDF5 datasets (arrays)
+            for key in mf_data.keys():
+                setattr(mass_feature, key, mf_data[key][:])
+                # Convert _noise_score from array to tuple
+                if key == "_noise_score":
+                    mass_feature._noise_score = tuple(mass_feature._noise_score)
+            
+            # Add to the LCMS object's mass_features dictionary
+            lcms_obj.mass_features[feature_id] = mass_feature

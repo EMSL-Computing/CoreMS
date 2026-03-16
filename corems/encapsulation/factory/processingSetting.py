@@ -1101,3 +1101,144 @@ class MolecularFormulaSearchSettings:
                 else:
                     # will get the first number of all possible covalances, which should be the most commum
                     self.used_atom_valences[atom] = covalence[0]
+@dataclasses.dataclass
+class LCMSCollectionSettings:
+    """Settings for LCMS collection class
+
+    Attributes
+    ----------
+    cores : int, optional
+        Number of cores to use for processing. Default is 1.
+    drop_isotopologues : bool, optional
+        If True, drop isotopologues from all analyses.
+        Note that this will keep mass features identified as monoisotopes and any largest ion in deconvoluted mass spectrum.
+        It will also keep mass features not identified as isotopologues or monoisotopes.
+        Default is True.
+    mass_feature_anchor_technique: list, optional
+        List of mass feature anchor techniques for retention time alignment. 
+        Default is ['absolute_intensity'].
+    mass_feature_anchor_techniques_available: tuple, optional
+        Tuple of available mass feature anchor techniques for retention time alignment.
+        Default is ('deconvoluted_mass_spectra', 'absolute_intensity', 'relative_intensity').
+    mass_feature_anchor_absolute_intensity_threshold: int, optional
+        Absolute intensity threshold for mass feature anchor for retention time alignment.
+        Used when mass_feature_anchor_technique includes 'relative_intensity'.
+        Default is 10000.
+    mass_feature_anchor_relative_intensity_threshold: float, optional
+        Relative intensity threshold (0-1) for mass feature anchor for retention time alignment.
+        Removes the lower fraction of mass features by intensity from consideration.
+        For example, 0.6 removes the lower 60% of intensity features.
+        Used when mass_feature_anchor_technique includes 'relative_intensity'.
+        Default is 0.6.
+    alignment_minimum_matches: int, optional
+        Minimum number of matched features required to attempt retention time alignment.
+        If fewer matches are found between samples, alignment will be skipped for that sample.
+        This is particularly useful when aligning blank samples or samples with very few features.
+        Default is 5.
+    alignment_hold_out_fraction: float, optional
+        Hold out fraction for testing retention time alignment.
+        Default is 0.3.
+    alignment_acceptance_technique: list, optional
+        List of alignment acceptance techniques for retention time alignment.
+        Default is ['fraction_improved', 'mean_squared_error_improved'].
+    alignment_acceptance_techniques_available: tuple, optional
+        Tuple of available alignment acceptance techniques for retention time alignment.
+        Default is ('fraction_improved', 'mean_squared_error_improved').
+    alignment_acceptance_fraction_improved_threshold: float, optional
+        Threshold for the improved fraction of the hold out mass features for accepting retention time alignment.
+        Default is 0.5.
+    alignment_mz_tol_ppm: int, optional
+        m/z tolerance in ppm for retention time alignment, in ppm. Default is 5.
+    alignment_rt_tol: float, optional
+        Retention time tolerance for retention time alignment, in minutes. Default is 0.3.
+    consensus_mz_tol_ppm: int, optional
+        m/z tolerance in ppm for consensus mass feature alignment. Default is 5.
+        The recommendation is that this value should be the same as alignment_mz_tol_ppm.
+    consensus_rt_tol: float, optional
+        Retention time tolerance for consensus mass feature alignment, in minutes. Default is 0.2.
+    consensus_partition_size: int, optional
+        Partition size for consensus mass feature alignment. Default is 5000.
+    consensus_min_sample_fraction : float, optional
+        Minimum fraction of samples (0-1) that must contain a cluster.
+        Used for filtering consensus features and for gap-filling threshold.
+        Default is 0.5 (50%). Higher values focus on more prevalent features.
+    gap_fill_expand_on_miss : bool, optional
+        If True, expands search window using consensus_mz_tol_ppm and consensus_rt_tol
+        when no peak is found in the initial cluster boundaries during gap-filling.
+        Default is False.
+    consensus_representative_metric : str, optional
+        Metric used to determine the most representative sample for a consensus mass feature.
+        Options:
+        - 'intensity': Selects the mass feature with the highest intensity value
+        - 'intensity_prefer_ms2': Selects the mass feature with the highest intensity among 
+          those that have MS2 scan numbers assigned. If no features have MS2 scans, falls 
+          back to selecting the highest intensity feature overall.
+        Default is 'intensity_prefer_ms2'.
+    consensus_representative_metrics_available : tuple, optional
+        Tuple of available metrics for determining the most representative sample.
+        Default is ('intensity', 'intensity_prefer_ms2').
+    """
+    # Settings for general processing
+    cores: int = 1
+    drop_isotopologues: bool = False
+
+    # Settings for doing mass feature alignment
+    _mass_feature_anchor_technique: list = dataclasses.field(default_factory=lambda: ["relative_intensity"])
+    mass_feature_anchor_techniques_available: tuple = ("deconvoluted_mass_spectra", "absolute_intensity", "relative_intensity")
+    mass_feature_anchor_absolute_intensity_threshold: int = 10000
+    mass_feature_anchor_relative_intensity_threshold: float = 0.6
+    alignment_minimum_matches: int = 5
+    alignment_hold_out_fraction: float = 0.3
+    _alignment_acceptance_technique: list = dataclasses.field(default_factory=lambda: ["fraction_improved", "mean_squared_error_improved"])
+    alignment_acceptance_techniques_available: tuple = ("fraction_improved", "mean_squared_error_improved")
+    alignment_acceptance_fraction_improved_threshold: float = 0.5
+    alignment_mz_tol_ppm: int = 5
+    alignment_rt_tol: float = 0.4      
+
+    # Consensus mass feature settings
+    consensus_mz_tol_ppm: int = alignment_mz_tol_ppm
+    consensus_rt_tol: float = 0.3
+    consensus_partition_size: int = 10000
+    filter_consensus_mass_features: bool = True
+    consensus_min_sample_fraction: float = 0.5
+
+    # Gap-filling settings
+    gap_fill_expand_on_miss: bool = True
+    
+    # Consensus mass feature visualization parameters
+    consensus_representative_metric: str = 'intensity_prefer_ms2'
+    consensus_representative_metrics_available: tuple = ('intensity', 'intensity_prefer_ms2')
+
+    def __post_init__(self):
+        self.consensus_mz_tol_ppm = self.alignment_mz_tol_ppm
+        self._validate_alignment_acceptance_technique(self.alignment_acceptance_technique)
+        self._validate_mass_feature_anchor_technique(self.mass_feature_anchor_technique)
+
+    def _validate_alignment_acceptance_technique(self, techniques):
+        for technique in techniques:
+            if technique not in self.alignment_acceptance_techniques_available:
+                raise ValueError(f"Alignment acceptance technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.alignment_acceptance_techniques_available}")
+
+    def _validate_mass_feature_anchor_technique(self, techniques):
+        for technique in techniques:
+            if technique not in self.mass_feature_anchor_techniques_available:
+                raise ValueError(f"Mass feature anchor technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.mass_feature_anchor_techniques_available}")
+
+    @property
+    def alignment_acceptance_technique(self):
+        return self._alignment_acceptance_technique
+
+    @alignment_acceptance_technique.setter
+    def alignment_acceptance_technique(self, value):
+        self._validate_alignment_acceptance_technique(value)
+        self._alignment_acceptance_technique = value
+
+    @property
+    def mass_feature_anchor_technique(self):
+        return self._mass_feature_anchor_technique
+
+    @mass_feature_anchor_technique.setter
+    def mass_feature_anchor_technique(self, value):
+        self._validate_mass_feature_anchor_technique(value)
+        self._mass_feature_anchor_technique = value
+

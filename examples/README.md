@@ -60,7 +60,40 @@ Process liquid chromatography mass spectrometry data with MS2 analysis:
 
 ---
 
-### 4. Mass_Recalibration_Tutorial.ipynb
+### 4. LCMS_Targeted_Search_Tutorial.ipynb
+**Finding specific compounds by m/z and retention time**
+
+Perform targeted searches for known compounds using CoreMS:
+- Define target compounds with expected m/z and retention time values
+- Configure tolerances for m/z (ppm) and RT (minutes)
+- Perform selective peak picking for specific targets
+- Verify recovery and measure deviations from expected values
+- Associate MS2 data with target compounds
+- Export results with persistent metadata labels
+
+**Data Format:** Thermo `.raw` files  
+**Recommended For:** Internal standard verification, quality control, spike-in recovery studies, targeted metabolomics  
+**Use Cases:** Internal standards, QC monitoring, quantitative workflows
+
+---
+
+### 5. LCMS_Collection_Tutorial.ipynb
+**Multi-sample metabolomics workflow with consensus features**
+
+Process multiple LC-MS samples as a collection for cross-sample comparison:
+- Load and align multiple LC-MS samples
+- Generate consensus mass features across samples
+- Perform gap filling to find missing features
+- Create pivot tables showing feature distribution
+- Apply molecular annotations to collection data
+- Export and visualize collection-level results
+
+**Data Format:** Thermo `.raw` files  
+**Recommended For:** Multi-sample metabolomics studies, comparative analyses, LC-MS users
+
+---
+
+### 6. Mass_Recalibration_Tutorial.ipynb
 **Improving mass accuracy through calibration**
 
 Master mass recalibration techniques for high-resolution data:
@@ -73,7 +106,7 @@ Master mass recalibration techniques for high-resolution data:
 
 ---
 
-### 5. Noise_Thresholding_Methods.ipynb
+### 7. Noise_Thresholding_Methods.ipynb
 **Comparing noise filtering approaches**
 
 Compare different noise thresholding methods for peak detection:
@@ -86,7 +119,7 @@ Compare different noise thresholding methods for peak detection:
 
 ---
 
-### 6. ResolvingPowerFilter_ICR.ipynb
+### 8. ResolvingPowerFilter_ICR.ipynb
 **Filtering peaks based on resolving power**
 
 Compare different approaches to resolving power-based peak filtering for FT-ICR MS:
@@ -100,7 +133,7 @@ Compare different approaches to resolving power-based peak filtering for FT-ICR 
 
 ---
 
-### 7. Setting_MSParameters.ipynb
+### 9. Setting_MSParameters.ipynb
 **Configuring global parameters in CoreMS**
 
 Understand how to control data processing behavior:

@@ -11,9 +11,7 @@ from corems.encapsulation.factory.processingSetting import (
     MassSpectrumSetting,
     DataInputSetting,
 )
-from corems.encapsulation.factory.processingSetting import MassSpecPeakSetting
-from corems.encapsulation.factory.processingSetting import GasChromatographSetting
-from corems.encapsulation.factory.processingSetting import CompoundSearchSettings
+from corems.encapsulation.factory.processingSetting import MassSpecPeakSetting, GasChromatographSetting, CompoundSearchSettings, LCMSCollectionSettings
 
 
 def load_and_set_toml_parameters_ms(mass_spec_obj, parameters_path=False):
@@ -497,3 +495,85 @@ def _set_dict_data(data_loaded, parameter_label, instance_ParameterClass):
                     setattr(classe, item, value)
 
     return classes[0]
+
+
+def load_and_set_json_parameters_lcms_collection(lcms_collection, parameters_path):
+    """Load parameters from a json file and set the parameters in the LCMS collection object
+
+    Parameters
+    ----------
+    lcms_collection : LCMSCollection
+        corems LCMSCollection object
+    parameters_path : str or Path
+        path to the parameters file saved as a .json
+
+    Raises
+    ------
+    FileNotFoundError
+        if the file is not found
+    """
+    file_path = Path(parameters_path)
+
+    if file_path.exists():
+        with open(file_path, "r", encoding="utf8") as stream:
+            data_loaded = json.load(stream)
+            _set_dict_data_lcms_collection(data_loaded, lcms_collection)
+    else:
+        raise FileNotFoundError(f"Could not locate {file_path}")
+
+
+def load_and_set_toml_parameters_lcms_collection(lcms_collection, parameters_path):
+    """Load parameters from a toml file and set the parameters in the LCMS collection object
+
+    Parameters
+    ----------
+    lcms_collection : LCMSCollection
+        corems LCMSCollection object
+    parameters_path : str or Path
+        path to the parameters file saved as a .toml
+
+    Raises
+    ------
+    FileNotFoundError
+        if the file is not found
+    """
+    file_path = Path(parameters_path)
+
+    if file_path.exists():
+        with open(file_path, "r", encoding="utf8") as stream:
+            data_loaded = toml.load(stream)
+            _set_dict_data_lcms_collection(data_loaded, lcms_collection)
+    else:
+        raise FileNotFoundError(f"Could not locate {file_path}")
+
+
+def _set_dict_data_lcms_collection(data_loaded, lcms_collection):
+    """Set the parameters in the LCMS collection object from a dict
+
+    This function is called by load_and_set_json_parameters_lcms_collection and 
+    load_and_set_toml_parameters_lcms_collection and should not be called directly.
+
+    Parameters
+    ----------
+    data_loaded : dict
+        dict with the parameters
+    lcms_collection : LCMSCollection
+        corems LCMSCollection object
+    """
+    classes = [LCMSCollectionSettings()]
+    labels = ["LCMSCollection"]
+
+    label_class = zip(labels, classes)
+
+    if data_loaded:
+        for label, classe in label_class:
+            class_data = data_loaded.get(label)
+            # not always we will have all the settings
+            # this allows a class data to be none and continue
+            # to import the other classes
+            if class_data:
+                for attr, value in class_data.items():
+                    if hasattr(classe, attr):
+                        setattr(classe, attr, value)
+        
+        lcms_collection.parameters.lcms_collection = classes[0]

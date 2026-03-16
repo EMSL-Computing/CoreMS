@@ -127,6 +127,7 @@ class LCMSSpectralSearch:
         use_mass_features=True,
         peak_sep_da=0.01,
         get_additional_metrics=True,
+        accumulate_results=False,
     ):
         """
         Search LCMS spectra using a FlashEntropy approach.
@@ -149,6 +150,10 @@ class LCMSSpectralSearch:
             instance, by default 0.01.
         get_additional_metrics : bool, optional
             If True, get additional metrics from FlashEntropy search, by default True.
+        accumulate_results : bool, optional
+            If True, accumulate results with existing spectral_search_results instead of
+            replacing them. This allows searching the same scans with multiple libraries
+            without overwriting previous results, by default False.
 
         Returns
         -------
@@ -301,21 +306,43 @@ class LCMSSpectralSearch:
                 )
 
         # Add MS2SearchResults to the existing spectral search results dictionary
-        self.spectral_search_results.update(overall_results_dict)
+        if accumulate_results:
+            # Merge results with existing spectral_search_results
+            for scan_id, precursor_dict in overall_results_dict.items():
+                if scan_id in self.spectral_search_results:
+                    # Scan already has results, merge precursor_mz dictionaries
+                    self.spectral_search_results[scan_id].update(precursor_dict)
+                else:
+                    # New scan, add entire dictionary
+                    self.spectral_search_results[scan_id] = precursor_dict
+        else:
+            # Replace existing results (original behavior)
+            self.spectral_search_results.update(overall_results_dict)
 
         # If there are mass features, associate the results with each mass feature
         if len(self.mass_features) > 0:
+            # Determine which results to associate with mass features
+            if accumulate_results:
+                # When accumulating, only associate new results from this search
+                # to avoid duplicating previously associated results
+                results_to_associate = overall_results_dict
+            else:
+                # When not accumulating, clear existing associations and re-associate all results
+                for mass_feature_id in self.mass_features.keys():
+                    self.mass_features[mass_feature_id].ms2_similarity_results = []
+                results_to_associate = self.spectral_search_results
+            
             for mass_feature_id, mass_feature in self.mass_features.items():
                 scan_ids = mass_feature.ms2_scan_numbers
                 for ms2_scan_id in scan_ids:
                     precursor_mz = mass_feature.mz
                     try:
-                        self.spectral_search_results[ms2_scan_id][precursor_mz]
+                        results_to_associate[ms2_scan_id][precursor_mz]
                     except KeyError:
                         pass
                     else:
                         self.mass_features[
                             mass_feature_id
                         ].ms2_similarity_results.append(
-                            self.spectral_search_results[ms2_scan_id][precursor_mz]
+                            results_to_associate[ms2_scan_id][precursor_mz]
                         )

@@ -5,6 +5,7 @@ from io import StringIO
 from pathlib import Path
 import time
 import json
+import warnings
 
 import numpy as np
 import requests
@@ -1112,6 +1113,31 @@ class MSPInterface(SpectralDatabaseInterface):
                     df[column] = pd.to_numeric(df[column], errors="raise")
                 except:
                     pass
+        
+        # Standardize spectra ID column name
+        # Check for common variations and create a standard 'spectra_id' column
+        spectra_id_variants = ['spectrum_id', 'gnps_spectra_id']
+        for variant in spectra_id_variants:
+            if variant in df.columns and 'spectra_id' not in df.columns:
+                df['spectra_id'] = df[variant]
+                break
+        
+        # If no spectra_id column exists after checking variants, create one with sequential IDs
+        if 'spectra_id' not in df.columns:
+            df['spectra_id'] = [f"spectrum_{i:06d}" for i in range(len(df))]
+        
+        # Standardize compound name column
+        # Ensure 'compound_name' column exists, using 'name' field
+        if 'name' in df.columns and 'compound_name' not in df.columns:
+            df['compound_name'] = df['name']
+        elif 'compound_name' not in df.columns:
+            warnings.warn(
+                "MSP file does not contain 'name' or 'compound_name' field. "
+                "Compound names will be set to 'Unknown'. This may affect plot labels and annotations.",
+                UserWarning
+            )
+            df['compound_name'] = 'Unknown'
+        
         return df
 
     def _to_df(self, input_dataframe, normalize=True):
@@ -1263,12 +1289,8 @@ class MSPInterface(SpectralDatabaseInterface):
             )
 
         # Check if the MSP file contains the required columns for metabolite metadata
-        # inchikey, by name, not null
         # either formula or molecular_formula, not null
-        if not all(self._data_frame["inchikey"].notnull()):
-            raise ValueError(
-                "Input field on MSP 'inchikey' must contain only non-null values."
-            )
+        
         if (
             "formula" not in self._data_frame.columns
             and "molecular_formula" not in self._data_frame.columns
@@ -1291,11 +1313,42 @@ class MSPInterface(SpectralDatabaseInterface):
         format="fe",
         normalize=True,
         fe_kwargs={},
+        molecular_id_field="inchikey",
     ):
         """
         Prepare metabolomics spectra library and associated metabolite metadata
 
-        Note: this uses the inchikey as the index for the metabolite metadata dataframe and for connecting to the spectra, so it must be in the input
+        Parameters
+        ----------
+        polarity : str
+            Polarity of the spectra to extract. Must be 'positive' or 'negative'.
+        metabolite_metadata_mapping : dict, optional
+            Mapping of MSP field names to MetaboliteMetadata attribute names.
+            Default uses common mappings (e.g., 'molecular_formula' -> 'formula').
+        format : str, optional
+            Output format for the spectral library. Options: 'fe', 'flashentropy', 'msp', 'df'.
+            Default is 'fe' (FlashEntropy).
+        normalize : bool, optional
+            Whether to normalize spectra. Default is True.
+        fe_kwargs : dict, optional
+            Additional keyword arguments for FlashEntropy library creation.
+        molecular_id_field : str, optional
+            Field name to use as the unique molecular identifier for linking spectra to metadata.
+            Default is 'inchikey'. The specified field must exist in the MSP file and contain
+            non-null values for all entries.
+
+        Returns
+        -------
+        tuple
+            (spectral_library, metabolite_metadata_dict) where spectral_library is in the
+            requested format and metabolite_metadata_dict maps molecular IDs to MetaboliteMetadata objects.
+
+        Notes
+        -----
+        The molecular_id_field parameter allows flexibility for different MSP file formats:
+        - Use 'inchikey' for standard metabolite databases (default)
+        - Use 'name' or 'spectra_id' for custom or isotope-labeled standards
+        - The specified field must exist and contain non-null values for all entries
 
         """
         # Check if the MSP file is compatible with the get_metabolomics_spectra_library method
@@ -1324,9 +1377,31 @@ class MSPInterface(SpectralDatabaseInterface):
                 "precursortype":"ion_type"
             }
         db_df.rename(columns=metabolite_metadata_mapping, inplace=True)
-        db_df["molecular_data_id"] = db_df["inchikey"]
-
-
+        
+        # Create molecular_data_id from the specified field
+        if molecular_id_field not in db_df.columns:
+            raise ValueError(
+                f"Specified molecular_id_field '{molecular_id_field}' not found in MSP data. "
+                f"Available columns: {', '.join(db_df.columns)}"
+            )
+        
+        if not db_df[molecular_id_field].notnull().all():
+            raise ValueError(
+                f"Specified molecular_id_field '{molecular_id_field}' contains null values. "
+                f"All entries must have non-null values for the molecular ID field."
+            )
+        
+        # Use the specified field as the molecular ID
+        db_df["molecular_data_id"] = db_df[molecular_id_field].astype(str)
+        
+        # Ensure 'id' field exists for spectra identification
+        # If not present, create from spectra_id or use a sequential index
+        if "id" not in db_df.columns:
+            if "spectra_id" in db_df.columns:
+                db_df["id"] = db_df["spectra_id"].astype(str)
+            else:
+                # Generate sequential IDs
+                db_df["id"] = [f"spectrum_{i:06d}" for i in range(len(db_df))]
 
         # Check if the resulting dataframe has the required columns for the flash entropy search
         required_columns = ["molecular_data_id", "precursor_mz", "ion_type", "id"]
@@ -1351,7 +1426,7 @@ class MSPInterface(SpectralDatabaseInterface):
         metabolite_metadata_df.drop_duplicates(subset=["molecular_data_id"], inplace=True)
         metabolite_metadata_df["id"] = metabolite_metadata_df["molecular_data_id"]
 
-        # Convert to a dictionary using the inchikey as the key
+        # Convert to a dictionary using the molecular_data_id as the key
         metabolite_metadata_dict = metabolite_metadata_df.to_dict(
             orient="records"
         )
