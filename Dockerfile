@@ -1,15 +1,16 @@
 FROM python:3.13-slim AS base
 WORKDIR /home/corems
 
-# Install .NET 8 runtime (required for pythonnet)
+# Install .NET 8 runtime via official install script (avoids APT keyring SHA1 issue)
 RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates && \
-    wget -q https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
-         -O /tmp/microsoft-prod.deb && \
-    dpkg -i /tmp/microsoft-prod.deb && rm /tmp/microsoft-prod.deb && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends dotnet-runtime-8.0 && \
+    wget -q https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh && \
+    chmod +x /tmp/dotnet-install.sh && \
+    /tmp/dotnet-install.sh --runtime dotnet --channel 8.0 --install-dir /usr/local/dotnet && \
+    rm /tmp/dotnet-install.sh && \
     apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+ENV DOTNET_ROOT=/usr/local/dotnet
+ENV PATH="${PATH}:/usr/local/dotnet"
 ENV PYTHONNET_RUNTIME=coreclr
 
 # Install Python dependencies as a separate layer for better cache reuse

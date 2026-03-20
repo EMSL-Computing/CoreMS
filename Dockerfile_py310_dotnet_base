@@ -1,0 +1,30 @@
+FROM python:3.13-slim
+
+WORKDIR /home/corems
+
+RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates apt-utils && \
+    wget -q https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh && \
+    chmod +x /tmp/dotnet-install.sh && \
+    /tmp/dotnet-install.sh --runtime dotnet --channel 8.0 --install-dir /usr/local/dotnet && \
+    rm /tmp/dotnet-install.sh && \
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+ENV DOTNET_ROOT=/usr/local/dotnet
+ENV PATH="${PATH}:/usr/local/dotnet"
+
+RUN python3 -m pip install --upgrade pip setuptools wheel
+
+COPY requirements.txt pyproject.toml README.md disclaimer.txt pytest.ini /home/corems/
+COPY ext_lib/ChemstationMSFileReader.dll /home/corems/ext_lib/
+COPY ext_lib/dotnet/*.dll /home/corems/ext_lib/
+COPY examples/notebooks/*.ipynb /home/corems/
+COPY examples/scripts /home/corems/examples
+COPY tests /home/corems/tests
+COPY corems/ /home/corems/corems
+
+RUN python3 -m pip install --no-cache-dir -r requirements.txt && \
+    python3 -m pip install --no-cache-dir pytest pytest-cov && \
+    pip install --no-deps --no-cache-dir .
+
+ENV PYTHONNET_RUNTIME=coreclr
+CMD ["bash"]
