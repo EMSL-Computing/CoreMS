@@ -267,8 +267,6 @@ class MZMLSpectraParser(SpectraParserInterface):
         for level in res.keys():
             res[level] = pd.DataFrame(res[level], columns=cols[level]).drop(
                 columns=["controllerType", "controllerNumber"],
-                axis=1,
-                inplace=False,
             )
 
         return res

@@ -5,6 +5,9 @@
 <br>
 <br>
 <a href="https://doi.org/10.5281/zenodo.14009575"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.14009575.svg" alt="DOI"></a>
+<a href="https://github.com/EMSL-Computing/CoreMS/actions/workflows/ci.yml"><img src="https://github.com/EMSL-Computing/CoreMS/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+<a href="https://pypi.org/project/CoreMS/"><img src="https://img.shields.io/pypi/v/CoreMS.svg" alt="PyPI"></a>
+<a href="https://pypi.org/project/CoreMS/"><img src="https://img.shields.io/pypi/pyversions/CoreMS.svg" alt="Python versions"></a>
 <br>
 </div>
 
@@ -48,7 +51,7 @@ CoreMS aims to provide
 
 ## Current Version
 
- `3.10.0`
+ `3.11.0`
 
 ***
 
@@ -167,16 +170,24 @@ See walkthrough in [this notebook](examples/notebooks/LCMS_Tutorial.ipynb)
 pip install corems
 ```
 
-By default the molecular formula database will be generated using SQLite
+Corems requires **Python 3.9 or later** (including Python 3.13) and is compatible with **NumPy 2.x**, **pandas 2.x**, and **SQLAlchemy 2.x**.
 
-To use Postgresql the easiest way is to build a docker container:
+To install with development and testing extras:
+
+```bash
+pip install "corems[dev]"
+```
+
+By default the molecular formula database will be generated using SQLite.
+
+To use PostgreSQL the easiest way is to build a docker container:
 
 ```bash
 docker-compose up -d
 ```
 
--  Change the url_database on MSParameters.molecular_search.url_database to: "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
--  Set the url_database env variable COREMS_DATABASE_URL to: "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
+- Change the url_database on `MSParameters.molecular_search.url_database` to: `"postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"`
+- Set the env variable `COREMS_DATABASE_URL` to: `"postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"`
 
 ### Thermo Raw File Access:
 
@@ -335,7 +346,7 @@ UML (unified modeling language) diagrams for Direct Infusion FT-MS and GC-MS cla
 
 If you use CoreMS in your work, please use the following citation:
 
-Version [3.10.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v3.10.0), archived on Zenodo:  
+Version [3.11.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v3.11.0), archived on Zenodo:  
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14009575.svg)](https://doi.org/10.5281/zenodo.14009575)
 

@@ -21,12 +21,14 @@ setup(
     url="https://github.com/EMSL-Computing/CoreMS",
     author="Corilo, Yuri",
     author_email="corilo@pnnl.gov",
+    python_requires=">=3.9",
     classifiers=[
         "License :: OSI Approved :: BSD License",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Development Status :: 4 - Beta"
     ],
 

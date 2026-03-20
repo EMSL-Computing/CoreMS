@@ -28,11 +28,12 @@ patch:
 
 pypi_test:
 	@rm -rf build dist *.egg-info
-	@python3 setup.py sdist
+	@python3 -m build
+	@twine upload --repository testpypi dist/*
 
-pypi:	
+pypi:
 	@rm -rf build dist *.egg-info
-	@python3 setup.py sdist
+	@python3 -m build
 	@twine upload dist/*
 
 tag:

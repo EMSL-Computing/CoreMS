@@ -1,9 +1,18 @@
 include:
   - remote: 'https://raw.githubusercontent.com/pnnl-miscscripts/gitlab-lib/v1/gitlab-lib.yaml'
 
+# ---------------------------------------------------------------------------
+# Global configuration
+# ---------------------------------------------------------------------------
+default:
+  image: python:3.13-slim
+  tags:
+    - k8s
+    - rzr
+    - codebuilds
 
 services:
-  - postgres:13
+  - postgres:18
 
 variables:
   POSTGRES_DB: molformula
@@ -13,166 +22,102 @@ variables:
   COREMS_DATABASE_URL: postgresql://coremsdb:coremsmolform@postgres:5432/molformula
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
-stages:
-  - Pytest
-  - Test Notebooks
-  - Build Python Package
-  - Push to PyPi
-  - Push to Gitlab Registry
-  # - Push to Docker Hub
-  
-test-source:
-  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1005
-  stage: Pytest
-  tags:
-    - k8s 
-    - rzr
-    - codebuilds
-  script:
-    - python3 -V  # Print out python version for debugging
-    - python3 -m pip install --upgrade pip
-    - python3 -m pip install -r requirements.txt
-    - python3 -m pip install pytest pytest-cov
-    - python3 -m pip install psycopg2
-    - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
-    - export PYTHONNET_RUNTIME=coreclr
-    - pytest --cache-clear
-  
-  artifacts:
-    paths:
-      - doc/coverage_html_report  
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .cache/pip
 
-test-notebooks:
-  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1005
-  stage: Test Notebooks
-  tags:
-    - k8s 
-    - rzr
-    - codebuilds
+stages:
+  - test
+  - test-notebooks
+  - build
+  - publish
+  - publish-image
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+.install-deps: &install-deps
+  - python3 -V
+  - python3 -m pip install --upgrade pip
+  - python3 -m pip install -e ".[dev]"
+  - export PYTHONNET_RUNTIME=coreclr
+
+# ---------------------------------------------------------------------------
+# Test
+# ---------------------------------------------------------------------------
+test-source:
+  stage: test
   script:
-    - python3 -V  # Print out python version for debugging
-    - python3 -m pip install --upgrade pip
-    - python3 -m pip install -r requirements.txt
-    - python3 -m pip install jupyter nbconvert
-    - python3 -m pip install psycopg2
-    - python3 -m pip install -e .
-    - export PYTHONNET_RUNTIME=coreclr
+    - *install-deps
+    - pytest --cache-clear -p no:warnings -q
+
+  artifacts:
+    when: always
+    paths:
+      - doc/coverage_html_report
+    expire_in: 7 days
+
+# ---------------------------------------------------------------------------
+# Notebook tests
+# ---------------------------------------------------------------------------
+test-notebooks:
+  stage: test-notebooks
+  script:
+    - *install-deps
+    - python3 -m pip install --no-cache-dir jupyter nbconvert
     - cd examples && python3 test_notebooks.py
-  
+
   artifacts:
     when: on_failure
     paths:
       - /tmp/*_test.ipynb
- 
-build:
-  
-  stage: Build Python Package
-  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1005
-  tags:
-    - k8s 
-    - rzr
-    - codebuilds
-    
+    expire_in: 3 days
+
+# ---------------------------------------------------------------------------
+# Build sdist + wheel
+# ---------------------------------------------------------------------------
+build-package:
+  stage: build
   script:
-    
-    - apt-get install libpq-dev -y
-    - python3 -V  # Print out python version for debugging
-    - python3 -m pip install twine
-    - python3 setup.py sdist
-    - python3 -m pip install dist/*
-    # run the command here
+    - python3 -m pip install --upgrade pip build
+    - python3 -m build
 
   artifacts:
     paths:
-      - dist/*
+      - dist/
+    expire_in: 7 days
 
-#pypi:
-  
-#  stage: Push to PyPi
-#  tags:
-#    - corems
-#    - k8s 
-#    - rzr
+# ---------------------------------------------------------------------------
+# Publish to PyPI  (version tags on the default branch only, e.g. v3.11.0)
+# ---------------------------------------------------------------------------
+publish-pypi:
+  stage: publish
+  needs: [build-package]
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/ && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - python3 -m pip install --upgrade twine
+    - twine upload dist/*
+  environment:
+    name: pypi
+    url: https://pypi.org/project/CoreMS/
 
-#  script:
-#    - twine upload dist/*
-  
-#  only:
-#    - tags
-
-
-# build-base-image:
-#   extends: .pnnllib-gitlab-build-container-image
-#   stage: Push to Gitlab Registry
-#   image: gcr.io/kaniko-project/executor:debug@sha256:71d8cf6012b67979960f5b15b85408438132d87eef599926d8931f348d045957
-#   tags:
-#   - k8s
-#   - rzr
-#   - codebuilds
-#   only:
-#     - master
-#   variables:
-#     KANIKO_EXTRA_ARGS: "--cache=true --cache-copy-layers=true --destination $CI_REGISTRY_IMAGE:latest"
-#     CONTEXT: $CI_PROJECT_DIR
-#     DOCKERFILE: Dockerfile_py310_dotnet_base_clean
-#     KUBERNETES_CPU_REQUEST: 100m
-#     KUBERNETES_CPU_LIMIT: "2"
-#     KUBERNETES_MEMORY_REQUEST: 2Gi
-#     KUBERNETES_MEMORY_LIMIT: 8Gi
-#     CONTAINER_TAG: "2.0.0-1005"
-
-# deployment:
-  
-#   stage: Push to Gitlab Registry
-#   tags:
-#     - k8s 
-#     - rzr
-#     - codebuilds
-
-#   image:
-    
-#     name: gcr.io/kaniko-project/executor:debug
-#     entrypoint: [""]
-  
-#   script:
-    
-#     - export DOCKER_CONFIG=/kaniko/.docker/
-#     - export GOOGLE_APPLICATION_CREDENTIALS=/kaniko/.docker/config.json  
-#     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-#     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile_py310_dotnet_base --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
-  
-#   only:
-#     - master
-#docker push:
-  
-#  stage: Push to Docker Hub
-#  tags:
-#    - corems
-#    - k8s 
-#    - rzr
-
-#  image:
-    
-#    name: gcr.io/kaniko-project/executor:debug
-#    entrypoint: [""]
-  
-#  script:
-#    - export DOCKER_CONFIG=/kaniko/.docker/
-#    - export GOOGLE_APPLICATION_CREDENTIALS=/kaniko/.docker/config.json  
-#    - echo "{\"auths\":{\"$DOCKER_HUB_REGISTRY\":{\"username\":\"$DOCKER_HUB_USER\",\"password\":\"$DOCKER_HUB_PASSWORD\"}}}" > /kaniko/.docker/config.json
-#    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $MAJOR_VER
-  
-#  only:
-#    - master
-    
-
-#pages:
-#  script:
-#    - pip install sphinx sphinx-rtd-theme
-#    - cd doc ; make html
-#    - mv build/html/ ../public/
-#  artifacts:
-#    paths:
-#      - public
-#  only:
-#    - master
+# ---------------------------------------------------------------------------
+# Build and push the base container image to the GitLab registry
+# (runs only on the default branch or version tags)
+# ---------------------------------------------------------------------------
+publish-image:
+  extends: .pnnllib-gitlab-build-container-image
+  stage: publish-image
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/'
+  variables:
+    KANIKO_EXTRA_ARGS: "--cache=true --cache-copy-layers=true --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --destination $CI_REGISTRY_IMAGE:latest"
+    CONTEXT: $CI_PROJECT_DIR
+    DOCKERFILE: Dockerfile_py310_dotnet_base_clean
+    KUBERNETES_CPU_REQUEST: 100m
+    KUBERNETES_CPU_LIMIT: "2"
+    KUBERNETES_MEMORY_REQUEST: 2Gi
+    KUBERNETES_MEMORY_LIMIT: 8Gi

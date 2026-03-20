@@ -326,6 +326,8 @@ class NoiseThresholdCalc:
             # If the histogram had more than one maximum frequency bin, we need to reduce that to one entry
             if len(log_sigma) > 1:
                 log_sigma = average(log_sigma)
+            else:
+                log_sigma = log_sigma[0]
             ## To do : check if aFT or mFT and adjust method
             noise_mid = 10**log_sigma
             noise_1std = (

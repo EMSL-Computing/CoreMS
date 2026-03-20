@@ -30,7 +30,7 @@ class GCPeakCalculation(object):
             The spacing between data points.
         """
         yy = tic[self.start_scan : self.final_scan]
-        self._area = np.trapz(yy, dx=dx)
+        self._area = np.trapezoid(yy, dx=dx)
 
     def linear_ri(
         self, right_ri: float, left_ri: float, left_rt: float, right_rt: float

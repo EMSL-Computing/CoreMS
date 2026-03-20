@@ -3,6 +3,8 @@ __date__ = "Jun 12, 2019"
 
 import warnings
 
+import pandas as pd
+
 from corems.encapsulation.constant import Atoms, Labels
 from corems.mass_spectrum.factory.MassSpectrumClasses import (
     MassSpecCentroid,
@@ -92,8 +94,9 @@ class ReadCoremsMasslist(MassListBaseClass):
             formula_df = dataframe[
                 dataframe.columns.intersection(Atoms.atoms_order)
             ].copy()
-            formula_df.fillna(0, inplace=True)
-            formula_df.replace(b"nan", 0, inplace=True)
+            # Convert to numeric first (pandas 3.x may infer str dtype for
+            # HDF5-sourced atom count columns); coerce handles b"nan" bytes too
+            formula_df = formula_df.apply(pd.to_numeric, errors="coerce").fillna(0)
 
             ion_type_df = dataframe["Ion Type"]
             ion_charge_df = dataframe["Ion Charge"]
