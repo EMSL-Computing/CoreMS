@@ -37,7 +37,18 @@ stages:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+.install-dotnet: &install-dotnet
+  - apt-get update -qq
+  - apt-get install -y --no-install-recommends wget ca-certificates apt-utils
+  - wget -q https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb
+      -O /tmp/microsoft-prod.deb
+  - dpkg -i /tmp/microsoft-prod.deb && rm /tmp/microsoft-prod.deb
+  - apt-get update -qq
+  - apt-get install -y --no-install-recommends dotnet-runtime-8.0
+  - apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 .install-deps: &install-deps
+  - *install-dotnet
   - python3 -V
   - python3 -m pip install --upgrade pip
   - python3 -m pip install -e ".[dev]"
