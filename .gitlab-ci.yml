@@ -50,7 +50,8 @@ test-source:
   stage: test
   script:
     - *install-deps
-    - pytest --cache-clear -p no:warnings -q
+    - mkdir -p doc/coverage_html_report
+    - pytest --cache-clear -p no:warnings -q --cov=corems --cov-report=html:doc/coverage_html_report --cov-report=term
 
   artifacts:
     when: always
