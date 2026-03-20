@@ -38,7 +38,8 @@ stages:
 # Helpers
 # ---------------------------------------------------------------------------
 .install-dotnet: &install-dotnet
-  - wget -q https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh
+  - apt-get update -qq && apt-get install -y --no-install-recommends curl ca-certificates
+  - curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
   - chmod +x /tmp/dotnet-install.sh
   - /tmp/dotnet-install.sh --runtime dotnet --channel 8.0 --install-dir /usr/local/dotnet
   - export DOTNET_ROOT=/usr/local/dotnet
