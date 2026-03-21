@@ -42,7 +42,7 @@ stages:
 # ---------------------------------------------------------------------------
 .install-dotnet: &install-dotnet
   - apt-get update -qq && apt-get install -y --no-install-recommends
-      curl ca-certificates libicu72 libssl3 libkrb5-3 zlib1g
+      curl ca-certificates libssl3 libkrb5-3 zlib1g gcc python3-dev
   - curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
   - chmod +x /tmp/dotnet-install.sh
   - /tmp/dotnet-install.sh --runtime dotnet --channel 8.0 --install-dir /usr/local/dotnet

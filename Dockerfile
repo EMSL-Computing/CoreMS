@@ -3,7 +3,7 @@ WORKDIR /home/corems
 
 # Install .NET 8 runtime via official install script (avoids APT keyring SHA1 issue)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        curl ca-certificates libicu72 libssl3 libkrb5-3 zlib1g && \
+        curl ca-certificates libssl3 libkrb5-3 zlib1g && \
     curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh && \
     chmod +x /tmp/dotnet-install.sh && \
     /tmp/dotnet-install.sh --runtime dotnet --channel 8.0 --install-dir /usr/local/dotnet && \
@@ -16,9 +16,13 @@ ENV PYTHONNET_RUNTIME=coreclr
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 
 # Install Python dependencies as a separate layer for better cache reuse
+# gcc is needed to compile ms-entropy's Cython extension; purged afterwards to keep the image lean
 COPY requirements.txt ./
-RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install -y --no-install-recommends gcc python3-dev && \
+    python3 -m pip install --upgrade pip && \
+    python3 -m pip install --no-cache-dir -r requirements.txt && \
+    apt-get purge -y gcc python3-dev && apt-get autoremove -y && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install the corems package
 COPY pyproject.toml README.md disclaimer.txt ./
