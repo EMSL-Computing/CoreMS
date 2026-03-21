@@ -21,6 +21,9 @@ variables:
   POSTGRES_HOST_AUTH_METHOD: trust
   COREMS_DATABASE_URL: postgresql://coremsdb:coremsmolform@postgres:5432/molformula
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PIP_ROOT_USER_ACTION: ignore
+  # Avoids libicu dependency crash when .NET initialises in a slim container
+  DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "1"
 
 cache:
   key: "$CI_COMMIT_REF_SLUG"
@@ -38,7 +41,8 @@ stages:
 # Helpers
 # ---------------------------------------------------------------------------
 .install-dotnet: &install-dotnet
-  - apt-get update -qq && apt-get install -y --no-install-recommends curl ca-certificates
+  - apt-get update -qq && apt-get install -y --no-install-recommends
+      curl ca-certificates libicu72 libssl3 libkrb5-3 zlib1g
   - curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
   - chmod +x /tmp/dotnet-install.sh
   - /tmp/dotnet-install.sh --runtime dotnet --channel 8.0 --install-dir /usr/local/dotnet

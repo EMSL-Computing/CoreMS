@@ -2,7 +2,8 @@ FROM python:3.13-slim
 
 WORKDIR /home/corems
 
-RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates apt-utils && \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl ca-certificates apt-utils libicu72 libssl3 libkrb5-3 zlib1g && \
     curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh && \
     chmod +x /tmp/dotnet-install.sh && \
     /tmp/dotnet-install.sh --runtime dotnet --channel 8.0 --install-dir /usr/local/dotnet && \
@@ -11,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certifi
 
 ENV DOTNET_ROOT=/usr/local/dotnet
 ENV PATH="${PATH}:/usr/local/dotnet"
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 
 RUN python3 -m pip install --upgrade pip setuptools wheel
 

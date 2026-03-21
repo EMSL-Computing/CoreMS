@@ -2,7 +2,8 @@ FROM python:3.13-slim AS base
 WORKDIR /home/corems
 
 # Install .NET 8 runtime via official install script (avoids APT keyring SHA1 issue)
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates && \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl ca-certificates libicu72 libssl3 libkrb5-3 zlib1g && \
     curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh && \
     chmod +x /tmp/dotnet-install.sh && \
     /tmp/dotnet-install.sh --runtime dotnet --channel 8.0 --install-dir /usr/local/dotnet && \
@@ -12,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
 ENV DOTNET_ROOT=/usr/local/dotnet
 ENV PATH="${PATH}:/usr/local/dotnet"
 ENV PYTHONNET_RUNTIME=coreclr
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 
 # Install Python dependencies as a separate layer for better cache reuse
 COPY requirements.txt ./
