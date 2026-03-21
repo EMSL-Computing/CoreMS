@@ -2,6 +2,11 @@ import numpy as np
 from bisect import bisect_left
 from scipy.optimize import curve_fit
 
+try:
+    np.trapezoid
+except AttributeError:  # numpy < 2.0
+    np.trapezoid = np.trapz
+
 
 __author__ = "Yuri E. Corilo"
 __date__ = "March 11, 2020"

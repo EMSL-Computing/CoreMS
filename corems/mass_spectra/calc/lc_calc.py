@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 import warnings, scipy, multiprocessing
+
+if not hasattr(np, 'trapezoid'):  # numpy < 2.0
+    np.trapezoid = np.trapz
 from ripser import ripser
 from scipy import sparse
 from scipy.spatial import KDTree

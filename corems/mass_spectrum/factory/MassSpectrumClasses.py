@@ -4,7 +4,11 @@ import numpy as np
 from lmfit.models import GaussianModel
 
 # from matplotlib import rcParamsDefault, rcParams
-from numpy import array, float64, histogram, trapezoid, where
+from numpy import array, float64, histogram, where
+try:
+    from numpy import trapezoid
+except ImportError:  # numpy < 2.0
+    from numpy import trapz as trapezoid
 from pandas import DataFrame
 
 from corems.encapsulation.constant import Labels
