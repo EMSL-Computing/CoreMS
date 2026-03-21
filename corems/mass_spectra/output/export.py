@@ -2600,11 +2600,14 @@ class LCMSCollectionExport():
             
             # Iterate through all columns and set via property setters
             for col_name in row.index:
-                if col_name in skip_cols or pd.isna(row[col_name]):
+                if col_name in skip_cols:
                     continue
-                
-                # Convert value to appropriate type
                 value = row[col_name]
+                try:
+                    if pd.isna(value):
+                        continue
+                except (TypeError, ValueError):
+                    pass  # value is array-like; not NA, proceed
                 
                 # Set via property (public interface handles private attributes)
                 # Don't save empty lists
