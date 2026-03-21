@@ -22,7 +22,7 @@ import pandas as pd
 from s3path import S3Path
 
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 from corems.encapsulation.constant import Labels
 from corems.mass_spectra.factory.lc_class import MassSpectraBase, LCMSBase
 from corems.mass_spectra.factory.chromat_data import EIC_Data, TIC_Data
@@ -41,6 +41,7 @@ clr.AddReference("ThermoFisher.CommonCore.RawFileReader")
 clr.AddReference("ThermoFisher.CommonCore.Data")
 clr.AddReference("ThermoFisher.CommonCore.MassPrecisionEstimator")
 
+from System.Collections.Generic import List as DotNetList
 from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
 from ThermoFisher.CommonCore.Data import ToleranceUnits, Extensions
 from ThermoFisher.CommonCore.Data.Business import (
@@ -53,7 +54,6 @@ from ThermoFisher.CommonCore.Data.Business import Device
 from ThermoFisher.CommonCore.Data.Interfaces import IChromatogramSettings
 from ThermoFisher.CommonCore.Data.Business import MassOptions, FileHeaderReaderFactory
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
-from System.Collections.Generic import List
 
 
 class ThermoBaseClass:
@@ -775,7 +775,7 @@ class ThermoBaseClass:
         elif isinstance(self.scans, list):
             d_params = self.set_metadata(scans_list=self.scans)
 
-            scans = List[int]()
+            scans = DotNetList[int]()
             for scan in self.scans:
                 scans.Add(scan)
 
@@ -1237,7 +1237,7 @@ class ThermoBaseClass:
 
         # assumes scans is full scan or reduced profile scan
 
-        scans = List[int]()
+        scans = DotNetList[int]()
         for scan in scans_list:
             scans.Add(scan)
 
@@ -1333,7 +1333,63 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
     def load(self):
         pass
 
-    def get_scan_df(self):
+    def get_scans_in_time_range(
+        self, 
+        time_range: Union[Tuple[float, float], List[Tuple[float, float]]],
+        ms_level: Optional[int] = None
+    ) -> List[int]:
+        """Return scan numbers within specified retention time range(s).
+        
+        Parameters
+        ----------
+        time_range : tuple or list of tuples
+            Retention time range(s) in minutes. Can be:
+            - Single range: (start_time, end_time)
+            - Multiple ranges: [(start1, end1), (start2, end2), ...]
+        ms_level : int, optional
+            If specified, only return scans of this MS level (e.g., 1 for MS1, 2 for MS2).
+            If None, returns scans of all MS levels.
+        
+        Returns
+        -------
+        list of int
+            List of scan numbers within the specified time range(s) and MS level.
+        """
+        # Normalize time range to list of tuples
+        time_ranges = self._normalize_time_range(time_range)
+        
+        # Get all scan data
+        scan_df = self.get_scan_df()
+        
+        # Filter by time range
+        mask = pd.Series([False] * len(scan_df), index=scan_df.index)
+        for start_time, end_time in time_ranges:
+            mask |= (scan_df.scan_time >= start_time) & (scan_df.scan_time <= end_time)
+        
+        filtered_df = scan_df[mask]
+        
+        # Filter by MS level if specified
+        if ms_level is not None:
+            filtered_df = filtered_df[filtered_df.ms_level == ms_level]
+        
+        return filtered_df.scan.tolist()
+
+    def get_scan_df(self, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
+        """Return scan data as a pandas DataFrame.
+        
+        Parameters
+        ----------
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to filter scans. Can be:
+            - Single range: (start_time, end_time) in minutes
+            - Multiple ranges: [(start1, end1), (start2, end2), ...] in minutes
+            If None, returns all scans.
+        
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame containing scan information, optionally filtered by time range.
+        """
         # This automatically brings in all the data
         self.chromatogram_settings.scans = (-1, -1)
 
@@ -1376,9 +1432,39 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
             else:
                 scan_df.loc[scan_df.scan == i, "ms_format"] = "profile"
 
+        # Filter by time range if specified
+        if time_range is not None:
+            time_ranges = self._normalize_time_range(time_range)
+            mask = pd.Series([False] * len(scan_df), index=scan_df.index)
+            for start_time, end_time in time_ranges:
+                mask |= (scan_df.scan_time >= start_time) & (scan_df.scan_time <= end_time)
+            scan_df = scan_df[mask].reset_index(drop=True)
+
         return scan_df
 
-    def get_ms_raw(self, spectra, scan_df):
+    def get_ms_raw(self, spectra, scan_df, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
+        """Return a dictionary of mass spectra data as pandas DataFrames.
+        
+        Parameters
+        ----------
+        spectra : str
+            Specifies which spectra to load (e.g., 'all', 'ms1', 'ms2')
+        scan_df : pd.DataFrame
+            Scan information DataFrame
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to filter scans. Can be:
+            - Single range: (start_time, end_time) in minutes
+            - Multiple ranges: [(start1, end1), (start2, end2), ...] in minutes
+            If None, returns all scans. Note: filtering is typically done at scan_df level.
+        
+        Returns
+        -------
+        dict
+            Dictionary of raw mass spectra data, optionally filtered by time range.
+        """
+        # Note: time_range filtering is handled at the scan_df level before calling this method
+        # The parameter is here for interface consistency with SpectraParserInterface
+        
         if spectra == "all":
             scan_df_forspec = scan_df
         elif spectra == "ms1":
@@ -1484,7 +1570,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
 
         return res
 
-    def run(self, spectra="all", scan_df=None):
+    def run(self, spectra="all", scan_df=None, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
         """
         Extracts mass spectra data from a raw file.
 
@@ -1494,6 +1580,11 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
             Which mass spectra data to include in the output. Default is all.  Other options: none, ms1, ms2.
         scan_df : pandas.DataFrame, optional
             Scan dataframe.  If not provided, the scan dataframe is created from the mzML file.
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to filter scans. Can be:
+            - Single range: (start_time, end_time) in minutes
+            - Multiple ranges: [(start1, end1), (start2, end2), ...] in minutes
+            If None, returns all scans.
 
         Returns
         -------
@@ -1505,11 +1596,11 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         """
         # Prepare scan_df
         if scan_df is None:
-            scan_df = self.get_scan_df()
+            scan_df = self.get_scan_df(time_range=time_range)
 
         # Prepare mass spectra data
         if spectra != "none":
-            res = self.get_ms_raw(spectra=spectra, scan_df=scan_df)
+            res = self.get_ms_raw(spectra=spectra, scan_df=scan_df, time_range=time_range)
         else:
             res = None
 
@@ -1626,15 +1717,23 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
 
         return mass_spectrum_obj
 
-    def get_mass_spectra_obj(self):
+    def get_mass_spectra_obj(self, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
         """Instatiate a MassSpectraBase object from the binary data file file.
+
+        Parameters
+        ----------
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to load. Can be:
+            - Single range: (start_time, end_time) in minutes
+            - Multiple ranges: [(start1, end1), (start2, end2), ...] in minutes
+            If None, loads all scans. Useful for targeted workflows to improve performance.
 
         Returns
         -------
         MassSpectraBase
             The MassSpectra object containing the parsed mass spectra.  The object is instatiated with the mzML file, analyzer, instrument, sample name, and scan dataframe.
         """
-        _, scan_df = self.run(spectra="none")
+        _, scan_df = self.run(spectra="none", time_range=time_range)
         mass_spectra_obj = MassSpectraBase(
             self.file_location,
             self.analyzer,
@@ -1647,22 +1746,27 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
 
         return mass_spectra_obj
 
-    def get_lcms_obj(self, spectra="all"):
+    def get_lcms_obj(self, spectra="all", time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
         """Instatiates a LCMSBase object from the mzML file.
 
         Parameters
         ----------
         spectra : str, optional
             Which mass spectra data to include in the output. Default is "all".  Other options: "none", "ms1", "ms2".
+        time_range : tuple or list of tuples, optional
+            Retention time range(s) to load. Can be:
+            - Single range: (start_time, end_time) in minutes
+            - Multiple ranges: [(start1, end1), (start2, end2), ...] in minutes
+            If None, loads all scans. Useful for targeted workflows to improve performance.
 
         Returns
         -------
         LCMSBase
             LCMS object containing mass spectra data. The object is instatiated with the file location, analyzer, instrument, sample name, scan info, mz dataframe (as specifified), polarity, as well as the attributes holding the scans, retention times, and tics.
         """
-        _, scan_df = self.run(spectra="none")  # first run it to just get scan info
+        _, scan_df = self.run(spectra="none", time_range=time_range)  # first run it to just get scan info
         res, scan_df = self.run(
-            scan_df=scan_df, spectra=spectra
+            scan_df=scan_df, spectra=spectra, time_range=time_range
         )  # second run to parse data
         lcms_obj = LCMSBase(
             self.file_location,
@@ -1683,7 +1787,7 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
         # Check if polarity is mixed
         if len(set(scan_df.polarity)) > 1:
             raise ValueError("Mixed polarities detected in scan data")
-        lcms_obj.polarity = scan_df.polarity[0]
+        lcms_obj.polarity = scan_df.polarity.iloc[0]
         lcms_obj._scans_number_list = list(scan_df.scan)
         lcms_obj._retention_time_list = list(scan_df.scan_time)
         lcms_obj._tic_list = list(scan_df.tic)

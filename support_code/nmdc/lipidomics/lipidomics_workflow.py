@@ -198,6 +198,7 @@ def add_mass_features(myLCMSobj, scan_translator):
     # Count and report how many mass features are left after integration
     print("Number of mass features after integration: ", len(myLCMSobj.mass_features))
     #filter_and_plot_mass_features(myLCMSobj)
+    """
     print("Annotating C13 mass features")
     myLCMSobj.find_c13_mass_features()
     print("Deconvoluting mass features")
@@ -212,6 +213,7 @@ def add_mass_features(myLCMSobj, scan_translator):
         myLCMSobj.add_associated_ms2_dda(
             spectrum_mode="centroid", ms_params_key=param_key, scan_filter=scan_filter
         )
+    """
 
 def filter_and_plot_mass_features(myLCMSobj):
     """Filter mass features based on peak shape metrics and plot composite feature map
@@ -627,7 +629,7 @@ def run_lipid_workflow(
     params_toml,
     scan_translator=None,
     verbose=True,
-    ms1_molecular_search=True,
+    ms1_molecular_search=False, # whether to do ms1 molecular search
     cores=1,
 ):
     """Run lipidomics workflow
@@ -654,10 +656,16 @@ def run_lipid_workflow(
     files_list = list(file_dir.glob("*.raw"))
     out_paths_list = [out_dir / f.stem for f in files_list]
 
-    # Run signal processing, get associated ms1, add associated ms2, do ms1 molecular search, and export temp results
+    # Run signal processing, get associated ms1, add associated ms2, and export temp results
     if cores == 1 or len(files_list) == 1:
         mz_dicts = []
         for file_in, file_out in list(zip(files_list, out_paths_list)):
+            # Check if folder already exists
+            if Path(str(file_out) + ".corems").exists():
+                print("File already exists, skipping: ", file_out)
+                continue
+            if verbose:
+                print("Processing file: ", file_in)
             mz_dict = run_lipid_sp_ms1(
                 file_in=str(file_in),
                 out_path=str(file_out),
@@ -683,6 +691,9 @@ def run_lipid_workflow(
         mz_dicts = pool.starmap(run_lipid_sp_ms1, args)
         pool.close()
         pool.join()
+    
+    # Skip ms2 spectral search for now, will add back once we have an improved MetabRefLCInterface method
+    """
     # Prepare ms2 spectral search space
     metadata = prep_metadata(mz_dicts, out_dir)
 
@@ -698,16 +709,17 @@ def run_lipid_workflow(
         mz_dicts = pool.starmap(run_lipid_ms2, args)
         pool.close()
         pool.join()
+    """
     print("Finished processing, data are written in " + str(out_dir))
 
 
 if __name__ == "__main__":
     # Set input variables to run
-    cores = 1
-    file_dir = Path("/Users/heal742/LOCAL/corems_dev/corems/tmp_data/thermo_raw_mini")
-    out_dir = Path("tmp_data/_test_250115")
+    cores = 5
+    file_dir = Path("/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/mini_collection_test")
+    out_dir = Path("/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/mini_collection_test_out2")
     params_toml = Path(
-        "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lipidomics_corems_params.toml"
+        "/Volumes/LaCie/nmdc_data/collection_testing/blanchard_lipid/blanchard_collection_params.toml"
     )
     verbose = True
     scan_translator = Path("tmp_data/thermo_raw_collection/scan_translator.toml")
