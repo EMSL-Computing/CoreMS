@@ -15,19 +15,15 @@ ENV PATH="${PATH}:/usr/local/dotnet"
 ENV PYTHONNET_RUNTIME=coreclr
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 
-# Install Python dependencies as a separate layer for better cache reuse
+# Install the corems package (pyproject.toml defines all dependencies)
 # gcc is needed to compile ms-entropy's Cython extension; purged afterwards to keep the image lean
-COPY requirements.txt ./
-RUN apt-get update && apt-get install -y --no-install-recommends gcc python3-dev && \
-    python3 -m pip install --upgrade pip && \
-    python3 -m pip install --no-cache-dir -r requirements.txt && \
-    apt-get purge -y gcc python3-dev && apt-get autoremove -y && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install the corems package
 COPY pyproject.toml README.md disclaimer.txt ./
 COPY corems/ ./corems/
-RUN pip install --no-deps --no-cache-dir . && \
+RUN apt-get update && apt-get install -y --no-install-recommends gcc python3-dev && \
+    python3 -m pip install --upgrade pip && \
+    python3 -m pip install --no-cache-dir . && \
+    apt-get purge -y gcc python3-dev && apt-get autoremove -y && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
     rm -rf corems/
 
 

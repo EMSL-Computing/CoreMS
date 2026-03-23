@@ -102,7 +102,7 @@ Some of these steps (e.g. installed xcode-select and brew installing gcc, may ta
 10. Install CoreMS, CoreMS Dependencies  
     a. Enter the cloned CoreMS repo, e.g.   
 	b. `cd corems`  
-    c. `pip install -r requirements.txt`
+    c. `pip install .`
 11. Install Jupyter for browser based notebooks:  
     a. `pip install jupyter`
 12. Install Spyder IDE:  

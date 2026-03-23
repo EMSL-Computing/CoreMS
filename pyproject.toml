@@ -44,6 +44,7 @@ dependencies = [
     "seaborn>=0.13.2",
     "setuptools>=72.0.0",
     "SQLAlchemy>=2.0.0",
+    "packaging>=23.0",
     "toml>=0.10.2",
     "tqdm>=4.66.0",
 ]
