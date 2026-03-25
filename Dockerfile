@@ -30,8 +30,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends gcc python3-dev
 FROM base AS build
 WORKDIR /home/corems
 
-COPY examples/notebooks/*.ipynb README.md disclaimer.txt ./
-COPY examples/scripts ./examples/
+COPY examples/notebooks/*.ipynb README.md ./
+
 
 RUN python3 -m pip install --no-cache-dir jupyter
 
