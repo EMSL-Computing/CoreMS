@@ -6,7 +6,7 @@ from corems.encapsulation.factory.parameters import MSParameters
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def mass_spectrum_ftms(bruker_transient):
     """Creates a mass spectrum object to be used in the tests"""
     # Instantiate the mass spectrum object
