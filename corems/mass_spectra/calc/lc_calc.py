@@ -3849,8 +3849,9 @@ class LCMSCollectionCalculations:
             sample_id = int(row['sample_id'])
             sample = self[sample_id]
             if hasattr(sample, 'eics') and sample.eics:
-                has_eics = True
-                break
+                if len(sample.eics) > 0:
+                    has_eics = True
+                    break
         
         # Also check induced features if available
         induced_cluster_mfs = None
@@ -3862,8 +3863,9 @@ class LCMSCollectionCalculations:
                 sample_id = int(row['sample_id'])
                 sample = self[sample_id]
                 if hasattr(sample, 'eics') and sample.eics:
-                    has_eics = True
-                    break
+                    if len(sample.eics) > 0:
+                        has_eics = True
+                        break
         
         if not has_eics:
             to_plot = [x for x in to_plot if x != "EIC"]
