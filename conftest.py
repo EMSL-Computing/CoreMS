@@ -6,7 +6,7 @@ from corems.encapsulation.factory.parameters import MSParameters
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def mass_spectrum_ftms(bruker_transient):
     """Creates a mass spectrum object to be used in the tests"""
     # Instantiate the mass spectrum object
@@ -41,7 +41,7 @@ def bruker_transient(ftms_file_location):
     return bruker_transient
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def lcms_obj():
     """Returns an LCMS object for the tests"""
     file_raw = (

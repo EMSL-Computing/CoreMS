@@ -1772,6 +1772,10 @@ class LCMSCollection(LCMSCollectionCalculations):
         self._lcms = {k: self._lcms[k] for k in ordered_samples}
 
     def __getitem__(self, index):
+        if isinstance(index, (float, np.floating, np.ndarray)):
+            index = int(index)
+        elif isinstance(index, np.integer):
+            index = int(index)
         samp_name = self.samples[index]
         self._lcms[samp_name]
         return self._lcms[samp_name]
@@ -1783,7 +1787,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         """
         Prepares the mass features in the LCMS objects in the collection for combination.
         """        
-        if induced_features == True:
+        if induced_features:
             mf_df = lcms_obj.mass_features_to_df(induced_features = True)
         # Check if lcms_obj has attribute light_mf_df
         elif hasattr(lcms_obj, "light_mf_df"):
@@ -1807,7 +1811,11 @@ class LCMSCollection(LCMSCollectionCalculations):
         mf_df = mf_df.reset_index(drop=False)
         # Add sample name and sample id to the dataframe
         mf_df["sample_name"] = lcms_obj.sample_name
-        mf_df["sample_id"] = self.manifest[lcms_obj.sample_name]["collection_id"]
+        # Ensure sample_id is stored as an integer to avoid float indices later
+        try:
+            mf_df["sample_id"] = int(self.manifest[lcms_obj.sample_name]["collection_id"])
+        except Exception:
+            mf_df["sample_id"] = self.manifest[lcms_obj.sample_name]["collection_id"]
         mf_df["coll_mf_id"] = mf_df["sample_id"].astype(str) + "_" + mf_df["mf_id"].astype(str)
 
         # For induced features, extract cluster from mf_id (format: c{cluster}_{index}_i)
@@ -1899,6 +1907,21 @@ class LCMSCollection(LCMSCollectionCalculations):
             return
 
         combined_mass_features = pd.concat(mf_df_list)
+        # Ensure sample_id and cluster columns have integer dtypes where possible
+        if "sample_id" in combined_mass_features.columns:
+            try:
+                combined_mass_features["sample_id"] = combined_mass_features["sample_id"].astype(int)
+            except Exception:
+                combined_mass_features["sample_id"] = pd.to_numeric(
+                    combined_mass_features["sample_id"], errors="coerce"
+                ).astype("Int64")
+        if "cluster" in combined_mass_features.columns:
+            try:
+                combined_mass_features["cluster"] = combined_mass_features["cluster"].astype(int)
+            except Exception:
+                combined_mass_features["cluster"] = pd.to_numeric(
+                    combined_mass_features["cluster"], errors="coerce"
+                ).astype("Int64")
         # Move coll_mf_id, sample_name, sample_id, and mf_id to front
         cols = combined_mass_features.columns.tolist()
         top_cols = ["coll_mf_id", "sample_name", "sample_id", "mf_id", "mz", "scan_time_aligned", "cluster"]
