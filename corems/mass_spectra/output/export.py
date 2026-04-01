@@ -2199,7 +2199,12 @@ class LCMSCollectionExport():
         self.out_file_path = Path(out_file_path)
         self.mass_spectra_collection = mass_spectra_collection
 
-    def export_to_hdf5(self, overwrite = False, save_parameters=True, parameter_format="toml"):
+    def export_to_hdf5(
+            self, 
+            overwrite = False, 
+            save_parameters=True, 
+            parameter_format="toml",
+            update_lcms_objects=True):
         """Export the LCMS collection to an HDF5 file.
         
         This method saves the collection-level data to an HDF5 file, including:
@@ -2218,6 +2223,14 @@ class LCMSCollectionExport():
             If True, overwrites the output file if it already exists and replaces
             existing groups within the HDF5 file. If False, appends new data to
             existing file without overwriting existing groups. Default is False.
+        save_parameters : bool, optional
+            If True, saves the collection-level parameters to a separate file in the specified format.
+            Default is True.
+        parameter_format : str, optional
+            The format for saving parameters, either "json" or "toml". Default is "toml".
+        update_lcms_objects : bool, optional
+            If True, updates the individual LCMS object HDF5 files with new raw file locations and any additional 
+            information produced during the processing of the collection (e.g. cluster mass feature associations). Default is True.
             
         Notes
         -----
@@ -2273,7 +2286,8 @@ class LCMSCollectionExport():
         
         # Save updated mass features for each LCMS object
         # This implements selective update: only loaded features are updated, non-cluster features are preserved
-        self._save_lcms_objects_to_hdf5(cluster_mf_map, overwrite)
+        if update_lcms_objects:
+            self._save_lcms_objects_to_hdf5(cluster_mf_map, overwrite)
 
         # Save collection-level parameters as separate file
         if save_parameters:
