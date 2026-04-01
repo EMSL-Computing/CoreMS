@@ -2328,7 +2328,12 @@ class LCMSCollection(LCMSCollectionCalculations):
         # Sort by cluster and return with cluster as a regular column
         return consensus_report.sort_values(by='cluster')
 
-    def feature_annotations_table(self, molecular_metadata=None, drop_unannotated=False):
+    def feature_annotations_table(
+            self, 
+            molecular_metadata=None, 
+            drop_unannotated=False,
+            report_best_only=False
+            ):
         """Generate a comprehensive annotation table for all loaded mass features across samples.
         
         This method consolidates MS1 molecular formula assignments and MS2 spectral 
@@ -2345,6 +2350,9 @@ class LCMSCollection(LCMSCollectionCalculations):
             If True, drops rows where all annotation columns (everything except 
             cluster, MS2 Spectrum, and representative_sample) are NaN.
             Default is False.
+        report_best_only : bool, optional
+            If True, only includes the best MS2 annotation per mass feature based on confidence score.
+            Default is False, which includes all MS2 annotations for each mass feature.
         
         Returns
         -------
@@ -2501,6 +2509,19 @@ class LCMSCollection(LCMSCollectionCalculations):
         else:
             collection_report = collection_report.sort_values(by=sort_cols)
         
+        if report_best_only:
+            # Keep only the best annotation per cluster based on the first annotation column available
+            if 'Entropy Similarity' in collection_report.columns:
+                best_annot_col = 'Entropy Similarity'
+            elif 'Confidence Score' in collection_report.columns:
+                best_annot_col = 'Confidence Score'
+            else:
+                best_annot_col = None
+            
+            if best_annot_col is not None:
+                collection_report = collection_report.sort_values(by=['cluster', best_annot_col], ascending=[True, False])
+                collection_report = collection_report.drop_duplicates(subset=['cluster'], keep='first')
+
         return collection_report
 
     @property
