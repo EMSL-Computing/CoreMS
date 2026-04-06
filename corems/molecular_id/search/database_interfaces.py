@@ -441,6 +441,12 @@ class MetabRefInterface(SpectralDatabaseInterface):
 class MetabRefGCInterface(MetabRefInterface):
     """
     Interface to the Metabolomics Reference Database.
+    
+    Note
+    ----
+    As of 2026, MetabRef API has been discontinued. This interface now loads
+    from bundled local MSP files or user-specified paths via environment variables.
+    The API is preserved for backward compatibility.
     """
 
     def __init__(self):
@@ -450,8 +456,30 @@ class MetabRefGCInterface(MetabRefInterface):
         """
 
         super().__init__()
+        # Legacy URLs kept for reference (no longer used)
         self.GCMS_LIBRARY_URL = "https://metabref.emsl.pnnl.gov/api/mslevel/1"
         self.FAMES_URL = "https://metabref.emsl.pnnl.gov/api/fames"
+        
+        # Local data file paths
+        import warnings
+        from pathlib import Path
+        warnings.warn(
+            "MetabRef API has been discontinued. Using bundled local GCMS library files. "
+            "Set GCMS_LIBRARY_PATH or FAMES_LIBRARY_PATH environment variables to override.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        
+        # Default to bundled data files
+        data_dir = Path(__file__).parent.parent / "data"
+        self.gcms_library_file = os.getenv(
+            "GCMS_LIBRARY_PATH", 
+            str(data_dir / "PNNLMetV20191015.msp")
+        )
+        self.fames_library_file = os.getenv(
+            "FAMES_LIBRARY_PATH",
+            str(data_dir / "FAMES_REF.msp")
+        )
 
         self.__init_format_map__()
 
@@ -497,12 +525,12 @@ class MetabRefGCInterface(MetabRefInterface):
 
     def get_library(self, format="json", normalize=False):
         """
-        Request MetabRef GC/MS library.
+        Load GC/MS library from local MSP file.
 
         Parameters
         ----------
         format : str
-            Format of requested library, i.e. "json", "sql", "flashentropy".
+            Format of requested library, i.e. "json", "sql", "dict".
             See `available_formats` method for aliases.
         normalize : bool
             Normalize the spectrum by its magnitude.
@@ -512,22 +540,23 @@ class MetabRefGCInterface(MetabRefInterface):
         Library in requested format.
 
         """
-
+        # Load from local MSP file
+        library_data = self._load_msp_file(self.gcms_library_file, normalize)
+        
         # Init format function
         format_func = self._get_format_func(format)
-
-        return format_func(
-            self.get_query(self.GCMS_LIBRARY_URL)["GC-MS"], normalize, {}
-        )
+        
+        # Apply format conversion
+        return format_func(library_data, normalize, {})
 
     def get_fames(self, format="json", normalize=False):
         """
-        Request MetabRef GC/MS FAMEs library.
+        Load GC/MS FAMEs library from local MSP file.
 
         Parameters
         ----------
         format : str
-            Format of requested library, i.e. "json", "sql", "flashentropy".
+            Format of requested library, i.e. "json", "sql", "dict".
             See `available_formats` method for aliases.
         normalize : bool
             Normalize the spectrum by its magnitude.
@@ -537,11 +566,128 @@ class MetabRefGCInterface(MetabRefInterface):
         Library in requested format.
 
         """
-
+        # Load from local MSP file
+        library_data = self._load_msp_file(self.fames_library_file, normalize)
+        
         # Init format function
         format_func = self._get_format_func(format)
-
-        return format_func(self.get_query(self.FAMES_URL)["GC-MS"], normalize, {})
+        
+        # Apply format conversion
+        return format_func(library_data, normalize, {})
+    
+    def _load_msp_file(self, file_path, normalize=False):
+        """
+        Load and parse MSP file into format compatible with existing pipeline.
+        
+        Parameters
+        ----------
+        file_path : str
+            Path to MSP file
+        normalize : bool
+            Normalize spectra
+            
+        Returns
+        -------
+        list of dict
+            Library data in format compatible with _to_LowResolutionEICompound_dict
+        """
+        from pathlib import Path
+        
+        file_path = Path(file_path)
+        if not file_path.exists():
+            raise FileNotFoundError(
+                f"Library file not found: {file_path}. "
+                f"Set GCMS_LIBRARY_PATH or FAMES_LIBRARY_PATH environment variable to specify location."
+            )
+        
+        # Parse MSP file
+        spectra = []
+        spectrum = {}
+        peaks = []
+        
+        with open(file_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                
+                # Empty line marks end of spectrum
+                if not line:
+                    if spectrum and peaks:
+                        # Convert peaks to the format expected by downstream code
+                        # Format: "(mz,abundance)(mz,abundance)..."
+                        peak_str = "".join([f"({int(mz)},{int(abun)})" for mz, abun in peaks])
+                        spectrum['mz'] = peak_str
+                        spectra.append(spectrum)
+                    spectrum = {}
+                    peaks = []
+                    continue
+                
+                # Check if line contains peak data (starts with digit)
+                if line and line[0].isdigit():
+                    parts = line.split ()
+                    if len(parts) >= 2:
+                        peaks.append((float(parts[0]), float(parts[1])))
+                    continue
+                
+                # Handle metadata fields
+                if ":" in line:
+                    key, value = line.split(":", 1)
+                    key = key.strip().lower()
+                    value = value.strip()
+                    
+                    # Map MSP fields to expected format
+                    field_mapping = {
+                        "name": "molecule_name",
+                        "formula": "formula",
+                        "cas": "casno",
+                        "retentiontime": "retention_time",
+                        "ri": "ri",
+                        "comment": "comments",
+                        "num peaks": "peak_count",
+                        "derivative": "derivative"
+                    }
+                    
+                    # Metadata fields that go into the metadata dict
+                    metadata_fields = {
+                        "inchikey": "inchikey",
+                        "inchi": "inchi",
+                        "smiles": "smiles",
+                        "pubchem": "pubchem",
+                        "chebi": "chebi",
+                        "kegg": "kegg",
+                        "refmet": "refmet",
+                        "iupac_name": "iupac_name"
+                    }
+                    
+                    if key in field_mapping:
+                        mapped_key = field_mapping[key]
+                        # Convert numeric fields
+                        if key in ["retentiontime", "ri"]:
+                            try:
+                                value = float(value)
+                            except:
+                                pass
+                        elif key == "num peaks":
+                            try:
+                                value = int(value)
+                            except:
+                                pass
+                        spectrum[mapped_key] = value
+                    elif key in metadata_fields:
+                        # Store in nested metadata dict
+                        if "metadata" not in spectrum:
+                            spectrum["metadata"] = {}
+                        spectrum["metadata"][metadata_fields[key]] = value
+                    else:
+                        # Keep unmapped fields
+                        spectrum[key] = value
+        
+        # Add last spectrum if file doesn't end with blank line
+        if spectrum and peaks:
+            peak_str = "".join([f"({int(mz)},{int(abun)})" for mz, abun in peaks])
+            spectrum['mz'] = peak_str
+            spectra.append(spectrum)
+        
+        return spectra
 
     def _to_LowResolutionEICompound_dict(self, metabref_lib, normalize=False):
         """
@@ -605,9 +751,6 @@ class MetabRefGCInterface(MetabRefInterface):
             # Copy source to prevent modification
             source = source_.copy()
 
-            # Flatten source dict
-            source = source.pop("spectrum_data") | source
-
             # Parse target data
             target = {
                 lowres_ei_compound_cols[k]: v
@@ -616,7 +759,10 @@ class MetabRefGCInterface(MetabRefInterface):
             }
 
             # Explicitly add this to connect with LowResCompoundRef later
-            target["rt"] = source["rt"]
+            if "retention_time" in source:
+                target["rt"] = source["retention_time"]
+            elif "rt" in source:
+                target["rt"] = source["rt"]
 
             # Parse (mz, abundance)
             arr = self.spectrum_to_array(target["mz"], normalize=normalize)
@@ -702,10 +848,20 @@ class MetabRefGCInterface(MetabRefInterface):
 
             # Build linked metadata table
             if "metadata" in data_dict:
-                if len(data_dict["metadata"]) > 0:
-                    data_dict["metadatar"] = Metadatar(**data_dict.pop("metadata"))
-                else:
-                    data_dict.pop("metadata")
+                metadata = data_dict.pop("metadata")
+                # Only create metadata entry if we have required fields and valid data
+                # Filter to only include fields that Metadatar model supports
+                supported_metadata_fields = [
+                    'cas', 'inchikey', 'inchi', 'chebi', 'smiles', 
+                    'kegg', 'iupac_name', 'traditional_name', 'common_name'
+                ]
+                filtered_metadata = {
+                    k: v for k, v in metadata.items() 
+                    if k in supported_metadata_fields and v
+                }
+                # Inchikey is required by the database model
+                if filtered_metadata and filtered_metadata.get("inchikey"):
+                    data_dict["metadatar"] = Metadatar(**filtered_metadata)
 
             # Attempt addition to sqlite
             try:
