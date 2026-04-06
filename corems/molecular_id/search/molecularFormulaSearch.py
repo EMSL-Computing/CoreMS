@@ -229,6 +229,8 @@ class SearchMolecularFormulas:
             The molecular formula search settings.
         ion_charge : int
             The ion charge.
+        sql_db : MolForm_SQL, optional
+            The SQL database object, by default None. If None, a new MolForm_SQL object will be created.
 
         Returns
         -------
