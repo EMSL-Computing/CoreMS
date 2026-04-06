@@ -438,37 +438,22 @@ class MetabRefInterface(SpectralDatabaseInterface):
         return super().get_query(url, use_header)
 
 
-class MetabRefGCInterface(MetabRefInterface):
+class GCMSLibraryInterface(MetabRefInterface):
     """
-    Interface to the Metabolomics Reference Database.
+    Interface to bundled GCMS spectral libraries in MSP format.
     
-    Note
-    ----
-    As of 2026, MetabRef API has been discontinued. This interface now loads
-    from bundled local MSP files or user-specified paths via environment variables.
-    The API is preserved for backward compatibility.
+    Loads GCMS compound library and FAMES calibration library from local MSP files.
+    Default files are bundled with CoreMS, but can be overridden via environment variables.
     """
 
     def __init__(self):
         """
         Initialize instance.
-
         """
-
         super().__init__()
-        # Legacy URLs kept for reference (no longer used)
-        self.GCMS_LIBRARY_URL = "https://metabref.emsl.pnnl.gov/api/mslevel/1"
-        self.FAMES_URL = "https://metabref.emsl.pnnl.gov/api/fames"
         
         # Local data file paths
-        import warnings
         from pathlib import Path
-        warnings.warn(
-            "MetabRef API has been discontinued. Using bundled local GCMS library files. "
-            "Set GCMS_LIBRARY_PATH or FAMES_LIBRARY_PATH environment variables to override.",
-            DeprecationWarning,
-            stacklevel=2
-        )
         
         # Default to bundled data files
         data_dir = Path(__file__).parent.parent / "data"
@@ -623,7 +608,7 @@ class MetabRefGCInterface(MetabRefInterface):
                 
                 # Check if line contains peak data (starts with digit)
                 if line and line[0].isdigit():
-                    parts = line.split ()
+                    parts = line.split()
                     if len(parts) >= 2:
                         peaks.append((float(parts[0]), float(parts[1])))
                     continue
@@ -870,6 +855,32 @@ class MetabRefGCInterface(MetabRefInterface):
                 print(data_dict["NAME"])
 
         return sqlite_obj
+
+
+class MetabRefGCInterface(GCMSLibraryInterface):
+    """
+    DEPRECATED: Use GCMSLibraryInterface instead.
+    
+    This interface is maintained for backward compatibility only.
+    MetabRef API has been discontinued as of 2026.
+    """
+
+    def __init__(self):
+        """
+        Initialize instance with deprecation warning.
+        """
+        import warnings
+        warnings.warn(
+            "MetabRefGCInterface is deprecated. Use GCMSLibraryInterface instead. "
+            "MetabRef API has been discontinued; all data now loads from bundled local MSP files.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__()
+        
+        # Legacy URLs kept for reference (no longer used)
+        self.GCMS_LIBRARY_URL = "https://metabref.emsl.pnnl.gov/api/mslevel/1"
+        self.FAMES_URL = "https://metabref.emsl.pnnl.gov/api/fames"
 
 
 class MetabRefLCInterface(MetabRefInterface):

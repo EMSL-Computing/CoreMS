@@ -10,23 +10,23 @@ from multiprocessing import Pool
 from corems.mass_spectra.calc.GC_RI_Calibration import get_rt_ri_pairs
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch
-from corems.molecular_id.search.database_interfaces import MetabRefGCInterface
+from corems.molecular_id.search.database_interfaces import GCMSLibraryInterface
 
 
 def start_gcms_metabref_sql(normalize=False, url="sqlite://"):
-    # Initialize MetabRef interface
-    metabref = MetabRefGCInterface()
+    # Initialize GCMS library interface
+    gcms_lib = GCMSLibraryInterface()
 
     # Pull contents into SQLite
-    return metabref.get_library(format="sql")
+    return gcms_lib.get_library(format="sql")
 
 
 def start_fames_metabref_sql(normalize=False, url="sqlite://"):
-    # Initialize MetabRef interface
-    metabref = MetabRefGCInterface()
+    # Initialize GCMS library interface
+    gcms_lib = GCMSLibraryInterface()
 
     # Pull contents into SQLite
-    return metabref.get_fames(format="sql")
+    return gcms_lib.get_fames(format="sql")
 
 
 def get_gcms(filepath):
