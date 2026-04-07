@@ -2,14 +2,22 @@ app_name = CoreMS
 parameters_path = parameter.json 
 version := $(shell cat .bumpversion.cfg | grep current_version | cut -d= -f2 | tr -d ' ')
 stage := $(shell cat .bumpversion.cfg | grep optional_value | cut -d= -f2 | tr -d ' ') 
-LIPIDOMICS_SQLITE_URL ?= https://nmdcdemo.emsl.pnnl.gov/minio/lipidomics/parameter_files/202412_lipid_ref.sqlite
+LIPIDOMICS_SQLITE_URL ?= https://nmdcdemo.emsl.pnnl.gov/lipidomics/parameter_files/202412_lipid_ref.sqlite
 LIPIDOMICS_SQLITE_PATH ?= tests/tests_data/lcms/202412_lipid_ref.sqlite
 
 .PHONY: download-lipidomics-db
 
 download-lipidomics-db:
-	@python3 -c "from pathlib import Path; from urllib.request import urlretrieve; url='$(LIPIDOMICS_SQLITE_URL)'; out_path=Path('$(LIPIDOMICS_SQLITE_PATH)'); out_path.parent.mkdir(parents=True, exist_ok=True); urlretrieve(url, out_path); print(f'Downloaded lipid sqlite library to {out_path} ({out_path.stat().st_size} bytes)')"
-
+	# Check if the file already exists before downloading
+	@if [ -f "$(LIPIDOMICS_SQLITE_PATH)" ]; then \
+		echo "LC-MS lipidomics database already exists at $(LIPIDOMICS_SQLITE_PATH)"; \
+	else \
+		echo "Downloading LC-MS lipidomics database"; \
+		mkdir -p $$(dirname $(LIPIDOMICS_SQLITE_PATH)); \
+		curl --retry 3 --retry-delay 5 --connect-timeout 30 --max-time 300 -L -o $(LIPIDOMICS_SQLITE_PATH) $(LIPIDOMICS_SQLITE_URL); \
+		echo "LC-MS lipidomics database downloaded"; \
+	fi
+	
 cpu: 
 	pyprof2calltree -k -i $(file)
 

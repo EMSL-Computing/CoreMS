@@ -1062,7 +1062,7 @@ class LCLipidLibraryInterface(SpectralDatabaseInterface):
                 format_func = self._get_format_func(format)
                 return format_func([], normalize=normalize, fe_kwargs=fe_kwargs), {}
 
-            # Step 2: Get corresponding lipid metadata for candidate spectra
+            # Step 2: Get corresponding lipid metadata for candidate spectra from lipidTree view
             mol_ids = tuple(spectra_df["molecular_data_id"].tolist())
             mol_df = pd.read_sql_query(
                 f"SELECT * FROM lipidTree WHERE id IN {mol_ids}",

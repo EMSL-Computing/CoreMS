@@ -194,6 +194,7 @@ def test_lipidomics_workflow(postgres_database, lcms_obj, lipidomics_sqlite_path
     exporter.report_to_csv(molecular_metadata=lipid_metadata)
     report = exporter.to_report(molecular_metadata=lipid_metadata)
     assert report['Ion Formula'][1] == 'C24 H47 O2'
+    assert report['Lipid Molecular Species'][0] == 'FA 20:5'
 
     # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
     parser = ReadCoreMSHDFMassSpectra(
