@@ -41,7 +41,7 @@ def bruker_transient(ftms_file_location):
     return bruker_transient
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def lcms_obj():
     """Returns an LCMS object for the tests"""
     file_raw = (

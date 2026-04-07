@@ -2,6 +2,7 @@
 import numpy as np
 import pytest
 import pandas as pd
+import copy as copy
 
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollection
 from corems.mass_spectra.output.export import LCMSMetabolomicsExport, LCMSCollectionExport
@@ -9,8 +10,8 @@ from corems.encapsulation.factory.parameters import LCMSParameters, LCMSCollecti
 from corems.molecular_id.search.database_interfaces import MSPInterface
 
 
-@pytest.fixture
-def lcms_collection_folder(tmp_path, lcms_obj):
+@pytest.fixture(scope="module")
+def lcms_collection_folder(tmp_path_factory, lcms_obj):
     """
     Creates a temporary folder with processed LCMS objects for collection testing.
     
@@ -21,9 +22,8 @@ def lcms_collection_folder(tmp_path, lcms_obj):
     
     This setup allows comprehensive testing of gap filling functionality.
     """
-    # Create a temporary folder for processed data
-    processed_folder = tmp_path / "processed_lcms_collection"
-    processed_folder.mkdir()
+    # Create a temporary folder for processed data (module-safe)
+    processed_folder = tmp_path_factory.mktemp("processed_lcms_collection")
     
     # Set parameters on the LCMS object that are reasonable for testing
     lcms_obj.parameters = LCMSParameters(use_defaults=True)
@@ -90,7 +90,7 @@ def lcms_collection_folder(tmp_path, lcms_obj):
     return processed_folder
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def lcms_collection(lcms_collection_folder):
     """
     Creates an LCMSCollection object from processed LCMS data.
@@ -137,6 +137,9 @@ def lcms_collection(lcms_collection_folder):
 
 def test_lcms_collection_creation(lcms_collection):
     """Test that an LCMSCollection can be created and has expected properties."""
+    # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
+    lcms_collection = copy.deepcopy(lcms_collection)
+
     # Check that the collection was created
     assert lcms_collection is not None
     
@@ -162,6 +165,9 @@ def test_lcms_collection_creation(lcms_collection):
 
 def test_lcms_collection_mass_features_dataframe(lcms_collection):
     """Test that mass features from all samples are combined correctly."""
+    # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
+    lcms_collection = copy.deepcopy(lcms_collection)
+
     # Get mass features dataframe
     mf_df = lcms_collection.mass_features_dataframe
     
@@ -184,6 +190,9 @@ def test_lcms_collection_mass_features_dataframe(lcms_collection):
 
 def test_lcms_collection_rt_alignment(lcms_collection):
     """Test retention time alignment across samples in the collection."""
+    # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
+    lcms_collection = copy.deepcopy(lcms_collection)
+
     # Check initial state
     assert not lcms_collection.rt_aligned
     
@@ -224,8 +233,11 @@ def test_lcms_collection_rt_alignment(lcms_collection):
 
 def test_lcms_collection_consensus_features(lcms_collection):
     """Test generation of consensus mass features (clustering)."""
+    # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
+    lcms_collection = copy.deepcopy(lcms_collection)
+
     # Ensure alignment is done first
-    if not lcms_collection.rt_aligned:
+    if not lcms_collection.rt_alignment_attempted:
         lcms_collection.align_lcms_objects()
     
     # Generate consensus features
@@ -252,8 +264,10 @@ def test_lcms_collection_consensus_features(lcms_collection):
 
 def test_lcms_collection_gap_filling(lcms_collection):
     """Test gap filling to create induced mass features."""
+    # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
+    lcms_collection = copy.deepcopy(lcms_collection)
     # Setup: align and cluster first
-    if not lcms_collection.rt_aligned:
+    if not lcms_collection.rt_alignment_attempted:
         lcms_collection.align_lcms_objects()
     lcms_collection.add_consensus_mass_features()
     
@@ -303,8 +317,11 @@ def test_lcms_collection_gap_filling(lcms_collection):
 
 def test_lcms_collection_pivot_table(lcms_collection):
     """Test creation of pivot tables for collection data."""
+    # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
+    lcms_collection = copy.deepcopy(lcms_collection)
+    
     # Setup: ensure we have clustered features
-    if not lcms_collection.rt_aligned:
+    if not lcms_collection.rt_alignment_attempted:
         lcms_collection.align_lcms_objects()
     lcms_collection.add_consensus_mass_features()
     
@@ -356,8 +373,11 @@ def test_lcms_collection_pivot_table(lcms_collection):
 
 def test_lcms_collection_cluster_representatives(lcms_collection):
     """Test extraction of representative features for each cluster."""
+    # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
+    lcms_collection = copy.deepcopy(lcms_collection)
+    
     # Setup: ensure we have clustered features
-    if not lcms_collection.rt_aligned:
+    if not lcms_collection.rt_alignment_attempted:
         lcms_collection.align_lcms_objects()
     lcms_collection.add_consensus_mass_features()
     
@@ -381,8 +401,11 @@ def test_lcms_collection_cluster_representatives(lcms_collection):
 
 def test_lcms_collection_export_import_hdf5(lcms_collection, tmp_path):
     """Test exporting and re-importing a collection from HDF5."""
+    # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
+    lcms_collection = copy.deepcopy(lcms_collection)
+    
     # Setup: align and cluster
-    if not lcms_collection.rt_aligned:
+    if not lcms_collection.rt_alignment_attempted:
         lcms_collection.align_lcms_objects()
     lcms_collection.add_consensus_mass_features()
     
@@ -426,6 +449,9 @@ def test_lcms_collection_export_import_hdf5(lcms_collection, tmp_path):
 
 def test_lcms_collection_drop_isotopologues(lcms_collection):
     """Test dropping isotopologues from the collection."""
+    # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
+    lcms_collection = copy.deepcopy(lcms_collection)
+    
     # Get initial mass features count
     initial_mf_count = len(lcms_collection.mass_features_dataframe)
     
@@ -443,8 +469,11 @@ def test_lcms_collection_drop_isotopologues(lcms_collection):
 
 def test_lcms_collection_feature_annotations_table(lcms_collection, msp_file_location):
     """Test creation of feature annotations table with molecular metadata."""
+    # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
+    lcms_collection = copy.deepcopy(lcms_collection)
+    
     # Setup: align and cluster
-    if not lcms_collection.rt_aligned:
+    if not lcms_collection.rt_alignment_attempted:
         lcms_collection.align_lcms_objects()
     lcms_collection.add_consensus_mass_features()
     
@@ -511,8 +540,11 @@ def test_lcms_collection_plot_cluster_with_ms2_mirror(lcms_collection, msp_file_
     import matplotlib
     matplotlib.use('Agg')  # Use non-interactive backend for testing
     
+    # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
+    lcms_collection = copy.deepcopy(lcms_collection)
+    
     # Setup: align and cluster
-    if not lcms_collection.rt_aligned:
+    if not lcms_collection.rt_alignment_attempted:
         lcms_collection.align_lcms_objects()
     lcms_collection.add_consensus_mass_features()
     
@@ -591,8 +623,11 @@ def test_lcms_collection_plot_cluster_with_ms2_mirror(lcms_collection, msp_file_
 
 def test_lcms_collection_molecular_formula_search(lcms_collection, postgres_database):
     """Test molecular formula search on consensus features."""
+    # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
+    lcms_collection = copy.deepcopy(lcms_collection)
+    
     # Setup: align and cluster
-    if not lcms_collection.rt_aligned:
+    if not lcms_collection.rt_alignment_attempted:
         lcms_collection.align_lcms_objects()
     lcms_collection.add_consensus_mass_features()
     
@@ -661,6 +696,9 @@ def test_lcms_collection_update_raw_file_locations(lcms_collection, tmp_path):
     """Test updating raw file locations in the collection."""
     import shutil
     
+    # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
+    lcms_collection = copy.deepcopy(lcms_collection)
+    
     # Create a new path for raw files
     new_raw_folder = tmp_path / "new_raw_location"
     new_raw_folder.mkdir()
@@ -695,6 +733,9 @@ def test_lcms_collection_minimal_workflow(lcms_collection):
     4. Perform gap filling
     5. Create reports
     """
+    # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
+    lcms_collection = copy.deepcopy(lcms_collection)
+   
     # Step 1: Collection is loaded via fixture
     assert len(lcms_collection) > 0
     
@@ -757,7 +798,7 @@ def test_lcms_collection_plotting_methods(lcms_collection):
     matplotlib.use('Agg')  # Use non-interactive backend for testing
     
     # Setup: align and cluster
-    if not lcms_collection.rt_aligned:
+    if not lcms_collection.rt_alignment_attempted:
         lcms_collection.align_lcms_objects()
     lcms_collection.add_consensus_mass_features()
     

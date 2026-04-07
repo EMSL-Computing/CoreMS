@@ -1642,16 +1642,18 @@ class LCMSMetabolomicsExport(LCMSExport):
                 on=["mf_id", "isotopologue_type"],
             )
         if ms2_annot_report is not None:
-            # Check if ion_formula column exists (it may not if MS1 formula search wasn't run)
-            if "ion_formula" in mf_report.columns:
-                # pull out the records with ion_formula and drop the ion_formula column (these should be empty if MS1 molecular formula assignment is working correctly)
+            # If both reports contain 'ion_formula', prefer a merge that respects it.
+            # Otherwise fall back to merging on 'mf_id' only to remain robust when
+            # MS1 formula assignment wasn't performed or MS2 summary lacks the field.
+            if "ion_formula" in mf_report.columns and "ion_formula" in ms2_annot_report.columns:
+                # pull out the records without ion_formula and merge on mf_id only
                 mf_no_ion_formula = mf_report[mf_report["ion_formula"].isna()]
-                mf_no_ion_formula = mf_no_ion_formula.drop(columns=["ion_formula"])
+                mf_no_ion_formula = mf_no_ion_formula.drop(columns=["ion_formula"]) if "ion_formula" in mf_no_ion_formula.columns else mf_no_ion_formula
                 mf_no_ion_formula = pd.merge(
                     mf_no_ion_formula, ms2_annot_report, how="left", on=["mf_id"]
                 )
 
-                # pull out the records with ion_formula
+                # pull out the records with ion_formula and merge on mf_id + ion_formula
                 mf_with_ion_formula = mf_report[~mf_report["ion_formula"].isna()]
                 mf_with_ion_formula = pd.merge(
                     mf_with_ion_formula,
@@ -1663,7 +1665,7 @@ class LCMSMetabolomicsExport(LCMSExport):
                 # put back together
                 mf_report = pd.concat([mf_no_ion_formula, mf_with_ion_formula])
             else:
-                # No ion_formula column (MS1 formula search wasn't run), merge on mf_id only
+                # Fall back to merging on mf_id only (robust when ion_formula missing)
                 mf_report = pd.merge(
                     mf_report, ms2_annot_report, how="left", on=["mf_id"]
                 )
@@ -2197,7 +2199,12 @@ class LCMSCollectionExport():
         self.out_file_path = Path(out_file_path)
         self.mass_spectra_collection = mass_spectra_collection
 
-    def export_to_hdf5(self, overwrite = False, save_parameters=True, parameter_format="toml"):
+    def export_to_hdf5(
+            self, 
+            overwrite = False, 
+            save_parameters=True, 
+            parameter_format="toml",
+            update_lcms_objects=True):
         """Export the LCMS collection to an HDF5 file.
         
         This method saves the collection-level data to an HDF5 file, including:
@@ -2216,6 +2223,14 @@ class LCMSCollectionExport():
             If True, overwrites the output file if it already exists and replaces
             existing groups within the HDF5 file. If False, appends new data to
             existing file without overwriting existing groups. Default is False.
+        save_parameters : bool, optional
+            If True, saves the collection-level parameters to a separate file in the specified format.
+            Default is True.
+        parameter_format : str, optional
+            The format for saving parameters, either "json" or "toml". Default is "toml".
+        update_lcms_objects : bool, optional
+            If True, updates the individual LCMS object HDF5 files with new raw file locations and any additional 
+            information produced during the processing of the collection (e.g. cluster mass feature associations). Default is True.
             
         Notes
         -----
@@ -2271,7 +2286,8 @@ class LCMSCollectionExport():
         
         # Save updated mass features for each LCMS object
         # This implements selective update: only loaded features are updated, non-cluster features are preserved
-        self._save_lcms_objects_to_hdf5(cluster_mf_map, overwrite)
+        if update_lcms_objects:
+            self._save_lcms_objects_to_hdf5(cluster_mf_map, overwrite)
 
         # Save collection-level parameters as separate file
         if save_parameters:

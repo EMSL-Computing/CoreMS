@@ -3849,8 +3849,9 @@ class LCMSCollectionCalculations:
             sample_id = int(row['sample_id'])
             sample = self[sample_id]
             if hasattr(sample, 'eics') and sample.eics:
-                has_eics = True
-                break
+                if len(sample.eics) > 0:
+                    has_eics = True
+                    break
         
         # Also check induced features if available
         induced_cluster_mfs = None
@@ -3862,8 +3863,9 @@ class LCMSCollectionCalculations:
                 sample_id = int(row['sample_id'])
                 sample = self[sample_id]
                 if hasattr(sample, 'eics') and sample.eics:
-                    has_eics = True
-                    break
+                    if len(sample.eics) > 0:
+                        has_eics = True
+                        break
         
         if not has_eics:
             to_plot = [x for x in to_plot if x != "EIC"]
@@ -5437,7 +5439,18 @@ class LCMSCollectionCalculations:
             # Group by sample_id and collect all m/z values associated with eics
             for sample_id in clustered_mf['sample_id'].unique():
                 sample_df = clustered_mf[clustered_mf['sample_id'] == sample_id]
-                cluster_mz_dict[sample_id] = sample_df['_eic_mz'].unique().tolist()
+                sample = self[sample_id]  # Get the LCMS object for this sample
+                
+                # Extract _eic_mz from actual mass feature objects, not from dataframe
+                eic_mz_list = []
+                for mf_id in sample_df['mf_id'].values:
+                    if mf_id in sample.mass_features:
+                        mf = sample.mass_features[mf_id]
+                        if hasattr(mf, '_eic_mz') and mf._eic_mz is not None:
+                            eic_mz_list.append(mf._eic_mz)
+                
+                # Use the collected m/z values, or fallback to empty list if none found
+                cluster_mz_dict[sample_id] = list(set(eic_mz_list)) if eic_mz_list else []
             
             runtime_params['cluster_mz_dict'] = cluster_mz_dict
         
