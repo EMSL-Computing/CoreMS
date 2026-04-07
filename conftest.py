@@ -1,9 +1,51 @@
 import pytest
+import os
+import shutil
 from pathlib import Path
+from urllib.request import urlopen
 
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.encapsulation.factory.parameters import MSParameters
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
+
+
+LIPIDOMICS_SQLITE_URL = (
+    "https://nmdcdemo.emsl.pnnl.gov/minio/lipidomics/parameter_files/"
+    "202412_lipid_ref.sqlite"
+)
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--skip-lipidomics-db",
+        action="store_true",
+        default=False,
+        help="Skip tests that require the lipidomics sqlite library.",
+    )
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "lipidomics_db: mark test as requiring the lipidomics sqlite library",
+    )
+
+
+def pytest_collection_modifyitems(config, items):
+    if not config.getoption("--skip-lipidomics-db"):
+        return
+
+    skip_marker = pytest.mark.skip(reason="skipped by --skip-lipidomics-db")
+    for item in items:
+        if "lipidomics_db" in item.keywords:
+            item.add_marker(skip_marker)
+
+
+def _download_lipidomics_db(destination):
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with urlopen(LIPIDOMICS_SQLITE_URL, timeout=300) as response:
+        with open(destination, "wb") as out_file:
+            shutil.copyfileobj(response, out_file)
 
 
 @pytest.fixture
@@ -80,3 +122,46 @@ def postgres_database():
     except socket.gaierror:
         # Fall back to sqlite3 for local testing when postgres is not available
         return "" ## sqlite3 database (local)
+
+
+@pytest.fixture(scope="session")
+def lipidomics_sqlite_path(pytestconfig):
+    """Returns a local sqlite path for lipidomics library searches.
+
+    The fixture auto-downloads the sqlite file for local runs unless
+    disabled by --skip-lipidomics-db or COREMS_LIPIDOMICS_AUTO_DOWNLOAD=0.
+    """
+
+    env_path = os.getenv("COREMS_LIPIDOMICS_SQLITE_PATH")
+    sqlite_path = (
+        Path(env_path).expanduser()
+        if env_path
+        else Path.cwd() / "tests/tests_data/lcms/202412_lipid_ref.sqlite"
+    )
+
+    if sqlite_path.exists():
+        return sqlite_path
+
+    if pytestconfig.getoption("--skip-lipidomics-db"):
+        pytest.skip("lipidomics sqlite database unavailable and skip option set")
+
+    auto_download = os.getenv("COREMS_LIPIDOMICS_AUTO_DOWNLOAD", "1").lower()
+    if auto_download in {"0", "false", "no"}:
+        pytest.skip(
+            "lipidomics sqlite database missing and auto-download disabled. "
+            f"Download from {LIPIDOMICS_SQLITE_URL}"
+        )
+
+    try:
+        _download_lipidomics_db(sqlite_path)
+    except Exception as exc:
+        if os.getenv("CI"):
+            raise RuntimeError(
+                "Failed to download lipidomics sqlite database for CI run"
+            ) from exc
+        pytest.skip(
+            "failed to download lipidomics sqlite database. "
+            f"Download manually from {LIPIDOMICS_SQLITE_URL}. Error: {exc}"
+        )
+
+    return sqlite_path
