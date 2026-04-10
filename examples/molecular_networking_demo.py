@@ -2,511 +2,483 @@
 Molecular Networking Demo Script
 =================================
 
-This script demonstrates how the molecular networking module will work in CoreMS.
-It shows the intended API and workflow for:
-  1. Parsing an MSP file and building a FlashEntropy library
-  2. Creating a MolecularNetwork from a list of MassSpectrumBase-like objects
-  3. Adding spectra incrementally (only computing new similarities)
-  4. Querying the network for edges and neighbors
-  5. Saving and outputting network diagrams
+Demonstrates the corems.molecular_networking module end-to-end:
+  1. Parse an MSP file and build a FlashEntropy library
+  2. Build mock query spectra (with noise) from the library entries
+  3. Create a MolecularNetwork (identity search + cosine)
+  4. Add spectra in two batches (demonstrating incremental updates)
+  5. Query edges, neighbors, and network statistics
+  6. Save outputs: edge list CSV, similarity matrix CSV, GraphML, PNG plots
 
-This script is intended to be run as a standalone demo and will later be
-converted into a formal test.
-
-Dependencies (to be added to requirements.txt):
-  - scipy (for sparse matrix storage)
-  - ms_entropy (already in CoreMS for FlashEntropy)
-  - networkx (for graph analysis and layout)
-  - matplotlib (for network visualization)
-
-Usage:
+Run from the repo root:
     python examples/molecular_networking_demo.py
-
-For larger-scale testing, use:
-    MSP_FILE = "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/metams/test_data/test_lcms_metab_data/20250407_database.msp"
 """
 
+import sys
+import os
 import numpy as np
 from pathlib import Path
 
+# ── Make sure the repo root is on the path ───────────────────────────────────
+REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT))
+
+# ── Output directory ─────────────────────────────────────────────────────────
+OUT_DIR = REPO_ROOT / "temp.corems" / "molecular_networking_demo"
+OUT_DIR.mkdir(parents=True, exist_ok=True)
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. Parse the MSP file and build a FlashEntropy library
-#    MSPInterface reads a local .msp file and can convert it to FlashEntropy
 # ─────────────────────────────────────────────────────────────────────────────
-
 from corems.molecular_id.search.database_interfaces import MSPInterface
+from corems.molecular_networking import MolecularNetwork, SimilarityMatrix
 
-# Use the test MSP file shipped with CoreMS
-MSP_FILE = Path("tests/tests_data/lcms/test_db.msp")
+MSP_FILE = REPO_ROOT / "tests/tests_data/lcms/test_db.msp"
 
-# For larger-scale testing, uncomment:
-# MSP_FILE = Path("/Users/heal742/LOCAL/05_NMDC/02_MetaMS/metams/test_data/test_lcms_metab_data/20250407_database.msp")
+# Larger lipid library (51 k spectra) – used in STEP 10
+LARGE_MSP = REPO_ROOT / "tmp_data" / "20250407_database.msp"
+# Number of query spectra to draw from the library for the all-vs-all demo
+LARGE_MSP_N_QUERY = 200
 
-print(f"Loading MSP library from: {MSP_FILE}")
+print("=" * 65)
+print("STEP 1 – Load MSP library and build FlashEntropy index")
+print("=" * 65)
+
 msp = MSPInterface(file_path=str(MSP_FILE))
+df = msp._data_frame
+print(f"  Parsed {len(df)} spectra from {MSP_FILE.name}")
+print(f"  Columns: {list(df.columns)}")
 
-print(f"  → Parsed {len(msp._data_frame)} spectra from MSP file")
-print(f"  → Columns: {list(msp._data_frame.columns)}")
-
-# Build a FlashEntropy index from the MSP library
 fe_lib = msp._to_flashentropy(
-    input_dataframe=msp._data_frame,
+    input_dataframe=df,
     normalize=True,
     fe_kwargs={
         "normalize_intensity": True,
-        "min_ms2_difference_in_da": 0.02,
+        "min_ms2_difference_in_da": 0.02,   # must be exactly 2x max_ms2_tolerance_in_da
         "max_ms2_tolerance_in_da": 0.01,
         "max_indexed_mz": 3000,
         "precursor_ions_removal_da": None,
         "noise_threshold": 0,
     },
 )
-
-print(f"  → FlashEntropy library built with {len(fe_lib)} spectra")
+print(f"  FlashEntropy library built ({len(df)} entries indexed)")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 2. Simulate query spectra from the MSP library entries
-#    In real usage, these would be MassSpectrumBase objects from an LCMS run.
-#    Here we create lightweight mock objects that mimic the interface.
+# 2. Build mock query spectra from the library entries
+#    Each spectrum gets small random noise to simulate experimental data.
+#    We also record the library index so the engine can do exact lookups.
 # ─────────────────────────────────────────────────────────────────────────────
+
+print("\n" + "=" * 65)
+print("STEP 2 – Build mock query spectra")
+print("=" * 65)
+
 
 class MockSpectrum:
-    """
-    Lightweight mock of MassSpectrumBase for demo purposes.
-    In real usage, these would be actual MassSpectrumBase objects from
-    an LCMSBase._ms dictionary (e.g., lcms_obj._ms[scan_number]).
+    """Minimal spectrum object compatible with SimilarityEngine."""
 
-    The molecular networking module will accept any object with:
-      - .mz_exp     : array-like of m/z values
-      - .abundance  : array-like of abundance values
-    """
     def __init__(self, mz_exp, abundance, name=None):
-        self.mz_exp = np.array(mz_exp, dtype=float)
-        self.abundance = np.array(abundance, dtype=float)
-        self.name = name  # optional label for visualization
-
-    def to_peaks_array(self):
-        """Return spectrum as (N, 2) array of [mz, abundance] pairs."""
-        return np.column_stack((self.mz_exp, self.abundance))
+        self.mz_exp = np.asarray(mz_exp, dtype=float)
+        self.abundance = np.asarray(abundance, dtype=float)
+        self.name = name
 
 
-# Build mock spectra from the MSP library entries (simulating experimental data)
 all_spectra = []
 all_ids = []
 all_precursor_mzs = []
+all_lib_indices = []   # position of each spectrum in the FE library
 
-for i, row in msp._data_frame.iterrows():
-    peaks = np.array(row["peaks"], dtype=float)
+for lib_idx, row in enumerate(df.itertuples(index=False)):
+    peaks = np.array(row.peaks, dtype=float)
     if len(peaks) == 0:
         continue
 
     mz_vals = peaks[:, 0]
     abun_vals = peaks[:, 1]
 
-    # Add small noise to simulate experimental spectra
-    rng = np.random.default_rng(seed=i)
+    rng = np.random.default_rng(seed=lib_idx)
     noisy_mz = mz_vals + rng.normal(0, 0.001, size=mz_vals.shape)
     noisy_abun = abun_vals * (1 + rng.normal(0, 0.05, size=abun_vals.shape))
     noisy_abun = np.clip(noisy_abun, 0, None)
 
-    spec = MockSpectrum(
-        mz_exp=noisy_mz,
-        abundance=noisy_abun,
-        name=row.get("compound_name", f"spectrum_{i}"),
-    )
-    all_spectra.append(spec)
-    all_ids.append(row.get("spectra_id", f"spectrum_{i:06d}"))
-    # Precursor m/z is stored separately - required for identity/neutral_loss search
-    all_precursor_mzs.append(float(row.get("precursormz", 0.0)))
+    name = getattr(row, "compound_name", None) or f"spectrum_{lib_idx}"
+    spec_id = getattr(row, "spectra_id", None) or f"spec_{lib_idx:04d}"
+    pmz = float(getattr(row, "precursormz", 0.0) or 0.0)
 
-print(f"\nCreated {len(all_spectra)} mock query spectra from MSP library")
+    all_spectra.append(MockSpectrum(noisy_mz, noisy_abun, name=name))
+    all_ids.append(str(spec_id))
+    all_precursor_mzs.append(pmz)
+    all_lib_indices.append(lib_idx)
 
-# Split into two batches to demonstrate incremental updates
-batch1_spectra = all_spectra[:3]
-batch1_ids = all_ids[:3]
-batch1_precursor_mzs = all_precursor_mzs[:3]
+print(f"  Created {len(all_spectra)} mock spectra")
+for i in range(min(3, len(all_spectra))):
+    print(f"    [{i}] id={all_ids[i]!r}  precursor_mz={all_precursor_mzs[i]:.4f}  "
+          f"n_peaks={len(all_spectra[i].mz_exp)}")
 
-batch2_spectra = all_spectra[3:]
-batch2_ids = all_ids[3:]
-batch2_precursor_mzs = all_precursor_mzs[3:]
+# Split into two batches
+batch1_spectra     = all_spectra[:3]
+batch1_ids         = all_ids[:3]
+batch1_pmzs        = all_precursor_mzs[:3]
+batch1_lib_indices = all_lib_indices[:3]
 
-print(f"  Batch 1: {len(batch1_spectra)} spectra")
-print(f"    IDs:           {batch1_ids}")
-print(f"    Precursor m/z: {batch1_precursor_mzs}")
-print(f"  Batch 2: {len(batch2_spectra)} spectra")
-print(f"    IDs:           {batch2_ids}")
-print(f"    Precursor m/z: {batch2_precursor_mzs}")
+batch2_spectra     = all_spectra[3:]
+batch2_ids         = all_ids[3:]
+batch2_pmzs        = all_precursor_mzs[3:]
+batch2_lib_indices = all_lib_indices[3:]
+
+print(f"\n  Batch 1: {len(batch1_spectra)} spectra  ids={batch1_ids}")
+print(f"  Batch 2: {len(batch2_spectra)} spectra  ids={batch2_ids}")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 3. Demonstrate the intended MolecularNetwork API
-#    (This is the API we will implement in corems/molecular_networking/)
+# 3. Create the MolecularNetwork (identity search + cosine)
 # ─────────────────────────────────────────────────────────────────────────────
 
-print("\n" + "=" * 70)
-print("INTENDED API DEMONSTRATION")
-print("=" * 70)
+print("\n" + "=" * 65)
+print("STEP 3 – Create MolecularNetwork (identity search)")
+print("=" * 65)
 
-print("""
-# ── Intended usage (once module is implemented) ──────────────────────────
-
-from corems.molecular_networking import MolecularNetwork
-
-# ── FlashEntropy search types ─────────────────────────────────────────────
-#
-# The 'search_type' parameter controls how FlashEntropy matches spectra:
-#
-#   "identity"     - Precursor-matched search (ms_entropy method="identity")
-#                    Requires precursor_mzs in add_spectra().
-#                    Most stringent: only matches spectra with similar precursor m/z.
-#
-#   "open"         - No precursor matching (ms_entropy method="open")
-#                    precursor_mzs not required in add_spectra().
-#                    Most permissive: matches any spectra with similar fragment patterns.
-#
-#   "neutral_loss" - Neutral loss search (ms_entropy method="neutral_loss")
-#                    Requires precursor_mzs in add_spectra().
-#                    Matches spectra with similar neutral loss patterns.
-#
-# ── Additional similarity metrics ────────────────────────────────────────
-#
-# The 'additional_similarities' parameter specifies which extra similarity
-# metrics to compute for pairs that pass the entropy similarity threshold.
-# Currently supported: ["cosine"]
-# Each metric gets its own separate SimilarityMatrix and network.
-#
-# ── Similarity thresholds ────────────────────────────────────────────────
-#
-# 'similarity_thresholds' is a dict mapping metric name → threshold value.
-# Edges are created in each metric's network when score >= threshold.
-# If a metric is not in the dict, a default threshold of 0.5 is used.
-
-# Initialize the network with a pre-built FlashEntropy library
 network = MolecularNetwork(
     fe_lib=fe_lib,
-    search_type="identity",             # "identity", "open", or "neutral_loss"
-    additional_similarities=["cosine"], # Extra metrics to compute alongside entropy
+    search_type="identity",             # precursor-matched
+    additional_similarities=["cosine"],
     similarity_thresholds={
-        "entropy_similarity": 0.5,      # Threshold for entropy similarity network
-        "cosine": 0.6,                  # Threshold for cosine similarity network
+        "entropy_similarity": 0.3,      # lower threshold for demo data
+        "cosine": 0.3,
     },
-    peak_sep_da=0.01,                   # Peak separation for FE search
-    ms1_tolerance_da=0.01,             # Precursor m/z tolerance (identity/neutral_loss)
-    ms2_tolerance_da=0.005,            # Fragment m/z tolerance for FE search
-    use_parallel=True,                  # Enable multiprocessing
-    n_jobs=-1,                          # Use all available cores
+    peak_sep_da=0.02,
+    ms1_tolerance_da=0.05,             # generous tolerance for demo
+    ms2_tolerance_da=0.01,             # must be <= peak_sep_da / 2
+    entropy_threshold_low=0.05,        # trigger cosine for any non-trivial match
+    use_parallel=False,                # keep demo single-threaded
+    n_jobs=1,
 )
+print(f"  {network}")
 
-# ── Add first batch of spectra ────────────────────────────────────────────
-#
-# For "identity" and "neutral_loss" search types, precursor_mzs is REQUIRED.
-# Each element of precursor_mzs corresponds to the spectrum at the same index.
-# For "open" search type, precursor_mzs is ignored (can be omitted or None).
+# ─────────────────────────────────────────────────────────────────────────────
+# 4. Add spectra in two batches
+# ─────────────────────────────────────────────────────────────────────────────
 
+print("\n" + "=" * 65)
+print("STEP 4 – Add spectra in two batches (incremental update)")
+print("=" * 65)
+
+print("\n  Adding Batch 1 …")
 network.add_spectra(
     spectra=batch1_spectra,
     spectrum_ids=batch1_ids,
-    precursor_mzs=batch1_precursor_mzs,   # Required for identity/neutral_loss
+    precursor_mzs=batch1_pmzs,
+    lib_indices=batch1_lib_indices,
 )
-# → Computes 3*(3-1)/2 = 3 unique pairwise entropy similarities
-# → For pairs with entropy_similarity > entropy_threshold_low, also computes cosine
-# → Stores each metric in its own separate SimilarityMatrix
+print(f"  After Batch 1: {network}")
 
-# ── Add second batch - only computes NEW similarities ─────────────────────
+print("\n  Adding Batch 2 …")
 network.add_spectra(
     spectra=batch2_spectra,
     spectrum_ids=batch2_ids,
-    precursor_mzs=batch2_precursor_mzs,   # Required for identity/neutral_loss
+    precursor_mzs=batch2_pmzs,
+    lib_indices=batch2_lib_indices,
 )
-# → Computes:
-#     len(batch2) * len(batch1) = cross-batch pairs
-#     len(batch2)*(len(batch2)-1)/2 = within-batch2 pairs
-# → Does NOT recompute batch1 vs batch1 (already stored)
-# → Each metric's SimilarityMatrix updated independently
+print(f"  After Batch 2: {network}")
 
-# ── Open search (no precursor m/z needed) ────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. Query the network
+# ─────────────────────────────────────────────────────────────────────────────
+
+print("\n" + "=" * 65)
+print("STEP 5 – Query the network")
+print("=" * 65)
+
+for metric in ["entropy_similarity", "cosine"]:
+    edges = network.get_network_edges(metric=metric)
+    stats = network.get_network_stats(metric=metric)
+    print(f"\n  [{metric}]")
+    print(f"    Stats: {stats}")
+    if edges:
+        print(f"    Edges ({len(edges)} total, showing up to 5):")
+        for id1, id2, score in edges[:5]:
+            print(f"      {id1!r} ↔ {id2!r}  score={score:.4f}")
+    else:
+        print("    No edges above threshold.")
+
+# Neighbors for the first spectrum
+first_id = all_ids[0]
+print(f"\n  Neighbors of {first_id!r} (entropy_similarity):")
+neighbors = network.get_spectrum_neighbors(first_id, metric="entropy_similarity")
+if neighbors:
+    for nid, score in neighbors:
+        print(f"    {nid!r}  score={score:.4f}")
+else:
+    print("    None above threshold.")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 6. Inspect the SimilarityMatrix objects directly
+# ─────────────────────────────────────────────────────────────────────────────
+
+print("\n" + "=" * 65)
+print("STEP 6 – Inspect SimilarityMatrix objects")
+print("=" * 65)
+
+for metric, mat in network.similarity_matrices.items():
+    print(f"\n  {mat}")
+    df_pairs = mat.to_dataframe(threshold=0.0)
+    print(f"    All stored pairs: {len(df_pairs)}")
+    if not df_pairs.empty:
+        print(df_pairs.to_string(index=False))
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7. Save outputs
+# ─────────────────────────────────────────────────────────────────────────────
+
+print("\n" + "=" * 65)
+print("STEP 7 – Save outputs")
+print("=" * 65)
+
+# Edge list CSV
+for metric in ["entropy_similarity", "cosine"]:
+    csv_path = str(OUT_DIR / f"edges_{metric}.csv")
+    network.save_edge_list(csv_path, metric=metric)
+
+# Similarity matrix CSV (all stored pairs, threshold=0)
+for metric in ["entropy_similarity", "cosine"]:
+    mat_path = str(OUT_DIR / f"matrix_{metric}.csv")
+    network.save_similarity_matrix(mat_path, metric=metric, threshold=0.0)
+
+# GraphML (requires networkx)
+try:
+    for metric in ["entropy_similarity", "cosine"]:
+        gml_path = str(OUT_DIR / f"network_{metric}.graphml")
+        network.save_graphml(gml_path, metric=metric)
+except ImportError as e:
+    print(f"  Skipping GraphML (networkx not installed): {e}")
+
+# Network plot PNG (requires matplotlib + networkx)
+try:
+    for metric in ["entropy_similarity", "cosine"]:
+        png_path = str(OUT_DIR / f"network_{metric}.png")
+        network.plot_network(
+            metric=metric,
+            layout="spring",
+            output_file=png_path,
+            figsize=(8, 6),
+            dpi=100,
+        )
+except ImportError as e:
+    print(f"  Skipping network plot (matplotlib/networkx not installed): {e}")
+
+# Heatmap PNG
+try:
+    for metric in ["entropy_similarity", "cosine"]:
+        hm_path = str(OUT_DIR / f"heatmap_{metric}.png")
+        network.plot_similarity_heatmap(
+            metric=metric,
+            output_file=hm_path,
+            figsize=(6, 5),
+            dpi=100,
+        )
+except ImportError as e:
+    print(f"  Skipping heatmap (matplotlib not installed): {e}")
+
+# Save / reload SimilarityMatrix
+npz_path = str(OUT_DIR / "entropy_similarity_matrix.npz")
+network.similarity_matrices["entropy_similarity"].save(npz_path)
+reloaded = SimilarityMatrix.load(npz_path)
+print(f"\n  Reloaded matrix: {reloaded}")
+assert reloaded.n_spectra == network.similarity_matrices["entropy_similarity"].n_spectra
+print("  ✓ Save/load round-trip OK")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 8. Demonstrate open search (no precursor_mzs required)
+# ─────────────────────────────────────────────────────────────────────────────
+
+print("\n" + "=" * 65)
+print("STEP 8 – Open search (no precursor m/z required)")
+print("=" * 65)
+
 network_open = MolecularNetwork(
     fe_lib=fe_lib,
-    search_type="open",                 # No precursor matching
+    search_type="open",
     additional_similarities=["cosine"],
-    similarity_thresholds={"entropy_similarity": 0.5, "cosine": 0.6},
+    similarity_thresholds={"entropy_similarity": 0.3, "cosine": 0.3},
+    peak_sep_da=0.02,
+    ms2_tolerance_da=0.01,             # must be <= peak_sep_da / 2
+    entropy_threshold_low=0.05,
+    use_parallel=False,
+    n_jobs=1,
 )
 
 network_open.add_spectra(
-    spectra=batch1_spectra,
-    spectrum_ids=batch1_ids,
-    # precursor_mzs not required for "open" search
+    spectra=all_spectra,
+    spectrum_ids=all_ids,
+    lib_indices=all_lib_indices,
+    # precursor_mzs intentionally omitted for open search
 )
-
-# ── Query the network ─────────────────────────────────────────────────────
-
-# Get all edges above the similarity threshold for a given metric
-edges_entropy = network.get_network_edges(metric="entropy_similarity")
-# Returns: list of (id1, id2, score)
-
-edges_cosine = network.get_network_edges(metric="cosine")
-# Returns: list of (id1, id2, score)
-
-# Get neighbors for a specific spectrum (default metric: entropy_similarity)
-neighbors = network.get_spectrum_neighbors(batch1_ids[0])
-# Returns: list of (neighbor_id, score)
-
-neighbors_cosine = network.get_spectrum_neighbors(batch1_ids[0], metric="cosine")
-# Returns: list of (neighbor_id, score)
-
-# Get basic network statistics (parameterized by metric)
-stats_entropy = network.get_network_stats(metric="entropy_similarity")
-# Returns: dict with n_nodes, n_edges, avg_degree, density, etc.
-
-stats_cosine = network.get_network_stats(metric="cosine")
-
-# Access the underlying similarity matrices (one per metric)
-sim_matrix_entropy = network.similarity_matrices["entropy_similarity"]
-sim_matrix_cosine  = network.similarity_matrices["cosine"]
-
-# Each matrix is a separate SimilarityMatrix object
-score = sim_matrix_entropy.get_similarity(batch1_ids[0], batch1_ids[1])
-""")
+print(f"  {network_open}")
+stats_open = network_open.get_network_stats(metric="entropy_similarity")
+print(f"  Open search stats: {stats_open}")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 4. Demonstrate the SimilarityMatrix API (one per metric)
+# 9. Validate precursor_mzs enforcement
 # ─────────────────────────────────────────────────────────────────────────────
 
-print("""
-# ── SimilarityMatrix API (one instance per metric) ───────────────────────
+print("\n" + "=" * 65)
+print("STEP 9 – Validate precursor_mzs enforcement")
+print("=" * 65)
 
-from corems.molecular_networking import SimilarityMatrix
-
-# Each metric has its own SimilarityMatrix instance
-# (accessed via network.similarity_matrices["entropy_similarity"], etc.)
-
-# Create a standalone SimilarityMatrix
-sim_matrix = SimilarityMatrix(metric_name="entropy_similarity")
-
-# Register spectra with user-provided IDs
-sim_matrix.register_spectra(spectrum_ids=['lipid_001', 'lipid_002', 'lipid_003'])
-
-# Store a similarity score
-sim_matrix.set_similarity('lipid_001', 'lipid_002', score=0.75)
-
-# Retrieve a similarity score
-score = sim_matrix.get_similarity('lipid_001', 'lipid_002')
-
-# Get all pairs above a threshold
-pairs = sim_matrix.get_pairs_above_threshold(threshold=0.5)
-# Returns: list of (id1, id2, score)
-
-# Convert to dense numpy array (for small matrices)
-dense = sim_matrix.to_dense()
-
-# Convert to pandas DataFrame
-df = sim_matrix.to_dataframe(threshold=0.5)
-# Returns: DataFrame with columns ['id1', 'id2', 'score']
-
-# Save/load the matrix
-sim_matrix.save('entropy_similarity_matrix.npz')
-sim_matrix_loaded = SimilarityMatrix.load('entropy_similarity_matrix.npz')
-""")
+try:
+    bad_network = MolecularNetwork(fe_lib=fe_lib, search_type="identity")
+    bad_network.add_spectra(
+        spectra=batch1_spectra,
+        spectrum_ids=batch1_ids,
+        # precursor_mzs intentionally omitted
+    )
+    print("  ERROR: Should have raised ValueError!")
+except ValueError as e:
+    print(f"  ✓ Correctly raised ValueError: {e}")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 5. Demonstrate the SimilarityEngine API
+# 10. Larger lipid library demo (FAMLS – 482 spectra)
+#     Uses the FAMLS MSP file if available; skips gracefully if not found.
 # ─────────────────────────────────────────────────────────────────────────────
 
-print("""
-# ── SimilarityEngine API ─────────────────────────────────────────────────
+print("\n" + "=" * 65)
+print("STEP 10 – Larger lipid library (FAMLS, ~482 spectra)")
+print("=" * 65)
 
-from corems.molecular_networking import SimilarityEngine
+if not FAMLS_MSP.exists():
+    print(f"  FAMLS MSP not found at {FAMLS_MSP} – skipping STEP 10.")
+else:
+    import time
 
-# Initialize with a pre-built FlashEntropy library
-engine = SimilarityEngine(
-    fe_lib=fe_lib,
-    search_type="identity",             # "identity", "open", or "neutral_loss"
-    additional_similarities=["cosine"], # Extra metrics to compute
-    peak_sep_da=0.01,
-    ms1_tolerance_da=0.01,
-    ms2_tolerance_da=0.005,
-    entropy_threshold_low=0.1,          # Min entropy score to trigger additional metrics
-    use_parallel=True,
-    n_jobs=-1,
-)
+    # ── Parse the FAMLS MSP ───────────────────────────────────────────────────
+    msp_famls = MSPInterface(file_path=str(FAMLS_MSP))
+    df_famls = msp_famls._data_frame
+    print(f"  Parsed {len(df_famls)} spectra from {FAMLS_MSP.name}")
 
-# Compute all-vs-all similarities for a list of spectra
-# Returns: dict of {metric_name: {(id1, id2): score}}
-similarities = engine.compute_all_vs_all(
-    spectra=batch1_spectra,
-    spectrum_ids=batch1_ids,
-    precursor_mzs=batch1_precursor_mzs,   # Required for identity/neutral_loss
-)
-# similarities["entropy_similarity"][(id1, id2)] = 0.75
-# similarities["cosine"][(id1, id2)] = 0.82
+    # ── Build FlashEntropy library ────────────────────────────────────────────
+    fe_famls = msp_famls._to_flashentropy(
+        input_dataframe=df_famls,
+        normalize=True,
+        fe_kwargs={
+            "normalize_intensity": True,
+            "min_ms2_difference_in_da": 0.02,
+            "max_ms2_tolerance_in_da": 0.01,
+            "max_indexed_mz": 3000,
+            "precursor_ions_removal_da": None,
+            "noise_threshold": 0,
+        },
+    )
+    print(f"  FlashEntropy library built ({len(df_famls)} entries indexed)")
 
-# Compute similarities between new spectra and existing spectra
-# (incremental update - only computes new pairs)
-new_similarities = engine.compute_new_vs_existing(
-    new_spectra=batch2_spectra,
-    new_ids=batch2_ids,
-    new_precursor_mzs=batch2_precursor_mzs,       # Required for identity/neutral_loss
-    existing_spectra=batch1_spectra,
-    existing_ids=batch1_ids,
-    existing_precursor_mzs=batch1_precursor_mzs,  # Required for identity/neutral_loss
-)
-""")
+    # ── Build mock query spectra from the library ─────────────────────────────
+    famls_spectra, famls_ids, famls_pmzs, famls_lib_idx = [], [], [], []
+    for lib_idx, row in enumerate(df_famls.itertuples(index=False)):
+        peaks = np.array(row.peaks, dtype=float)
+        if len(peaks) == 0:
+            continue
+        mz_vals, abun_vals = peaks[:, 0], peaks[:, 1]
+        rng = np.random.default_rng(seed=lib_idx + 1000)
+        noisy_mz = mz_vals + rng.normal(0, 0.001, size=mz_vals.shape)
+        noisy_abun = np.clip(abun_vals * (1 + rng.normal(0, 0.05, size=abun_vals.shape)), 0, None)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 6. Demonstrate the network visualization and output API
-# ─────────────────────────────────────────────────────────────────────────────
+        # Try common column names for spectrum ID and precursor m/z
+        spec_id = (
+            getattr(row, "spectra_id", None)
+            or getattr(row, "name", None)
+            or f"famls_{lib_idx:04d}"
+        )
+        pmz = float(
+            getattr(row, "precursormz", None)
+            or getattr(row, "precursor_mz", None)
+            or 0.0
+        )
+        famls_spectra.append(MockSpectrum(noisy_mz, noisy_abun))
+        famls_ids.append(str(spec_id))
+        famls_pmzs.append(pmz)
+        famls_lib_idx.append(lib_idx)
 
-print("""
-# ── Network Visualization and Output API ─────────────────────────────────
+    print(f"  Built {len(famls_spectra)} mock query spectra")
 
-# Get a networkx graph for a specific metric
-G_entropy = network.to_networkx(metric="entropy_similarity")
-G_cosine  = network.to_networkx(metric="cosine")
-# Returns: networkx.Graph with:
-#   - nodes: spectrum IDs (with 'name', 'precursor_mz' attributes if available)
-#   - edges: (id1, id2, {'score': ...})
+    # ── Create network (open search – no precursor required) ──────────────────
+    t0 = time.time()
+    net_famls = MolecularNetwork(
+        fe_lib=fe_famls,
+        search_type="open",
+        additional_similarities=["cosine"],
+        similarity_thresholds={"entropy_similarity": 0.5, "cosine": 0.5},
+        peak_sep_da=0.02,
+        ms2_tolerance_da=0.01,
+        entropy_threshold_low=0.3,
+        use_parallel=True,
+        n_jobs=-1,
+    )
 
-# Save the network as a GraphML file (compatible with Cytoscape)
-network.save_graphml('my_network_entropy.graphml', metric="entropy_similarity")
-network.save_graphml('my_network_cosine.graphml', metric="cosine")
+    # Add in two batches to demonstrate incremental update
+    half = len(famls_spectra) // 2
+    net_famls.add_spectra(
+        spectra=famls_spectra[:half],
+        spectrum_ids=famls_ids[:half],
+        lib_indices=famls_lib_idx[:half],
+    )
+    net_famls.add_spectra(
+        spectra=famls_spectra[half:],
+        spectrum_ids=famls_ids[half:],
+        lib_indices=famls_lib_idx[half:],
+    )
+    elapsed = time.time() - t0
+    print(f"  Network built in {elapsed:.1f}s  →  {net_famls}")
 
-# Save the network as a CSV edge list
-network.save_edge_list('my_network_entropy_edges.csv', metric="entropy_similarity")
+    # ── Report stats ──────────────────────────────────────────────────────────
+    for metric in ["entropy_similarity", "cosine"]:
+        stats = net_famls.get_network_stats(metric=metric)
+        edges = net_famls.get_network_edges(metric=metric)
+        print(f"\n  [{metric}]  stats={stats}")
+        if edges:
+            print(f"    Top 5 edges:")
+            for id1, id2, score in edges[:5]:
+                print(f"      {id1!r} ↔ {id2!r}  score={score:.4f}")
 
-# Save the similarity matrix as a CSV
-network.save_similarity_matrix('my_network_entropy_matrix.csv', metric="entropy_similarity")
+    # ── Save outputs ──────────────────────────────────────────────────────────
+    famls_out = OUT_DIR / "famls"
+    famls_out.mkdir(exist_ok=True)
 
-# Plot the network diagram using matplotlib
-network.plot_network(
-    metric="entropy_similarity",
-    node_label='name',              # Label nodes with compound name
-    edge_weight='score',            # Scale edge width by score
-    layout='spring',                # networkx layout algorithm
-    output_file='my_network_entropy.png',
-    figsize=(12, 10),
-    dpi=150,
-)
+    for metric in ["entropy_similarity", "cosine"]:
+        net_famls.save_edge_list(str(famls_out / f"edges_{metric}.csv"), metric=metric)
+        net_famls.save_similarity_matrix(
+            str(famls_out / f"matrix_{metric}.csv"), metric=metric, threshold=0.0
+        )
 
-# Plot a heatmap of the similarity matrix
-network.plot_similarity_heatmap(
-    metric="cosine",
-    output_file='my_network_cosine_heatmap.png',
-    figsize=(10, 8),
-)
-""")
+    try:
+        for metric in ["entropy_similarity", "cosine"]:
+            net_famls.save_graphml(str(famls_out / f"network_{metric}.graphml"), metric=metric)
+    except ImportError as e:
+        print(f"  Skipping GraphML: {e}")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 7. Demonstrate the two-stage similarity calculation logic
-# ─────────────────────────────────────────────────────────────────────────────
+    try:
+        for metric in ["entropy_similarity", "cosine"]:
+            net_famls.plot_network(
+                metric=metric,
+                layout="spring",
+                output_file=str(famls_out / f"network_{metric}.png"),
+                figsize=(12, 10),
+                dpi=100,
+            )
+    except ImportError as e:
+        print(f"  Skipping network plot: {e}")
 
-print("\n" + "=" * 70)
-print("TWO-STAGE SIMILARITY CALCULATION LOGIC")
-print("=" * 70)
+    try:
+        for metric in ["entropy_similarity", "cosine"]:
+            net_famls.plot_similarity_heatmap(
+                metric=metric,
+                output_file=str(famls_out / f"heatmap_{metric}.png"),
+                figsize=(10, 9),
+                dpi=100,
+            )
+    except ImportError as e:
+        print(f"  Skipping heatmap: {e}")
 
-print("""
-Stage 1: FlashEntropy (fast, vectorized)
-  - Uses the pre-built FlashEntropy index
-  - Computes entropy-based similarity for all pairs using the chosen search_type:
-      "identity"     → fe_lib.search(..., method={"identity"})["identity_search"]
-                        Requires precursor_mzs; matches spectra with similar precursor m/z
-      "open"         → fe_lib.search(..., method={"open"})["open_search"]
-                        No precursor m/z required; matches any similar fragment patterns
-      "neutral_loss" → fe_lib.search(..., method={"neutral_loss"})["neutral_loss_search"]
-                        Requires precursor_mzs; matches spectra with similar neutral losses
-  - Filters out pairs with entropy_similarity < entropy_threshold_low (e.g., 0.1)
-  - Stores results in the "entropy_similarity" SimilarityMatrix
+    print(f"\n  FAMLS outputs written to: {famls_out}")
 
-Stage 2: Additional metrics (only for pairs passing Stage 1)
-  - For each pair with entropy_similarity > entropy_threshold_low:
-      - Computes cosine similarity using CoreMS's SpectralSimilarity class
-      - Stores results in the "cosine" SimilarityMatrix
-  - Each metric has its own separate SimilarityMatrix
-
-This approach is efficient because:
-  - FlashEntropy is highly optimized for fast filtering
-  - Additional metrics are only computed for a small fraction of pairs
-  - For N spectra, Stage 1 is O(N²) but fast; Stage 2 is O(k) where k << N²
-  - Each metric's network can be queried independently
-""")
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 8. Demonstrate the incremental update logic
-# ─────────────────────────────────────────────────────────────────────────────
-
-print("\n" + "=" * 70)
-print("INCREMENTAL UPDATE LOGIC")
-print("=" * 70)
-
-n_existing = len(batch1_spectra)
-n_new = len(batch2_spectra)
-n_total = n_existing + n_new
-
-pairs_without_incremental = n_total * (n_total - 1) // 2
-pairs_with_incremental = n_new * n_existing + n_new * (n_new - 1) // 2
-savings_pct = 100 * (1 - pairs_with_incremental / max(pairs_without_incremental, 1))
-
-print(f"""
-When add_spectra() is called with new spectra:
-
-  Existing spectra: {n_existing} (already computed: {n_existing*(n_existing-1)//2} pairs)
-  New spectra:      {n_new}
-
-  Required computations:
-    - {n_new} × {n_existing} = {n_new * n_existing} cross-batch pairs (new vs existing)
-    - {n_new}×({n_new}-1)/2 = {n_new*(n_new-1)//2} within-batch pairs (new vs new)
-    Total: {pairs_with_incremental} new pairs
-
-  Skipped computations:
-    - {n_existing*(n_existing-1)//2} pairs (batch1 vs batch1, already stored)
-
-  Without incremental: {pairs_without_incremental} total pairs
-  With incremental:    {pairs_with_incremental} new pairs
-  Savings: {savings_pct:.0f}% fewer computations
-
-  For large datasets (e.g., 1000 existing + 100 new):
-    Without incremental: 1100*1099/2 = 604,450 pairs
-    With incremental:    100*1000 + 100*99/2 = 104,950 pairs
-    Savings: ~83% fewer computations!
-
-  Note: Each metric's SimilarityMatrix is updated independently.
-  Note: precursor_mzs must be provided for each batch when using
-        "identity" or "neutral_loss" search types.
-""")
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 9. Demonstrate sparse matrix storage benefits
-# ─────────────────────────────────────────────────────────────────────────────
-
-print("\n" + "=" * 70)
-print("SPARSE MATRIX STORAGE BENEFITS")
-print("=" * 70)
-
-print("""
-Each SimilarityMatrix uses scipy.sparse for memory-efficient storage:
-
-  - Stores only non-zero similarities (above entropy_threshold_low)
-  - For typical molecular networks, most pairs have zero similarity
-  - Memory usage scales with number of edges, not N²
-
-  Example memory comparison for 10,000 spectra:
-    Dense matrix:  10,000 × 10,000 × 8 bytes = 800 MB
-    Sparse matrix: ~1% non-zero → ~8 MB (100x reduction)
-
-  network.similarity_matrices is a dict of separate SimilarityMatrix objects:
-    {
-        "entropy_similarity": SimilarityMatrix(...),  # entropy scores
-        "cosine":             SimilarityMatrix(...),  # cosine scores
-    }
-
-  Each SimilarityMatrix stores its data as scipy.sparse.csr_matrix.
-  Matrices can be saved/loaded as .npz files for persistence.
-""")
-
-print("\n" + "=" * 70)
+print("\n" + "=" * 65)
 print("DEMO COMPLETE")
-print("=" * 70)
-print("\nNext steps:")
-print("  1. Implement corems/molecular_networking/similarity_matrix.py")
-print("  2. Implement corems/molecular_networking/similarity_engine.py")
-print("  3. Implement corems/molecular_networking/network_builder.py")
-print("  4. Implement corems/molecular_networking/__init__.py")
-print("  5. Convert this demo into a formal test in tests/test_molecular_networking.py")
+print(f"Outputs written to: {OUT_DIR}")
+print("=" * 65)
