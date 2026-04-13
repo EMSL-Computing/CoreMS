@@ -5,6 +5,12 @@ MolecularNetwork
 Main user-facing interface for building and querying molecular networks
 from a collection of mass spectra.
 
+Usage pattern (lazy / explicit):
+  1. Create a MolecularNetwork (no computation happens).
+  2. Call ``query_vs_library()`` to compute similarities.
+  3. Query edges, neighbors, and statistics.
+  4. Save outputs.
+
 Each similarity metric (entropy_similarity, cosine, …) has its own
 SimilarityMatrix and can be queried independently.
 """
@@ -27,10 +33,14 @@ _PRECURSOR_REQUIRED = {"identity", "neutral_loss"}
 class MolecularNetwork:
     """Build and query a molecular network from a collection of mass spectra.
 
+    Initialization is **lazy** – no similarity computation happens until you
+    explicitly call :meth:`query_vs_library`.
+
     Parameters
     ----------
     fe_lib : ms_entropy.FlashEntropySearch
-        Pre-built FlashEntropy search instance.
+        Pre-built FlashEntropy search instance (built from the reference
+        library).  Used for query-vs-library similarity computation.
     search_type : str
         FlashEntropy search mode: ``"identity"``, ``"open"``, or
         ``"neutral_loss"``.  Default ``"identity"``.
@@ -60,14 +70,6 @@ class MolecularNetwork:
     ----------
     similarity_matrices : dict of str → SimilarityMatrix
         One SimilarityMatrix per metric (``"entropy_similarity"``, ``"cosine"``, …).
-    _spectra : list
-        All registered spectrum objects (in registration order).
-    _spectrum_ids : list of str
-        All registered spectrum IDs (in registration order).
-    _precursor_mzs : list of float or None
-        Precursor m/z for each registered spectrum.
-    _lib_indices : list of int or None
-        FlashEntropy library index for each registered spectrum.
     """
 
     def __init__(
@@ -93,7 +95,7 @@ class MolecularNetwork:
         self.additional_similarities = list(additional_similarities)
         self.similarity_thresholds = similarity_thresholds
 
-        # Build the engine
+        # Build the engine (wraps fe_lib + search parameters)
         self._engine = SimilarityEngine(
             fe_lib=fe_lib,
             search_type=search_type,
@@ -106,17 +108,19 @@ class MolecularNetwork:
             n_jobs=n_jobs,
         )
 
-        # One SimilarityMatrix per metric
+        # One SimilarityMatrix per metric – empty until query_vs_library() is called
         all_metrics = ["entropy_similarity"] + list(additional_similarities)
         self.similarity_matrices: dict[str, SimilarityMatrix] = {
             m: SimilarityMatrix(metric_name=m) for m in all_metrics
         }
 
-        # Internal spectrum registry
-        self._spectra: list = []
-        self._spectrum_ids: list[str] = []
-        self._precursor_mzs: list[float | None] = []
-        self._lib_indices: list[int | None] = []
+        # Accumulate query spectra (kept separate from the library FE index)
+        self._all_query_spectra: list = []
+        self._all_query_ids: list[str] = []
+        self._all_query_precursor_mzs: list[float | None] = []
+        self._all_query_lib_indices: list[int | None] = []
+        # Whether query_vs_library has been run (disabled repeated runs until dropped)
+        self._has_queries_run: bool = False
 
     # ── Internal helpers ──────────────────────────────────────────────────────
 
@@ -140,114 +144,168 @@ class MolecularNetwork:
 
     # ── Public API ────────────────────────────────────────────────────────────
 
-    def add_spectra(
+    def query_vs_library(
         self,
-        spectra: list,
-        spectrum_ids: list[str],
-        precursor_mzs: list[float | None] | None = None,
-        lib_indices: list[int | None] | None = None,
+        query_spectra: list,
+        query_ids: list[str],
+        query_precursor_mzs: list[float | None] | None = None,
+        fe_kwargs: dict | None = None,
+        *,
+        query_lib_indices: list[int | None] | None = None,
     ):
-        """Add spectra to the network and compute new pairwise similarities.
+        """Compute query-vs-query and query-vs-library similarities.
 
-        For ``"identity"`` and ``"neutral_loss"`` search types, *precursor_mzs*
-        is **required** (one value per spectrum).  For ``"open"`` search type,
-        *precursor_mzs* is ignored.
+        This is the primary method for building a molecular network.  It:
 
-        Only NEW pairs are computed:
-          - new-vs-existing
-          - new-vs-new
-        Existing-vs-existing pairs are never recomputed.
+        1. Adds to (or initiates) a FlashEntropy index from the **query spectra**.
+        2. Uses the pre-built library FlashEntropy index (``self.fe_lib``) to
+           compute query-vs-library similarities and also computes the query-vs-query 
+           similarities from the query FlashEntropy index.
+        3. Stores all results in ``self.similarity_matrices``.
+
+        For ``"identity"`` and ``"neutral_loss"`` search types,
+        *query_precursor_mzs* is **required**.
 
         Parameters
         ----------
-        spectra : list
-            Spectrum objects with ``.mz_exp`` and ``.abundance`` attributes.
-        spectrum_ids : list of str
-            User-provided IDs, one per spectrum.  Must be unique across all
-            calls to ``add_spectra``.
-        precursor_mzs : list of float or None, optional
-            Precursor m/z for each spectrum.  Required for ``"identity"`` and
-            ``"neutral_loss"`` search types.
-        lib_indices : list of int or None, optional
-            Index of each spectrum in the FlashEntropy library.  Providing
-            these enables exact pairwise entropy scores; otherwise the engine
-            searches each spectrum against the library and reads off the score
-            at the partner's library position.
+        query_spectra : list
+            Experimental spectrum objects with ``.mz_exp`` and ``.abundance``.
+        query_ids : list of str
+            Unique IDs for each query spectrum.
+        query_precursor_mzs : list of float or None, optional
+            Precursor m/z for each query spectrum.  Required for
+            ``"identity"`` and ``"neutral_loss"`` search types.
+        fe_kwargs : dict, optional
+            Extra keyword arguments forwarded to
+            ``FlashEntropySearch`` when building the query-vs-query index.
+            Defaults to the same settings used for the library index.
 
         Raises
         ------
         ValueError
-            If *precursor_mzs* is None for identity/neutral_loss search types.
-        ValueError
-            If any spectrum ID in *spectrum_ids* is already registered.
+            If *query_precursor_mzs* is None for identity/neutral_loss search.
         """
-        n_new = len(spectra)
-        if n_new == 0:
+        n_query = len(query_spectra)
+
+        if n_query == 0:
             return
 
         # Validate precursor_mzs requirement
         if self.search_type in _PRECURSOR_REQUIRED:
-            if precursor_mzs is None:
+            if query_precursor_mzs is None:
                 raise ValueError(
-                    f"precursor_mzs is required for search_type='{self.search_type}'. "
-                    "Provide a list of precursor m/z values, one per spectrum."
+                    f"query_precursor_mzs is required for "
+                    f"search_type='{self.search_type}'. "
+                    "Provide a list of precursor m/z values, one per query spectrum."
                 )
-            if len(precursor_mzs) != n_new:
+            if len(query_precursor_mzs) != n_query:
                 raise ValueError(
-                    f"precursor_mzs length ({len(precursor_mzs)}) must match "
-                    f"spectra length ({n_new})."
+                    f"query_precursor_mzs length ({len(query_precursor_mzs)}) "
+                    f"must match query_spectra length ({n_query})."
                 )
         else:
-            precursor_mzs = [None] * n_new
+            query_precursor_mzs = [None] * n_query if query_precursor_mzs is None else query_precursor_mzs
 
-        if lib_indices is None:
-            lib_indices = [None] * n_new
+        if query_lib_indices is None:
+            query_lib_indices = [None] * n_query
 
-        # Check for duplicate IDs
-        duplicates = set(spectrum_ids) & set(self._spectrum_ids)
-        if duplicates:
-            raise ValueError(
-                f"The following spectrum IDs are already registered: {duplicates}"
+        # Disallow repeated incremental additions — require explicit drop to run again
+        if self._has_queries_run:
+            raise RuntimeError(
+                "query_vs_library has already been run — call drop_queries() to clear queries and results before running again."
             )
 
-        # Register new IDs in all matrices
+        # Store provided queries (single-run behavior)
+        self._all_query_spectra = list(query_spectra)
+        self._all_query_ids = list(query_ids)
+        self._all_query_precursor_mzs = list(query_precursor_mzs)
+        self._all_query_lib_indices = list(query_lib_indices)
+
+        # Register query IDs now
         for mat in self.similarity_matrices.values():
-            mat.register_spectra(spectrum_ids)
+            mat.register_spectra(self._all_query_ids)
 
-        existing_spectra = list(self._spectra)
-        existing_ids = list(self._spectrum_ids)
-        existing_pmzs = list(self._precursor_mzs)
-        existing_lib_idx = list(self._lib_indices)
+        # ── Stage 1: Query-vs-Query ───────────────────────────────────────────
+        # Build a temporary FE index from the query spectra, then search
+        # each query against it to get all-vs-all query-vs-query scores.
+        print(f"  [query_vs_library] Computing query-vs-query "
+              f"({n_query} × {n_query} = {n_query * (n_query - 1) // 2} pairs) …")
 
-        # Append to internal registry
-        self._spectra.extend(spectra)
-        self._spectrum_ids.extend(spectrum_ids)
-        self._precursor_mzs.extend(precursor_mzs)
-        self._lib_indices.extend(lib_indices)
+        # Build a temporary FE index from the query spectra and compute all-vs-all
+        query_fe_lib = self._engine.build_fe_index_from_spectra(
+            spectra=self._all_query_spectra,
+            precursor_mzs=self._all_query_precursor_mzs,
+            fe_kwargs=fe_kwargs,
+        )
+        qq_scores = self._engine.compute_all_vs_all_with_lib(
+            spectra=self._all_query_spectra,
+            spectrum_ids=self._all_query_ids,
+            precursor_mzs=self._all_query_precursor_mzs,
+            fe_lib_override=query_fe_lib,
+        )
+        self._update_matrices(qq_scores)
 
-        # ── Compute similarities ──────────────────────────────────────────────
-        if not existing_spectra:
-            # First batch: all-vs-all within the new batch
-            new_scores = self._engine.compute_all_vs_all(
-                spectra=spectra,
-                spectrum_ids=spectrum_ids,
-                precursor_mzs=precursor_mzs,
-                lib_indices=lib_indices,
-            )
-        else:
-            # Subsequent batches: new-vs-existing + new-vs-new
-            new_scores = self._engine.compute_new_vs_existing(
-                new_spectra=spectra,
-                new_ids=spectrum_ids,
-                existing_spectra=existing_spectra,
-                existing_ids=existing_ids,
-                new_precursor_mzs=precursor_mzs,
-                existing_precursor_mzs=existing_pmzs,
-                new_lib_indices=lib_indices,
-                existing_lib_indices=existing_lib_idx,
-            )
+        # Mark as run
+        self._has_queries_run = True
 
-        self._update_matrices(new_scores)
+        # ── Stage 2: Query-vs-Library ─────────────────────────────────────────
+        # Use the pre-built library FE index (self.fe_lib) to search each
+        # query spectrum against the full library.
+        print(f"  [query_vs_library] Computing query-vs-library against internal FE library …")
+
+        entropy_pairs: dict[tuple[str, str], float] = {}
+        cosine_pairs: dict[tuple[str, str], float] = {}
+        cross_pairs_for_cosine: list[tuple[int, int]] = []
+
+        lib_size = 0
+        # For each query, search against the FE library and collect scores
+        for qi, (spec, pmz) in enumerate(zip(query_spectra, query_precursor_mzs)):
+            peaks = self._engine._peaks_array(spec)
+            if peaks.shape[0] == 0:
+                continue
+            result_vec = self._engine._clean_and_search(peaks, pmz)
+            if result_vec is None:
+                continue
+            lib_size = max(lib_size, len(result_vec))
+            # If a specific library index for this query is provided, only record that one
+            if query_lib_indices and query_lib_indices[qi] is not None:
+                li = query_lib_indices[qi]
+                if 0 <= li < len(result_vec):
+                    score = float(result_vec[li])
+                    if score > 0.0:
+                        entropy_pairs[(query_ids[qi], str(li))] = score
+                        if score >= self._engine.entropy_threshold_low:
+                            cross_pairs_for_cosine.append((qi, li))
+            else:
+                for lib_idx, score in enumerate(result_vec):
+                    if score > 0.0:
+                        entropy_pairs[(query_ids[qi], str(lib_idx))] = float(score)
+                        if score >= self._engine.entropy_threshold_low:
+                            cross_pairs_for_cosine.append((qi, lib_idx))
+
+        # Register synthesized library IDs now that we know lib_size
+        lib_ids = [str(i) for i in range(lib_size)]
+        for mat in self.similarity_matrices.values():
+            mat.register_spectra(lib_ids)
+
+        # Compute cosine for cross pairs if requested and if we can access library spectra
+        if "cosine" in self._engine.additional_similarities and cross_pairs_for_cosine:
+            try:
+                lib_specs = getattr(self.fe_lib, "spectra", None) or getattr(self.fe_lib, "library", None)
+            except Exception:
+                lib_specs = None
+
+            if lib_specs is not None:
+                cross_cos = self._engine._compute_cosine_for_pairs(
+                    cross_pairs_for_cosine, query_spectra, lib_specs
+                )
+                for (i, j), score in cross_cos.items():
+                    cosine_pairs[(query_ids[i], str(j))] = score
+
+        combined: dict[str, dict[tuple[str, str], float]] = {"entropy_similarity": entropy_pairs}
+        if cosine_pairs:
+            combined["cosine"] = cosine_pairs
+        self._update_matrices(combined)
 
     def get_network_edges(
         self, metric: str = "entropy_similarity"
@@ -574,10 +632,29 @@ class MolecularNetwork:
             )
         return self.similarity_matrices[metric]
 
+    def drop_queries(self):
+        """Clear all stored queries and computed results.
+
+        Resets internal query storage and reinitialises the similarity
+        matrices so `query_vs_library` can be called again.
+        """
+        # Clear stored queries
+        self._all_query_spectra = []
+        self._all_query_ids = []
+        self._all_query_precursor_mzs = []
+        self._all_query_lib_indices = []
+        self._has_queries_run = False
+
+        # Recreate empty similarity matrices for each metric
+        all_metrics = list(self.similarity_matrices.keys())
+        self.similarity_matrices = {m: SimilarityMatrix(metric_name=m) for m in all_metrics}
+
     def __repr__(self) -> str:
-        n = len(self._spectrum_ids)
+        n_nodes = sum(mat.n_spectra for mat in self.similarity_matrices.values()) // max(
+            1, len(self.similarity_matrices)
+        )
         metrics = list(self.similarity_matrices.keys())
         return (
             f"MolecularNetwork(search_type='{self.search_type}', "
-            f"n_spectra={n}, metrics={metrics})"
+            f"n_spectra={n_nodes}, metrics={metrics})"
         )
