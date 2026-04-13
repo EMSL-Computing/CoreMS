@@ -132,6 +132,7 @@ class SimilarityEngine:
 
         self.fe_lib = fe_lib
         self.search_type = search_type
+        #TODO KRH: Check that the additional similarity searches are done in the same manner (open vs neutral loss)
         self.additional_similarities = list(additional_similarities)
         self.peak_sep_da = peak_sep_da
         self.ms1_tolerance_da = ms1_tolerance_da
@@ -154,6 +155,7 @@ class SimilarityEngine:
         self,
         peaks: np.ndarray,
         precursor_mz: float | None,
+        fe_lib_override=None,
     ) -> np.ndarray:
         """Run FlashEntropy search for one query spectrum.
 
@@ -163,6 +165,8 @@ class SimilarityEngine:
             [[mz, abundance], ...]
         precursor_mz : float or None
             Required for identity/neutral_loss; ignored for open.
+        fe_lib_override : optional
+            If provided, use this FlashEntropy library instead of ``self.fe_lib``.
 
         Returns
         -------
@@ -170,11 +174,12 @@ class SimilarityEngine:
             1-D array of entropy similarity scores, one per library entry.
         """
         fe_method, fe_key = _FE_METHOD_MAP[self.search_type]
+        fe = fe_lib_override if fe_lib_override is not None else self.fe_lib
 
         # Use a dummy precursor_mz for open search
         pmz = precursor_mz if precursor_mz is not None else 0.0
 
-        cleaned = self.fe_lib.clean_spectrum_for_search(
+        cleaned = fe.clean_spectrum_for_search(
             precursor_mz=pmz,
             peaks=peaks,
             precursor_ions_removal_da=None,
@@ -198,7 +203,7 @@ class SimilarityEngine:
             search_kwargs["precursor_mz"] = pmz
             search_kwargs["ms1_tolerance_in_da"] = 1e9  # effectively no filter
 
-        results = self.fe_lib.search(**search_kwargs)
+        results = fe.search(**search_kwargs)
         return results[fe_key]
 
     def _entropy_score_pair(
@@ -487,6 +492,7 @@ class SimilarityEngine:
         pmz_b: float | None,
         lib_idx_a: int | None,
         lib_idx_b: int | None,
+        fe_lib_override=None,
     ) -> float:
         """Compute entropy similarity between two spectra.
 
@@ -496,13 +502,20 @@ class SimilarityEngine:
 
         If neither library index is known, returns 0.0 (cannot compute without
         library indices for the query-vs-query case).
+
+        Parameters
+        ----------
+        fe_lib_override : optional
+            If provided, use this FlashEntropy library instead of ``self.fe_lib``.
+            Used for query-vs-query searches where a temporary index is built
+            from the query spectra themselves.
         """
         peaks_a = self._peaks_array(spec_a)
         if peaks_a.shape[0] == 0:
             return 0.0
 
         if lib_idx_b is not None:
-            result_vec = self._clean_and_search(peaks_a, pmz_a)
+            result_vec = self._clean_and_search(peaks_a, pmz_a, fe_lib_override=fe_lib_override)
             if lib_idx_b < len(result_vec):
                 return float(result_vec[lib_idx_b])
             return 0.0
@@ -511,10 +524,176 @@ class SimilarityEngine:
             peaks_b = self._peaks_array(spec_b)
             if peaks_b.shape[0] == 0:
                 return 0.0
-            result_vec = self._clean_and_search(peaks_b, pmz_b)
+            result_vec = self._clean_and_search(peaks_b, pmz_b, fe_lib_override=fe_lib_override)
             if lib_idx_a < len(result_vec):
                 return float(result_vec[lib_idx_a])
             return 0.0
 
         # No library indices available – cannot compute entropy similarity
         return 0.0
+    
+    def build_fe_index_from_spectra(
+        self,
+        spectra: list,
+        precursor_mzs: list[float | None] | None = None,
+        fe_kwargs: dict | None = None,
+    ):
+        """Build a FlashEntropy search index from a list of spectrum objects.
+
+        This is used to create a temporary index from query spectra so that
+        query-vs-query similarities can be computed without requiring the
+        spectra to already be in the main library.
+
+        Parameters
+        ----------
+        spectra : list
+            Spectrum objects with ``.mz_exp`` and ``.abundance`` attributes.
+        precursor_mzs : list of float or None, optional
+            Precursor m/z for each spectrum.  Used as the ``precursor_mz``
+            field in the FlashEntropy library.  Defaults to 0.0 for each.
+        fe_kwargs : dict, optional
+            Extra keyword arguments forwarded to ``FlashEntropySearch``.
+            Defaults to the same settings used for the main library.
+
+        Returns
+        -------
+        ms_entropy.FlashEntropySearch
+            A new FlashEntropy search instance indexed on *spectra*.
+        """
+        try:
+            from ms_entropy import FlashEntropySearch
+        except ImportError:
+            raise ImportError(
+                "ms_entropy is required for build_fe_index_from_spectra(). "
+                "Install with: pip install ms_entropy"
+            )
+
+        if precursor_mzs is None:
+            precursor_mzs = [None] * len(spectra)
+
+        # Default FE kwargs mirror the main library settings
+        default_fe_kwargs = {
+            "normalize_intensity": True,
+            "min_ms2_difference_in_da": self.peak_sep_da * 2,
+            "max_ms2_tolerance_in_da": self.ms2_tolerance_da,
+            "max_indexed_mz": 3000,
+            "precursor_ions_removal_da": None,
+            "noise_threshold": 0,
+        }
+        if fe_kwargs:
+            default_fe_kwargs.update(fe_kwargs)
+
+        # Build the spectral library list
+        spectral_library = []
+        for i, (spec, pmz) in enumerate(zip(spectra, precursor_mzs)):
+            peaks = self._peaks_array(spec)
+            if peaks.shape[0] == 0:
+                continue
+            spectral_library.append({
+                "id": i,
+                "precursor_mz": float(pmz) if pmz is not None else 0.0,
+                "peaks": peaks.tolist(),
+            })
+
+        # Match the FlashEntropy constructor/init and build_index signature
+        fe_init_kws = [
+            "max_ms2_tolerance_in_da",
+            "mz_index_step",
+            "low_memory",
+            "path_data",
+        ]
+        fe_init_kws = {k: v for k, v in default_fe_kwargs.items() if k in fe_init_kws}
+
+        fe = FlashEntropySearch(**fe_init_kws)
+
+        fe_index_kws = [
+            "max_indexed_mz",
+            "precursor_ions_removal_da",
+            "noise_threshold",
+            "min_ms2_difference_in_da",
+            "max_peak_num",
+        ]
+        fe_index_kws = {k: v for k, v in default_fe_kwargs.items() if k in fe_index_kws}
+
+        fe.build_index(spectral_library, **fe_index_kws, clean_spectra=True)
+        return fe
+
+    def compute_all_vs_all_with_lib(
+        self,
+        spectra: list,
+        spectrum_ids: list[str],
+        precursor_mzs: list[float | None] | None = None,
+        fe_lib_override=None,
+    ) -> dict[str, dict[tuple[str, str], float]]:
+        """Compute all-vs-all pairwise similarities using a provided FE library.
+
+        This is the same as :meth:`compute_all_vs_all` but uses
+        *fe_lib_override* instead of ``self.fe_lib``.  The library indices
+        are derived from the order of *spectra* (index 0, 1, 2, …).
+
+        Parameters
+        ----------
+        spectra : list
+            Spectrum objects.
+        spectrum_ids : list of str
+            User-provided IDs, one per spectrum.
+        precursor_mzs : list of float or None, optional
+            Precursor m/z for each spectrum.
+        fe_lib_override : ms_entropy.FlashEntropySearch, optional
+            FlashEntropy library to search against.  If None, falls back to
+            ``self.fe_lib``.
+
+        Returns
+        -------
+        dict
+            ``{metric_name: {(id1, id2): score}}``
+        """
+        n = len(spectra)
+        if n == 0:
+            return {}
+
+        if precursor_mzs is None:
+            precursor_mzs = [None] * n
+
+        # Library indices are simply 0..n-1 (positions in fe_lib_override)
+        lib_indices = list(range(n))
+
+        # Temporarily swap the FE library if an override is provided
+        original_fe_lib = self.fe_lib
+        if fe_lib_override is not None:
+            self.fe_lib = fe_lib_override
+
+        try:
+            entropy_pairs: dict[tuple[str, str], float] = {}
+            pairs_for_additional: list[tuple[int, int]] = []
+
+            for i, j in combinations(range(n), 2):
+                score = self._pairwise_entropy(
+                    spectra[i], precursor_mzs[i],
+                    spectra[j], precursor_mzs[j],
+                    lib_indices[i],
+                    lib_indices[j],
+                )
+                if score > 0.0:
+                    entropy_pairs[(spectrum_ids[i], spectrum_ids[j])] = score
+                    if score >= self.entropy_threshold_low:
+                        pairs_for_additional.append((i, j))
+
+            result: dict[str, dict[tuple[str, str], float]] = {
+                "entropy_similarity": entropy_pairs
+            }
+
+            for metric in self.additional_similarities:
+                if metric == "cosine":
+                    cosine_idx_scores = self._compute_cosine_for_pairs(
+                        pairs_for_additional, spectra, spectra
+                    )
+                    result["cosine"] = {
+                        (spectrum_ids[i], spectrum_ids[j]): score
+                        for (i, j), score in cosine_idx_scores.items()
+                    }
+        finally:
+            # Always restore the original FE library
+            self.fe_lib = original_fe_lib
+
+        return result
