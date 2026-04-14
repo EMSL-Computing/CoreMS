@@ -23,8 +23,7 @@ from typing import Any
 
 import numpy as np
 
-# CoreMS spectral similarity (cosine, etc.)
-from corems.molecular_id.calc.SpectralSimilarity import SpectralSimilarity
+from corems.mass_spectra.calc.lc_calc import find_closest
 
 # Supported additional similarity metrics
 _SUPPORTED_ADDITIONAL = {"cosine"}
@@ -40,16 +39,15 @@ _FE_METHOD_MAP = {
 def _compute_cosine_pair(args):
     """Worker function for multiprocessing: compute cosine similarity for one pair.
 
-    Uses a tolerance-based m/z binning (round to nearest 0.01 Da) so that
-    peaks that are close in m/z are treated as matching.  This avoids the
-    near-zero scores that arise when exact floating-point m/z values differ
-    slightly between spectra.
+    Uses tolerance-based peak matching to align spectra, then computes cosine on
+    aligned vectors including both matched and unmatched peaks (unmatched peaks
+    get 0 abundance in the other spectrum).
 
     Parameters
     ----------
     args : tuple
-        (mz1, abun1, mz2, abun2, mz_bin_da)
-        where mz_bin_da is the binning resolution in Da (default 0.01).
+        (mz1, abun1, mz2, abun2, tolerance_da)
+        where tolerance_da is the m/z matching tolerance in Da.
 
     Returns
     -------
@@ -57,21 +55,71 @@ def _compute_cosine_pair(args):
         Cosine similarity score in [0, 1].
     """
     if len(args) == 5:
-        mz1, abun1, mz2, abun2, mz_bin_da = args
+        mz1, abun1, mz2, abun2, tolerance_da = args
     else:
         mz1, abun1, mz2, abun2 = args
-        mz_bin_da = 0.01
+        tolerance_da = 0.01
 
     try:
-        # Round m/z values to the nearest bin so close peaks match
-        factor = 1.0 / mz_bin_da
-        binned1 = {round(float(m) * factor) / factor: float(a)
-                   for m, a in zip(mz1, abun1)}
-        binned2 = {round(float(m) * factor) / factor: float(a)
-                   for m, a in zip(mz2, abun2)}
-        ref_obj = {"mz": list(binned2.keys()), "abundance": list(binned2.values())}
-        ss = SpectralSimilarity(binned1, ref_obj)
-        return ss.cosine_correlation()
+        # Convert to numpy arrays
+        mz1 = np.asarray(mz1, dtype=float)
+        abun1 = np.asarray(abun1, dtype=float)
+        mz2 = np.asarray(mz2, dtype=float)
+        abun2 = np.asarray(abun2, dtype=float)
+        
+        if len(mz1) == 0 or len(mz2) == 0:
+            return 0.0
+        
+        # Sort both spectra by m/z
+        idx1 = np.argsort(mz1)
+        mz1_sorted = mz1[idx1]
+        abun1_sorted = abun1[idx1]
+        
+        idx2 = np.argsort(mz2)
+        mz2_sorted = mz2[idx2]
+        abun2_sorted = abun2[idx2]
+        
+        # Build aligned vectors including all peaks
+        vec1 = []
+        vec2 = []
+        used_spec2 = np.zeros(len(mz2_sorted), dtype=bool)
+        
+        # For each peak in spec1, find match in spec2 or add as unmatched
+        for i in range(len(mz1_sorted)):
+            # Find closest peak in spec2
+            closest_idx = find_closest(mz2_sorted, np.array([mz1_sorted[i]]))[0]
+            diff = abs(mz2_sorted[closest_idx] - mz1_sorted[i])
+            
+            if diff <= tolerance_da:
+                # Matched peak
+                vec1.append(abun1_sorted[i])
+                vec2.append(abun2_sorted[closest_idx])
+                used_spec2[closest_idx] = True
+            else:
+                # Unmatched peak in spec1
+                vec1.append(abun1_sorted[i])
+                vec2.append(0.0)
+        
+        # Add unmatched peaks from spec2
+        for j in range(len(mz2_sorted)):
+            if not used_spec2[j]:
+                vec1.append(0.0)
+                vec2.append(abun2_sorted[j])
+        
+        # Convert to numpy arrays
+        vec1 = np.array(vec1, dtype=float)
+        vec2 = np.array(vec2, dtype=float)
+        
+        # Compute cosine similarity
+        norm1 = np.linalg.norm(vec1)
+        norm2 = np.linalg.norm(vec2)
+        
+        if norm1 == 0 or norm2 == 0:
+            return 0.0
+        
+        cosine = np.dot(vec1, vec2) / (norm1 * norm2)
+        return float(np.clip(cosine, 0.0, 1.0))
+        
     except Exception:
         return 0.0
 
@@ -206,6 +254,123 @@ class SimilarityEngine:
         results = fe.search(**search_kwargs)
         return results[fe_key]
 
+    def _compute_cosine_for_query_vs_library(
+        self,
+        query_spectrum,
+        query_precursor_mz: float | None,
+        library_indices: list[int],
+        lib_specs: list,
+    ) -> dict[int, float]:
+        """Compute cosine similarity for one query against multiple library spectra.
+        
+        This is more efficient than computing cosine for each pair individually because:
+        1. We clean the query spectrum once
+        2. We use find_closest to match library peaks to query peaks
+        3. We compute cosine including all peaks (matched and unmatched)
+        
+        Parameters
+        ----------
+        query_spectrum : spectrum object
+            Query spectrum with .mz_exp and .abundance attributes
+        query_precursor_mz : float or None
+            Precursor m/z for the query
+        library_indices : list of int
+            Library indices to compute cosine against
+        lib_specs : list
+            Library spectra (dicts with "peaks" key)
+            
+        Returns
+        -------
+        dict mapping library_idx → cosine score
+        """
+        from corems.mass_spectra.calc.lc_calc import find_closest
+        
+        # Get and clean query peaks (same as FlashEntropy does)
+        query_peaks = self._peaks_array(query_spectrum)
+        if query_peaks.shape[0] == 0:
+            return {}
+        
+        pmz = query_precursor_mz if query_precursor_mz is not None else 0.0
+        cleaned_query = self.fe_lib.clean_spectrum_for_search(
+            precursor_mz=pmz,
+            peaks=query_peaks,
+            precursor_ions_removal_da=None,
+            noise_threshold=0.0,
+            min_ms2_difference_in_da=self.peak_sep_da,
+        )
+        
+        if cleaned_query.shape[0] == 0:
+            return {}
+        
+        # Sort cleaned query peaks by m/z
+        query_mz = cleaned_query[:, 0]
+        query_abun = cleaned_query[:, 1]
+        sort_idx = np.argsort(query_mz)
+        query_mz_sorted = query_mz[sort_idx]
+        query_abun_sorted = query_abun[sort_idx]
+        
+        # Compute cosine for each library spectrum
+        cosine_scores = {}
+        for lib_idx in library_indices:
+            if lib_idx >= len(lib_specs):
+                continue
+            
+            lib_entry = lib_specs[lib_idx]
+            lib_peaks = np.asarray(lib_entry.get("peaks", []), dtype=float)
+            
+            if lib_peaks.ndim != 2 or lib_peaks.shape[1] < 2 or lib_peaks.shape[0] == 0:
+                continue
+            
+            lib_mz = lib_peaks[:, 0]
+            lib_abun = lib_peaks[:, 1]
+            
+            # Sort library peaks by m/z
+            lib_sort_idx = np.argsort(lib_mz)
+            lib_mz_sorted = lib_mz[lib_sort_idx]
+            lib_abun_sorted = lib_abun[lib_sort_idx]
+            
+            # Build aligned vectors including all peaks
+            vec_query = []
+            vec_lib = []
+            used_lib = np.zeros(len(lib_mz_sorted), dtype=bool)
+            
+            # For each query peak, find match in library or add as unmatched
+            for i in range(len(query_mz_sorted)):
+                closest_idx = find_closest(lib_mz_sorted, np.array([query_mz_sorted[i]]))[0]
+                diff = abs(lib_mz_sorted[closest_idx] - query_mz_sorted[i])
+                
+                if diff <= self.ms2_tolerance_da:
+                    # Matched peak
+                    vec_query.append(query_abun_sorted[i])
+                    vec_lib.append(lib_abun_sorted[closest_idx])
+                    used_lib[closest_idx] = True
+                else:
+                    # Unmatched query peak
+                    vec_query.append(query_abun_sorted[i])
+                    vec_lib.append(0.0)
+            
+            # Add unmatched library peaks
+            for j in range(len(lib_mz_sorted)):
+                if not used_lib[j]:
+                    vec_query.append(0.0)
+                    vec_lib.append(lib_abun_sorted[j])
+            
+            # Convert to numpy arrays
+            vec_query = np.array(vec_query, dtype=float)
+            vec_lib = np.array(vec_lib, dtype=float)
+            
+            # Compute cosine similarity
+            norm_query = np.linalg.norm(vec_query)
+            norm_lib = np.linalg.norm(vec_lib)
+            
+            if norm_query == 0 or norm_lib == 0:
+                continue
+            
+            cosine = np.dot(vec_query, vec_lib) / (norm_query * norm_lib)
+            cosine_scores[lib_idx] = float(np.clip(cosine, 0.0, 1.0))
+        
+        return cosine_scores
+
     def _entropy_score_pair(
         self,
         spec_a,
@@ -285,13 +450,19 @@ class SimilarityEngine:
         if not pairs:
             return {}
 
+        # TODO: Add spectrum cleaning step before cosine calculation.
+        # Currently, spectra are used directly without cleaning (e.g., via
+        # clean_spectrum_for_search()). This differs from query-vs-library
+        # cosine computation which cleans spectra first. Consider adding
+        # cleaning here for consistency and to improve cosine accuracy.
+
         args = [
             (
                 np.asarray(spectra_a[i].mz_exp, dtype=float),
                 np.asarray(spectra_a[i].abundance, dtype=float),
                 np.asarray(spectra_b[j].mz_exp, dtype=float),
                 np.asarray(spectra_b[j].abundance, dtype=float),
-                self.peak_sep_da,
+                self.ms2_tolerance_da,
             )
             for i, j in pairs
         ]
@@ -617,6 +788,89 @@ class SimilarityEngine:
 
         fe.build_index(spectral_library, **fe_index_kws, clean_spectra=True)
         return fe
+
+    def compute_library_vs_library_filtered(
+        self,
+        library_indices: list[int],
+        spectrum_ids: list[str],
+        precursor_mzs: list[float | None] | None = None,
+    ) -> dict[str, dict[tuple[str, str], float]]:
+        """Compute library-vs-library similarities for a filtered subset of library spectra.
+
+        Extracts the spectra at *library_indices* from ``self.fe_lib``, builds a
+        temporary FlashEntropy index from them, and computes all-vs-all pairwise
+        similarities within that subset.
+
+        Parameters
+        ----------
+        library_indices : list of int
+            Indices into ``self.fe_lib`` of the library spectra to include.
+        spectrum_ids : list of str
+            IDs to assign to each library spectrum (must be same length as
+            *library_indices*).
+        precursor_mzs : list of float or None, optional
+            Precursor m/z for each library spectrum.  If None, attempts to read
+            from ``self.fe_lib`` (attribute ``precursor_mz`` on each entry), or
+            defaults to 0.0.
+
+        Returns
+        -------
+        dict
+            ``{metric_name: {(id1, id2): score}}``
+            All-vs-all pairs within the filtered library subset.
+        """
+        n = len(library_indices)
+        if n == 0:
+            return {}
+
+        # Extract spectra from the FE library
+        # ms_entropy stores spectra as a list of dicts with 'peaks' and 'precursor_mz'
+        lib_spectra_raw = getattr(self.fe_lib, "spectra", None) or getattr(self.fe_lib, "library", None)
+        if lib_spectra_raw is None:
+            return {}
+
+        # Build lightweight spectrum objects from the raw library entries
+        class _LibSpec:
+            __slots__ = ("mz_exp", "abundance")
+            def __init__(self, peaks_arr):
+                self.mz_exp = peaks_arr[:, 0]
+                self.abundance = peaks_arr[:, 1]
+
+        lib_spectra: list = []
+        lib_precursor_mzs: list[float | None] = []
+
+        for li in library_indices:
+            if li >= len(lib_spectra_raw):
+                continue
+            entry = lib_spectra_raw[li]
+            peaks = np.asarray(entry.get("peaks", []), dtype=float)
+            if peaks.ndim != 2 or peaks.shape[1] < 2 or peaks.shape[0] == 0:
+                continue
+            lib_spectra.append(_LibSpec(peaks))
+            if precursor_mzs is not None:
+                lib_precursor_mzs.append(precursor_mzs[len(lib_spectra) - 1])
+            else:
+                lib_precursor_mzs.append(float(entry.get("precursor_mz", 0.0) or 0.0))
+
+        if not lib_spectra:
+            return {}
+
+        # Trim spectrum_ids to match successfully extracted spectra
+        valid_ids = spectrum_ids[: len(lib_spectra)]
+
+        # Build a temporary FE index from the filtered library spectra
+        temp_fe = self.build_fe_index_from_spectra(
+            spectra=lib_spectra,
+            precursor_mzs=lib_precursor_mzs,
+        )
+
+        # Compute all-vs-all using the temporary index
+        return self.compute_all_vs_all_with_lib(
+            spectra=lib_spectra,
+            spectrum_ids=valid_ids,
+            precursor_mzs=lib_precursor_mzs,
+            fe_lib_override=temp_fe,
+        )
 
     def compute_all_vs_all_with_lib(
         self,
