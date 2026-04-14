@@ -84,6 +84,7 @@ class MolecularNetwork:
         entropy_threshold_low: float = 0.1,
         use_parallel: bool = True,
         n_jobs: int = -1,
+        library_spectra: list[dict] | None = None,
     ):
         if additional_similarities is None:
             additional_similarities = ["cosine"]
@@ -94,6 +95,7 @@ class MolecularNetwork:
         self.search_type = search_type
         self.additional_similarities = list(additional_similarities)
         self.similarity_thresholds = similarity_thresholds
+        self.library_spectra = library_spectra
 
         # Build the engine (wraps fe_lib + search parameters)
         self._engine = SimilarityEngine(
@@ -118,7 +120,6 @@ class MolecularNetwork:
         self._all_query_spectra: list = []
         self._all_query_ids: list[str] = []
         self._all_query_precursor_mzs: list[float | None] = []
-        self._all_query_lib_indices: list[int | None] = []
         # Whether query_vs_library has been run (disabled repeated runs until dropped)
         self._has_queries_run: bool = False
 
@@ -151,17 +152,21 @@ class MolecularNetwork:
         query_precursor_mzs: list[float | None] | None = None,
         fe_kwargs: dict | None = None,
         *,
-        query_lib_indices: list[int | None] | None = None,
+        hydrate_library_similarities: bool = False,
+        library_similarity_threshold: float = 0.5,
     ):
         """Compute query-vs-query and query-vs-library similarities.
 
         This is the primary method for building a molecular network.  It:
 
-        1. Adds to (or initiates) a FlashEntropy index from the **query spectra**.
+        1. Builds a temporary FlashEntropy index from the **query spectra** and
+           computes query-vs-query similarities.
         2. Uses the pre-built library FlashEntropy index (``self.fe_lib``) to
-           compute query-vs-library similarities and also computes the query-vs-query 
-           similarities from the query FlashEntropy index.
-        3. Stores all results in ``self.similarity_matrices``.
+           compute query-vs-library similarities.
+        3. Optionally (when *hydrate_library_similarities* is True), computes
+           library-vs-library similarities for the subset of library spectra
+           that had similarity ≥ *library_similarity_threshold* to any query.
+        4. Stores all results in ``self.similarity_matrices``.
 
         For ``"identity"`` and ``"neutral_loss"`` search types,
         *query_precursor_mzs* is **required**.
@@ -179,6 +184,15 @@ class MolecularNetwork:
             Extra keyword arguments forwarded to
             ``FlashEntropySearch`` when building the query-vs-query index.
             Defaults to the same settings used for the library index.
+        hydrate_library_similarities : bool, optional
+            When True, perform a third stage that computes library-vs-library
+            similarities for the subset of library spectra that matched any
+            query above *library_similarity_threshold*.  Default False.
+        library_similarity_threshold : float, optional
+            Minimum query-vs-library entropy similarity score required for a
+            library spectrum to be included in the library-vs-library stage.
+            Only used when *hydrate_library_similarities* is True.
+            Default 0.5.
 
         Raises
         ------
@@ -206,9 +220,6 @@ class MolecularNetwork:
         else:
             query_precursor_mzs = [None] * n_query if query_precursor_mzs is None else query_precursor_mzs
 
-        if query_lib_indices is None:
-            query_lib_indices = [None] * n_query
-
         # Disallow repeated incremental additions — require explicit drop to run again
         if self._has_queries_run:
             raise RuntimeError(
@@ -219,7 +230,6 @@ class MolecularNetwork:
         self._all_query_spectra = list(query_spectra)
         self._all_query_ids = list(query_ids)
         self._all_query_precursor_mzs = list(query_precursor_mzs)
-        self._all_query_lib_indices = list(query_lib_indices)
 
         # Register query IDs now
         for mat in self.similarity_matrices.values():
@@ -255,7 +265,9 @@ class MolecularNetwork:
 
         entropy_pairs: dict[tuple[str, str], float] = {}
         cosine_pairs: dict[tuple[str, str], float] = {}
-        cross_pairs_for_cosine: list[tuple[int, int]] = []
+        
+        # Group library indices by query for efficient cosine computation
+        query_to_lib_indices: dict[int, list[int]] = {}
 
         lib_size = 0
         # For each query, search against the FE library and collect scores
@@ -267,45 +279,98 @@ class MolecularNetwork:
             if result_vec is None:
                 continue
             lib_size = max(lib_size, len(result_vec))
-            # If a specific library index for this query is provided, only record that one
-            if query_lib_indices and query_lib_indices[qi] is not None:
-                li = query_lib_indices[qi]
-                if 0 <= li < len(result_vec):
-                    score = float(result_vec[li])
-                    if score > 0.0:
-                        entropy_pairs[(query_ids[qi], str(li))] = score
-                        if score >= self._engine.entropy_threshold_low:
-                            cross_pairs_for_cosine.append((qi, li))
-            else:
-                for lib_idx, score in enumerate(result_vec):
-                    if score > 0.0:
-                        entropy_pairs[(query_ids[qi], str(lib_idx))] = float(score)
-                        if score >= self._engine.entropy_threshold_low:
-                            cross_pairs_for_cosine.append((qi, lib_idx))
+            
+            # Collect library indices that pass entropy threshold for this query
+            lib_indices_for_query = []
+            
+            # Search full library for each query
+            for lib_idx, score in enumerate(result_vec):
+                if score > 0.0:
+                    entropy_pairs[(query_ids[qi], str(lib_idx))] = float(score)
+                    if score >= self._engine.entropy_threshold_low:
+                        lib_indices_for_query.append(lib_idx)
+            
+            if lib_indices_for_query:
+                query_to_lib_indices[qi] = lib_indices_for_query
+        
+        total_pairs = sum(len(v) for v in query_to_lib_indices.values())
+        print(f"  [query_vs_library] Found {total_pairs} query-vs-library pairs above entropy threshold ({self._engine.entropy_threshold_low})")
 
         # Register synthesized library IDs now that we know lib_size
         lib_ids = [str(i) for i in range(lib_size)]
         for mat in self.similarity_matrices.values():
             mat.register_spectra(lib_ids)
 
-        # Compute cosine for cross pairs if requested and if we can access library spectra
-        if "cosine" in self._engine.additional_similarities and cross_pairs_for_cosine:
-            try:
-                lib_specs = getattr(self.fe_lib, "spectra", None) or getattr(self.fe_lib, "library", None)
-            except Exception:
-                lib_specs = None
-
-            if lib_specs is not None:
-                cross_cos = self._engine._compute_cosine_for_pairs(
-                    cross_pairs_for_cosine, query_spectra, lib_specs
-                )
-                for (i, j), score in cross_cos.items():
-                    cosine_pairs[(query_ids[i], str(j))] = score
+        # Compute cosine for query-vs-library pairs if requested
+        if "cosine" in self._engine.additional_similarities and query_to_lib_indices:
+            lib_specs = self.library_spectra
+            
+            if lib_specs is not None and len(lib_specs) > 0:
+                print(f"  [query_vs_library] Computing cosine for {len(query_to_lib_indices)} queries against library...")
+                
+                # Compute cosine efficiently: one query at a time against all its matching library spectra
+                for qi, lib_indices in query_to_lib_indices.items():
+                    cosine_scores = self._engine._compute_cosine_for_query_vs_library(
+                        query_spectrum=query_spectra[qi],
+                        query_precursor_mz=query_precursor_mzs[qi],
+                        library_indices=lib_indices,
+                        lib_specs=lib_specs,
+                    )
+                    
+                    # Store results
+                    for lib_idx, score in cosine_scores.items():
+                        cosine_pairs[(query_ids[qi], str(lib_idx))] = score
+                
+                print(f"  [query_vs_library] Stored {len(cosine_pairs)} cosine pairs")
+            else:
+                print(f"  [query_vs_library] WARNING: library_spectra not provided, skipping cosine computation for query-vs-library")
 
         combined: dict[str, dict[tuple[str, str], float]] = {"entropy_similarity": entropy_pairs}
         if cosine_pairs:
             combined["cosine"] = cosine_pairs
         self._update_matrices(combined)
+
+        # ── Stage 3: Library-vs-Library (optional, filtered) ──────────────────
+        # Only executed when hydrate_library_similarities=True.
+        # Identifies library spectra that matched any query above
+        # library_similarity_threshold, then computes all-vs-all similarities
+        # within that filtered subset.
+        if hydrate_library_similarities:
+            # Collect unique library indices that passed the threshold
+            matched_lib_indices: list[int] = sorted(
+                {
+                    int(lib_id)
+                    for (q_id, lib_id), score in entropy_pairs.items()
+                    if q_id in set(query_ids) and score >= library_similarity_threshold
+                }
+            )
+
+            n_matched = len(matched_lib_indices)
+            print(
+                f"  [query_vs_library] Stage 3 – library-vs-library for "
+                f"{n_matched} matched library spectra "
+                f"(threshold={library_similarity_threshold}) …"
+            )
+
+            if n_matched > 1:
+                matched_lib_ids = [str(i) for i in matched_lib_indices]
+                ll_scores = self._engine.compute_library_vs_library_filtered(
+                    library_indices=matched_lib_indices,
+                    spectrum_ids=matched_lib_ids,
+                )
+                self._update_matrices(ll_scores)
+                n_ll_pairs = sum(
+                    len(v) for v in ll_scores.values()
+                )
+                print(
+                    f"  [query_vs_library] Stage 3 complete – "
+                    f"{n_ll_pairs} library-vs-library pairs stored."
+                )
+            else:
+                print(
+                    f"  [query_vs_library] Stage 3 skipped – "
+                    f"fewer than 2 library spectra matched the threshold."
+                )
 
     def get_network_edges(
         self, metric: str = "entropy_similarity"
@@ -642,7 +707,6 @@ class MolecularNetwork:
         self._all_query_spectra = []
         self._all_query_ids = []
         self._all_query_precursor_mzs = []
-        self._all_query_lib_indices = []
         self._has_queries_run = False
 
         # Recreate empty similarity matrices for each metric
