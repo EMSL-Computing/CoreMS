@@ -1776,8 +1776,8 @@ class LipidomicsExport(LCMSMetabolomicsExport):
         columns_to_drop = [
             "precursor_mz",
             "precursor_mz_error_ppm",
-            "metabref_mol_id",
-            "metabref_precursor_mz",
+            "ref_mol_id",
+            "ref_precursor_mz",
             "cas",
             "inchikey",
             "inchi",

@@ -34,6 +34,8 @@ test-source:
     - python3 -m pip install -r requirements.txt
     - python3 -m pip install pytest pytest-cov
     - python3 -m pip install psycopg2
+    - export COREMS_LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite"
+    - make download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$COREMS_LIPIDOMICS_SQLITE_PATH"
     - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
     - export PYTHONNET_RUNTIME=coreclr
     - pytest --cache-clear

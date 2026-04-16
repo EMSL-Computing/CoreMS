@@ -901,7 +901,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         Parameters
         -----------
         molecular_metadata :  dict of MolecularMetadata objects
-            A dictionary of MolecularMetadata objects, keyed by metabref_mol_id.  Defaults to None.
+            A dictionary of MolecularMetadata objects, keyed by ref_mol_id. Defaults to None.
 
         Returns
         --------
