@@ -12,8 +12,7 @@ from pandas.core.frame import DataFrame
 from s3path import S3Path
 
 from corems.encapsulation.constant import Labels
-from corems.encapsulation.factory.parameters import default_parameters
-from corems.encapsulation.factory.processingSetting import DataInputSetting
+from corems.encapsulation.factory.parameters import MSParameters, default_parameters
 from corems.encapsulation.input.parameter_from_json import (
     load_and_set_parameters_class,
     load_and_set_parameters_ms,
@@ -112,7 +111,7 @@ class MassListBaseClass:
 
         self.sample_name = sample_name
 
-        self._parameters = deepcopy(DataInputSetting())
+        self._parameters = deepcopy(MSParameters.data_input)
 
     @property
     def parameters(self):
