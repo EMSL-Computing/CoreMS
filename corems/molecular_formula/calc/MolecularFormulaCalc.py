@@ -5,7 +5,7 @@ __date__ = "Jun 24, 2019"
 import warnings
 
 import IsoSpecPy
-from numpy import array, exp, isnan, nextafter, power
+from numpy import array, ceil, exp, floor, isnan, nextafter, power, rint
 
 # this is to handle both versions of IsoSpecPy, 2.0.2 and 2.2.2
 # TODO in a future release remove support for legacy isospecpy
@@ -711,13 +711,30 @@ class MolecularFormulaCalc:
         tuple
             The tuple of the KMD, Kendrick mass, and nominal Kendrick mass.
         """
+        if hasattr(self, "_mspeak_parent") and self._mspeak_parent:
+            kendrick_rounding_method = (
+                self._mspeak_parent._ms_parent.mspeaks_settings.kendrick_rounding_method
+            )
+        else:
+            kendrick_rounding_method = MSParameters.ms_peak.kendrick_rounding_method
+
         mass = 0
         for atom in dict_base.keys():
             mass = mass + Atoms.atomic_masses.get(atom) * dict_base.get(atom)
 
         kendrick_mass = (int(mass) / mass) * self.mz_calc
 
-        nominal_km = int(kendrick_mass)
+        if kendrick_rounding_method == "ceil":
+            nominal_km = ceil(kendrick_mass)
+        elif kendrick_rounding_method == "round":
+            nominal_km = rint(kendrick_mass)
+        elif kendrick_rounding_method == "floor":
+            nominal_km = floor(kendrick_mass)
+        else:
+            raise Exception(
+                "%s method was not implemented, please refer to corems.ms_peak.calc.MSPeakCalc Class"
+                % kendrick_rounding_method
+            )
 
         kmd = (nominal_km - kendrick_mass) * 100
 
