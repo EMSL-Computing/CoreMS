@@ -31,16 +31,18 @@ _PRECURSOR_REQUIRED = {"identity", "neutral_loss"}
 
 
 class MolecularNetwork:
-    """Build and query a molecular network from a collection of mass spectra.
+    """Build and query a molecular network around a reference library.
 
-    Initialization is **lazy** – no similarity computation happens until you
+    Initialization is **lazy** - no similarity computation happens until you
     explicitly call :meth:`query_vs_library`.
 
     Parameters
     ----------
     fe_lib : ms_entropy.FlashEntropySearch
         Pre-built FlashEntropy search instance (built from the reference
-        library).  Used for query-vs-library similarity computation.
+        library).  Used for query-vs-library similarity computation and for
+        building properly configured cleaning methods for input spectra.
+        Tolerance parameters are automatically extracted from this library.
     search_type : str
         FlashEntropy search mode: ``"identity"``, ``"open"``, or
         ``"neutral_loss"``.  Default ``"identity"``.
@@ -52,15 +54,12 @@ class MolecularNetwork:
         metric's network when score >= threshold.  Metrics not listed use
         a default of 0.5.
         Example: ``{"entropy_similarity": 0.5, "cosine": 0.6}``
-    peak_sep_da : float
-        Minimum m/z separation between peaks (Da).  Default 0.01.
-    ms1_tolerance_da : float
-        Precursor m/z tolerance (Da) for identity/neutral_loss.  Default 0.01.
-    ms2_tolerance_da : float
-        Fragment m/z tolerance (Da) for FlashEntropy search.  Default 0.005.
+    ms1_tolerance_da : float, optional
+        Precursor m/z tolerance (Da) for identity search only.
+        If None (default) and identity search is selected, uses 0.01 Da.
     entropy_threshold_low : float
         Minimum entropy similarity score required to trigger additional metric
-        computation.  Default 0.1.
+        computation.  Default 0.05.
     use_parallel : bool
         Enable multiprocessing for additional metric computation.  Default True.
     n_jobs : int
@@ -70,6 +69,16 @@ class MolecularNetwork:
     ----------
     similarity_matrices : dict of str → SimilarityMatrix
         One SimilarityMatrix per metric (``"entropy_similarity"``, ``"cosine"``, …).
+    
+    Notes
+    -----
+    The following parameters are automatically extracted from the FE library:
+    
+    - ``ms2_tolerance_da`` : From ``fe_lib.entropy_search.max_ms2_tolerance_in_da``
+    - ``peak_sep_da`` : Computed as ``2 * ms2_tolerance_da`` (FE requirement)
+    
+    This ensures all similarity calculations use the same cleaning parameters
+    as the FE library index.
     """
 
     def __init__(
@@ -78,13 +87,10 @@ class MolecularNetwork:
         search_type: str = "identity",
         additional_similarities: list[str] | None = None,
         similarity_thresholds: dict[str, float] | None = None,
-        peak_sep_da: float = 0.01,
-        ms1_tolerance_da: float = 0.01,
-        ms2_tolerance_da: float = 0.005,
-        entropy_threshold_low: float = 0.1,
+        ms1_tolerance_da: float | None = None,
+        entropy_threshold_low: float = 0.05,
         use_parallel: bool = True,
         n_jobs: int = -1,
-        library_spectra: list[dict] | None = None,
     ):
         if additional_similarities is None:
             additional_similarities = ["cosine"]
@@ -95,16 +101,14 @@ class MolecularNetwork:
         self.search_type = search_type
         self.additional_similarities = list(additional_similarities)
         self.similarity_thresholds = similarity_thresholds
-        self.library_spectra = library_spectra
 
         # Build the engine (wraps fe_lib + search parameters)
+        # Tolerance parameters are extracted from fe_lib automatically
         self._engine = SimilarityEngine(
             fe_lib=fe_lib,
             search_type=search_type,
             additional_similarities=additional_similarities,
-            peak_sep_da=peak_sep_da,
             ms1_tolerance_da=ms1_tolerance_da,
-            ms2_tolerance_da=ms2_tolerance_da,
             entropy_threshold_low=entropy_threshold_low,
             use_parallel=use_parallel,
             n_jobs=n_jobs,
@@ -303,27 +307,22 @@ class MolecularNetwork:
 
         # Compute cosine for query-vs-library pairs if requested
         if "cosine" in self._engine.additional_similarities and query_to_lib_indices:
-            lib_specs = self.library_spectra
+            print(f"  [query_vs_library] Computing cosine for {len(query_to_lib_indices)} queries against library...")
             
-            if lib_specs is not None and len(lib_specs) > 0:
-                print(f"  [query_vs_library] Computing cosine for {len(query_to_lib_indices)} queries against library...")
+            # Compute cosine efficiently: one query at a time against all its matching library spectra
+            # Cleaned peaks are extracted directly from the FE library
+            for qi, lib_indices in query_to_lib_indices.items():
+                cosine_scores = self._engine._compute_cosine_for_query_vs_library(
+                    query_spectrum=query_spectra[qi],
+                    query_precursor_mz=query_precursor_mzs[qi],
+                    library_indices=lib_indices,
+                )
                 
-                # Compute cosine efficiently: one query at a time against all its matching library spectra
-                for qi, lib_indices in query_to_lib_indices.items():
-                    cosine_scores = self._engine._compute_cosine_for_query_vs_library(
-                        query_spectrum=query_spectra[qi],
-                        query_precursor_mz=query_precursor_mzs[qi],
-                        library_indices=lib_indices,
-                        lib_specs=lib_specs,
-                    )
-                    
-                    # Store results
-                    for lib_idx, score in cosine_scores.items():
-                        cosine_pairs[(query_ids[qi], str(lib_idx))] = score
-                
-                print(f"  [query_vs_library] Stored {len(cosine_pairs)} cosine pairs")
-            else:
-                print(f"  [query_vs_library] WARNING: library_spectra not provided, skipping cosine computation for query-vs-library")
+                # Store results
+                for lib_idx, score in cosine_scores.items():
+                    cosine_pairs[(query_ids[qi], str(lib_idx))] = score
+            
+            print(f"  [query_vs_library] Stored {len(cosine_pairs)} cosine pairs")
 
         combined: dict[str, dict[tuple[str, str], float]] = {"entropy_similarity": entropy_pairs}
         if cosine_pairs:

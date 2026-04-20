@@ -108,6 +108,7 @@ for lib_idx, row in enumerate(df.itertuples(index=False)):
 
     name = getattr(row, "compound_name", None) or f"spectrum_{lib_idx}"
     spec_id = getattr(row, "spectra_id", None) or f"spec_{lib_idx:04d}"
+    spec_id = "MockSpec_" + str(spec_id)
     pmz = float(getattr(row, "precursormz", 0.0) or 0.0)
 
     all_spectra.append(MockSpectrum(noisy_mz, noisy_abun, name=name))
@@ -130,6 +131,7 @@ if len(df) > 0:
         control_id = "POSITIVE_CONTROL"
         control_pmz = float(control_row.precursormz or 0.0)
         control_spectra_id = control_row.spectra_id if hasattr(control_row, 'spectra_id') else f"spec_{control_idx:04d}"
+        control_spectra_id = "MockSpec_" + str(control_spectra_id)
         
         all_spectra.append(MockSpectrum(control_mz, control_abun, name=control_name))
         all_ids.append(control_id)
@@ -159,25 +161,25 @@ print("\n" + "=" * 65)
 print("STEP 3 – Create MolecularNetwork (open search)")
 print("=" * 65)
 
-# Convert dataframe to list of dicts for library_spectra parameter
-library_spectra = df.to_dict(orient="records")
-
+# Set up the MolecularNetwork with both entropy_similarity and cosine, using open search parameters.
+# Tolerance parameters (ms2_tolerance_da, peak_sep_da) are automatically extracted from fe_lib.
 network = MolecularNetwork(
     fe_lib=fe_lib,
     search_type="open",             # open search
     additional_similarities=["cosine"],
     similarity_thresholds={
-        "entropy_similarity": 0.3,      # lower threshold for demo data
+        "entropy_similarity": 0.3,
         "cosine": 0.3,
     },
-    peak_sep_da=0.02,
-    ms1_tolerance_da=0.05,             # generous tolerance for demo
-    ms2_tolerance_da=0.01,             # must be <= peak_sep_da / 2
-    entropy_threshold_low=0.05,        # trigger cosine for any non-trivial match
     use_parallel=False,                # keep demo single-threaded
-    n_jobs=1,
-    library_spectra=library_spectra,   # Pass library spectra for cosine computation
+    n_jobs=1
 )
+
+# Display extracted parameters from FE library
+print(f"\n  Tolerance parameters extracted from FE library:")
+print(f"    ms2_tolerance_da: {network._engine.ms2_tolerance_da}")
+print(f"    peak_sep_da: {network._engine.peak_sep_da}")
+print(f"    ms1_tolerance_da: {network._engine.ms1_tolerance_da}")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 4. Tiered query
