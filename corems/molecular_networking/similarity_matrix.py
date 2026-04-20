@@ -167,17 +167,6 @@ class SimilarityMatrix:
                 results.append((self._idx_to_id[i], self._idx_to_id[j], float(v)))
         return results
 
-    def to_dense(self) -> np.ndarray:
-        """Return the full similarity matrix as a dense numpy array.
-
-        Returns
-        -------
-        numpy.ndarray of shape (n, n)
-        """
-        if self._matrix is None:
-            return np.array([])
-        return self._matrix.toarray().astype(np.float32)
-
     def to_dataframe(self, threshold: float = 0.0) -> pd.DataFrame:
         """Return pairs above *threshold* as a pandas DataFrame.
 
