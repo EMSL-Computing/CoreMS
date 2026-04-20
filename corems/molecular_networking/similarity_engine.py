@@ -245,7 +245,7 @@ class SimilarityEngine:
             ms2_tolerance_in_da=self.ms2_tolerance_da,
             method={fe_method},
             precursor_ions_removal_da=None,
-            noise_threshold=0.0,
+            noise_threshold=0.0, #TODO: get this as an attribute from FE as well
             min_ms2_difference_in_da=self.peak_sep_da,
             target="cpu",
         )
@@ -394,63 +394,87 @@ class SimilarityEngine:
             "use compute_all_vs_all or compute_new_vs_existing."
         )
 
-    def _compute_entropy_matrix(
+    def _compute_entropy_matrix_and_pairs(
         self,
         spectra: list,
+        spectrum_ids: list[str],
         precursor_mzs: list[float | None],
-        lib_indices: list[int],
-    ) -> np.ndarray:
-        """Compute entropy similarity scores for all spectra against the library.
+        fe_lib_override=None,
+    ) -> tuple[dict[tuple[str, str], float], list[tuple[int, int]]]:
+        """Compute entropy similarity matrix and extract upper-triangle pairs.
+
+        Uses FlashEntropy's built-in search to efficiently compute the full
+        similarity matrix. Each spectrum is searched once against the library,
+        and pairwise scores are extracted from the result vectors.
 
         Parameters
         ----------
         spectra : list
-            Query spectra (objects with .mz_exp and .abundance).
+            Spectrum objects with .mz_exp and .abundance attributes.
+        spectrum_ids : list of str
+            User-provided IDs, one per spectrum.
         precursor_mzs : list of float or None
             Precursor m/z for each spectrum.
-        lib_indices : list of int
-            Library indices corresponding to each spectrum in *spectra*.
-            Used to extract pairwise scores from the full search result vector.
+        fe_lib_override : FlashEntropySearch, optional
+            FlashEntropy library to search against. If None, uses self.fe_lib.
 
         Returns
         -------
-        np.ndarray of shape (len(spectra), len(spectra))
-            Pairwise entropy similarity matrix.
+        entropy_pairs : dict mapping (id1, id2) → score
+            Upper-triangle pairs with score > 0.0
+        pairs_for_additional : list of (i, j)
+            Index pairs with score >= entropy_threshold_low (for additional metrics)
         """
         n = len(spectra)
-        scores = np.zeros((n, n), dtype=np.float32)
+        fe = fe_lib_override if fe_lib_override is not None else self.fe_lib
+        
+        # Build entropy similarity matrix using FE search
+        entropy_matrix = np.zeros((n, n), dtype=np.float32)
+        
         for i, (spec, pmz) in enumerate(zip(spectra, precursor_mzs)):
             peaks = self._peaks_array(spec)
             if peaks.shape[0] == 0:
                 continue
-            result_vec = self._clean_and_search(peaks, pmz)
+            # Search against the FE library
+            result_vec = self._clean_and_search(peaks, pmz, fe_lib_override=fe)
             # Extract scores for all spectra in our set
-            for j, lib_idx in enumerate(lib_indices):
-                if lib_idx is not None and lib_idx < len(result_vec):
-                    scores[i, j] = result_vec[lib_idx]
-        return scores
+            for j in range(n):
+                if j < len(result_vec):
+                    entropy_matrix[i, j] = result_vec[j]
+
+        # Extract upper-triangle pairs
+        entropy_pairs: dict[tuple[str, str], float] = {}
+        pairs_for_additional: list[tuple[int, int]] = []
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                score = float(entropy_matrix[i, j])
+                if score > 0.0:
+                    entropy_pairs[(spectrum_ids[i], spectrum_ids[j])] = score
+                    if score >= self.entropy_threshold_low:
+                        pairs_for_additional.append((i, j))
+
+        return entropy_pairs, pairs_for_additional
 
     def _compute_cosine_for_pairs(
         self,
         pairs: list[tuple[int, int]],
-        spectra_a: list,
-        spectra_b: list,
-        lib_indices_a: list[int | None] | None = None,
-        lib_indices_b: list[int | None] | None = None,
+        lib_indices: list[int | None],
         fe_lib_override = None,
     ) -> dict[tuple[int, int], float]:
         """Compute cosine similarity for a list of (i, j) index pairs.
 
+        Extracts cleaned peaks directly from the FlashEntropy library for all
+        unique spectrum indices referenced in the pairs list.
+
         Parameters
         ----------
         pairs : list of (i, j)
-            Index pairs into spectra_a and spectra_b respectively.
-        spectra_a, spectra_b : list
-            Spectrum objects.
-        lib_indices_a, lib_indices_b : list of int or None, optional
-            FlashEntropy library indices for spectra_a and spectra_b.
-            If provided, cleaned peaks extracted from FE library via fe_lib[idx]["peaks"].
-            All spectra must be indexed (no fallback to manual cleaning).
+            Index pairs. Both i and j are indices into the lib_indices list.
+        lib_indices : list of int or None
+            FlashEntropy library indices. For each index in pairs, lib_indices[index]
+            gives the FE library position. Cleaned peaks are extracted via
+            fe_lib[lib_indices[idx]]["peaks"]. All spectra must be indexed.
         fe_lib_override : FlashEntropySearch, optional
             FlashEntropy library to use. If None, uses self.fe_lib.
 
@@ -464,41 +488,28 @@ class SimilarityEngine:
         # Get FE library
         fe = fe_lib_override if fe_lib_override is not None else self.fe_lib
 
-        # Extract unique indices
-        unique_a = {i for i, _ in pairs}
-        unique_b = {j for _, j in pairs}
+        # Extract unique indices from all pairs
+        unique_indices = {i for i, _ in pairs} | {j for _, j in pairs}
 
-        # Extract cleaned peaks from FE library for spectra_a
-        cleaned_a = {}
-        for i in unique_a:
-            if lib_indices_a and lib_indices_a[i] is not None:
-                spec_dict = fe[lib_indices_a[i]]
-                cleaned_a[i] = spec_dict["peaks"]  # Already cleaned, sorted, normalized
+        # Extract cleaned peaks from FE library for all unique spectra
+        cleaned_peaks = {}
+        for idx in unique_indices:
+            if lib_indices[idx] is not None:
+                spec_dict = fe[lib_indices[idx]]
+                cleaned_peaks[idx] = spec_dict["peaks"]  # Already cleaned, sorted, normalized
             else:
                 raise ValueError(
-                    f"Spectrum index {i} in spectra_a has no library index. "
-                    "All spectra must be indexed in FlashEntropy library."
-                )
-
-        # Extract cleaned peaks from FE library for spectra_b
-        cleaned_b = {}
-        for j in unique_b:
-            if lib_indices_b and lib_indices_b[j] is not None:
-                spec_dict = fe[lib_indices_b[j]]
-                cleaned_b[j] = spec_dict["peaks"]
-            else:
-                raise ValueError(
-                    f"Spectrum index {j} in spectra_b has no library index. "
+                    f"Spectrum index {idx} has no library index. "
                     "All spectra must be indexed in FlashEntropy library."
                 )
 
         # Build worker args with cleaned peaks
         args = [
             (
-                cleaned_a[i][:, 0],  # m/z array (already sorted)
-                cleaned_a[i][:, 1],  # abundance array (already normalized)
-                cleaned_b[j][:, 0],
-                cleaned_b[j][:, 1],
+                cleaned_peaks[i][:, 0],  # m/z array (already sorted)
+                cleaned_peaks[i][:, 1],  # abundance array (already normalized)
+                cleaned_peaks[j][:, 0],
+                cleaned_peaks[j][:, 1],
                 self.ms2_tolerance_da,
             )
             for i, j in pairs
@@ -579,10 +590,7 @@ class SimilarityEngine:
             if metric == "cosine":
                 cosine_idx_scores = self._compute_cosine_for_pairs(
                     pairs_for_additional,
-                    spectra,
-                    spectra,
-                    lib_indices_a=lib_indices,
-                    lib_indices_b=lib_indices,
+                    lib_indices,
                 )
                 result["cosine"] = {
                     (spectrum_ids[i], spectrum_ids[j]): score
@@ -680,13 +688,15 @@ class SimilarityEngine:
             precursor_mzs = [None] * len(spectra)
 
         # Default FE kwargs mirror the main library settings
+        # Extract build_index parameters from the main FE library if available
+        # (these are stored as custom attributes by _build_flash_entropy_index)
         default_fe_kwargs = {
             "normalize_intensity": True,
-            "min_ms2_difference_in_da": self.peak_sep_da * 2,
+            "min_ms2_difference_in_da": self.peak_sep_da,  # Already 2x tolerance from extraction
             "max_ms2_tolerance_in_da": self.ms2_tolerance_da,
-            "max_indexed_mz": 3000,
-            "precursor_ions_removal_da": None,
-            "noise_threshold": 0,
+            "max_indexed_mz": getattr(self.fe_lib, "_build_max_indexed_mz", 3000),
+            "precursor_ions_removal_da": getattr(self.fe_lib, "_build_precursor_ions_removal_da", None),
+            "noise_threshold": getattr(self.fe_lib, "_build_noise_threshold", 0),
         }
         if fe_kwargs:
             default_fe_kwargs.update(fe_kwargs)
@@ -818,14 +828,17 @@ class SimilarityEngine:
     ) -> dict[str, dict[tuple[str, str], float]]:
         """Compute all-vs-all pairwise similarities using a provided FE library.
 
-        This is the same as :meth:`compute_all_vs_all` but uses
-        *fe_lib_override* instead of ``self.fe_lib``.  The library indices
-        are derived from the order of *spectra* (index 0, 1, 2, …).
+        Uses FlashEntropy's built-in search to efficiently compute the full
+        similarity matrix. Each spectrum is searched once against the library,
+        and pairwise scores are extracted from the result vectors.
+
+        This is much more efficient than calling _pairwise_entropy for each pair,
+        as it leverages FE's optimized search implementation.
 
         Parameters
         ----------
         spectra : list
-            Spectrum objects.
+            Spectrum objects with .mz_exp and .abundance attributes.
         spectrum_ids : list of str
             User-provided IDs, one per spectrum.
         precursor_mzs : list of float or None, optional
@@ -849,47 +862,27 @@ class SimilarityEngine:
         # Library indices are simply 0..n-1 (positions in fe_lib_override)
         lib_indices = list(range(n))
 
-        # Temporarily swap the FE library if an override is provided
-        original_fe_lib = self.fe_lib
-        if fe_lib_override is not None:
-            self.fe_lib = fe_lib_override
+        # ── Stage 1: Compute entropy similarity matrix using FE search ────────
+        entropy_pairs, pairs_for_additional = self._compute_entropy_matrix_and_pairs(
+            spectra, spectrum_ids, precursor_mzs, fe_lib_override
+        )
 
-        try:
-            entropy_pairs: dict[tuple[str, str], float] = {}
-            pairs_for_additional: list[tuple[int, int]] = []
+        result: dict[str, dict[tuple[str, str], float]] = {
+            "entropy_similarity": entropy_pairs
+        }
 
-            for i, j in combinations(range(n), 2):
-                score = self._pairwise_entropy(
-                    spectra[i], precursor_mzs[i],
-                    spectra[j], precursor_mzs[j],
-                    lib_indices[i],
-                    lib_indices[j],
+        # ── Stage 2: Compute additional metrics for pairs above threshold ────
+        fe = fe_lib_override if fe_lib_override is not None else self.fe_lib
+        for metric in self.additional_similarities:
+            if metric == "cosine":
+                cosine_idx_scores = self._compute_cosine_for_pairs(
+                    pairs_for_additional,
+                    lib_indices,
+                    fe_lib_override=fe,
                 )
-                if score > 0.0:
-                    entropy_pairs[(spectrum_ids[i], spectrum_ids[j])] = score
-                    if score >= self.entropy_threshold_low:
-                        pairs_for_additional.append((i, j))
-
-            result: dict[str, dict[tuple[str, str], float]] = {
-                "entropy_similarity": entropy_pairs
-            }
-
-            for metric in self.additional_similarities:
-                if metric == "cosine":
-                    cosine_idx_scores = self._compute_cosine_for_pairs(
-                        pairs_for_additional,
-                        spectra,
-                        spectra,
-                        lib_indices_a=lib_indices,
-                        lib_indices_b=lib_indices,
-                        fe_lib_override=fe_lib_override,
-                    )
-                    result["cosine"] = {
-                        (spectrum_ids[i], spectrum_ids[j]): score
-                        for (i, j), score in cosine_idx_scores.items()
-                    }
-        finally:
-            # Always restore the original FE library
-            self.fe_lib = original_fe_lib
+                result["cosine"] = {
+                    (spectrum_ids[i], spectrum_ids[j]): score
+                    for (i, j), score in cosine_idx_scores.items()
+                }
 
         return result
