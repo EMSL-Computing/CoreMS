@@ -129,14 +129,19 @@ if len(df) > 0:
         control_name = f"{control_row.compound_name}_EXACT_COPY"
         control_id = "POSITIVE_CONTROL"
         control_pmz = float(control_row.precursormz or 0.0)
+        control_spectra_id = control_row.spectra_id if hasattr(control_row, 'spectra_id') else f"spec_{control_idx:04d}"
         
         all_spectra.append(MockSpectrum(control_mz, control_abun, name=control_name))
         all_ids.append(control_id)
         all_precursor_mzs.append(control_pmz)
         
         print(f"\n  Added positive control: {control_id}")
-        print(f"    Exact copy of library[{control_idx}]: {control_row.compound_name}")
-        print(f"    Expected to match library[{control_idx}] with score ~1.0")
+        print(f"    Exact copy of dataframe row[{control_idx}]:")
+        print(f"      - compound_name: {control_row.compound_name}")
+        print(f"      - spectra_id: {control_spectra_id}")
+        print(f"      - precursor_mz: {control_pmz:.4f}")
+        print(f"      - n_peaks: {len(control_peaks)}")
+        print(f"    Note: FE library indices differ from dataframe indices (sorted by precursor m/z)")
 
 print(f"\n  Created {len(all_spectra)} query spectra ({len(all_spectra) - 1} noisy + 1 exact)")
 for i in range(min(3, len(all_spectra))):
@@ -203,7 +208,12 @@ print("\n" + "=" * 65)
 print("VALIDATION – Top library matches per query")
 print("=" * 65)
 
+# Record which library spectrum POSITIVE_CONTROL is copied from
+positive_control_source_idx = 0  # Set when creating POSITIVE_CONTROL above
+
 entropy_mat = network.similarity_matrices["entropy_similarity"]
+cosine_mat = network.similarity_matrices["cosine"]
+
 for qid in all_ids:
     neighbors = network.get_spectrum_neighbors(qid, metric="entropy_similarity")
     # Filter to library IDs only (numeric strings)
@@ -214,6 +224,57 @@ for qid in all_ids:
         print(f"  {qid:25s} → library[{top_match[0]:5s}]: {top_match[1]:.4f} {status}")
     else:
         print(f"  {qid:25s} → NO LIBRARY MATCHES")
+
+# Special validation for POSITIVE_CONTROL
+print("\n" + "=" * 65)
+print("POSITIVE_CONTROL Validation")
+print("=" * 65)
+print(f"  POSITIVE_CONTROL is an exact copy of dataframe row[{positive_control_source_idx}]")
+print(f"  Note: FE library indices may differ from dataframe indices (sorted by precursor m/z)")
+
+# Get top entropy match
+pc_entropy_neighbors = network.get_spectrum_neighbors("POSITIVE_CONTROL", metric="entropy_similarity")
+pc_lib_entropy = [(nid, score) for nid, score in pc_entropy_neighbors if nid.isdigit()]
+if pc_lib_entropy:
+    top_entropy_lib_id, top_entropy_score = pc_lib_entropy[0]
+    
+    # Try to get library spectrum info
+    try:
+        lib_spec = fe_lib[int(top_entropy_lib_id)]
+        lib_pmz = lib_spec.get("precursor_mz", "unknown")
+        lib_peaks_count = len(lib_spec.get("peaks", []))
+        print(f"\n  Top entropy match: library[{top_entropy_lib_id}]")
+        print(f"    - precursor_mz: {lib_pmz:.4f}")
+        print(f"    - n_peaks (cleaned): {lib_peaks_count}")
+        print(f"    - entropy similarity: {top_entropy_score:.6f}")
+    except:
+        print(f"\n  Top entropy match: library[{top_entropy_lib_id}] = {top_entropy_score:.6f}")
+    
+    if top_entropy_score >= 0.95:
+        print(f"    ✓ EXCELLENT (≥0.95)")
+    elif top_entropy_score >= 0.80:
+        print(f"    ✓ GOOD (≥0.80)")
+    else:
+        print(f"    ~ MODERATE (<0.80) - Expected ~1.0 for exact copy!")
+    
+    # Check cosine for the same library spectrum
+    cosine_score = cosine_mat.get_similarity("POSITIVE_CONTROL", top_entropy_lib_id)
+    print(f"\n  Cosine similarity to library[{top_entropy_lib_id}]: {cosine_score:.6f}")
+    if cosine_score >= 0.95:
+        print(f"    ✓ EXCELLENT (≥0.95)")
+    elif cosine_score >= 0.80:
+        print(f"    ✓ GOOD (≥0.80)")
+    else:
+        print(f"    ~ MODERATE (<0.80) - Expected ~1.0 for exact copy!")
+    
+    # Check consistency between metrics
+    if abs(top_entropy_score - cosine_score) < 0.1:
+        print(f"\n  ✓ Metrics are consistent (diff = {abs(top_entropy_score - cosine_score):.4f})")
+    else:
+        print(f"\n  ⚠ Metrics differ significantly (diff = {abs(top_entropy_score - cosine_score):.4f})")
+        print(f"     This suggests the metrics are using different cleaned spectra!")
+else:
+    print(f"\n  ✗ No library matches found!")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 5. Inspect per-stage results (renumbered from original step 5)

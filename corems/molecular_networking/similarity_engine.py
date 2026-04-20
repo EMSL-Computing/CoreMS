@@ -207,10 +207,13 @@ class SimilarityEngine:
     ) -> np.ndarray:
         """Run FlashEntropy search for one query spectrum.
 
+        The search() method will clean the spectrum internally, so we pass
+        raw peaks and let FE handle the cleaning to avoid double-cleaning.
+
         Parameters
         ----------
         peaks : np.ndarray of shape (N, 2)
-            [[mz, abundance], ...]
+            [[mz, abundance], ...] - raw peaks, will be cleaned by FE
         precursor_mz : float or None
             Required for identity/neutral_loss; ignored for open.
         fe_lib_override : optional
@@ -227,20 +230,15 @@ class SimilarityEngine:
         # Use a dummy precursor_mz for open search
         pmz = precursor_mz if precursor_mz is not None else 0.0
 
-        cleaned = fe.clean_spectrum_for_search(
-            precursor_mz=pmz,
-            peaks=peaks,
-            precursor_ions_removal_da=None,
-            noise_threshold=0.0,
-            min_ms2_difference_in_da=self.peak_sep_da,
-        )
-
+        # Pass raw peaks to search() - it will clean them internally
+        # This ensures consistent cleaning between library and query spectra
         search_kwargs: dict[str, Any] = dict(
-            peaks=cleaned,
+            peaks=peaks,  # Raw peaks - search() will clean them
             ms2_tolerance_in_da=self.ms2_tolerance_da,
             method={fe_method},
             precursor_ions_removal_da=None,
             noise_threshold=0.0,
+            min_ms2_difference_in_da=self.peak_sep_da,
             target="cpu",
         )
         if self.search_type in ("identity", "neutral_loss"):
@@ -263,10 +261,8 @@ class SimilarityEngine:
     ) -> dict[int, float]:
         """Compute cosine similarity for one query against multiple library spectra.
         
-        This is more efficient than computing cosine for each pair individually because:
-        1. We clean the query spectrum once
-        2. We use find_closest to match library peaks to query peaks
-        3. We compute cosine including all peaks (matched and unmatched)
+        Extracts cleaned peaks from the FlashEntropy library to ensure consistency
+        with entropy similarity calculations.
         
         Parameters
         ----------
@@ -277,7 +273,7 @@ class SimilarityEngine:
         library_indices : list of int
             Library indices to compute cosine against
         lib_specs : list
-            Library spectra (dicts with "peaks" key)
+            Library spectra (not used - kept for backward compatibility)
             
         Returns
         -------
@@ -312,11 +308,12 @@ class SimilarityEngine:
         # Compute cosine for each library spectrum
         cosine_scores = {}
         for lib_idx in library_indices:
-            if lib_idx >= len(lib_specs):
+            # Extract cleaned peaks from FE library (same as entropy similarity uses)
+            try:
+                lib_entry = self.fe_lib[lib_idx]
+                lib_peaks = lib_entry["peaks"]  # Already cleaned by FE!
+            except (IndexError, KeyError, TypeError):
                 continue
-            
-            lib_entry = lib_specs[lib_idx]
-            lib_peaks = np.asarray(lib_entry.get("peaks", []), dtype=float)
             
             if lib_peaks.ndim != 2 or lib_peaks.shape[1] < 2 or lib_peaks.shape[0] == 0:
                 continue
@@ -433,6 +430,9 @@ class SimilarityEngine:
         pairs: list[tuple[int, int]],
         spectra_a: list,
         spectra_b: list,
+        lib_indices_a: list[int | None] | None = None,
+        lib_indices_b: list[int | None] | None = None,
+        fe_lib_override = None,
     ) -> dict[tuple[int, int], float]:
         """Compute cosine similarity for a list of (i, j) index pairs.
 
@@ -442,6 +442,12 @@ class SimilarityEngine:
             Index pairs into spectra_a and spectra_b respectively.
         spectra_a, spectra_b : list
             Spectrum objects.
+        lib_indices_a, lib_indices_b : list of int or None, optional
+            FlashEntropy library indices for spectra_a and spectra_b.
+            If provided, cleaned peaks extracted from FE library via fe_lib[idx]["peaks"].
+            All spectra must be indexed (no fallback to manual cleaning).
+        fe_lib_override : FlashEntropySearch, optional
+            FlashEntropy library to use. If None, uses self.fe_lib.
 
         Returns
         -------
@@ -450,18 +456,44 @@ class SimilarityEngine:
         if not pairs:
             return {}
 
-        # TODO: Add spectrum cleaning step before cosine calculation.
-        # Currently, spectra are used directly without cleaning (e.g., via
-        # clean_spectrum_for_search()). This differs from query-vs-library
-        # cosine computation which cleans spectra first. Consider adding
-        # cleaning here for consistency and to improve cosine accuracy.
+        # Get FE library
+        fe = fe_lib_override if fe_lib_override is not None else self.fe_lib
 
+        # Extract unique indices
+        unique_a = {i for i, _ in pairs}
+        unique_b = {j for _, j in pairs}
+
+        # Extract cleaned peaks from FE library for spectra_a
+        cleaned_a = {}
+        for i in unique_a:
+            if lib_indices_a and lib_indices_a[i] is not None:
+                spec_dict = fe[lib_indices_a[i]]
+                cleaned_a[i] = spec_dict["peaks"]  # Already cleaned, sorted, normalized
+            else:
+                raise ValueError(
+                    f"Spectrum index {i} in spectra_a has no library index. "
+                    "All spectra must be indexed in FlashEntropy library."
+                )
+
+        # Extract cleaned peaks from FE library for spectra_b
+        cleaned_b = {}
+        for j in unique_b:
+            if lib_indices_b and lib_indices_b[j] is not None:
+                spec_dict = fe[lib_indices_b[j]]
+                cleaned_b[j] = spec_dict["peaks"]
+            else:
+                raise ValueError(
+                    f"Spectrum index {j} in spectra_b has no library index. "
+                    "All spectra must be indexed in FlashEntropy library."
+                )
+
+        # Build worker args with cleaned peaks
         args = [
             (
-                np.asarray(spectra_a[i].mz_exp, dtype=float),
-                np.asarray(spectra_a[i].abundance, dtype=float),
-                np.asarray(spectra_b[j].mz_exp, dtype=float),
-                np.asarray(spectra_b[j].abundance, dtype=float),
+                cleaned_a[i][:, 0],  # m/z array (already sorted)
+                cleaned_a[i][:, 1],  # abundance array (already normalized)
+                cleaned_b[j][:, 0],
+                cleaned_b[j][:, 1],
                 self.ms2_tolerance_da,
             )
             for i, j in pairs
@@ -541,7 +573,11 @@ class SimilarityEngine:
         for metric in self.additional_similarities:
             if metric == "cosine":
                 cosine_idx_scores = self._compute_cosine_for_pairs(
-                    pairs_for_additional, spectra, spectra
+                    pairs_for_additional,
+                    spectra,
+                    spectra,
+                    lib_indices_a=lib_indices,
+                    lib_indices_b=lib_indices,
                 )
                 result["cosine"] = {
                     (spectrum_ids[i], spectrum_ids[j]): score
@@ -639,14 +675,22 @@ class SimilarityEngine:
 
                 # cross-batch cosine
                 cross_cosine = self._compute_cosine_for_pairs(
-                    pairs_for_additional_cross, new_spectra, existing_spectra
+                    pairs_for_additional_cross,
+                    new_spectra,
+                    existing_spectra,
+                    lib_indices_a=new_lib_indices,
+                    lib_indices_b=existing_lib_indices,
                 )
                 for (i, j), score in cross_cosine.items():
                     metric_scores[(new_ids[i], existing_ids[j])] = score
 
                 # within-new cosine
                 new_cosine = self._compute_cosine_for_pairs(
-                    pairs_for_additional_new, new_spectra, new_spectra
+                    pairs_for_additional_new,
+                    new_spectra,
+                    new_spectra,
+                    lib_indices_a=new_lib_indices,
+                    lib_indices_b=new_lib_indices,
                 )
                 for (i, j), score in new_cosine.items():
                     metric_scores[(new_ids[i], new_ids[j])] = score
@@ -940,7 +984,12 @@ class SimilarityEngine:
             for metric in self.additional_similarities:
                 if metric == "cosine":
                     cosine_idx_scores = self._compute_cosine_for_pairs(
-                        pairs_for_additional, spectra, spectra
+                        pairs_for_additional,
+                        spectra,
+                        spectra,
+                        lib_indices_a=lib_indices,
+                        lib_indices_b=lib_indices,
+                        fe_lib_override=fe_lib_override,
                     )
                     result["cosine"] = {
                         (spectrum_ids[i], spectrum_ids[j]): score
