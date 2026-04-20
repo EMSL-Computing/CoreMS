@@ -328,6 +328,11 @@ class SpectralDatabaseInterface(ABC):
         fe_index_kws = {k: v for k, v in fe_kwargs.items() if k in fe_index_kws}
         fes.build_index(fe_lib, **fe_index_kws, clean_spectra=clean_spectra)
 
+        # Store build_index parameters as custom attributes for later retrieval
+        # (FlashEntropy doesn't store these natively)
+        for key, value in fe_index_kws.items():
+            setattr(fes, f"_build_{key}", value)
+
         return fes
 
 

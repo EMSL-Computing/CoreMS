@@ -31,7 +31,7 @@ _PRECURSOR_REQUIRED = {"identity", "neutral_loss"}
 
 
 class MolecularNetwork:
-    """Build and query a molecular network around a reference library.
+    """Build a molecular network around a reference library.
 
     Initialization is **lazy** - no similarity computation happens until you
     explicitly call :meth:`query_vs_library`.
@@ -242,9 +242,6 @@ class MolecularNetwork:
         # ── Stage 1: Query-vs-Query ───────────────────────────────────────────
         # Build a temporary FE index from the query spectra, then search
         # each query against it to get all-vs-all query-vs-query scores.
-        print(f"  [query_vs_library] Computing query-vs-query "
-              f"({n_query} × {n_query} = {n_query * (n_query - 1) // 2} pairs) …")
-
         # Build a temporary FE index from the query spectra and compute all-vs-all
         query_fe_lib = self._engine.build_fe_index_from_spectra(
             spectra=self._all_query_spectra,
@@ -265,7 +262,6 @@ class MolecularNetwork:
         # ── Stage 2: Query-vs-Library ─────────────────────────────────────────
         # Use the pre-built library FE index (self.fe_lib) to search each
         # query spectrum against the full library.
-        print(f"  [query_vs_library] Computing query-vs-library against internal FE library …")
 
         entropy_pairs: dict[tuple[str, str], float] = {}
         cosine_pairs: dict[tuple[str, str], float] = {}

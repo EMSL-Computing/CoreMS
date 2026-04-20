@@ -175,12 +175,6 @@ network = MolecularNetwork(
     n_jobs=1
 )
 
-# Display extracted parameters from FE library
-print(f"\n  Tolerance parameters extracted from FE library:")
-print(f"    ms2_tolerance_da: {network._engine.ms2_tolerance_da}")
-print(f"    peak_sep_da: {network._engine.peak_sep_da}")
-print(f"    ms1_tolerance_da: {network._engine.ms1_tolerance_da}")
-
 # ─────────────────────────────────────────────────────────────────────────────
 # 4. Tiered query
 #    Stage 1: Query-vs-Query
@@ -196,7 +190,6 @@ print("\n  Stage 1 + 2: query-vs-query and query-vs-library …")
 network.query_vs_library(
     query_spectra=all_spectra,
     query_ids=all_ids,
-    query_precursor_mzs=all_precursor_mzs,
     hydrate_library_similarities=True,
     library_similarity_threshold=LIBRARY_SIMILARITY_THRESHOLD,
 )
