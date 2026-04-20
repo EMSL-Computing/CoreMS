@@ -131,18 +131,16 @@ class SimilarityEngine:
     ----------
     fe_lib : ms_entropy.FlashEntropySearch
         Pre-built FlashEntropy search instance (from MSPInterface._to_flashentropy).
+        Tolerance parameters are extracted from this library to ensure compatibility.
     search_type : str
         FlashEntropy search mode: ``"identity"``, ``"open"``, or ``"neutral_loss"``.
         Default ``"identity"``.
     additional_similarities : list of str, optional
         Extra similarity metrics to compute for pairs passing the entropy threshold.
         Currently supported: ``["cosine"]``.  Default ``["cosine"]``.
-    peak_sep_da : float
-        Minimum m/z separation between peaks (Da).  Default 0.01.
-    ms1_tolerance_da : float
-        Precursor m/z tolerance (Da) for identity/neutral_loss search.  Default 0.01.
-    ms2_tolerance_da : float
-        Fragment m/z tolerance (Da) for FlashEntropy search.  Default 0.005.
+    ms1_tolerance_da : float, optional
+        Precursor m/z tolerance (Da) for identity/neutral_loss search.
+        If None (default), uses a reasonable default of 0.01 Da.
     entropy_threshold_low : float
         Minimum entropy similarity score required to trigger additional metric
         computation.  Default 0.1.
@@ -150,6 +148,16 @@ class SimilarityEngine:
         Enable multiprocessing for additional metric computation.  Default True.
     n_jobs : int
         Number of worker processes.  -1 uses all available cores.  Default -1.
+    
+    Notes
+    -----
+    The following parameters are extracted from the FE library and cannot be overridden:
+    
+    - ``ms2_tolerance_da`` : Extracted from ``fe_lib.entropy_search.max_ms2_tolerance_in_da``
+    - ``peak_sep_da`` : Computed as ``2 * ms2_tolerance_da`` (FE requirement)
+    
+    This ensures that all similarity calculations use the same cleaning parameters
+    as the FE library index.
     """
 
     def __init__(
@@ -157,9 +165,7 @@ class SimilarityEngine:
         fe_lib,
         search_type: str = "identity",
         additional_similarities: list[str] | None = None,
-        peak_sep_da: float = 0.01,
-        ms1_tolerance_da: float = 0.01,
-        ms2_tolerance_da: float = 0.005,
+        ms1_tolerance_da: float | None = None,
         entropy_threshold_low: float = 0.1,
         use_parallel: bool = True,
         n_jobs: int = -1,
@@ -180,11 +186,13 @@ class SimilarityEngine:
 
         self.fe_lib = fe_lib
         self.search_type = search_type
-        #TODO KRH: Check that the additional similarity searches are done in the same manner (open vs neutral loss)
         self.additional_similarities = list(additional_similarities)
-        self.peak_sep_da = peak_sep_da
-        self.ms1_tolerance_da = ms1_tolerance_da
-        self.ms2_tolerance_da = ms2_tolerance_da
+        
+        # Extract tolerance parameters from FE library to ensure compatibility
+        self.ms2_tolerance_da = fe_lib.entropy_search.max_ms2_tolerance_in_da
+        self.peak_sep_da = 2 * self.ms2_tolerance_da
+        self.ms1_tolerance_da = ms1_tolerance_da if ms1_tolerance_da is not None else 0.01
+        
         self.entropy_threshold_low = entropy_threshold_low
         self.use_parallel = use_parallel
         self.n_jobs = (
@@ -257,12 +265,11 @@ class SimilarityEngine:
         query_spectrum,
         query_precursor_mz: float | None,
         library_indices: list[int],
-        lib_specs: list,
     ) -> dict[int, float]:
         """Compute cosine similarity for one query against multiple library spectra.
         
-        Extracts cleaned peaks from the FlashEntropy library to ensure consistency
-        with entropy similarity calculations.
+        Extracts cleaned peaks directly from the FlashEntropy library to ensure
+        consistency with entropy similarity calculations.
         
         Parameters
         ----------
@@ -272,8 +279,6 @@ class SimilarityEngine:
             Precursor m/z for the query
         library_indices : list of int
             Library indices to compute cosine against
-        lib_specs : list
-            Library spectra (not used - kept for backward compatibility)
             
         Returns
         -------
