@@ -270,7 +270,8 @@ class MolecularNetwork:
         query_to_lib_indices: dict[int, list[int]] = {}
 
         lib_size = 0
-        # For each query, search against the FE library and collect scores
+        
+        # Search each query against library
         for qi, (spec, pmz) in enumerate(zip(query_spectra, query_precursor_mzs)):
             peaks = self._engine._peaks_array(spec)
             if peaks.shape[0] == 0:

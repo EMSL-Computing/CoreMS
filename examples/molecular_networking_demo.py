@@ -171,8 +171,8 @@ network = MolecularNetwork(
         "entropy_similarity": 0.3,
         "cosine": 0.3,
     },
-    use_parallel=False,                # keep demo single-threaded
-    n_jobs=1
+    use_parallel=False,                # disable parallel processing
+    n_jobs=1                           # single core
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
