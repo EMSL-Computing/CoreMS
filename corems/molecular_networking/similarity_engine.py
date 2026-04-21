@@ -512,8 +512,18 @@ class SimilarityEngine:
         ]
 
         if self.use_parallel and len(args) > 1 and self.n_jobs > 1:
-            with multiprocessing.Pool(min(self.n_jobs, len(args))) as pool:
-                cosine_scores = pool.map(_compute_cosine_pair, args)
+            # Batch pairs into chunks to reduce pool overhead
+            n_workers = min(self.n_jobs, len(args))
+            chunk_size = max(1, len(args) // (n_workers * 4))  # 4 chunks per worker
+            
+            def _compute_cosine_batch(batch):
+                return [_compute_cosine_pair(a) for a in batch]
+            
+            chunks = [args[i:i+chunk_size] for i in range(0, len(args), chunk_size)]
+            
+            with multiprocessing.Pool(n_workers) as pool:
+                results = pool.map(_compute_cosine_batch, chunks)
+                cosine_scores = [score for batch in results for score in batch]
         else:
             cosine_scores = [_compute_cosine_pair(a) for a in args]
 
