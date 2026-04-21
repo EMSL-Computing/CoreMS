@@ -89,7 +89,6 @@ class SimilarityMatrix:
         new_ids = [sid for sid in spectrum_ids if sid not in self._id_to_idx]
         if not new_ids:
             return
-        start = len(self._idx_to_id)
         for sid in new_ids:
             self._id_to_idx[sid] = len(self._idx_to_id)
             self._idx_to_id.append(sid)
