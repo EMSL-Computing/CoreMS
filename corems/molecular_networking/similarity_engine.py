@@ -401,11 +401,13 @@ class SimilarityEngine:
         precursor_mzs: list[float | None],
         fe_lib_override=None,
     ) -> tuple[dict[tuple[str, str], float], list[tuple[int, int]]]:
-        """Compute entropy similarity matrix and extract upper-triangle pairs.
+        """Compute entropy similarity and extract upper-triangle pairs.
 
-        Uses FlashEntropy's built-in search to efficiently compute the full
-        similarity matrix. Each spectrum is searched once against the library,
+        Uses FlashEntropy's built-in search to efficiently compute pairwise
+        similarities. Each spectrum is searched once against the library,
         and pairwise scores are extracted from the result vectors.
+        
+        Streams results directly to sparse storage without building dense matrix.
 
         Parameters
         ----------
@@ -428,8 +430,9 @@ class SimilarityEngine:
         n = len(spectra)
         fe = fe_lib_override if fe_lib_override is not None else self.fe_lib
         
-        # Build entropy similarity matrix using FE search
-        entropy_matrix = np.zeros((n, n), dtype=np.float32)
+        # Stream results directly to sparse storage (no dense intermediate)
+        entropy_pairs: dict[tuple[str, str], float] = {}
+        pairs_for_additional: list[tuple[int, int]] = []
         
         for i, (spec, pmz) in enumerate(zip(spectra, precursor_mzs)):
             peaks = self._peaks_array(spec)
@@ -437,22 +440,15 @@ class SimilarityEngine:
                 continue
             # Search against the FE library
             result_vec = self._clean_and_search(peaks, pmz, fe_lib_override=fe)
-            # Extract scores for all spectra in our set
-            for j in range(n):
-                if j < len(result_vec):
-                    entropy_matrix[i, j] = result_vec[j]
-
-        # Extract upper-triangle pairs
-        entropy_pairs: dict[tuple[str, str], float] = {}
-        pairs_for_additional: list[tuple[int, int]] = []
-
-        for i in range(n):
+            
+            # Extract upper-triangle pairs only (j > i)
             for j in range(i + 1, n):
-                score = float(entropy_matrix[i, j])
-                if score > 0.0:
-                    entropy_pairs[(spectrum_ids[i], spectrum_ids[j])] = score
-                    if score >= self.entropy_threshold_low:
-                        pairs_for_additional.append((i, j))
+                if j < len(result_vec):
+                    score = float(result_vec[j])
+                    if score > 0.0:
+                        entropy_pairs[(spectrum_ids[i], spectrum_ids[j])] = score
+                        if score >= self.entropy_threshold_low:
+                            pairs_for_additional.append((i, j))
 
         return entropy_pairs, pairs_for_additional
 
