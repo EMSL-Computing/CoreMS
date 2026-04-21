@@ -3,8 +3,8 @@ SimilarityEngine
 ================
 
 Computes pairwise spectral similarities between query spectra using:
-  1. FlashEntropy (fast, vectorized) – always computed first.
-  2. Additional metrics (e.g., cosine) – computed only for pairs that
+  1. FlashEntropy (fast, vectorized) - always computed first.
+  2. Additional metrics (e.g., cosine) - computed only for pairs that
      pass a low entropy-similarity threshold.
 
 Supports three FlashEntropy search modes:
@@ -22,8 +22,6 @@ from itertools import combinations
 from typing import Any
 
 import numpy as np
-
-from corems.mass_spectra.calc.lc_calc import find_closest
 
 # Supported additional similarity metrics
 _SUPPORTED_ADDITIONAL = {"cosine"}
@@ -303,9 +301,7 @@ class SimilarityEngine:
         Returns
         -------
         dict mapping library_idx → cosine score
-        """
-        from corems.mass_spectra.calc.lc_calc import find_closest
-        
+        """        
         # Get and clean query peaks (same as FlashEntropy does)
         query_peaks = self._peaks_array(query_spectrum)
         if query_peaks.shape[0] == 0:

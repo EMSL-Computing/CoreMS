@@ -17,7 +17,6 @@ SimilarityMatrix and can be queried independently.
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -364,8 +363,8 @@ class MolecularNetwork:
                 )
             else:
                 print(
-                    f"  [query_vs_library] Stage 3 skipped – "
-                    f"fewer than 2 library spectra matched the threshold."
+                    "  [query_vs_library] Stage 3 skipped – "
+                    "fewer than 2 library spectra matched the threshold."
                 )
 
     def get_network_edges(
