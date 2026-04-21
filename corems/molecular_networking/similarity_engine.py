@@ -36,30 +36,28 @@ _FE_METHOD_MAP = {
 }
 
 
-def _compute_cosine_pair(args):
-    """Worker function for multiprocessing: compute cosine similarity for one pair.
-
-    Uses tolerance-based peak matching to align spectra, then computes cosine on
-    aligned vectors including both matched and unmatched peaks (unmatched peaks
-    get 0 abundance in the other spectrum).
-
+def _align_and_compute_cosine(mz1, abun1, mz2, abun2, tolerance_da):
+    """Align two spectra by m/z tolerance and compute cosine similarity.
+    
+    Builds aligned vectors including both matched and unmatched peaks
+    (unmatched peaks get 0 abundance in the other spectrum).
+    
     Parameters
     ----------
-    args : tuple
-        (mz1, abun1, mz2, abun2, tolerance_da)
-        where tolerance_da is the m/z matching tolerance in Da.
-
+    mz1, abun1 : array-like
+        m/z and abundance arrays for spectrum 1 (will be sorted internally)
+    mz2, abun2 : array-like
+        m/z and abundance arrays for spectrum 2 (will be sorted internally)
+    tolerance_da : float
+        m/z matching tolerance in Da
+        
     Returns
     -------
     float
-        Cosine similarity score in [0, 1].
+        Cosine similarity score in [0, 1], or 0.0 on error
     """
-    if len(args) == 5:
-        mz1, abun1, mz2, abun2, tolerance_da = args
-    else:
-        mz1, abun1, mz2, abun2 = args
-        tolerance_da = 0.01
-
+    from corems.mass_spectra.calc.lc_calc import find_closest
+    
     try:
         # Convert to numpy arrays
         mz1 = np.asarray(mz1, dtype=float)
@@ -86,7 +84,6 @@ def _compute_cosine_pair(args):
         
         # For each peak in spec1, find match in spec2 or add as unmatched
         for i in range(len(mz1_sorted)):
-            # Find closest peak in spec2
             closest_idx = find_closest(mz2_sorted, np.array([mz1_sorted[i]]))[0]
             diff = abs(mz2_sorted[closest_idx] - mz1_sorted[i])
             
@@ -122,6 +119,29 @@ def _compute_cosine_pair(args):
         
     except Exception:
         return 0.0
+
+
+def _compute_cosine_pair(args):
+    """Worker function for multiprocessing: compute cosine similarity for one pair.
+
+    Parameters
+    ----------
+    args : tuple
+        (mz1, abun1, mz2, abun2, tolerance_da)
+        where tolerance_da is the m/z matching tolerance in Da.
+
+    Returns
+    -------
+    float
+        Cosine similarity score in [0, 1].
+    """
+    if len(args) == 5:
+        mz1, abun1, mz2, abun2, tolerance_da = args
+    else:
+        mz1, abun1, mz2, abun2 = args
+        tolerance_da = 0.01
+    
+    return _align_and_compute_cosine(mz1, abun1, mz2, abun2, tolerance_da)
 
 
 class SimilarityEngine:
@@ -331,45 +351,14 @@ class SimilarityEngine:
             lib_mz_sorted = lib_mz[lib_sort_idx]
             lib_abun_sorted = lib_abun[lib_sort_idx]
             
-            # Build aligned vectors including all peaks
-            vec_query = []
-            vec_lib = []
-            used_lib = np.zeros(len(lib_mz_sorted), dtype=bool)
-            
-            # For each query peak, find match in library or add as unmatched
-            for i in range(len(query_mz_sorted)):
-                closest_idx = find_closest(lib_mz_sorted, np.array([query_mz_sorted[i]]))[0]
-                diff = abs(lib_mz_sorted[closest_idx] - query_mz_sorted[i])
-                
-                if diff <= self.ms2_tolerance_da:
-                    # Matched peak
-                    vec_query.append(query_abun_sorted[i])
-                    vec_lib.append(lib_abun_sorted[closest_idx])
-                    used_lib[closest_idx] = True
-                else:
-                    # Unmatched query peak
-                    vec_query.append(query_abun_sorted[i])
-                    vec_lib.append(0.0)
-            
-            # Add unmatched library peaks
-            for j in range(len(lib_mz_sorted)):
-                if not used_lib[j]:
-                    vec_query.append(0.0)
-                    vec_lib.append(lib_abun_sorted[j])
-            
-            # Convert to numpy arrays
-            vec_query = np.array(vec_query, dtype=float)
-            vec_lib = np.array(vec_lib, dtype=float)
-            
-            # Compute cosine similarity
-            norm_query = np.linalg.norm(vec_query)
-            norm_lib = np.linalg.norm(vec_lib)
-            
-            if norm_query == 0 or norm_lib == 0:
-                continue
-            
-            cosine = np.dot(vec_query, vec_lib) / (norm_query * norm_lib)
-            cosine_scores[lib_idx] = float(np.clip(cosine, 0.0, 1.0))
+            # Use shared cosine computation
+            cosine = _align_and_compute_cosine(
+                query_mz_sorted, query_abun_sorted,
+                lib_mz_sorted, lib_abun_sorted,
+                self.ms2_tolerance_da
+            )
+            if cosine > 0.0:
+                cosine_scores[lib_idx] = cosine
         
         return cosine_scores
 
