@@ -56,16 +56,22 @@ class SimilarityMatrix:
             self._is_csr = False
 
     def _grow_matrix(self, new_size: int):
-        """Grow the sparse matrix to accommodate *new_size* spectra."""
+        """Grow the sparse matrix to accommodate *new_size* spectra.
+        
+        Uses 1.5x growth factor to reduce reallocation frequency.
+        """
         if self._matrix is None:
-            self._matrix = lil_matrix((new_size, new_size), dtype=np.float32)
+            # Pre-allocate with growth factor on first allocation
+            alloc_size = max(new_size, int(new_size * 1.5))
+            self._matrix = lil_matrix((alloc_size, alloc_size), dtype=np.float32)
             self._is_csr = False
         else:
             self._ensure_lil()
             old_size = self._matrix.shape[0]
             if new_size > old_size:
-                # Resize by creating a new larger matrix and copying
-                new_mat = lil_matrix((new_size, new_size), dtype=np.float32)
+                # Grow with 1.5x factor to reduce future reallocations
+                alloc_size = max(new_size, int(old_size * 1.5))
+                new_mat = lil_matrix((alloc_size, alloc_size), dtype=np.float32)
                 cx = self._matrix.tocsr()
                 new_mat[:old_size, :old_size] = cx
                 self._matrix = new_mat
@@ -137,8 +143,13 @@ class SimilarityMatrix:
         """Convert internal LIL matrix to CSR for efficient querying.
 
         Call this after all ``set_similarity`` calls for a batch are done.
+        Trims matrix to logical size (removes over-allocated space).
         """
         if self._matrix is not None and not self._is_csr:
+            logical_size = len(self._idx_to_id)
+            # Trim to logical size if over-allocated
+            if self._matrix.shape[0] > logical_size:
+                self._matrix = self._matrix[:logical_size, :logical_size]
             self._matrix = self._matrix.tocsr()
             self._is_csr = True
 
