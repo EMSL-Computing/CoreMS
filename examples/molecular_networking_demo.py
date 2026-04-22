@@ -174,7 +174,7 @@ def run_network_demo(search_type: str, label: str):
         n_jobs=1,
     )
 
-    run_stage3 = True
+    run_stage3 = False
 
     print("\n  Stage 1 + 2: query-vs-query and query-vs-library …")
     network.query_vs_library(

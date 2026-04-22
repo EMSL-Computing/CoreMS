@@ -155,6 +155,41 @@ class MolecularNetwork:
         for mat in self.similarity_matrices.values():
             mat.finalise()
 
+    def _export_node_id(self, node_id: str, query_id_set: set[str]) -> str:
+        """Return node ID for file export.
+
+        Query IDs are preserved as-is. Library nodes stored internally as
+        index strings are mapped to FlashEntropy entry ``spectra_id`` when
+        available (fallback to ``id``).
+        """
+        if node_id in query_id_set:
+            return node_id
+
+        try:
+            lib_idx = int(node_id)
+        except (TypeError, ValueError):
+            return node_id
+
+        if lib_idx < 0:
+            return node_id
+
+        try:
+            lib_entry = self.fe_lib[lib_idx]
+        except Exception:
+            return node_id
+
+        if not isinstance(lib_entry, dict):
+            return node_id
+
+        lib_id = lib_entry.get("spectra_id")
+        if lib_id is None:
+            lib_id = lib_entry.get("id")
+        if lib_id is None:
+            return node_id
+
+        lib_id_str = str(lib_id)
+        return lib_id_str if lib_id_str else node_id
+
     # ── Public API ────────────────────────────────────────────────────────────
 
     def query_vs_library(
@@ -501,9 +536,18 @@ class MolecularNetwork:
             Similarity metric.  Default ``"entropy_similarity"``.
         """
         edges = self.get_network_edges(metric=metric)
-        df = pd.DataFrame(edges, columns=["id1", "id2", "score"])
+        query_id_set = set(self._all_query_ids)
+        export_edges = [
+            (
+                self._export_node_id(id1, query_id_set),
+                self._export_node_id(id2, query_id_set),
+                score,
+            )
+            for id1, id2, score in edges
+        ]
+        df = pd.DataFrame(export_edges, columns=["id1", "id2", "score"])
         df.to_csv(path, index=False)
-        print(f"Saved edge list ({len(edges)} edges) to {path}")
+        print(f"Saved edge list ({len(export_edges)} edges) to {path}")
 
     def save_similarity_matrix(
         self,
