@@ -225,6 +225,61 @@ class SimilarityEngine:
         ab = np.asarray(spectrum.abundance, dtype=float)
         return np.column_stack((mz, ab))
 
+    def _require_precursor_mz(
+        self,
+        precursor_mz: float | None,
+        context: str,
+    ) -> float:
+        """Validate precursor m/z and return it as float."""
+        if precursor_mz is None:
+            raise ValueError(
+                f"{context} is missing precursor_mz, which is required for "
+                f"search_type='{self.search_type}'."
+            )
+
+        precursor = float(precursor_mz)
+        if not np.isfinite(precursor):
+            raise ValueError(
+                f"{context} has non-finite precursor_mz={precursor_mz!r}."
+            )
+        return precursor
+
+    def _transform_to_neutral_loss_space(
+        self,
+        peaks: np.ndarray,
+        precursor_mz: float | None,
+        context: str,
+    ) -> np.ndarray:
+        """Transform peaks from fragment m/z to neutral-loss mass space.
+
+        Neutral-loss mass is computed as:
+            neutral_loss_mz = precursor_mz - fragment_mz
+        """
+        precursor = self._require_precursor_mz(precursor_mz, context)
+        peaks = np.asarray(peaks, dtype=float)
+
+        if peaks.ndim != 2 or peaks.shape[1] < 2:
+            raise ValueError(
+                f"{context} peaks must be a 2D array with at least 2 columns; "
+                f"got shape={peaks.shape}."
+            )
+
+        if peaks.shape[0] == 0:
+            return peaks.copy()
+
+        # Neutral-loss masses are only valid for fragment_mz <= precursor_mz.
+        # Drop invalid fragment peaks to mirror the neutral-loss search domain.
+        valid_mask = peaks[:, 0] <= precursor
+        if not np.any(valid_mask):
+            return np.empty((0, peaks.shape[1]), dtype=float)
+
+        nl_peaks = peaks[valid_mask].copy()
+        nl_peaks[:, 0] = precursor - nl_peaks[:, 0]
+
+        # Keep deterministic ordering before downstream alignment.
+        sort_idx = np.argsort(nl_peaks[:, 0])
+        return nl_peaks[sort_idx]
+
     def _clean_and_search(
         self,
         peaks: np.ndarray,
@@ -253,13 +308,32 @@ class SimilarityEngine:
         fe_method, fe_key = _FE_METHOD_MAP[self.search_type]
         fe = fe_lib_override if fe_lib_override is not None else self.fe_lib
 
-        # Use a dummy precursor_mz for open search
-        pmz = precursor_mz if precursor_mz is not None else 0.0
+        if self.search_type in ("identity", "neutral_loss"):
+            pmz = self._require_precursor_mz(precursor_mz, "Query spectrum")
+        else:
+            # Use a dummy precursor_mz for open search
+            pmz = precursor_mz if precursor_mz is not None else 0.0
+
+        peaks_for_search = peaks
+        if self.search_type == "neutral_loss":
+            peaks_for_search = np.asarray(peaks, dtype=float)
+            if peaks_for_search.ndim != 2 or peaks_for_search.shape[1] < 2:
+                raise ValueError(
+                    f"Query spectrum peaks must be 2D with at least 2 columns for neutral_loss search; "
+                    f"got shape={peaks_for_search.shape}."
+                )
+            peaks_for_search = peaks_for_search[peaks_for_search[:, 0] <= pmz]
+            if peaks_for_search.shape[0] == 0:
+                try:
+                    lib_size = len(fe)
+                except TypeError:
+                    lib_size = len(getattr(fe, "precursor_mz_array", []))
+                return np.zeros(lib_size, dtype=float)
 
         # Pass raw peaks to search() - it will clean them internally
         # This ensures consistent cleaning between library and query spectra
         search_kwargs: dict[str, Any] = dict(
-            peaks=peaks,  # Raw peaks - search() will clean them
+            peaks=peaks_for_search,  # Raw peaks - search() will clean them
             ms2_tolerance_in_da=self.ms2_tolerance_da,
             method={fe_method},
             precursor_ions_removal_da=None,
@@ -315,9 +389,17 @@ class SimilarityEngine:
             noise_threshold=0.0,
             min_ms2_difference_in_da=self.peak_sep_da,
         )
+        cleaned_query = np.asarray(cleaned_query, dtype=float)
         
         if cleaned_query.shape[0] == 0:
             return {}
+
+        if self.search_type == "neutral_loss":
+            cleaned_query = self._transform_to_neutral_loss_space(
+                cleaned_query,
+                query_precursor_mz,
+                "Query spectrum",
+            )
         
         # Sort cleaned query peaks by m/z
         query_mz = cleaned_query[:, 0]
@@ -332,9 +414,16 @@ class SimilarityEngine:
             # Extract cleaned peaks from FE library (same as entropy similarity uses)
             try:
                 lib_entry = self.fe_lib[lib_idx]
-                lib_peaks = lib_entry["peaks"]  # Already cleaned by FE!
+                lib_peaks = np.asarray(lib_entry["peaks"], dtype=float)
             except (IndexError, KeyError, TypeError):
                 continue
+
+            if self.search_type == "neutral_loss":
+                lib_peaks = self._transform_to_neutral_loss_space(
+                    lib_peaks,
+                    lib_entry.get("precursor_mz"),
+                    f"Library spectrum at index {lib_idx}",
+                )
             
             if lib_peaks.ndim != 2 or lib_peaks.shape[1] < 2 or lib_peaks.shape[0] == 0:
                 continue
@@ -484,7 +573,20 @@ class SimilarityEngine:
         for idx in unique_indices:
             if lib_indices[idx] is not None:
                 spec_dict = fe[lib_indices[idx]]
-                cleaned_peaks[idx] = spec_dict["peaks"]  # Already cleaned, sorted, normalized
+                peaks = np.asarray(spec_dict["peaks"], dtype=float)
+                if peaks.ndim != 2 or peaks.shape[1] < 2:
+                    raise ValueError(
+                        f"Spectrum at library index {lib_indices[idx]} has invalid peaks shape={peaks.shape}."
+                    )
+
+                if self.search_type == "neutral_loss":
+                    peaks = self._transform_to_neutral_loss_space(
+                        peaks,
+                        spec_dict.get("precursor_mz"),
+                        f"Library spectrum at index {lib_indices[idx]}",
+                    )
+
+                cleaned_peaks[idx] = peaks
             else:
                 raise ValueError(
                     f"Spectrum index {idx} has no library index. "
@@ -768,18 +870,11 @@ class SimilarityEngine:
         if n == 0:
             return {}
 
-        # Extract spectra from the FE library
-        # FlashEntropy stores spectra in different attributes depending on version
-        # Try: spectra, library, or direct indexing via __getitem__
-        lib_spectra_raw = getattr(self.fe_lib, "spectra", None) or getattr(self.fe_lib, "library", None)
-        
-        if lib_spectra_raw is None:
-            # Try accessing via __getitem__ (fe_lib supports indexing)
-            # Build list by extracting each library_index
-            try:
-                lib_spectra_raw = [self.fe_lib[idx] for idx in library_indices]
-            except Exception as e:
-                return {}
+        # Always extract exactly the requested subset indices.
+        try:
+            lib_spectra_raw = [self.fe_lib[idx] for idx in library_indices]
+        except Exception:
+            return {}
 
         # Build lightweight spectrum objects from the raw library entries
         class _LibSpec:
@@ -791,8 +886,6 @@ class SimilarityEngine:
         lib_spectra: list = []
         lib_precursor_mzs: list[float | None] = []
 
-        # lib_spectra_raw is now a list built from library_indices
-        # So iterate by position, not by library_indices values
         for i, entry in enumerate(lib_spectra_raw):
             peaks = np.asarray(entry.get("peaks", []), dtype=float)
             if peaks.ndim != 2 or peaks.shape[1] < 2 or peaks.shape[0] == 0:

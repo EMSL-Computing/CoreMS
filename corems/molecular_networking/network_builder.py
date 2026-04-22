@@ -56,9 +56,9 @@ class MolecularNetwork:
     ms1_tolerance_da : float, optional
         Precursor m/z tolerance (Da) for identity search only.
         If None (default) and identity search is selected, uses 0.01 Da.
-    entropy_threshold_low : float
+    entropy_threshold_low : float | None
         Minimum entropy similarity score required to trigger additional metric
-        computation.  Default 0.05.
+        computation.  Default half of lowest non-entropy similarity threshold.
     use_parallel : bool
         Enable multiprocessing for additional metric computation.  Default True.
     n_jobs : int
@@ -87,7 +87,7 @@ class MolecularNetwork:
         additional_similarities: list[str] | None = None,
         similarity_thresholds: dict[str, float] | None = None,
         ms1_tolerance_da: float | None = None,
-        entropy_threshold_low: float = 0.05,
+        entropy_threshold_low: float | None = None,
         use_parallel: bool = True,
         n_jobs: int = -1,
     ):
@@ -95,6 +95,15 @@ class MolecularNetwork:
             additional_similarities = ["cosine"]
         if similarity_thresholds is None:
             similarity_thresholds = {}
+        
+        if entropy_threshold_low is None:
+            non_entropy_thresholds = [
+                v for k, v in similarity_thresholds.items() if k != "entropy_similarity"
+            ]
+            if non_entropy_thresholds:
+                entropy_threshold_low = min(non_entropy_thresholds) / 2
+            else:
+                entropy_threshold_low = 0.25 # Placeholder that won't be used if no additional similarities are computed
 
         self.fe_lib = fe_lib
         self.search_type = search_type
@@ -220,6 +229,11 @@ class MolecularNetwork:
                     f"query_precursor_mzs length ({len(query_precursor_mzs)}) "
                     f"must match query_spectra length ({n_query})."
                 )
+            if any(pmz is None for pmz in query_precursor_mzs):
+                raise ValueError(
+                    f"query_precursor_mzs contains None values for search_type='{self.search_type}'. "
+                    "Provide a valid precursor m/z for every query spectrum."
+                )
         else:
             query_precursor_mzs = [None] * n_query if query_precursor_mzs is None else query_precursor_mzs
 
@@ -304,6 +318,11 @@ class MolecularNetwork:
         # Compute cosine for query-vs-library pairs if requested
         if "cosine" in self._engine.additional_similarities and query_to_lib_indices:
             print(f"  [query_vs_library] Computing cosine for {len(query_to_lib_indices)} queries against library...")
+            if self.search_type == "neutral_loss":
+                print(
+                    "  [query_vs_library] neutral_loss mode: cosine computed in neutral-loss mass space "
+                    "(precursor_mz - fragment_mz)."
+                )
             
             # Compute cosine efficiently: one query at a time against all its matching library spectra
             # Cleaned peaks are extracted directly from the FE library
