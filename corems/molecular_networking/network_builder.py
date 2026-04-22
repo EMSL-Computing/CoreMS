@@ -156,7 +156,7 @@ class MolecularNetwork:
         fe_kwargs: dict | None = None,
         *,
         hydrate_library_similarities: bool = False,
-        library_similarity_threshold: float = 0.5,
+        library_similarity_threshold: float = 0.3,
     ):
         """Compute query-vs-query and query-vs-library similarities.
 

@@ -426,14 +426,21 @@ class SimilarityEngine:
             # Search against the FE library
             result_vec = self._clean_and_search(peaks, pmz, fe_lib_override=fe)
             
-            # Extract upper-triangle pairs only (j > i)
-            for j in range(i + 1, n):
-                if j < len(result_vec):
-                    score = float(result_vec[j])
-                    if score > 0.0:
-                        entropy_pairs[(spectrum_ids[i], spectrum_ids[j])] = score
-                        if score >= self.entropy_threshold_low:
-                            pairs_for_additional.append((i, j))
+            if result_vec is None or len(result_vec) == 0:
+                continue
+            
+            # Extract all pairs from result_vec, but only store upper-triangle (j > i)
+            # result_vec[j] contains the similarity score between spectrum i and library entry j
+            # When searching within same library (all-vs-all), result_vec has n entries
+            for j in range(min(len(result_vec), n)):
+                if j <= i:
+                    # Skip lower triangle and diagonal to avoid duplicates
+                    continue
+                score = float(result_vec[j])
+                if score > 0.0:
+                    entropy_pairs[(spectrum_ids[i], spectrum_ids[j])] = score
+                    if score >= self.entropy_threshold_low:
+                        pairs_for_additional.append((i, j))
 
         return entropy_pairs, pairs_for_additional
 
@@ -762,10 +769,17 @@ class SimilarityEngine:
             return {}
 
         # Extract spectra from the FE library
-        # ms_entropy stores spectra as a list of dicts with 'peaks' and 'precursor_mz'
+        # FlashEntropy stores spectra in different attributes depending on version
+        # Try: spectra, library, or direct indexing via __getitem__
         lib_spectra_raw = getattr(self.fe_lib, "spectra", None) or getattr(self.fe_lib, "library", None)
+        
         if lib_spectra_raw is None:
-            return {}
+            # Try accessing via __getitem__ (fe_lib supports indexing)
+            # Build list by extracting each library_index
+            try:
+                lib_spectra_raw = [self.fe_lib[idx] for idx in library_indices]
+            except Exception as e:
+                return {}
 
         # Build lightweight spectrum objects from the raw library entries
         class _LibSpec:
@@ -777,10 +791,9 @@ class SimilarityEngine:
         lib_spectra: list = []
         lib_precursor_mzs: list[float | None] = []
 
-        for li in library_indices:
-            if li >= len(lib_spectra_raw):
-                continue
-            entry = lib_spectra_raw[li]
+        # lib_spectra_raw is now a list built from library_indices
+        # So iterate by position, not by library_indices values
+        for i, entry in enumerate(lib_spectra_raw):
             peaks = np.asarray(entry.get("peaks", []), dtype=float)
             if peaks.ndim != 2 or peaks.shape[1] < 2 or peaks.shape[0] == 0:
                 continue
