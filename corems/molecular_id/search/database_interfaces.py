@@ -1,11 +1,10 @@
 import os
 import re
+import warnings
 from abc import ABC
 from io import StringIO
 from pathlib import Path
-import time
-import json
-import warnings
+import sqlite3
 
 import numpy as np
 import requests
@@ -223,7 +222,7 @@ class SpectralDatabaseInterface(ABC):
 
         raise ValueError(("{} not a supported format.").format(format))
 
-    def _dict_to_dataclass(self, metabref_lib, data_class):
+    def _dict_to_dataclass(self, source_dict, data_class):
         """
         Convert dictionary to dataclass.
 
@@ -237,8 +236,8 @@ class SpectralDatabaseInterface(ABC):
         ----------
         data_class : :obj:`~dataclasses.dataclass`
             Dataclass to convert to.
-        metabref_lib : dict
-            Metabref dictionary object to convert to dataclass.
+        source_dict : dict
+            Dictionary object to convert to dataclass.
 
         Returns
         -------
@@ -256,13 +255,40 @@ class SpectralDatabaseInterface(ABC):
             data_class_keys = list(set(data_class_keys + parent_class_keys))
 
         # Remove keys that are not in the data_class from the input dictionary
-        input_dict = {k: v for k, v in metabref_lib.items() if k in data_class_keys}
+        input_dict = {k: v for k, v in source_dict.items() if k in data_class_keys}
 
         # Add keys that are in the data class but not in the input dictionary as None
         for key in data_class_keys:
             if key not in input_dict.keys():
                 input_dict[key] = None
         return data_class(**input_dict)
+
+    def _spectrum_to_array(self, spectrum, normalize=True):
+        """
+        Convert a parenthesis-delimited spectrum string to array.
+
+        Parameters
+        ----------
+        spectrum : str
+            Spectrum string, i.e. list of (m/z,abundance) pairs.
+        normalize : bool
+            Normalize the spectrum by its magnitude.
+
+        Returns
+        -------
+        :obj:`~numpy.array`
+            Array of shape (N, 2), with m/z in the first column and abundance in
+            the second.
+        """
+
+        arr = np.array(
+            re.findall(r"\(([^,]+),([^)]+)\)", spectrum), dtype=float
+        ).reshape(-1, 2)
+
+        if normalize:
+            arr = self.normalize_peaks(arr)
+
+        return arr
 
     @staticmethod
     def normalize_peaks(arr):
@@ -333,126 +359,53 @@ class SpectralDatabaseInterface(ABC):
 
 class MetabRefInterface(SpectralDatabaseInterface):
     """
-    Interface to the Metabolomics Reference Database.
+    DEPRECATED interface retained for backward compatibility only.
     """
 
     def __init__(self):
         """
-        Initialize instance.
+        Initialize instance with deprecation warning.
 
         """
 
         super().__init__(key=None)
 
-    def spectrum_to_array(self, spectrum, normalize=True):
-        """
-        Convert MetabRef-formatted spectrum to array.
-
-        Parameters
-        ----------
-        spectrum : str
-            MetabRef spectrum, i.e. list of (m/z,abundance) pairs.
-        normalize : bool
-            Normalize the spectrum by its magnitude.
-
-        Returns
-        -------
-        :obj:`~numpy.array`
-            Array of shape (N, 2), with m/z in the first column and abundance in
-            the second.
-
-        """
-
-        # Convert parenthesis-delimited string to array
-        arr = np.array(
-            re.findall(r"\(([^,]+),([^)]+)\)", spectrum), dtype=float
-        ).reshape(-1, 2)
-
-        if normalize:
-            arr = self.normalize_peaks(arr)
-
-        return arr
-
-    def _to_flashentropy(self, metabref_lib, normalize=True, fe_kwargs={}):
-        """
-        Convert metabref-formatted library to FlashEntropy library.
-
-        Parameters
-        ----------
-        metabref_lib : dict
-            MetabRef MS2 library in JSON format or FlashEntropy search instance (for reformatting at different MS2 separation).
-        normalize : bool
-            Normalize each spectrum by its magnitude.
-        fe_kwargs : dict, optional
-            Keyword arguments for instantiation of FlashEntropy search and building index for FlashEntropy search;
-            any keys not recognized will be ignored. By default, all parameters set to defaults.
-
-        Returns
-        -------
-        :obj:`~ms_entropy.FlashEntropySearch`
-            MS2 library as FlashEntropy search instance.
-
-        Raises
-        ------
-        ValueError
-            If "min_ms2_difference_in_da" or "max_ms2_tolerance_in_da" are present in `fe_kwargs` and they are not equal.
-
-        """
-        self._check_flash_entropy_kwargs(fe_kwargs)
-
-        # Initialize empty library
-        fe_lib = []
-
-        # Enumerate spectra
-        for i, source in enumerate(metabref_lib):
-            # Reorganize source dict, if necessary
-            if "spectrum_data" in source.keys():
-                spectrum = source["spectrum_data"]
-            else:
-                spectrum = source
-
-            # Rename precursor_mz key for FlashEntropy
-            if "precursor_mz" not in spectrum.keys():
-                spectrum["precursor_mz"] = spectrum.pop("precursor_ion")
-
-            # Convert CoreMS spectrum to array and clean, store as `peaks`
-            spectrum["peaks"] = self.spectrum_to_array(
-                spectrum["mz"], normalize=normalize
+        if self.__class__ is MetabRefInterface:
+            warnings.warn(
+                "MetabRefInterface is deprecated. Instantiate a concrete interface "
+                "such as GCMSLibraryInterface or LCLipidLibraryInterface instead.",
+                DeprecationWarning,
+                stacklevel=2,
             )
 
-            # Add spectrum to library
-            fe_lib.append(spectrum)
 
-        # Build FlashEntropy index
-        fe_search = self._build_flash_entropy_index(fe_lib, fe_kwargs=fe_kwargs)
-
-        return fe_search
-
-    def get_query(self, url, use_header=False):
-        """Overwrites the get_query method on the parent class to default to not use a header
-
-        Notes
-        -----
-        As of January 2025, the metabref database no longer requires a token and therefore no header is needed
-
-        """
-        return super().get_query(url, use_header)
-
-
-class MetabRefGCInterface(MetabRefInterface):
+class GCMSLibraryInterface(SpectralDatabaseInterface):
     """
-    Interface to the Metabolomics Reference Database.
+    Interface to bundled GCMS spectral libraries in MSP format.
+    
+    Loads GCMS compound library and FAMES calibration library from local MSP files.
+    Default files are bundled with CoreMS, but can be overridden via environment variables.
     """
 
     def __init__(self):
         """
         Initialize instance.
-
         """
-
-        super().__init__()
-        self.GCMS_LIBRARY_URL = "https://metabref.emsl.pnnl.gov/api/mslevel/1"
-        self.FAMES_URL = "https://metabref.emsl.pnnl.gov/api/fames"
+        super().__init__(key=None)
+        
+        # Local data file paths
+        from pathlib import Path
+        
+        # Default to bundled data files
+        data_dir = Path(__file__).parent.parent / "data"
+        self.gcms_library_file = os.getenv(
+            "GCMS_LIBRARY_PATH", 
+            str(data_dir / "PNNLMetV20191015.msp")
+        )
+        self.fames_library_file = os.getenv(
+            "FAMES_LIBRARY_PATH",
+            str(data_dir / "FAMES_REF.msp")
+        )
 
         self.__init_format_map__()
 
@@ -498,12 +451,12 @@ class MetabRefGCInterface(MetabRefInterface):
 
     def get_library(self, format="json", normalize=False):
         """
-        Request MetabRef GC/MS library.
+        Load GC/MS library from local MSP file.
 
         Parameters
         ----------
         format : str
-            Format of requested library, i.e. "json", "sql", "flashentropy".
+            Format of requested library, i.e. "json", "sql", "dict".
             See `available_formats` method for aliases.
         normalize : bool
             Normalize the spectrum by its magnitude.
@@ -513,22 +466,23 @@ class MetabRefGCInterface(MetabRefInterface):
         Library in requested format.
 
         """
-
+        # Load from local MSP file
+        library_data = self._load_msp_file(self.gcms_library_file, normalize)
+        
         # Init format function
         format_func = self._get_format_func(format)
-
-        return format_func(
-            self.get_query(self.GCMS_LIBRARY_URL)["GC-MS"], normalize, {}
-        )
+        
+        # Apply format conversion
+        return format_func(library_data, normalize, {})
 
     def get_fames(self, format="json", normalize=False):
         """
-        Request MetabRef GC/MS FAMEs library.
+        Load GC/MS FAMEs library from local MSP file.
 
         Parameters
         ----------
         format : str
-            Format of requested library, i.e. "json", "sql", "flashentropy".
+            Format of requested library, i.e. "json", "sql", "dict".
             See `available_formats` method for aliases.
         normalize : bool
             Normalize the spectrum by its magnitude.
@@ -538,11 +492,128 @@ class MetabRefGCInterface(MetabRefInterface):
         Library in requested format.
 
         """
-
+        # Load from local MSP file
+        library_data = self._load_msp_file(self.fames_library_file, normalize)
+        
         # Init format function
         format_func = self._get_format_func(format)
-
-        return format_func(self.get_query(self.FAMES_URL)["GC-MS"], normalize, {})
+        
+        # Apply format conversion
+        return format_func(library_data, normalize, {})
+    
+    def _load_msp_file(self, file_path, normalize=False):
+        """
+        Load and parse MSP file into format compatible with existing pipeline.
+        
+        Parameters
+        ----------
+        file_path : str
+            Path to MSP file
+        normalize : bool
+            Normalize spectra
+            
+        Returns
+        -------
+        list of dict
+            Library data in format compatible with _to_LowResolutionEICompound_dict
+        """
+        from pathlib import Path
+        
+        file_path = Path(file_path)
+        if not file_path.exists():
+            raise FileNotFoundError(
+                f"Library file not found: {file_path}. "
+                f"Set GCMS_LIBRARY_PATH or FAMES_LIBRARY_PATH environment variable to specify location."
+            )
+        
+        # Parse MSP file
+        spectra = []
+        spectrum = {}
+        peaks = []
+        
+        with open(file_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                
+                # Empty line marks end of spectrum
+                if not line:
+                    if spectrum and peaks:
+                        # Convert peaks to the format expected by downstream code
+                        # Format: "(mz,abundance)(mz,abundance)..."
+                        peak_str = "".join([f"({int(mz)},{int(abun)})" for mz, abun in peaks])
+                        spectrum['mz'] = peak_str
+                        spectra.append(spectrum)
+                    spectrum = {}
+                    peaks = []
+                    continue
+                
+                # Check if line contains peak data (starts with digit)
+                if line and line[0].isdigit():
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        peaks.append((float(parts[0]), float(parts[1])))
+                    continue
+                
+                # Handle metadata fields
+                if ":" in line:
+                    key, value = line.split(":", 1)
+                    key = key.strip().lower()
+                    value = value.strip()
+                    
+                    # Map MSP fields to expected format
+                    field_mapping = {
+                        "name": "molecule_name",
+                        "formula": "formula",
+                        "cas": "casno",
+                        "retentiontime": "retention_time",
+                        "ri": "ri",
+                        "comment": "comments",
+                        "num peaks": "peak_count",
+                        "derivative": "derivative"
+                    }
+                    
+                    # Metadata fields that go into the metadata dict
+                    metadata_fields = {
+                        "inchikey": "inchikey",
+                        "inchi": "inchi",
+                        "smiles": "smiles",
+                        "pubchem": "pubchem",
+                        "chebi": "chebi",
+                        "kegg": "kegg",
+                        "refmet": "refmet",
+                        "iupac_name": "iupac_name"
+                    }
+                    
+                    if key in field_mapping:
+                        mapped_key = field_mapping[key]
+                        # Convert numeric fields
+                        if key in ["retentiontime", "ri"]:
+                            try:
+                                value = float(value)
+                            except:
+                                pass
+                        elif key == "num peaks":
+                            try:
+                                value = int(value)
+                            except:
+                                pass
+                        spectrum[mapped_key] = value
+                    elif key in metadata_fields:
+                        # Store in nested metadata dict
+                        if "metadata" not in spectrum:
+                            spectrum["metadata"] = {}
+                        spectrum["metadata"][metadata_fields[key]] = value
+                    else:
+                        # Keep unmapped fields
+                        spectrum[key] = value
+        
+        # Add last spectrum if file doesn't end with blank line
+        if spectrum and peaks:
+            peak_str = "".join([f"({int(mz)},{int(abun)})" for mz, abun in peaks])
+            spectrum['mz'] = peak_str
+            spectra.append(spectrum)
+        
+        return spectra
 
     def _to_LowResolutionEICompound_dict(self, metabref_lib, normalize=False):
         """
@@ -606,9 +677,6 @@ class MetabRefGCInterface(MetabRefInterface):
             # Copy source to prevent modification
             source = source_.copy()
 
-            # Flatten source dict
-            source = source.pop("spectrum_data") | source
-
             # Parse target data
             target = {
                 lowres_ei_compound_cols[k]: v
@@ -617,10 +685,13 @@ class MetabRefGCInterface(MetabRefInterface):
             }
 
             # Explicitly add this to connect with LowResCompoundRef later
-            target["rt"] = source["rt"]
+            if "retention_time" in source:
+                target["rt"] = source["retention_time"]
+            elif "rt" in source:
+                target["rt"] = source["rt"]
 
             # Parse (mz, abundance)
-            arr = self.spectrum_to_array(target["mz"], normalize=normalize)
+            arr = self._spectrum_to_array(target["mz"], normalize=normalize)
             target["mz"] = arr[:, 0]
             target["abundance"] = arr[:, 1]
 
@@ -703,10 +774,20 @@ class MetabRefGCInterface(MetabRefInterface):
 
             # Build linked metadata table
             if "metadata" in data_dict:
-                if len(data_dict["metadata"]) > 0:
-                    data_dict["metadatar"] = Metadatar(**data_dict.pop("metadata"))
-                else:
-                    data_dict.pop("metadata")
+                metadata = data_dict.pop("metadata")
+                # Only create metadata entry if we have required fields and valid data
+                # Filter to only include fields that Metadatar model supports
+                supported_metadata_fields = [
+                    'cas', 'inchikey', 'inchi', 'chebi', 'smiles', 
+                    'kegg', 'iupac_name', 'traditional_name', 'common_name'
+                ]
+                filtered_metadata = {
+                    k: v for k, v in metadata.items() 
+                    if k in supported_metadata_fields and v
+                }
+                # Inchikey is required by the database model
+                if filtered_metadata and filtered_metadata.get("inchikey"):
+                    data_dict["metadatar"] = Metadatar(**filtered_metadata)
 
             # Attempt addition to sqlite
             try:
@@ -717,205 +798,204 @@ class MetabRefGCInterface(MetabRefInterface):
         return sqlite_obj
 
 
-class MetabRefLCInterface(MetabRefInterface):
+class MetabRefGCInterface(GCMSLibraryInterface):
     """
-    Interface to the Metabolomics Reference Database for LC-MS data.
+    DEPRECATED: Use GCMSLibraryInterface instead.
+    
+    This interface is maintained for backward compatibility only.
+    MetabRef API has been discontinued as of 2026.
     """
 
     def __init__(self):
         """
-        Initialize instance.
-
+        Initialize instance with deprecation warning.
         """
-
+        warnings.warn(
+            "MetabRefGCInterface is deprecated. Use GCMSLibraryInterface instead. "
+            "MetabRef API has been discontinued; all data now loads from bundled local MSP files.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         super().__init__()
 
-        # API endpoint for precursor m/z search
-        # inputs = mz, tolerance (in Da), polarity, page_no, per_page
-        self.PRECURSOR_MZ_URL = "https://metabref.emsl.pnnl.gov/api/precursors/m/{}/t/{}/{}?page={}&per_page={}"
 
-        # API endpoint for returning full list of precursor m/z values in database
-        # inputs = polarity, page_no, per_page
-        self.PRECURSOR_MZ_ALL_URL = (
-            "https://metabref.emsl.pnnl.gov/api/precursors/{}?page={}&per_page={}"
-        )
+class LCLipidLibraryInterface(SpectralDatabaseInterface):
+    """
+    Interface to a local sqlite lipid library for LC-MS spectral searches.
+    """
 
-        # API endpoint for lipid data
-        self.LIPID_LIBRARY_URL = "https://metabref.emsl.pnnl.gov/api/lipid/data"
+    DEFAULT_DOWNLOAD_URL = (
+        "https://nmdcdemo.emsl.pnnl.gov/minio/lipidomics/parameter_files/"
+        "202412_lipid_ref.sqlite"
+    )
 
+    def __init__(self, db_location=None):
+        """
+        Initialize instance.
+
+        Parameters
+        ----------
+        db_location : str | Path, optional
+            Local path to the sqlite lipid library. If omitted, the
+            COREMS_LIPIDOMICS_SQLITE_PATH environment variable is used.
+        """
+
+        super().__init__(key=None)
+        self.db_location = db_location
         self.__init_format_map__()
+
+    def _to_flashentropy(self, spectral_library, normalize=True, fe_kwargs={}):
+        """
+        Convert a spectral library to FlashEntropy format.
+
+        Parameters
+        ----------
+        spectral_library : dict
+            MS2 library in JSON format or FlashEntropy search instance
+            (for reformatting at different MS2 separation).
+        normalize : bool
+            Normalize each spectrum by its magnitude.
+        fe_kwargs : dict, optional
+            Keyword arguments for instantiation of FlashEntropy search and building index for FlashEntropy search;
+            any keys not recognized will be ignored. By default, all parameters set to defaults.
+
+        Returns
+        -------
+        :obj:`~ms_entropy.FlashEntropySearch`
+            MS2 library as FlashEntropy search instance.
+
+        Raises
+        ------
+        ValueError
+            If "min_ms2_difference_in_da" or "max_ms2_tolerance_in_da" are present in `fe_kwargs` and they are not equal.
+
+        """
+        self._check_flash_entropy_kwargs(fe_kwargs)
+
+        # Initialize empty library
+        fe_lib = []
+
+        # Enumerate spectra
+        for i, source in enumerate(spectral_library):
+            if "spectrum_data" in source.keys():
+                spectrum = source["spectrum_data"]
+            else:
+                spectrum = source
+
+            if "precursor_mz" not in spectrum.keys():
+                spectrum["precursor_mz"] = spectrum.pop("precursor_ion")
+
+            spectrum["peaks"] = self._spectrum_to_array(
+                spectrum["mz"], normalize=normalize
+            )
+            fe_lib.append(spectrum)
+
+        fe_search = self._build_flash_entropy_index(fe_lib, fe_kwargs=fe_kwargs)
+
+        return fe_search
 
     def __init_format_map__(self):
         """
         Initialize database format mapper, enabling multiple format requests.
-
         """
 
-        # Define format workflows
         self.format_map = {
             "json": lambda x, normalize, fe_kwargs: x,
             "flashentropy": lambda x, normalize, fe_kwargs: self._to_flashentropy(
                 x, normalize, fe_kwargs
             ),
+            "dataframe": lambda x, normalize, fe_kwargs: pd.DataFrame(x),
         }
 
-        # Add aliases
-        self.format_map["metabref"] = self.format_map["json"]
         self.format_map["fe"] = self.format_map["flashentropy"]
         self.format_map["flash-entropy"] = self.format_map["flashentropy"]
-    
-    def query_by_precursor(
-        self, mz_list, polarity, mz_tol_ppm, mz_tol_da_api=0.2, max_per_page=50
-    ):
-        """
-        Query MetabRef by precursor m/z values.
+        self.format_map["df"] = self.format_map["dataframe"]
 
-        Parameters
-        ----------
-        mz_list : list
-            List of precursor m/z values.
-        polarity : str
-            Ionization polarity, either "positive" or "negative".
-        mz_tol_ppm : float
-            Tolerance in ppm for each precursor m/z value.
-            Used for retrieving from a potential match from database.
-        mz_tol_da_api : float, optional
-            Maximum tolerance between precursor m/z values for API search, in daltons.
-            Used to group similar mzs into a single API query for speed. Default is 0.2.
-        max_per_page : int, optional
-            Maximum records to return from MetabRef API query at a time.  Default is 50.
+    def available_formats(self):
+        """
+        View list of available formats.
 
         Returns
         -------
         list
-            List of library entries in original JSON format.
+            Format map keys.
         """
-        raise DeprecationWarning(
-            "query_by_precursor is deprecated. Use get_lipid_library instead."
+
+        return list(self.format_map.keys())
+
+    def _resolve_db_location(self):
+        """
+        Resolve and validate sqlite database location.
+
+        Returns
+        -------
+        Path
+            Existing sqlite database file path.
+        """
+
+        db_location = self.db_location or os.getenv("COREMS_LIPIDOMICS_SQLITE_PATH")
+        if not db_location:
+            raise ValueError(
+                "A local lipid sqlite library path is required. "
+                "Set COREMS_LIPIDOMICS_SQLITE_PATH or pass db_location."
+            )
+
+        db_path = Path(db_location).expanduser()
+        if not db_path.exists():
+            raise FileNotFoundError(
+                f"Lipid sqlite library not found at {db_path}. "
+                f"Download it from {self.DEFAULT_DOWNLOAD_URL} "
+                "and set COREMS_LIPIDOMICS_SQLITE_PATH."
+            )
+
+        return db_path
+
+    def _get_candidate_spectra(self, connection, mz_list, polarity, mz_tol_ppm):
+        """
+        Fetch candidate spectra rows by precursor m/z and polarity.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Filtered rows from lipidMassSpectrumObject.
+        """
+
+        mz_observed = np.sort(np.asarray(mz_list, dtype=float))
+        if mz_observed.size == 0:
+            return pd.DataFrame()
+
+        mz_all = pd.read_sql_query(
+            "SELECT id, polarity, precursor_mz FROM lipidMassSpectrumObject", connection
+        )
+        mz_all = mz_all[mz_all["polarity"] == polarity].copy()
+        if mz_all.empty:
+            return pd.DataFrame()
+
+        mz_all = mz_all.sort_values(by="precursor_mz").reset_index(drop=True)
+
+        if mz_observed.size == 1:
+            mz_all["closest_mz_obs"] = mz_observed[0]
+        else:
+            mz_all["closest_mz_obs"] = mz_observed[
+                find_closest(mz_observed, mz_all.precursor_mz.values)
+            ]
+
+        mz_all["ppm_error"] = (
+            (mz_all["precursor_mz"] - mz_all["closest_mz_obs"])
+            / mz_all["precursor_mz"]
+            * 1e6
         )
 
-    def request_all_precursors(self, polarity, per_page=50000):
-        """
-        Request all precursor m/z values for MS2 spectra from MetabRef.
+        mz_all = mz_all[np.abs(mz_all["ppm_error"]) <= mz_tol_ppm]
+        if mz_all.empty:
+            return pd.DataFrame()
 
-        Parameters
-        ----------
-        polarity : str
-            Ionization polarity, either "positive" or "negative".
-        per_page : int, optional
-            Number of records to fetch per call. Default is 50000
+        mz_ids = tuple(mz_all["id"].tolist())
+        return pd.read_sql_query(
+            f"SELECT * FROM lipidMassSpectrumObject WHERE id IN {mz_ids}",
+            connection,
+        )
 
-        Returns
-        -------
-        list
-            List of all precursor m/z values, sorted.
-        """
-        raise DeprecationWarning("request_all_precursors is deprecated.")
-
-    def post_lipid_query(self, mz_list, polarity, mz_tol_ppm):
-        """
-        Post query to get MetabRef lipid spectra.
-
-        Parameters
-        ----------
-        mz_list : list
-            List of precursor m/z values.
-        polarity : str
-            Ionization polarity, either "positive" or "negative".
-        mz_tol_ppm : float
-            Tolerance in ppm for each precursor m/z value.
-
-        Returns
-        -------
-        download_id : str
-            Download ID for the lipid library query.
-
-        Raises
-        ------
-        ValueError
-            If any input parameter is invalid.
-            If no download ID is returned.
-        """
-        url = self.LIPID_LIBRARY_URL
-
-        headers = {
-            'accept': '*/*',
-            'Content-Type': 'application/json'
-        }
-        
-        payload = {
-            "tolerance_ppm": mz_tol_ppm,
-            "polarity": polarity,
-            "mz_list": list(set(np.sort(mz_list))) 
-        }
-        
-        try:
-            response = requests.post(url, headers=headers, json=payload)
-            response.raise_for_status()  # Raises an HTTPError for bad responses
-            text = response.text.strip()
-            # Drop everything before the final space
-            if not text:
-                raise ValueError("Empty response from MetabRef lipid library API.")
-            if " " in text:
-                text = text.rsplit(" ", 1)[-1]
-                return text
-            else:
-                raise ValueError("Unexpected response format from MetabRef lipid library API.")
-        except requests.exceptions.RequestException as e:
-            raise ValueError(f"Error querying MetabRef lipid library: {e}")
-
-    def get_lipid_data(self, job_id, attempts=10, delay=5):
-        """
-        Get download content from lipid library query from MetabRef using job ID.
-
-        Parameters
-        ----------
-        job_id : str
-            Job ID for the lipid library query.
-            Retrieved from the post_lipid_query method.
-        attempts : int, optional
-            Number of attempts to retrieve the data. Default is 10.
-        delay : int, optional
-            Delay in seconds between attempts. Default is 5.
-
-        Returns
-        -------
-        str
-            Download content from the lipid library query.
-
-        Raises
-        ------
-        ValueError
-            If no download content is returned.
-        """
-        url = f"https://metabref.emsl.pnnl.gov/api/lipid/data/download/{job_id}"
-        
-        # Check the response, if it's 400, try again in 5 seconds.  Try up to 10 times
-        for attempt in range(attempts):
-            try:
-                response = requests.get(url)
-                response.raise_for_status()  # Raises an HTTPError for bad responses
-                if response.status_code == 200:
-                    if response.content == b"Job still running":
-                        if attempt < attempts - 1:
-                            time.sleep(delay)
-                            continue
-                    else:
-                        lib = response.content
-                        return lib.decode('utf-8') if isinstance(lib, bytes) else lib
-                elif response.status_code == 400:
-                    if attempt < attempts - 1:
-                        time.sleep(delay)  # Wait before retrying
-                        continue
-                    else:
-                        raise ValueError("Job ID not found or job is still processing.")
-            except requests.exceptions.RequestException as e:
-                if attempt < attempts - 1:
-                    time.sleep(delay)
-                    continue
-                else:
-                    raise ValueError(f"Error retrieving lipid library job: {e}")
-    
     def get_lipid_library(
         self,
         mz_list,
@@ -929,7 +1009,7 @@ class MetabRefLCInterface(MetabRefInterface):
         api_attempts=10,
     ):
         """
-        Request MetabRef lipid library.
+        Retrieve lipid spectra and metadata from a local sqlite library.
 
         Parameters
         ----------
@@ -938,71 +1018,71 @@ class MetabRefLCInterface(MetabRefInterface):
         polarity : str
             Ionization polarity, either "positive" or "negative".
         mz_tol_ppm : float
-            Tolerance in ppm for each precursor m/z value.
-            Used for retrieving from a potential match from database.
+            Tolerance in ppm for precursor matching.
         mz_tol_da_api : float, optional
-            DEPRECATED.  No longer used, but kept for backwards compatibility.
+            Unused, kept for backward compatibility.
         format : str, optional
-            Format of requested library, i.e. "json", "sql", "flashentropy".
-            See `available_formats` method for aliases. Default is "json".
+            Format of requested library, e.g. "json" or "flashentropy".
         normalize : bool, optional
-            Normalize the spectrum by its magnitude. Default is True.
+            Normalize spectrum intensities.
         fe_kwargs : dict, optional
-            Keyword arguments for FlashEntropy search. Default is {}.
+            Keyword arguments for FlashEntropy search.
         api_delay : int, optional
-            Delay in seconds between API attempts. Default is 5.
+            Unused, kept for backward compatibility.
         api_attempts : int, optional
-            Number of attempts to retrieve the data from the API. Default is 10.
+            Unused, kept for backward compatibility.
 
         Returns
         -------
         tuple
-            Library in requested format and lipid metadata as a LipidMetadata dataclass.
-
+            Library in requested format and lipid metadata dictionary.
         """
-        # Check for valid types in mz_list, polarity, and mz_tol_ppm
+
         if not isinstance(mz_list, (list, np.ndarray)):
             raise ValueError("mz_list must be a list or numpy array")
         if not all(isinstance(mz, (float, int)) for mz in mz_list):
             raise ValueError("All elements in mz_list must be float or int")
-        if not isinstance(polarity, str):
-            raise ValueError("polarity must be a string")
+        if polarity not in {"positive", "negative"}:
+            raise ValueError("polarity must be either 'positive' or 'negative'")
         if not isinstance(mz_tol_ppm, (float, int)):
             raise ValueError("mz_tol_ppm must be a float or int")
-        
-        job_id = self.post_lipid_query(
-            mz_list=mz_list,
-            polarity=polarity,
-            mz_tol_ppm=mz_tol_ppm,
-        )
-        
-        lib = self.get_lipid_data(
-            job_id=job_id,
-            attempts=api_attempts,
-            delay=api_delay,
-        )
-        lib = json.loads(lib)
 
-        # Pull out lipid metadata from the metabref library and convert to LipidMetadata dataclass
-        mol_data_dict = lib['molecular_data']
-        mol_data_dict = {
+        db_path = self._resolve_db_location()
+        connection = sqlite3.connect(str(db_path))
+        try:
+            # Step 1: Get candidate spectra records based on m/z and polarity
+            spectra_df = self._get_candidate_spectra(
+                connection=connection,
+                mz_list=mz_list,
+                polarity=polarity,
+                mz_tol_ppm=float(mz_tol_ppm),
+            )
+
+            if spectra_df.empty:
+                format_func = self._get_format_func(format)
+                return format_func([], normalize=normalize, fe_kwargs=fe_kwargs), {}
+
+            # Step 2: Get corresponding lipid metadata for candidate spectra from lipidTree view
+            mol_ids = tuple(spectra_df["molecular_data_id"].tolist())
+            mol_df = pd.read_sql_query(
+                f"SELECT * FROM lipidTree WHERE id IN {mol_ids}",
+                connection,
+            )
+        finally:
+            connection.close()
+
+        mol_df["id_index"] = mol_df["id"]
+        mol_df = mol_df.set_index("id_index")
+        mol_records = mol_df.to_dict(orient="index")
+        lipid_metadata = {
             int(k): self._dict_to_dataclass(v, LipidMetadata)
-            for k, v in mol_data_dict.items()
+            for k, v in mol_records.items()
         }
 
-        # Remove lipid metadata from the metabref library
-        lib = lib['mass_spectrum_data']
-        # Unpack the 'Lipid Fragments' key and the 'MSO Data" key from each entry
-        for x in lib:
-            if "Lipid Fragments" in x.keys():
-                x.update(x.pop("Lipid Fragments"))
-            if "MSO Data" in x.keys():
-                x.update(x.pop("MSO Data"))
-
-        # Format the spectral library
+        spectra_records = spectra_df.to_dict(orient="records")
         format_func = self._get_format_func(format)
-        lib = format_func(lib, normalize=normalize, fe_kwargs=fe_kwargs)
-        return (lib, mol_data_dict)
+        library = format_func(spectra_records, normalize=normalize, fe_kwargs=fe_kwargs)
+        return library, lipid_metadata
 
 
 class MSPInterface(SpectralDatabaseInterface):
