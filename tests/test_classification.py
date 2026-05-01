@@ -17,12 +17,12 @@ def test_heteroatoms_classification(mass_spectrum_ftms, postgres_database):
     mass_spectrum_ftms.molecular_search_settings.usedAtoms = usedAtoms
 
     # Check that there are not assigned peaks
-    assert mass_spectrum_ftms.percentile_assigned()[2] == 0
+    assert mass_spectrum_ftms.percentage_assigned()[2] == 0
     
     SearchMolecularFormulas(mass_spectrum_ftms).run_worker_mass_spectrum()
     
     # Check if search was successful
-    assert mass_spectrum_ftms.percentile_assigned()[2] > 0
+    assert mass_spectrum_ftms.percentage_assigned()[2] > 0
 
     mass_spectrum_by_classes = HeteroatomsClassification(mass_spectrum_ftms)
 

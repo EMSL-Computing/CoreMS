@@ -893,7 +893,7 @@ class MolecularFormulaSearchSettings:
     url_database : str, optional
         URL for the database. Default is 'postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp'.
     db_jobs : int, optional
-        Number of jobs to use for database queries. Default is 3.
+        Number of jobs to use for database queries. Default is 1. Can increase to 3 when python environment supports it. 
     db_chunk_size : int, optional
         Chunk size to use for database queries. Default is 300.
     ion_charge : int, optional
@@ -981,7 +981,7 @@ class MolecularFormulaSearchSettings:
         "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
     )
 
-    db_jobs: int = 3
+    db_jobs: int = 1
 
     db_chunk_size: int = 300
 

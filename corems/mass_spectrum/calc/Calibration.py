@@ -210,6 +210,8 @@ class MzDomainCalibration:
                 Some software does this the other way around and value signs must be inverted for that to work.
         calib_snr_threshold : float, optional
             snr threshold for finding calibration masses in the spectrum. The default is 5.
+            If SNR data is unavailable, peaks are filtered by intensity percentile using the formula:
+            percentile = max(5, 100 - calib_snr_threshold)
 
         Returns
         -------
@@ -220,15 +222,54 @@ class MzDomainCalibration:
 
         """
 
+        # Check if SNR data is available by testing the first peak
+        use_snr = False
+        if len(self.mass_spectrum.mspeaks) > 0:
+            first_peak = self.mass_spectrum.mspeaks[0]
+            if (hasattr(first_peak, 'signal_to_noise') and 
+                first_peak.signal_to_noise is not None and 
+                not np.isnan(first_peak.signal_to_noise) and
+                first_peak.signal_to_noise > 0):
+                use_snr = True
+
         # This approach is much more efficient and expedient than the original implementation.
         peaks_mz = []
-        for x in self.mass_spectrum.mspeaks:
-            if x.signal_to_noise > calib_snr_threshold:
+        peaks_intensity = []
+        
+        if use_snr:
+            # Use SNR filtering
+            for x in self.mass_spectrum.mspeaks:
+                if x.signal_to_noise > calib_snr_threshold:
+                    if self.mzsegment:
+                        if min(self.mzsegment) <= x.mz_exp <= max(self.mzsegment):
+                            peaks_mz.append(x.mz_exp)
+                    else:
+                        peaks_mz.append(x.mz_exp)
+        else:
+            # Fallback to intensity percentile filtering
+            intensity_percentile = max(5, 100 - calib_snr_threshold)
+            warnings.warn(
+                f"SNR data unavailable for calibration. Using intensity-based filtering instead. "
+                f"SNR threshold of {calib_snr_threshold} corresponds to intensity percentile >= {intensity_percentile}%."
+            )
+            
+            # Collect all peaks and their intensities
+            all_peaks_data = []
+            for x in self.mass_spectrum.mspeaks:
                 if self.mzsegment:
                     if min(self.mzsegment) <= x.mz_exp <= max(self.mzsegment):
-                        peaks_mz.append(x.mz_exp)
+                        all_peaks_data.append((x.mz_exp, x.abundance))
                 else:
-                    peaks_mz.append(x.mz_exp)
+                    all_peaks_data.append((x.mz_exp, x.abundance))
+            
+            if all_peaks_data:
+                peaks_mz_list, intensities = zip(*all_peaks_data)
+                intensity_threshold = np.percentile(intensities, intensity_percentile)
+                
+                for mz, intensity in all_peaks_data:
+                    if intensity >= intensity_threshold:
+                        peaks_mz.append(mz)
+        
         peaks_mz = np.asarray(peaks_mz)
 
         if calibration_ref_match_method == "legacy":
@@ -549,7 +590,7 @@ class MzDomainCalibration:
         This function runs the calibration routine.
 
         """
-        calib_ppm_error_threshold = self.mass_spectrum.settings.calib_sn_threshold
+        calib_snr_threshold = self.mass_spectrum.settings.calib_sn_threshold
         max_calib_ppm_error = self.mass_spectrum.settings.max_calib_ppm_error
         min_calib_ppm_error = self.mass_spectrum.settings.min_calib_ppm_error
         calib_pol_order = self.mass_spectrum.settings.calib_pol_order
@@ -570,7 +611,7 @@ class MzDomainCalibration:
         cal_peaks_mz, cal_refs_mz = self.find_calibration_points(
             df_ref,
             calib_ppm_error_threshold=(min_calib_ppm_error, max_calib_ppm_error),
-            calib_snr_threshold=calib_ppm_error_threshold,
+            calib_snr_threshold=calib_snr_threshold,
             calibration_ref_match_method=calibration_ref_match_method,
             calibration_ref_match_tolerance=calibration_ref_match_tolerance,
             calibration_ref_match_std_raw_error_limit=calibration_ref_match_std_raw_error_limit,
