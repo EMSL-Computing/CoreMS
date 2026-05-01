@@ -17,5 +17,11 @@ SimilarityEngine
 from corems.molecular_networking.similarity_matrix import SimilarityMatrix
 from corems.molecular_networking.similarity_engine import SimilarityEngine
 from corems.molecular_networking.network_builder import MolecularNetwork
+from corems.molecular_networking.network_visualize import NetworkVisualizeMixin
 
-__all__ = ["MolecularNetwork", "SimilarityMatrix", "SimilarityEngine"]
+__all__ = [
+    "MolecularNetwork",
+    "SimilarityMatrix",
+    "SimilarityEngine",
+    "NetworkVisualizeMixin",
+]

@@ -38,12 +38,13 @@ import pandas as pd
 
 from corems.molecular_networking.similarity_matrix import SimilarityMatrix
 from corems.molecular_networking.similarity_engine import SimilarityEngine
+from corems.molecular_networking.network_visualize import NetworkVisualizeMixin
 
 # Metrics that require precursor_mzs
 _PRECURSOR_REQUIRED = {"identity", "neutral_loss"}
 
 
-class MolecularNetwork:
+class MolecularNetwork(NetworkVisualizeMixin):
     """Build a molecular network around a reference library.
 
     Initialization is **lazy** — no similarity computation happens until you
