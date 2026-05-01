@@ -167,14 +167,14 @@ def run_network_demo(search_type: str, label: str):
         search_type=search_type,
         additional_similarities=["cosine"],
         similarity_thresholds={
-            "entropy_similarity": 0.6,
-            "cosine": 0.6,
+            "entropy_similarity": 0.7,
+            "cosine": 0.8,
         },
         use_parallel=False,
         n_jobs=1,
     )
 
-    run_stage3 = False
+    run_stage3 = True
 
     print("\n  Stage 1 + 2: query-vs-query and query-vs-library …")
     network.query_vs_library(
@@ -293,182 +293,7 @@ def run_network_demo(search_type: str, label: str):
     assert reloaded.n_spectra == network.similarity_matrices["entropy_similarity"].n_spectra
     print("  ✓ Save/load round-trip OK")
 
-    print("\n" + "=" * 65)
-    print(f"VISUALIZE – {label}")
-    print("=" * 65)
-
-    try:
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
-
-        for metric in ["entropy_similarity", "cosine"]:
-            print(f"\n  Creating visualization for {metric}...")
-            edges = network.get_network_edges(metric=metric)
-
-            if not edges:
-                print(f"    No edges above threshold for {metric}, skipping visualization.")
-                continue
-
-            adjacency_all = {}
-            for id1, id2, _ in edges:
-                if id1 not in adjacency_all:
-                    adjacency_all[id1] = set()
-                if id2 not in adjacency_all:
-                    adjacency_all[id2] = set()
-                adjacency_all[id1].add(id2)
-                adjacency_all[id2].add(id1)
-
-            nodes_to_keep = set()
-            for query_id in query_id_set:
-                if query_id not in adjacency_all:
-                    continue
-                queue = [query_id]
-                visited = {query_id}
-                while queue:
-                    current = queue.pop(0)
-                    nodes_to_keep.add(current)
-                    for neighbor in adjacency_all.get(current, []):
-                        if neighbor not in visited:
-                            visited.add(neighbor)
-                            queue.append(neighbor)
-
-            edges = [(id1, id2, score) for id1, id2, score in edges if id1 in nodes_to_keep and id2 in nodes_to_keep]
-
-            if not edges:
-                print(f"    No edges connected to queries for {metric}, skipping visualization.")
-                continue
-
-            nodes = set()
-            for id1, id2, _ in edges:
-                nodes.add(id1)
-                nodes.add(id2)
-            nodes = sorted(nodes)
-            n_nodes = len(nodes)
-
-            print(f"    Network has {n_nodes} nodes and {len(edges)} edges (query-connected only)")
-
-            rng = np.random.default_rng(seed=42)
-            pos = {node: rng.uniform(-1, 1, size=2) for node in nodes}
-
-            k = 1.0 / np.sqrt(n_nodes)
-            iterations = 50
-            for iteration in range(iterations):
-                forces = {node: np.array([0.0, 0.0]) for node in nodes}
-
-                for i, node1 in enumerate(nodes):
-                    for node2 in nodes[i + 1 :]:
-                        delta = pos[node1] - pos[node2]
-                        dist = np.linalg.norm(delta)
-                        if dist > 0:
-                            force = k * k / dist
-                            direction = delta / dist
-                            forces[node1] += direction * force
-                            forces[node2] -= direction * force
-
-                for id1, id2, score in edges:
-                    delta = pos[id1] - pos[id2]
-                    dist = np.linalg.norm(delta)
-                    if dist > 0:
-                        force = dist * dist / k * score
-                        direction = delta / dist
-                        forces[id1] -= direction * force
-                        forces[id2] += direction * force
-
-                temp = 0.1 * (1.0 - iteration / iterations)
-                for node in nodes:
-                    force_mag = np.linalg.norm(forces[node])
-                    if force_mag > 0:
-                        displacement = forces[node] / force_mag * min(force_mag, temp)
-                        pos[node] += displacement
-
-            all_pos = np.array(list(pos.values()))
-            pos_min = all_pos.min(axis=0)
-            pos_max = all_pos.max(axis=0)
-            pos_range = pos_max - pos_min
-            pos_range[pos_range == 0] = 1
-            for node in nodes:
-                pos[node] = 2 * (pos[node] - pos_min) / pos_range - 1
-
-            fig, ax = plt.subplots(figsize=(10, 8))
-
-            for id1, id2, score in edges:
-                x1, y1 = pos[id1]
-                x2, y2 = pos[id2]
-                alpha = min(1.0, score)
-                width = 0.5 + 2.5 * score
-                ax.plot([x1, x2], [y1, y2], "gray", alpha=alpha, linewidth=width, zorder=1)
-
-            query_nodes = [node for node in nodes if node in query_id_set]
-            library_nodes = [node for node in nodes if node not in query_id_set]
-
-            if query_nodes:
-                query_x = [pos[node][0] for node in query_nodes]
-                query_y = [pos[node][1] for node in query_nodes]
-                ax.scatter(
-                    query_x,
-                    query_y,
-                    c="#FF6B6B",
-                    s=80,
-                    alpha=0.9,
-                    edgecolors="black",
-                    linewidths=1.0,
-                    label="Query",
-                    zorder=2,
-                )
-
-            if library_nodes:
-                lib_x = [pos[node][0] for node in library_nodes]
-                lib_y = [pos[node][1] for node in library_nodes]
-                ax.scatter(
-                    lib_x,
-                    lib_y,
-                    c="#4ECDC4",
-                    s=30,
-                    alpha=0.7,
-                    edgecolors="black",
-                    linewidths=0.5,
-                    label="Library",
-                    zorder=2,
-                )
-
-            for node in query_nodes:
-                x, y = pos[node]
-                label_text = node if len(node) <= 15 else node[:12] + "..."
-                ax.text(x, y, label_text, fontsize=6, ha="center", va="center", weight="bold", zorder=3)
-
-            all_x = [pos[node][0] for node in nodes]
-            all_y = [pos[node][1] for node in nodes]
-            x_margin = (max(all_x) - min(all_x)) * 0.05
-            y_margin = (max(all_y) - min(all_y)) * 0.05
-            ax.set_xlim(min(all_x) - x_margin, max(all_x) + x_margin)
-            ax.set_ylim(min(all_y) - y_margin, max(all_y) + y_margin)
-            ax.set_aspect("equal")
-            ax.axis("off")
-
-            threshold = network._threshold_for(metric)
-            stats = network.get_network_stats(metric=metric)
-            title = f"{label}: {metric.replace('_', ' ').title()} Network\n"
-            title += f"Threshold: {threshold:.2f} | Nodes: {stats['n_nodes']} | Edges: {stats['n_edges']}"
-            ax.set_title(title, fontsize=14, weight="bold", pad=20)
-            ax.legend(loc="upper right", fontsize=10, framealpha=0.9)
-
-            fig_path = OUT_DIR / f"{search_type}_network_{metric}.png"
-            plt.tight_layout()
-            plt.savefig(fig_path, dpi=150, bbox_inches="tight", facecolor="white")
-            plt.close(fig)
-            print(f"    ✓ Saved visualization to {fig_path}")
-
-        print("\n  ✓ Network visualizations complete")
-
-    except ImportError:
-        print("\n  ⚠ matplotlib not available, skipping visualization")
-        print("    Install with: pip install matplotlib")
-    except Exception as e:
-        print(f"\n  ⚠ Visualization failed: {e}")
-
     return network
-
 
 print("\n" + "=" * 65)
 print("STEP 3+ – Run demos for open and neutral_loss")
@@ -476,6 +301,7 @@ print("=" * 65)
 
 networks = {}
 networks["open"] = run_network_demo(search_type="open", label="Open Search")
+
 networks["neutral_loss"] = run_network_demo(search_type="neutral_loss", label="Neutral Loss Search")
 
 print("\n" + "=" * 65)
