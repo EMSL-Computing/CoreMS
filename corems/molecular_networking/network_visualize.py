@@ -242,10 +242,9 @@ class NetworkVisualizeMixin:
             library-only islands (for example, small doublet/triplet groups)
             from the rendered network.
         drop_nodes_without_query_connection : bool
-            When ``True`` (default), keep only nodes that are graph-connected
-            to at least one query node.  This is applied as an explicit
-            node-level safeguard and removes any residual non-query-connected
-            nodes before layout/rendering.
+            When ``True`` (default), keep only query nodes plus nodes that are
+            directly adjacent (one hop) to at least one query node.  This
+            prevents chained propagation through library-only paths.
 
         Returns
         -------
@@ -358,13 +357,12 @@ class NetworkVisualizeMixin:
         if drop_nodes_without_query_connection and G.number_of_nodes() > 0 and query_id_set:
             query_nodes_in_graph = [n for n in query_id_set if G.has_node(n)]
             if query_nodes_in_graph:
-                reachable_nodes = set(query_nodes_in_graph)
-                traversal_graph = G.to_undirected(as_view=True) if G.is_directed() else G
+                keep_nodes = set(query_nodes_in_graph)
                 for qnode in query_nodes_in_graph:
-                    reachable_nodes.update(nx.node_connected_component(traversal_graph, qnode))
+                    keep_nodes.update(G.neighbors(qnode))
 
-                if len(reachable_nodes) < G.number_of_nodes():
-                    nodes_to_remove = [n for n in G.nodes if n not in reachable_nodes]
+                if len(keep_nodes) < G.number_of_nodes():
+                    nodes_to_remove = [n for n in G.nodes if n not in keep_nodes]
                     G.remove_nodes_from(nodes_to_remove)
 
         # ── Pre-compute layout ─────────────────────────────────────────────
