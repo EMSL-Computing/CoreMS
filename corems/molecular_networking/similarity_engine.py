@@ -3,16 +3,29 @@ SimilarityEngine
 ================
 
 Computes pairwise spectral similarities between query spectra using:
-  1. FlashEntropy (fast, vectorized) - always computed first.
-  2. Additional metrics (e.g., cosine) - computed only for pairs that
-     pass a low entropy-similarity threshold.
 
-Supports three FlashEntropy search modes:
-  - "identity"     : precursor-matched (requires precursor_mzs)
-  - "open"         : no precursor matching
-  - "neutral_loss" : neutral-loss matched (requires precursor_mzs)
+1. **FlashEntropy** (fast, vectorised) — always computed first.
+2. **Additional metrics** (e.g. cosine) — computed only for pairs that
+   pass a low entropy-similarity gate (*entropy_threshold_low*).
 
-Parallel processing uses multiprocessing.Pool to match CoreMS conventions.
+Supported FlashEntropy search modes
+------------------------------------
+``"identity"``
+    Precursor-matched search.  Library candidates are filtered by precursor
+    m/z within *ms1_tolerance_da* before scoring.  Requires precursor m/z
+    for every query spectrum.
+
+``"open"``
+    No precursor filtering.  All library entries are scored against every
+    query.  Precursor m/z is accepted but ignored for filtering.
+
+``"neutral_loss"``
+    Matching occurs in neutral-loss mass space
+    (``precursor_mz − fragment_mz``).  Requires precursor m/z for every
+    query spectrum.  The precursor filter is **disabled** (set to 1e9 Da)
+    because neutral-loss matching does not operate on the precursor itself.
+
+Parallel processing uses :mod:`multiprocessing` to match CoreMS conventions.
 """
 
 from __future__ import annotations
@@ -147,35 +160,68 @@ class SimilarityEngine:
 
     Parameters
     ----------
-    fe_lib : ms_entropy.FlashEntropySearch
-        Pre-built FlashEntropy search instance (from MSPInterface._to_flashentropy).
-        Tolerance parameters are extracted from this library to ensure compatibility.
+    fe_lib : ms_entropy.FlashEntropySearch or None
+        Pre-built FlashEntropy search instance.  Pass ``None`` for
+        query-only mode (only :meth:`compute_all_vs_all_with_lib` with a
+        temporary index is used; query-vs-library methods are unavailable).
+        When provided, fragment-tolerance parameters are extracted from this
+        library unless overridden by *ms2_tolerance_da*.
     search_type : str
-        FlashEntropy search mode: ``"identity"``, ``"open"``, or ``"neutral_loss"``.
-        Default ``"identity"``.
+        FlashEntropy search mode: ``"identity"``, ``"open"``, or
+        ``"neutral_loss"``.  Default ``"identity"``.
     additional_similarities : list of str, optional
-        Extra similarity metrics to compute for pairs passing the entropy threshold.
-        Currently supported: ``["cosine"]``.  Default ``["cosine"]``.
+        Extra similarity metrics to compute for pairs that pass the entropy
+        threshold.  Currently supported: ``["cosine"]``.
+        Default ``["cosine"]``.
     ms1_tolerance_da : float, optional
-        Precursor m/z tolerance (Da) for identity/neutral_loss search.
-        If None (default), uses a reasonable default of 0.01 Da.
+        Precursor m/z tolerance (Da) used **only** for ``"identity"`` search
+        to filter library candidates by precursor m/z.  Ignored for
+        ``"open"`` and ``"neutral_loss"`` (precursor filter is disabled for
+        those modes).  If ``None`` (default), uses 0.01 Da.
+    ms2_tolerance_da : float, optional
+        Fragment m/z tolerance (Da) for spectrum cleaning and similarity
+        scoring.  Resolution priority: explicit kwarg > extracted from
+        *fe_lib* > 0.01 Da fallback.
     entropy_threshold_low : float
-        Minimum entropy similarity score required to trigger additional metric
-        computation.  Default 0.1.
+        Minimum entropy similarity score required to trigger additional
+        metric computation.  Default 0.1.
     use_parallel : bool
-        Enable multiprocessing for additional metric computation.  Default True.
+        Enable multiprocessing for additional metric computation.
+        Default ``True``.
     n_jobs : int
-        Number of worker processes.  -1 uses all available cores.  Default -1.
-    
+        Number of worker processes.  ``-1`` uses all available cores.
+        Default ``-1``.
+
+    Attributes
+    ----------
+    ms2_tolerance_da : float
+        Fragment m/z tolerance resolved at construction time.
+    peak_sep_da : float
+        Minimum peak separation used during spectrum cleaning
+        (``2 * ms2_tolerance_da``).
+    ms1_tolerance_da : float
+        Precursor m/z tolerance for identity search.
+    entropy_threshold_low : float
+        Low-entropy gate for triggering additional metric computation.
+
     Notes
     -----
-    The following parameters are extracted from the FE library and cannot be overridden:
-    
-    - ``ms2_tolerance_da`` : Extracted from ``fe_lib.entropy_search.max_ms2_tolerance_in_da``
-    - ``peak_sep_da`` : Computed as ``2 * ms2_tolerance_da`` (FE requirement)
-    
-    This ensures that all similarity calculations use the same cleaning parameters
-    as the FE library index.
+    **Tolerance resolution order** (highest priority first):
+
+    1. Explicit *ms2_tolerance_da* kwarg.
+    2. ``fe_lib.entropy_search.max_ms2_tolerance_in_da`` (when *fe_lib* is
+       not ``None``).
+    3. Hard-coded fallback of 0.01 Da.
+
+    **Precursor filter behaviour by search type:**
+
+    - ``"identity"`` : library candidates are filtered by precursor m/z
+      within *ms1_tolerance_da* before scoring.
+    - ``"open"`` : precursor filter is disabled (``ms1_tolerance_in_da``
+      passed to FlashEntropy is set to ``1e9``).
+    - ``"neutral_loss"`` : precursor filter is disabled for the same reason
+      as ``"open"``; matching occurs in neutral-loss mass space
+      (``precursor_mz − fragment_mz``), not on the precursor itself.
     """
 
     def __init__(
@@ -184,6 +230,7 @@ class SimilarityEngine:
         search_type: str = "identity",
         additional_similarities: list[str] | None = None,
         ms1_tolerance_da: float | None = None,
+        ms2_tolerance_da: float | None = None,
         entropy_threshold_low: float = 0.1,
         use_parallel: bool = True,
         n_jobs: int = -1,
@@ -205,12 +252,19 @@ class SimilarityEngine:
         self.fe_lib = fe_lib
         self.search_type = search_type
         self.additional_similarities = list(additional_similarities)
-        
-        # Extract tolerance parameters from FE library to ensure compatibility
-        self.ms2_tolerance_da = fe_lib.entropy_search.max_ms2_tolerance_in_da
+
+        # Tolerance priority: explicit kwarg > fe_lib extraction > 0.01 fallback.
+        # When fe_lib is None (queries-only mode), a temporary FE index is built
+        # from the query spectra themselves; ms2_tolerance_da controls that index.
+        if ms2_tolerance_da is not None:
+            self.ms2_tolerance_da = ms2_tolerance_da
+        elif fe_lib is not None:
+            self.ms2_tolerance_da = fe_lib.entropy_search.max_ms2_tolerance_in_da
+        else:
+            self.ms2_tolerance_da = 0.01
         self.peak_sep_da = 2 * self.ms2_tolerance_da
         self.ms1_tolerance_da = ms1_tolerance_da if ms1_tolerance_da is not None else 0.01
-        
+
         self.entropy_threshold_low = entropy_threshold_low
         self.use_parallel = use_parallel
         self.n_jobs = (
@@ -288,22 +342,44 @@ class SimilarityEngine:
     ) -> np.ndarray:
         """Run FlashEntropy search for one query spectrum.
 
-        The search() method will clean the spectrum internally, so we pass
-        raw peaks and let FE handle the cleaning to avoid double-cleaning.
+        Passes raw peaks directly to FlashEntropy's ``search()`` method,
+        which cleans the spectrum internally.  This avoids double-cleaning
+        and ensures the query is processed identically to library entries.
+
+        **Precursor filter behaviour:**
+
+        - ``"identity"`` : ``ms1_tolerance_in_da`` is set to
+          :attr:`ms1_tolerance_da` so only library entries within that
+          precursor window are scored.
+        - ``"open"`` and ``"neutral_loss"`` : ``ms1_tolerance_in_da`` is
+          set to ``1e9`` (effectively no filter).  For ``"neutral_loss"``,
+          matching occurs in neutral-loss mass space internally within
+          FlashEntropy, so filtering on precursor m/z would incorrectly
+          exclude valid matches.
+
+        For ``"neutral_loss"``, fragment peaks with m/z > precursor m/z are
+        stripped before the search call (they have no valid neutral-loss
+        representation).
 
         Parameters
         ----------
         peaks : np.ndarray of shape (N, 2)
-            [[mz, abundance], ...] - raw peaks, will be cleaned by FE
+            Raw ``[[mz, abundance], ...]`` array.  FlashEntropy cleans this
+            internally (normalisation, denoising, peak separation).
         precursor_mz : float or None
-            Required for identity/neutral_loss; ignored for open.
-        fe_lib_override : optional
-            If provided, use this FlashEntropy library instead of ``self.fe_lib``.
+            Required for ``"identity"`` and ``"neutral_loss"``; a dummy
+            value of 0.0 is used for ``"open"`` when ``None`` is passed.
+        fe_lib_override : ms_entropy.FlashEntropySearch, optional
+            If provided, search against this library instead of
+            ``self.fe_lib``.  Used for query-vs-query searches where a
+            temporary index is built from the query spectra themselves.
 
         Returns
         -------
         np.ndarray
             1-D array of entropy similarity scores, one per library entry.
+            Returns a zero array if the query has no valid peaks after
+            pre-filtering.
         """
         fe_method, fe_key = _FE_METHOD_MAP[self.search_type]
         fe = fe_lib_override if fe_lib_override is not None else self.fe_lib
@@ -341,11 +417,14 @@ class SimilarityEngine:
             min_ms2_difference_in_da=self.peak_sep_da,
             target="cpu",
         )
-        if self.search_type in ("identity", "neutral_loss"):
+        if self.search_type == "identity":
             search_kwargs["precursor_mz"] = pmz
             search_kwargs["ms1_tolerance_in_da"] = self.ms1_tolerance_da
         else:
-            # open search – precursor_mz still required by ms_entropy API
+            # open search and neutral_loss: precursor_mz still required by ms_entropy
+            # API but precursor filtering is disabled (1e9 = no filter).
+            # For neutral_loss, matching occurs on neutral-loss fragment space, not
+            # on precursor m/z, so the precursor filter must be disabled.
             search_kwargs["precursor_mz"] = pmz
             search_kwargs["ms1_tolerance_in_da"] = 1e9  # effectively no filter
 
@@ -359,23 +438,27 @@ class SimilarityEngine:
         library_indices: list[int],
     ) -> dict[int, float]:
         """Compute cosine similarity for one query against multiple library spectra.
-        
+
         Extracts cleaned peaks directly from the FlashEntropy library to ensure
-        consistency with entropy similarity calculations.
-        
+        consistency with entropy similarity calculations.  For
+        ``"neutral_loss"`` search, both query and library peaks are
+        transformed to neutral-loss mass space before alignment.
+
         Parameters
         ----------
         query_spectrum : spectrum object
-            Query spectrum with .mz_exp and .abundance attributes
+            Query spectrum with ``.mz_exp`` and ``.abundance`` attributes.
         query_precursor_mz : float or None
-            Precursor m/z for the query
+            Precursor m/z for the query.  Required for ``"neutral_loss"``
+            search; used as a dummy 0.0 for ``"open"`` when ``None``.
         library_indices : list of int
-            Library indices to compute cosine against
-            
+            Indices into ``self.fe_lib`` of the library spectra to score.
+
         Returns
         -------
-        dict mapping library_idx → cosine score
-        """        
+        dict mapping int → float
+            ``{library_idx: cosine_score}`` for all pairs with score > 0.
+        """
         # Get and clean query peaks (same as FlashEntropy does)
         query_peaks = self._peaks_array(query_spectrum)
         if query_peaks.shape[0] == 0:
@@ -454,18 +537,18 @@ class SimilarityEngine:
         spec_b,
         precursor_b: float | None,
     ) -> float:
-        """Compute entropy similarity between two spectra.
+        """Placeholder — not implemented; use :meth:`compute_all_vs_all_with_lib`.
 
-        We search spec_a against the library, then look up the library index
-        that corresponds to spec_b.  Because the library is built from the
-        same spectra, we can use the index directly.
-
-        NOTE: This method is used for all-vs-all and new-vs-existing.
-        The caller is responsible for mapping library indices to spectrum IDs.
+        Raises
+        ------
+        NotImplementedError
+            Always.  Pairwise entropy similarity is computed via
+            :meth:`_compute_entropy_matrix_and_pairs` which leverages
+            FlashEntropy's vectorised search rather than per-pair calls.
         """
         raise NotImplementedError(
             "_entropy_score_pair is not used directly; "
-            "use compute_all_vs_all or compute_new_vs_existing."
+            "use compute_all_vs_all_with_lib instead."
         )
 
     def _compute_entropy_matrix_and_pairs(
