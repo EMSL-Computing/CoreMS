@@ -192,6 +192,9 @@ class MolecularNetwork(NetworkVisualizeMixin):
         # Cache for stage 2 entropy pairs (used by stage 3)
         self._stage2_entropy_pairs: dict[tuple[str, str], float] | None = None
 
+        # Cache of computed network clustering artifacts keyed by metric.
+        self._network_clusters: dict[str, dict] = {}
+
     # ── Internal helpers ──────────────────────────────────────────────────────
 
     def _threshold_for(self, metric: str) -> float:
@@ -912,6 +915,9 @@ class MolecularNetwork(NetworkVisualizeMixin):
         # Recreate empty similarity matrices for each metric
         all_metrics = list(self.similarity_matrices.keys())
         self.similarity_matrices = {m: SimilarityMatrix(metric_name=m) for m in all_metrics}
+
+        # Drop any cached clustering artifacts tied to previous query results.
+        self._network_clusters = {}
 
     def __repr__(self) -> str:
         n_nodes = sum(mat.n_spectra for mat in self.similarity_matrices.values()) // max(
