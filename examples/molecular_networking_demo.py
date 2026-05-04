@@ -220,16 +220,46 @@ def run_network_demo(search_type: str, label: str):
     assert reloaded.n_spectra == network.similarity_matrices["entropy_similarity"].n_spectra
     print("  ✓ Save/load round-trip OK")
 
-    html_path = OUT_DIR / f"{search_type}_network_entropy_similarity.html"
-    network.plot_network(
-        metric="entropy_similarity",
-        out_path=str(html_path),
-        include_queries_only=True,
-        max_edges=500,
-        library_label_field=("refmet_name", "name", "compound_name","spectra_id"),
-        library_node_attrs=("refmet_name", "name", "compound_name", "spectra_id", "precursor_mz", "precursortype", "inchikey"),
-    )
-    print(f"  ✓ Interactive network HTML saved: {html_path}")
+    for metric in ["entropy_similarity", "cosine"]:
+        cluster_summary = network.compute_network_clusters(
+            metric=metric,
+            include_queries_only=True,
+            max_edges=500,
+            cluster_method="weighted_greedy_modularity",
+            cluster_super_threshold=400,
+            cluster_sparsify_top_k=8,
+            cluster_recursive_split=True,
+            layout_seed=42,
+        )
+        print(
+            f"  ✓ [{metric}] clusters: {cluster_summary['n_clusters']} clusters "
+            f"across {cluster_summary['n_nodes']} nodes"
+        )
+
+        cluster_paths = network.save_network_clusters(
+            str(OUT_DIR),
+            metric=metric,
+            run_id=search_type,
+        )
+        print(f"  ✓ [{metric}] cluster artifacts: {cluster_paths['manifest']}")
+
+        html_path = OUT_DIR / f"{search_type}_network_{metric}.html"
+        network.plot_network(
+            metric=metric,
+            out_path=str(html_path),
+            max_edges=500,
+            library_label_field=("compound_name", "name","spectra_id"),
+            library_node_attrs=(
+                "compound_name",
+                "name",
+                "spectra_id",
+                "precursor_mz",
+                "precursortype",
+                "inchikey",
+            ),
+            bypass_clustering=False,
+        )
+        print(f"  ✓ [{metric}] interactive network HTML: {html_path}")
 
     return network
 
