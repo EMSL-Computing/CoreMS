@@ -2,29 +2,26 @@
 
 This document tracks peer-reviewed publications, conference papers, and other scientific works that reference, use, or review CoreMS. The entries are organized by category to facilitate discovery and understanding of CoreMS applications and methodological contributions.
 
-Current totals: 21 CoreMS citations tracked (Methods: 7, Application: 13, Additional: 1).
+Current totals: 21 CoreMS citations tracked (Methods: 4, Application: 13, Additional: 4).
 
 ## Table of Contents
 
-- [Methods & Evaluation Papers (7)](#methods--evaluation-papers-7)
+- [Methods & Evaluation Papers (4)](#methods--evaluation-papers-4)
 - [Application & Use Case Papers (13)](#application--use-case-papers-13)
-- [Additional Citations & References (1)](#additional-citations--references-1)
+- [Additional Citations & References (4)](#additional-citations--references-4)
 
 ---
 
-## Methods & Evaluation Papers (7)
+## Methods & Evaluation Papers (4)
 
 Papers that present methodological contributions, algorithmic improvements, or comprehensive evaluation/benchmarking of CoreMS capabilities.
 
 | No. | Authors | Title | Year | Journal/Conference | DOI/Link | Key Contributions |
 |-----|---------|-------|------|-------------------|----------|------------------|
 | 1 | Dewey, C., Corilo, Y., Kew, W., Boiteau, R.M. | Data Set Analysis to Reduce Uncertainty in Formula Assignments of Ultrahigh Resolution Mass Spectra | 2025 | Analytical Chemistry, Vol. 97, No. 25, pp. 13031-13039 | https://doi.org/10.1021/acs.analchem.4c06826 | Data set analysis strategy for improving formula assignment confidence, filtering false assignments, and mitigating bias in HRMS formula routines; demonstrated on 21 T FT-ICR MS oceanographic data |
-| 2 | Degnan, D.J., Claborne, D.M., White, A.M., Akers, S.M., Winans, N.M., Corilo, Y.E., Strauch, C.W., Bailey, V.L., McCue, L.A., Stratton, K.G., Bramer, L.M. | FREDA: A Web Application for the Processing, Analysis, and Visualization of Fourier-Transform Mass Spectrometry Data | 2025 | Rapid Communications in Mass Spectrometry, Vol. 39, No. 7, e9980 | https://doi.org/10.1002/rcm.9980 | Open-source FT-MS analysis web application designed to process and explore outputs from tools such as CoreMS, with filtering, chemical-property calculations, exploratory statistics, and reproducible reporting. |
-| 3 | Ayala-Ortiz, C., Graf-Grachet, N., Freire-Zapata, V., et al. | MetaboDirect: an analytical pipeline for the processing of FT-ICR MS-based metabolomic data | 2023 | Microbiome, Vol. 11, Article 16 | https://doi.org/10.1186/s40168-023-01476-3 | Open-source pipeline for high-resolution FT-ICR MS metabolomics emphasizing reproducible analysis and automated biochemical transformation network construction; cited by Scholar as referencing CoreMS. |
-| 4 | Degnan, D.J., Flores, J.E., Brayfindley, E.R., Paurus, V.L., Webb-Robertson, B.J.M., Clendinen, C.S., Bramer, L.M. | Characterizing Families of Spectral Similarity Scores and Their Use Cases for Gas Chromatography-Mass Spectrometry Small Molecule Identification | 2023 | Metabolites, Vol. 13, No. 10, 1101 | https://doi.org/10.3390/metabo13101101 | Benchmarking study of 66 GC-MS spectral similarity metrics and score families to improve identification reproducibility; includes CoreMS in the referenced software ecosystem. |
-| 5 | Flores, J.E., Bramer, L.M., Degnan, D.J., Paurus, V.L., Corilo, Y.E., Clendinen, C.S. | Gaussian Mixture Modeling Extensions for Improved False Discovery Rate Estimation in GC-MS Metabolomics | 2023 | Journal of the American Society for Mass Spectrometry, Vol. 34, No. 6, pp. 1096-1104 | https://doi.org/10.1021/jasms.3c00039 | Methodological extension for improved FDR estimation in GC-MS identification workflows; references CoreMS in the computational pipeline context. |
-| 6 | Letourneau, D.R., August, D.D., Volmer, D.A. | New algorithms demonstrate untargeted detection of chemically meaningful changing units and formula assignment for HRMS data of polymeric mixtures in the open-source Constellation web application | 2023 | Journal of Cheminformatics, Vol. 15, Article 7 | https://doi.org/10.1186/s13321-023-00680-5 | Introduces unsupervised HRMS algorithms and integrates a molecular formula assignment routine from CoreMS into Constellation for polymeric trend detection and formula annotation. |
-| 7 | Kitson, E., Kew, W., Ding, W., Bell, N.G.A. | PyKrev: A Python Library for the Analysis of Complex Mixture FT-MS Data | 2021 | Journal of the American Society for Mass Spectrometry, Vol. 32, No. 5, pp. 1263-1267 | https://doi.org/10.1021/jasms.1c00064 | Software-methods contribution for complex mixture FT-MS analysis and visualization in the open-source ecosystem that cites and complements CoreMS workflows. |
+| 2 | Degnan, D.J., Flores, J.E., Brayfindley, E.R., Paurus, V.L., Webb-Robertson, B.J.M., Clendinen, C.S., Bramer, L.M. | Characterizing Families of Spectral Similarity Scores and Their Use Cases for Gas Chromatography-Mass Spectrometry Small Molecule Identification | 2023 | Metabolites, Vol. 13, No. 10, 1101 | https://doi.org/10.3390/metabo13101101 | Benchmarking study of 66 GC-MS spectral similarity metrics and score families to improve identification reproducibility; includes CoreMS in the referenced software ecosystem. |
+| 3 | Flores, J.E., Bramer, L.M., Degnan, D.J., Paurus, V.L., Corilo, Y.E., Clendinen, C.S. | Gaussian Mixture Modeling Extensions for Improved False Discovery Rate Estimation in GC-MS Metabolomics | 2023 | Journal of the American Society for Mass Spectrometry, Vol. 34, No. 6, pp. 1096-1104 | https://doi.org/10.1021/jasms.3c00039 | Methodological extension for improved FDR estimation in GC-MS identification workflows; references CoreMS in the computational pipeline context. |
+| 4 | Letourneau, D.R., August, D.D., Volmer, D.A. | New algorithms demonstrate untargeted detection of chemically meaningful changing units and formula assignment for HRMS data of polymeric mixtures in the open-source Constellation web application | 2023 | Journal of Cheminformatics, Vol. 15, Article 7 | https://doi.org/10.1186/s13321-023-00680-5 | Introduces unsupervised HRMS algorithms and integrates a molecular formula assignment routine from CoreMS into Constellation for polymeric trend detection and formula annotation. |
 
 
 ---
@@ -51,13 +48,16 @@ Papers that apply CoreMS to specific scientific domains, analytical workflows, o
 
 ---
 
-## Additional Citations & References (1)
+## Additional Citations & References (4)
 
 Other references including dissertations, technical reports, conference abstracts, or works in progress that mention CoreMS.
 
 | No. | Authors | Title | Year | Type | DOI/Link | Notes |
 |-----|---------|-------|------|------|----------|-------|
 | 1 | Eloe-Fadrosh, E.A., Ahmed, F., Babinski, M., et al. | The National Microbiome Data Collaborative Data Portal: an integrated multi-omics microbiome data resource | 2022 | Peer-reviewed article | https://doi.org/10.1093/nar/gkab990 | Data resource and portal paper that cites CoreMS in the broader NMDC software and workflow ecosystem. |
+| 2 | Degnan, D.J., Claborne, D.M., White, A.M., Akers, S.M., Winans, N.M., Corilo, Y.E., Strauch, C.W., Bailey, V.L., McCue, L.A., Stratton, K.G., Bramer, L.M. | FREDA: A Web Application for the Processing, Analysis, and Visualization of Fourier-Transform Mass Spectrometry Data | 2025 | Peer-reviewed article | https://doi.org/10.1002/rcm.9980 | Compatible with CoreMS outputs and references CoreMS, but does not directly use CoreMS as part of the primary analysis workflow. |
+| 3 | Ayala-Ortiz, C., Graf-Grachet, N., Freire-Zapata, V., et al. | MetaboDirect: an analytical pipeline for the processing of FT-ICR MS-based metabolomic data | 2023 | Peer-reviewed article | https://doi.org/10.1186/s40168-023-01476-3 | Cites CoreMS as a compatible data-processing tool, but the paper itself is not a CoreMS-use case or a CoreMS-focused methods paper. |
+| 4 | Kitson, E., Kew, W., Ding, W., Bell, N.G.A. | PyKrev: A Python Library for the Analysis of Complex Mixture FT-MS Data | 2021 | Peer-reviewed article | https://doi.org/10.1021/jasms.1c00064 | Describes a related tool that can use CoreMS outputs and cites CoreMS, but does not directly use or evaluate CoreMS in the paper's primary workflow. |
 
 ---
 
