@@ -2,13 +2,13 @@
 
 This document tracks peer-reviewed publications, conference papers, and other scientific works that reference, use, or review CoreMS. The entries are organized by category to facilitate discovery and understanding of CoreMS applications and methodological contributions.
 
-Current totals: 21 CoreMS citations tracked (Methods: 4, Application: 13, Additional: 4).
+Current totals: 21 CoreMS citations tracked (Methods: 4, Application: 12, Additional: 5).
 
 ## Table of Contents
 
 - [Methods & Evaluation Papers (4)](#methods--evaluation-papers-4)
-- [Application & Use Case Papers (13)](#application--use-case-papers-13)
-- [Additional Citations & References (4)](#additional-citations--references-4)
+- [Application & Use Case Papers (12)](#application--use-case-papers-13)
+- [Additional Citations & References (5)](#additional-citations--references-4)
 
 ---
 
@@ -26,7 +26,7 @@ Papers that present methodological contributions, algorithmic improvements, or c
 
 ---
 
-## Application & Use Case Papers (13)
+## Application & Use Case Papers (12)
 
 Papers that apply CoreMS to specific scientific domains, analytical workflows, or real-world problems.
 
@@ -44,11 +44,10 @@ Papers that apply CoreMS to specific scientific domains, analytical workflows, o
 | 10 | Sakas, J., Kitson, E., Bell, N.G.A., Uhrin, D. | MS and NMR Analysis of Isotopically Labeled Chloramination Disinfection Byproducts: Hyperlinks and Chemical Reactions | 2024 | Analytical Chemistry, Vol. 96, No. 21, pp. 8263-8272 | https://doi.org/10.1021/acs.analchem.3c03888 | Disinfection byproduct transformation analysis | Combined isotopic labeling, FT-ICR MS, and NMR for DBP characterization; references CoreMS in formula assignment and data processing workflow. |
 | 11 | Kew, W., Myers-Pigg, A., Chang, C.H., Colby, S.M., Eder, J., Tfaily, M.M., Hawkes, J., Chu, R.K., Stegen, J.C. | Reviews and syntheses: Opportunities for robust use of peak intensities from high-resolution mass spectrometry in organic matter studies | 2024 | Biogeosciences, Vol. 21, No. 20, pp. 4665-4679 | https://doi.org/10.5194/bg-21-4665-2024 | Review and synthesis of best practices for utilizing peak intensities from HRMS in organic matter studies |
 | 12 | Letourneau, D.R., Marzullo, B.P., Alexandridou, A., Barrow, M.P., O'Connor, P.B., Volmer, D.A. | Characterizing lignins from various sources and treatment processes after optimized sample preparation techniques and analysis via ESI-HRMS and custom mass defect software tools | 2023 | Analytical and Bioanalytical Chemistry, Vol. 415, No. 27, pp. 6663-6675 | https://doi.org/10.1007/s00216-023-04942-x | Lignin characterization and sample preparation optimization | Establishes optimized lignin sample-prep and ESI-HRMS conditions, with custom mass-defect analysis software; cites CoreMS among HRMS data-processing tools. |
-| 13 | Bahureksa, W., Borch, T., Young, R.B., Weisbrod, C.R., Blakney, G.T., McKenna, A.M. | Improved Dynamic Range, Resolving Power, and Sensitivity Achievable with FT-ICR Mass Spectrometry at 21 T Reveals the Hidden Complexity of Natural Organic Matter | 2022 | Analytical Chemistry, Vol. 94, No. 32, pp. 11382-11389 | https://doi.org/10.1021/acs.analchem.2c02377 | Ultrahigh-field FT-ICR MS for natural organic matter | Demonstrates analytical gains at 21 T for complex NOM characterization and cites CoreMS in the downstream computational workflow. |
 
 ---
 
-## Additional Citations & References (4)
+## Additional Citations & References (5)
 
 Other references including dissertations, technical reports, conference abstracts, or works in progress that mention CoreMS.
 
@@ -58,6 +57,7 @@ Other references including dissertations, technical reports, conference abstract
 | 2 | Degnan, D.J., Claborne, D.M., White, A.M., Akers, S.M., Winans, N.M., Corilo, Y.E., Strauch, C.W., Bailey, V.L., McCue, L.A., Stratton, K.G., Bramer, L.M. | FREDA: A Web Application for the Processing, Analysis, and Visualization of Fourier-Transform Mass Spectrometry Data | 2025 | Peer-reviewed article | https://doi.org/10.1002/rcm.9980 | Compatible with CoreMS outputs and references CoreMS, but does not directly use CoreMS as part of the primary analysis workflow. |
 | 3 | Ayala-Ortiz, C., Graf-Grachet, N., Freire-Zapata, V., et al. | MetaboDirect: an analytical pipeline for the processing of FT-ICR MS-based metabolomic data | 2023 | Peer-reviewed article | https://doi.org/10.1186/s40168-023-01476-3 | Cites CoreMS as a compatible data-processing tool, but the paper itself is not a CoreMS-use case or a CoreMS-focused methods paper. |
 | 4 | Kitson, E., Kew, W., Ding, W., Bell, N.G.A. | PyKrev: A Python Library for the Analysis of Complex Mixture FT-MS Data | 2021 | Peer-reviewed article | https://doi.org/10.1021/jasms.1c00064 | Describes a related tool that can use CoreMS outputs and cites CoreMS, but does not directly use or evaluate CoreMS in the paper's primary workflow. |
+| 5 | Bahureksa, W., Borch, T., Young, R.B., Weisbrod, C.R., Blakney, G.T., McKenna, A.M. | Improved Dynamic Range, Resolving Power, and Sensitivity Achievable with FT-ICR Mass Spectrometry at 21 T Reveals the Hidden Complexity of Natural Organic Matter | 2022 | Analytical Chemistry, Vol. 94, No. 32, pp. 11382-11389 | https://doi.org/10.1021/acs.analchem.2c02377 | Ultrahigh-field FT-ICR MS for natural organic matter | Demonstrates analytical gains at 21 T for complex NOM characterization and cites CoreMS in the downstream computational workflow. |
 
 ---
 
