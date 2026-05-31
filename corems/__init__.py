@@ -55,9 +55,9 @@ def chunks(lst, n):
         yield lst[i : i + n]
 
 
-def corems_md5(fname):
+def corems_sha256(fname):
     bytes_io = fname.open("rb").read()
 
-    md5_returned = hashlib.sha256(bytes_io).hexdigest()
+    sha256_returned = hashlib.sha256(bytes_io).hexdigest()
 
-    return "{}:{}".format("sha256", md5_returned)
+    return "{}:{}".format("sha256", sha256_returned)
