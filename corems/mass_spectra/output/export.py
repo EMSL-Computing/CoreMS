@@ -16,7 +16,7 @@ import pandas as pd
 from openpyxl import load_workbook
 from pandas import DataFrame, ExcelWriter, read_excel
 
-from corems import __version__, corems_md5
+from corems import __version__, corems_sha256
 from corems.encapsulation.output import parameter_to_dict
 from corems.encapsulation.output.parameter_to_json import (
     dump_lcms_settings_json,
@@ -507,7 +507,7 @@ class LowResGCMSExport:
 
         calibration_parameters["calibration_rt_ri_pairs_ref"] = gcms.ri_pairs_ref
         calibration_parameters["data_url"] = str(gcms.cal_file_path)
-        calibration_parameters["has_input"] = id_label + corems_md5(gcms.cal_file_path)
+        calibration_parameters["has_input"] = id_label + corems_sha256(gcms.cal_file_path)
         calibration_parameters["data_name"] = str(gcms.cal_file_path.stem)
         calibration_parameters["calibration_method"] = ""
 
@@ -569,11 +569,11 @@ class LowResGCMSExport:
 
         data_metadata["data_name"].append(gcms.sample_name)
         data_metadata["input_data_url"].append(str(gcms.file_location))
-        data_metadata["has_input"].append(id_label + corems_md5(gcms.file_location))
+        data_metadata["has_input"].append(id_label + corems_sha256(gcms.file_location))
 
         data_metadata["output_data_name"] = str(output_path.stem)
         data_metadata["output_data_url"] = str(output_path)
-        data_metadata["has_output"] = id_label + corems_md5(output_path)
+        data_metadata["has_output"] = id_label + corems_sha256(output_path)
 
         return data_metadata
 
