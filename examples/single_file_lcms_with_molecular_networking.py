@@ -14,11 +14,10 @@ End-to-end debug script for a single Thermo RAW DDA file:
     STEP 7b – Identify Fe-containing mass features (putative siderophores)
     STEP 7c – Comprehensive export (HDF5 + report CSV via LCMSMetabolomicsExport)
     STEP 8  – Add MS2 spectra (add_associated_ms2_dda, auto-detect centroid/profile)
-    STEP 9  – MS2 spectral library search (MSPInterface → fe_search, Fe features only) [if RUN_MOLECULAR_NETWORKING]
-    STEP 10 – Extract MS2 spectra from Fe-containing mass features → query lists  [if RUN_MOLECULAR_NETWORKING]
-    STEP 10b– Save EIC/MS1/MS2 plots for Fe-containing mass features [if RUN_MOLECULAR_NETWORKING and PLOT_FE_MASS_FEATURES]
-    STEP 11 – Build MolecularNetwork (open + neutral_loss)            [if RUN_MOLECULAR_NETWORKING]
-    STEP 12 – Summary
+    STEP 10 – Build FlashEntropy library from MSP (for networking)    [if RUN_MOLECULAR_NETWORKING]
+    STEP 11 – Save EIC/MS1/MS2 plots for Fe-containing mass features  [if RUN_MOLECULAR_NETWORKING and PLOT_FE_MASS_FEATURES]
+    STEP 12 – Build MolecularNetwork (open + neutral_loss)            [if RUN_MOLECULAR_NETWORKING]
+    STEP 13 – Summary
 
 Run from the repo root:
     python examples/single_file_lcms_with_molecular_networking.py
@@ -31,10 +30,6 @@ molecular formulas C30H27N3O15
 import sys
 import numpy as np
 from pathlib import Path
-
-# ── Repo root on path ─────────────────────────────────────────────────────────
-REPO_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO_ROOT))
 
 # =============================================================================
 # STEP 1 – Config / paths
@@ -50,7 +45,7 @@ RAW_FILE = Path(
 
 # ── MSP spectral library (same as molecular_networking_demo.py) ───────────────
 # Falls back to fe_lib=None (query-vs-query only) if file is missing.
-MSP_FILE = REPO_ROOT / "tmp_data" / "20250407_database.msp"
+MSP_FILE = Path("tmp_data") / "20250407_database.msp"
 
 # ── Feature flags ─────────────────────────────────────────────────────────────
 # Set to False to skip the molecular networking steps (Steps 9–11) while
@@ -61,7 +56,7 @@ RUN_MOLECULAR_NETWORKING = True
 PLOT_FE_MASS_FEATURES = True
 
 # ── Output directory ──────────────────────────────────────────────────────────
-OUT_DIR = REPO_ROOT / "temp.corems" / "single_file_lcms_networking"
+OUT_DIR = Path("temp.corems") / "single_file_lcms_networking"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 print(f"  RAW file : {RAW_FILE}")
@@ -82,19 +77,14 @@ from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFil
 
 parser = ImportMassSpectraThermoMSFileReader(str(RAW_FILE))
 
-# Pull MS1 spectra into the internal dataframe (lazy – no MassSpectrum objects yet)
+# Instantiate LCMSBase with MS1 spectra only
 myLCMSobj = parser.get_lcms_obj(spectra="ms1")
-
-print(f"  Polarity : {myLCMSobj.polarity}")
-print(f"  Scans    : {len(myLCMSobj.scan_df)}")
-ms1_count = (myLCMSobj.scan_df.ms_level == 1).sum()
-ms2_count = (myLCMSobj.scan_df.ms_level == 2).sum()
-print(f"  MS1 scans: {ms1_count}   MS2 scans: {ms2_count}")
 
 # =============================================================================
 # STEP 3 – Set parameters inline
 # =============================================================================
 # NOTE: For a production workflow, we recommend setting parameters via YAML config files
+# TODO KRH: add YAML to config loading and use that
 print("\n" + "=" * 65)
 print("STEP 3 – Set parameters inline")
 print("=" * 65)
@@ -152,15 +142,8 @@ print("\n" + "=" * 65)
 print("STEP 4 – Peak picking")
 print("=" * 65)
 
-print("  Running find_mass_features …")
 myLCMSobj.find_mass_features()
-print(f"  Found {len(myLCMSobj.mass_features)} mass features")
-
-print("  Integrating mass features …")
 myLCMSobj.integrate_mass_features(drop_if_fail=True)
-print(f"  After integration: {len(myLCMSobj.mass_features)} mass features")
-
-print("  Adding peak shape metrics …")
 myLCMSobj.add_peak_metrics()
 
 # =============================================================================
@@ -171,54 +154,38 @@ print("STEP 5 – Add associated MS1 spectra")
 print("=" * 65)
 
 if ms1_is_centroid:
-    # Centroided Thermo RAW: use parser for centroid spectra
+    # Centroided Thermo RAW: use parser for centroid spectra which will give resovling power
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=True, spectrum_mode="centroid"
     )
 else:
-    # Profile mode: reconstruct from raw data
+    # Profile mode: reconstruct from raw data stored in memory and do the centroiding
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=False, spectrum_mode="profile"
     )
 
-print(f"  Mass features with MS1 spectra: {sum(1 for mf in myLCMSobj.mass_features.values() if mf.mass_spectrum is not None)}")
-
-# =============================================================================
-# STEP 6 – Remove unprocessed data (free memory)
-# =============================================================================
-print("\n" + "=" * 65)
-print("STEP 6 – Remove unprocessed data")
-print("=" * 65)
-
+# Remove unprocessed data to free memory before formula search and networking steps.
 myLCMSobj.remove_unprocessed_data()
-print("  Done.")
 
 # =============================================================================
-# STEP 7 – Molecular formula search
+# STEP 6 – Molecular formula search
 # =============================================================================
 print("\n" + "=" * 65)
-print("STEP 7 – Molecular formula search (SearchMolecularFormulasLC)")
+print("STEP 7 – Molecular formula search (SearchMolecularFormulasLC) on MS1 spectra associated to mass features")
 print("=" * 65)
 
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulasLC  # noqa: E402
 
+# Instantiate and run formula search on MS1 spectra associated to mass features. 
+# Only performs a molecular formula search on MS1 spectra that are associated to mass features.
 mol_search = SearchMolecularFormulasLC(myLCMSobj)
 mol_search.run_mass_feature_search()
-print("  Molecular formula search complete.")
-
-# Quick summary
-n_assigned = sum(
-    1 for mf in myLCMSobj.mass_features.values()
-    if mf.mass_spectrum is not None and mf.ms1_peak is not None
-    and len(mf.ms1_peak.molecular_formulas) > 0
-)
-print(f"  Mass features with at least one formula: {n_assigned}")
 
 # =============================================================================
-# STEP 7b – Identify Fe-containing mass features (putative siderophores)
+# STEP 7 – Identify mass features to those with Fe in any assigned formula
 # =============================================================================
 print("\n" + "=" * 65)
-print("STEP 7b – Identify Fe-containing mass features")
+print("STEP 7 – Identify Fe-containing mass features")
 print("=" * 65)
 
 import warnings  # noqa: E402
@@ -239,10 +206,10 @@ fe_mf_ids = {mf_id for mf_id, mf in myLCMSobj.mass_features.items() if _has_fe(m
 print(f"  Fe-containing mass features: {len(fe_mf_ids)} / {len(myLCMSobj.mass_features)}")
 
 # =============================================================================
-# STEP 7c – Comprehensive export (HDF5 + report CSV)
+# STEP 8 - Save intermediate export with MS1 formula annotations (HDF5 + report CSV)
 # =============================================================================
 print("\n" + "=" * 65)
-print("STEP 7c – Comprehensive export (HDF5 + report CSV)")
+print("STEP 8 – Save intermediate export with MS1 formula annotations (HDF5 + report CSV)")
 print("=" * 65)
 
 from corems.mass_spectra.output.export import LCMSMetabolomicsExport  # noqa: E402
@@ -259,10 +226,10 @@ with warnings.catch_warnings():
 print(f"  HDF5 + report CSV written to: {_out_stem}.corems/")
 
 # =============================================================================
-# STEP 8 – Add MS2 spectra (auto-detect centroid / profile per scan)
+# STEP 9 – Add MS2 spectra to mass features (add_associated_ms2_dda, auto-detect centroid/profile)
 # =============================================================================
 print("\n" + "=" * 65)
-print("STEP 8 – Add MS2 spectra (add_associated_ms2_dda)")
+print("STEP 9 – Add MS2 spectra (add_associated_ms2_dda)")
 print("=" * 65)
 
 # Detect whether MS2 scans are centroided or profile.
@@ -296,14 +263,13 @@ print(f"  Total MS2 spectra loaded: {sum(1 for k in myLCMSobj._ms if myLCMSobj.s
 
 if RUN_MOLECULAR_NETWORKING:
     # =============================================================================
-    # STEP 9 – MS2 spectral library search (fe_search)
+    # STEP 10 – Build FlashEntropy library from MSP (for networking)
     # =============================================================================
     print("\n" + "=" * 65)
-    print("STEP 9 – MS2 spectral library search")
+    print("STEP 10 – Build FlashEntropy library from MSP")
     print("=" * 65)
 
     fe_lib = None           # will stay None if MSP file is missing
-    metabolite_metadata = {}
 
     if MSP_FILE.exists():
         from corems.molecular_id.search.database_interfaces import MSPInterface  # noqa: E402
@@ -311,8 +277,7 @@ if RUN_MOLECULAR_NETWORKING:
         print(f"  Parsing MSP file: {MSP_FILE.name} …")
         my_msp = MSPInterface(file_path=str(MSP_FILE))
 
-        # Build FlashEntropy library for the correct polarity
-        fe_lib, metabolite_metadata = my_msp.get_metabolomics_spectra_library(
+        fe_lib, _ = my_msp.get_metabolomics_spectra_library(
             polarity=myLCMSobj.polarity,
             format="flashentropy",
             normalize=True,
@@ -326,83 +291,15 @@ if RUN_MOLECULAR_NETWORKING:
             },
         )
         print(f"  FlashEntropy library built ({len(my_msp._data_frame)} entries, polarity={myLCMSobj.polarity})")
-
-        # Collect MS2 scan numbers belonging to Fe-containing mass features only
-        fe_ms2_scans = []
-        for mf_id in fe_mf_ids:
-            mf = myLCMSobj.mass_features[mf_id]
-            for scan_num in mf.ms2_scan_numbers:
-                if scan_num in myLCMSobj._ms:
-                    fe_ms2_scans.append(scan_num)
-        fe_ms2_scans = list(set(fe_ms2_scans))
-        print(f"  MS2 scans from Fe-containing features available for search: {len(fe_ms2_scans)}")
-
-        if len(fe_ms2_scans) > 0:
-            myLCMSobj.fe_search(
-                scan_list=fe_ms2_scans,
-                fe_lib=fe_lib,
-                peak_sep_da=0.002,
-            )
-            print("  fe_search complete.")
-        else:
-            print("  WARNING: No Fe-feature MS2 scans loaded – skipping fe_search.")
-
-        # ── Re-export with MS2 library annotations now populated ─────────────
-        exporter_final = LCMSMetabolomicsExport(str(_out_stem), myLCMSobj)
-        exporter_final.to_hdf(overwrite=True)
-        exporter_final.report_to_csv(molecular_metadata=metabolite_metadata)
-        print(f"  Final HDF5 + annotated report CSV written to: {_out_stem}.corems/")
     else:
-        print(f"  MSP file not found ({MSP_FILE}). Skipping library search.")
+        print(f"  MSP file not found ({MSP_FILE}). Skipping library build.")
         print("  Molecular networking will run query-vs-query only (fe_lib=None).")
 
     # =============================================================================
-    # STEP 10 – Extract MS2 spectra from mass features → query lists
+    # STEP 11 – Save EIC/MS1/MS2 plots for Fe-containing mass features
     # =============================================================================
     print("\n" + "=" * 65)
-    print("STEP 10 – Extract MS2 spectra from mass features")
-    print("=" * 65)
-
-    query_spectra = []
-    query_ids = []
-    query_precursor_mzs = []
-
-    n_total_ms2 = 0
-    n_skipped_no_fe = 0
-
-    for mf_id, mf in myLCMSobj.mass_features.items():
-        ms2 = mf.best_ms2
-        if ms2 is None:
-            continue
-        if not hasattr(ms2, "mz_exp") or len(ms2.mz_exp) == 0:
-            continue
-        n_total_ms2 += 1
-        if mf_id not in fe_mf_ids:
-            n_skipped_no_fe += 1
-            continue
-        query_spectra.append(ms2)                   # MassSpectrum has .mz_exp and .abundance
-        query_ids.append(str(mf_id))
-        query_precursor_mzs.append(float(mf.mz))    # MS1 m/z of the mass feature
-
-    print(f"  Mass features with MS2: {n_total_ms2}")
-    print(f"  Skipped (no Fe in formula): {n_skipped_no_fe}")
-    print(f"  Query spectra extracted (Fe-containing): {len(query_spectra)}")
-    if len(query_spectra) == 0:
-        print("  WARNING: No MS2 spectra found in mass features.")
-        print("  Check that add_associated_ms2_dda ran successfully and the file has DDA scans.")
-    else:
-        # Print a few examples
-        for i in range(min(3, len(query_spectra))):
-            print(
-                f"    [{i}] mf_id={query_ids[i]}  precursor_mz={query_precursor_mzs[i]:.4f}"
-                f"  n_peaks={len(query_spectra[i].mz_exp)}"
-            )
-
-    # =============================================================================
-    # STEP 10b – Save EIC/MS1/MS2 plots for Fe-containing mass features
-    # =============================================================================
-    print("\n" + "=" * 65)
-    print("STEP 10b – Plot Fe-containing mass features")
+    print("STEP 11 – Plot Fe-containing mass features")
     print("=" * 65)
 
     if PLOT_FE_MASS_FEATURES:
@@ -432,13 +329,20 @@ if RUN_MOLECULAR_NETWORKING:
         print("  [Skipped – PLOT_FE_MASS_FEATURES=False]")
 
     # =============================================================================
-    # STEP 11 – Build MolecularNetwork
+    # STEP 12 – Build MolecularNetwork
     # =============================================================================
     print("\n" + "=" * 65)
-    print("STEP 11 – Build MolecularNetwork (open + neutral_loss)")
+    print("STEP 12 – Build MolecularNetwork (open + neutral_loss)")
     print("=" * 65)
 
     from corems.molecular_networking import MolecularNetwork, SimilarityMatrix  # noqa: E402
+
+    query_spectra, query_ids, query_precursor_mzs = (
+        MolecularNetwork.prepare_query_spectra_from_lcms_object(
+            myLCMSobj, mf_ids=fe_mf_ids
+        )
+    )
+    print(f"  Query spectra extracted (Fe-containing): {len(query_spectra)}")
 
     LIBRARY_SIMILARITY_THRESHOLD = 0.3
 
@@ -562,7 +466,7 @@ else:
     print("\n  [Molecular networking skipped – RUN_MOLECULAR_NETWORKING=False]")
 
 # =============================================================================
-# STEP 12 – Summary
+# STEP 13 – Summary
 # =============================================================================
 print("\n" + "=" * 65)
 print("DONE")
