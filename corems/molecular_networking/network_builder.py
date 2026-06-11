@@ -195,6 +195,49 @@ class MolecularNetwork(NetworkVisualizeMixin):
         # Cache of computed network clustering artifacts keyed by metric.
         self._network_clusters: dict[str, dict] = {}
 
+    @staticmethod
+    def prepare_query_spectra_from_lcms_object(
+        lcms_obj,
+        mf_ids: set | None = None,
+    ) -> tuple[list, list[str], list[float]]:
+        """Build query lists from an ``LCMSBase`` object's mass features.
+
+        Iterates ``lcms_obj.mass_features`` and collects each feature's
+        ``best_ms2`` spectrum, skipping features with no MS2 or an empty
+        ``mz_exp``.  If *mf_ids* is provided, only those mass features are
+        included.
+
+        Parameters
+        ----------
+        lcms_obj : LCMSBase
+            LCMS object whose mass features have been populated with MS2
+            spectra (e.g. via :meth:`add_associated_ms2_dda`).
+        mf_ids : set, optional
+            If provided, only mass features whose id is in this set are
+            included.
+
+        Returns
+        -------
+        (query_spectra, query_ids, query_precursor_mzs)
+            Three parallel lists ready to pass to :meth:`query_vs_library`
+            or :meth:`run_query_vs_query_only`.
+        """
+        query_spectra: list = []
+        query_ids: list[str] = []
+        query_precursor_mzs: list[float] = []
+        for mf_id, mf in lcms_obj.mass_features.items():
+            if mf_ids is not None and mf_id not in mf_ids:
+                continue
+            ms2 = mf.best_ms2
+            if ms2 is None:
+                continue
+            if not hasattr(ms2, "mz_exp") or len(ms2.mz_exp) == 0:
+                continue
+            query_spectra.append(ms2)
+            query_ids.append(str(mf_id))
+            query_precursor_mzs.append(float(mf.mz))
+        return query_spectra, query_ids, query_precursor_mzs
+
     # ── Internal helpers ──────────────────────────────────────────────────────
 
     def _threshold_for(self, metric: str) -> float:
