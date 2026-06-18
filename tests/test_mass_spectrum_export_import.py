@@ -71,5 +71,8 @@ def test_mass_spec_export_import_with_annote(mass_spectrum_silico):
     assert mass_spectrum_obj2[1][0].string == "C55 H73 N1 13C1"
     assert mass_spectrum_obj2._mz_exp[0] == 760.58156938877
 
+    # Close the file handle before removing (required on Windows)
+    parser.close()
+
     # Remove the file
     os.remove("my_mass_spec.hdf5")

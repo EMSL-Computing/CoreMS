@@ -9,8 +9,28 @@ from corems.encapsulation.factory.parameters import LCMSParameters, LCMSCollecti
 from corems.molecular_id.search.database_interfaces import MSPInterface
 
 
-@pytest.fixture
-def lcms_collection_folder(tmp_path, lcms_obj):
+@pytest.fixture(scope="module")
+def lcms_collection_source_obj():
+    """Returns an LCMS object for collection fixture setup."""
+    from pathlib import Path
+    from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
+
+    file_raw = (
+        Path.cwd()
+        / "tests/tests_data/lcms/"
+        / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.raw"
+    )
+    parser = ImportMassSpectraThermoMSFileReader(file_raw)
+    instrument_info = parser.get_instrument_info()
+    assert instrument_info['model'] == "Orbitrap Velos Pro"
+    creation_time = parser.get_creation_time()
+    assert creation_time.year == 2018
+
+    return parser.get_lcms_obj(spectra="ms1")
+
+
+@pytest.fixture(scope="module")
+def lcms_collection_folder(tmp_path_factory, lcms_collection_source_obj):
     """
     Creates a temporary folder with processed LCMS objects for collection testing.
     
@@ -22,10 +42,10 @@ def lcms_collection_folder(tmp_path, lcms_obj):
     This setup allows comprehensive testing of gap filling functionality.
     """
     # Create a temporary folder for processed data
-    processed_folder = tmp_path / "processed_lcms_collection"
-    processed_folder.mkdir()
+    processed_folder = tmp_path_factory.mktemp("processed_lcms_collection")
     
     # Set parameters on the LCMS object that are reasonable for testing
+    lcms_obj = lcms_collection_source_obj
     lcms_obj.parameters = LCMSParameters(use_defaults=True)
     
     # Set persistent homology parameters for fast testing

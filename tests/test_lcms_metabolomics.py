@@ -9,12 +9,7 @@ from corems.encapsulation.factory.parameters import LCMSParameters, reset_lcms_p
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 
 
-def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
-    # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
-    shutil.rmtree(
-        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems",
-        ignore_errors=True,
-    )
+def test_lcms_metabolomics(tmp_path, postgres_database, lcms_obj, msp_file_location):
 
     # Set parmaeters to the defaults for reproducible testing
     lcms_obj.parameters = LCMSParameters(use_defaults=True)
@@ -115,9 +110,9 @@ def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
     )
 
     # Export the lcms object to an hdf5 file using the LipidomicsExport class
-    exporter = LCMSMetabolomicsExport(
-        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab", lcms_obj
-    )
+    export_stem = tmp_path / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab"
+    export_dir = tmp_path / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab.corems"
+    exporter = LCMSMetabolomicsExport(str(export_stem), lcms_obj)
     exporter.to_hdf(overwrite=True)
     exporter.report_to_csv(molecular_metadata=metabolite_metadata_negative)
     report = exporter.to_report(molecular_metadata=metabolite_metadata_negative)
@@ -140,7 +135,7 @@ def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
 
     # Reload the saved lcms object and check that mass features are still present
     parser = ReadCoreMSHDFMassSpectra(
-        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab.corems/Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab.hdf5"
+        export_dir / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab.hdf5"
     )
     myLCMSobj2 = parser.get_lcms_obj()
 
@@ -163,18 +158,12 @@ def test_lcms_metabolomics(postgres_database, lcms_obj, msp_file_location):
     assert df2.shape == df1.shape
     myLCMSobj2.mass_features[0].plot(return_fig=False)
     
-    # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
-    shutil.rmtree(
-        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab.corems",
-        ignore_errors=True,
-    )
-
     # Reset the MSParameters to the original values
     reset_lcms_parameters()
     reset_ms_parameters()
 
 
-def test_lcms_metabolomics_targeted_search(lcms_obj):
+def test_lcms_metabolomics_targeted_search(tmp_path, lcms_obj):
     """Test the targeted search functionality for LCMS metabolomics"""
     
     # Set parameters to the defaults for reproducible testing
@@ -264,14 +253,13 @@ def test_lcms_metabolomics_targeted_search(lcms_obj):
         "All targeted mass features should have type 'internal standard'"
     
     # Test HDF5 export/import to verify type attribute persists
-    shutil.rmtree("test_targeted_search.corems", ignore_errors=True)
-    exporter = LCMSMetabolomicsExport("test_targeted_search", lcms_obj)
+    export_stem = tmp_path / "test_targeted_search"
+    export_dir = tmp_path / "test_targeted_search.corems"
+    exporter = LCMSMetabolomicsExport(str(export_stem), lcms_obj)
     exporter.to_hdf(overwrite=True)
     
     # Reload the saved lcms object and check that type attribute persists
-    parser = ReadCoreMSHDFMassSpectra(
-        "test_targeted_search.corems/test_targeted_search.hdf5"
-    )
+    parser = ReadCoreMSHDFMassSpectra(export_dir / "test_targeted_search.hdf5")
     lcms_obj_reloaded = parser.get_lcms_obj()
     
     # Check that mass features were reloaded
@@ -288,9 +276,6 @@ def test_lcms_metabolomics_targeted_search(lcms_obj):
     assert 'type' in mf_df_reloaded.columns, "Type column should persist in reloaded dataframe"
     assert (mf_df_reloaded['type'] == 'internal standard').all(), \
         "All mass features should have type 'internal standard' after reload"
-    
-    # Cleanup
-    shutil.rmtree("test_targeted_search.corems", ignore_errors=True)
     
     # Reset the parameters to the original values
     reset_lcms_parameters()
