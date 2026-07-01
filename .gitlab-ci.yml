@@ -13,6 +13,17 @@ variables:
   COREMS_DATABASE_URL: postgresql://coremsdb:coremsmolform@postgres:5432/molformula
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
+cache:
+  key:
+    files:
+      - requirements.txt
+      - requirements-dev.txt
+      - setup.py
+  paths:
+    - .cache/pip
+    - tests/tests_data/lcms/202412_lipid_ref.sqlite
+  policy: pull-push
+
 stages:
   - Pytest
   - Test Notebooks
