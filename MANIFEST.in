@@ -3,3 +3,4 @@ include disclaimer.txt
 include Dockerfile
 include ext_lib/*
 include ext_lib/dotnet/*
+include corems/molecular_id/data/*.msp

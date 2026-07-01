@@ -24,7 +24,7 @@ from corems.molecular_id.search.molecularFormulaSearch import (
     SearchMolecularFormulas,
     SearchMolecularFormulasLC,
 )
-from corems.molecular_id.search.database_interfaces import MetabRefLCInterface
+from corems.molecular_id.search.database_interfaces import LCLipidLibraryInterface
 from corems.encapsulation.input.parameter_from_json import (
     load_and_set_toml_parameters_lcms,
 )
@@ -434,9 +434,9 @@ def process_ms2(myLCMSobj, metadata, scan_translator):
     # Perform search on low res scans
     if len(ms2_scans_oi_lr) > 0:
         # Recast the flashentropy search database to low resolution
-        metabref = MetabRefLCInterface()
-        fe_search_lr = metabref._to_flashentropy(
-            metabref_lib=fe_search,
+        lipid_library = LCLipidLibraryInterface()
+        fe_search_lr = lipid_library._to_flashentropy(
+            spectral_library=fe_search,
             normalize=True,
             fe_kwargs={
                 "normalize_intensity": True,
@@ -506,7 +506,7 @@ def run_lipid_sp_ms1(
         return mz_dict
 
 
-def prep_metadata(mz_dicts, out_dir):
+def prep_metadata(mz_dicts, out_dir, db_location):
     """Prepare metadata for ms2 spectral search
 
     Parameters
@@ -515,6 +515,8 @@ def prep_metadata(mz_dicts, out_dir):
         List of dicts with keys "positive" and "negative" and values of lists of precursor mzs
     out_dir : Path
         Path to output directory
+    db_location : str | Path
+        Path to local lipid sqlite library.
 
     Returns
     -------
@@ -533,11 +535,11 @@ def prep_metadata(mz_dicts, out_dir):
     for d in mz_dicts:
         metadata["mzs"].update(d)
 
-    metabref = MetabRefLCInterface()
+    lipid_library = LCLipidLibraryInterface(db_location=db_location)
 
     print("Preparing positive lipid library")
     if metadata["mzs"]["positive"] is not None:
-        metabref_positive, lipidmetadata_positive = metabref.get_lipid_library(
+        positive_library, lipidmetadata_positive = lipid_library.get_lipid_library(
             mz_list=metadata["mzs"]["positive"],
             polarity="positive",
             mz_tol_ppm=5,
@@ -552,7 +554,7 @@ def prep_metadata(mz_dicts, out_dir):
                 "noise_threshold": 0,
             },
         )
-        metadata["fe"]["positive"] = metabref_positive
+        metadata["fe"]["positive"] = positive_library
         metadata["molecular_metadata"].update(lipidmetadata_positive)
         fe_positive_df = pd.DataFrame.from_dict(
             {k: v for k, v in enumerate(metadata["fe"]["positive"])}, orient="index"
@@ -561,7 +563,7 @@ def prep_metadata(mz_dicts, out_dir):
 
     print("Preparing negative lipid library")
     if metadata["mzs"]["negative"] is not None:
-        metabref_negative, lipidmetadata_negative = metabref.get_lipid_library(
+        negative_library, lipidmetadata_negative = lipid_library.get_lipid_library(
             mz_list=metadata["mzs"]["negative"],
             polarity="negative",
             mz_tol_ppm=5,
@@ -577,7 +579,7 @@ def prep_metadata(mz_dicts, out_dir):
                 "noise_threshold": 0,
             },
         )
-        metadata["fe"]["negative"] = metabref_negative
+        metadata["fe"]["negative"] = negative_library
         metadata["molecular_metadata"].update(lipidmetadata_negative)
         fe_negative_df = pd.DataFrame.from_dict(
             {k: v for k, v in enumerate(metadata["fe"]["negative"])}, orient="index"
@@ -625,6 +627,7 @@ def run_lipid_workflow(
     file_dir,
     out_dir,
     params_toml,
+    db_location,
     scan_translator=None,
     verbose=True,
     ms1_molecular_search=True,
@@ -640,6 +643,8 @@ def run_lipid_workflow(
         Path to output directory
     params_toml : str or Path
         Path to toml file with parameters
+    db_location : str or Path
+        Path to local lipid sqlite library
     verbose : bool
         Whether to print verbose output
     cores : int
@@ -684,7 +689,7 @@ def run_lipid_workflow(
         pool.close()
         pool.join()
     # Prepare ms2 spectral search space
-    metadata = prep_metadata(mz_dicts, out_dir)
+    metadata = prep_metadata(mz_dicts, out_dir, db_location)
 
     # Run ms2 spectral search and export final results
     if cores == 1 or len(files_list) == 1:
@@ -709,6 +714,7 @@ if __name__ == "__main__":
     params_toml = Path(
         "/Users/heal742/LOCAL/05_NMDC/02_MetaMS/data_processing/configurations/emsl_lipidomics_corems_params.toml"
     )
+    db_location = Path("tests/tests_data/lcms/202412_lipid_ref.sqlite")
     verbose = True
     scan_translator = Path("tmp_data/thermo_raw_collection/scan_translator.toml")
 
@@ -723,6 +729,7 @@ if __name__ == "__main__":
         file_dir=file_dir,
         out_dir=out_dir,
         params_toml=params_toml,
+        db_location=db_location,
         scan_translator=scan_translator,
         verbose=verbose,
         cores=cores,
