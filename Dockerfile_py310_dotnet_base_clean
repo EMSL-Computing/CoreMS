@@ -1,0 +1,28 @@
+# FROM corilo/corems:base-mono-pythonnet
+FROM python@sha256:85de714b205693782cc48408bc48815343529987aae396b1adbbe05be5557cd7
+
+WORKDIR /home/corems
+
+RUN apt-get update && apt-get install -y wget 
+RUN apt-get install --reinstall -y ca-certificates
+RUN wget packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
+  && dpkg -i packages-microsoft-prod.deb \
+  && rm packages-microsoft-prod.deb
+RUN apt-get update 
+RUN apt-get install -y dotnet-runtime-6.0 apt-utils
+RUN apt autoremove -y && apt-get clean
+RUN python3 -m pip install --upgrade pip setuptools wheel
+# COPY corems/ /home/corems/corems
+# COPY ext_lib/ChemstationMSFileReader.dll /home/corems/ext_lib/
+# COPY ext_lib/dotnet/*.dll /home/corems/ext_lib/
+# COPY examples/notebooks/*.ipynb README.md disclaimer.txt pytest.ini requirements.txt SettingsCoreMS.json /home/corems/
+# COPY examples/scripts /home/corems/examples
+# COPY tests /home/corems/tests
+# COPY README.md disclaimer.txt requirements.txt setup.py /home/corems/
+
+# RUN python3 -m pip install -U -r requirements.txt
+# RUN python3 -m pip install pytest pytest-cov
+
+# RUN python3 setup.py install
+ENV PYTHONNET_RUNTIME=coreclr
+CMD [ "bash" ]

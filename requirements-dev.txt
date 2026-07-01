@@ -1,7 +1,10 @@
 pylint
-pytest
-pytest-cov
+pytest~=8.3.2
+pytest-cov~=5.0.0
 pyprof2calltree
 memory_profiler
 twine
 bumpversion
+psutil>=5.6.6
+PyWavelets
+pdoc~=14.1.0

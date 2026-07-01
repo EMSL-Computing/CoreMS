@@ -14,17 +14,24 @@ mem:
 major:
 	
 	@bumpversion major --allow-dirty
+	@$(MAKE) docu
 
 minor:
 	
 	@bumpversion minor --allow-dirty
+	@$(MAKE) docu
 
 patch:
 	
 	@bumpversion patch --allow-dirty
+	@$(MAKE) docu
+
+pypi_test:
+	@rm -rf build dist *.egg-info
+	@python3 setup.py sdist
 
 pypi:	
-	
+	@rm -rf build dist *.egg-info
 	@python3 setup.py sdist
 	@twine upload dist/*
 
@@ -68,5 +75,6 @@ fresh-stack-up:
 	@docker-compose up -d   
 	@docker run --rm -v ./data:/home/CoreMS/data corems:local
 
-docs:
-	pdoc --html --output-dir docs corems
+docu:
+	
+	pdoc --output-dir docs --docformat numpy corems

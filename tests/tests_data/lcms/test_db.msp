@@ -1,0 +1,147 @@
+Name: Lignoceric Acid
+Gnps_spectra_id: CCMSLIB00004684071
+Database_name: SUMNER.msp
+Name_in_original_database: Lignoceric acid - 10eV
+Precursortype: [M-H]-
+Precursormz: 367.359
+Inchikey: QZZGJDVWLFXDLK-UHFFFAOYSA-N
+Ionmode: negative
+Instrumenttype: LC-ESI- impact HD
+Instrument: impact HD
+Pubchem_id: 11197
+Inchi: InChI=1S/C24H48O2/c1-2-3-4-5-6-7-8-9-10-11-12-13-14-15-16-17-18-19-20-21-22-23-24(25)26/h2-23H2,1H3,(H,25,26)
+Smiles: CCCCCCCCCCCCCCCCCCCCCCCC(=O)O
+Molecular_formula: C24H48O2
+Kegg_id: C08320
+Chebi_id: 28866
+Refmet_id: RM0153579
+Refmet_name: Lignoceric acid
+Num Peaks: 2
+367.359192 999.0
+368.362396 245.0
+
+Name: Behenic Acid
+Gnps_spectra_id: CCMSLIB00004684039
+Database_name: SUMNER.msp
+Name_in_original_database: Behenic acid - 40eV
+Precursortype: [M-H]-
+Precursormz: 339.326
+Inchikey: UKMSUNONTOPOIO-UHFFFAOYSA-N
+Ionmode: negative
+Instrumenttype: LC-ESI- impact HD
+Instrument: impact HD
+Pubchem_id: 8215
+Inchi: InChI=1S/C22H44O2/c1-2-3-4-5-6-7-8-9-10-11-12-13-14-15-16-17-18-19-20-21-22(23)24/h2-21H2,1H3,(H,23,24)
+Smiles: CCCCCCCCCCCCCCCCCCCCCC(=O)O
+Molecular_formula: C22H44O2
+Kegg_id: C08281
+Chebi_id: 28941
+Refmet_id: RM0153577
+Refmet_name: Behenic acid
+Num Peaks: 1
+339.3255 999.0
+
+Name: Vaccenic acid
+Gnps_spectra_id: CCMSLIB00004684123
+Database_name: SUMNER.msp
+Name_in_original_database: Trans-Vaccenic acid - 10eV
+Precursortype: [M-H]-
+Precursormz: 281.249
+Inchikey: UWHZIFQPPBDJPM-BQYQJAHWSA-N
+Ionmode: negative
+Instrumenttype: LC-ESI- impact HD
+Instrument: impact HD
+Pubchem_id: 5281127
+Inchi: InChI=1S/C18H34O2/c1-2-3-4-5-6-7-8-9-10-11-12-13-14-15-16-17-18(19)20/h7-8H,2-6,9-17H2,1H3,(H,19,20)/b8-7+
+Smiles: CCCCCC/C=C/CCCCCCCCCC(=O)O
+Molecular_formula: C18H34O2
+Kegg_id: C08367
+Chebi_id: 28727
+Refmet_id: RM0152793
+Refmet_name: trans-Vaccenic acid
+Num Peaks: 2
+281.249298 999.0
+282.252411 150.0
+
+Name: Urs-12-en-28-oic acid, 3-hydroxy-, (3beta)-
+Gnps_spectra_id: CCMSLIB00010125334
+Database_name: BERKELEY-LAB.msp
+Name_in_original_database: Ursolic acid CollisionEnergy:205060
+Precursortype: [M-H]-
+Precursormz: 455.353
+Inchikey: WCGUUGGRBIKTOS-UHFFFAOYSA-N
+Ionmode: negative
+Instrumenttype: LC-ESI-Orbitrap
+Instrument: Orbitrap
+Pubchem_id: 220774
+Inchi: InChI=1S/C30H48O3/c1-18-10-15-30(25(32)33)17-16-28(6)20(24(30)19(18)2)8-9-22-27(5)13-12-23(31)26(3,4)21(27)11-14-29(22,28)7/h8,18-19,21-24,31H,9-17H2,1-7H3,(H,32,33)
+Smiles: CC1CCC2(C(=O)O)CCC3(C)C(=CCC4C5(C)CCC(O)C(C)(C)C5CCC43C)C2C1C
+Molecular_formula: C30H48O3
+Num Peaks: 7
+104.28685 2560.0
+118.657433 3187.0
+160.272217 2754.0
+160.960999 3106.0
+165.343201 2681.0
+455.353546 638754.0
+467.449524 2599.0
+
+Name: 3-Hydroxyolean-12-en-28-oic acid
+Gnps_spectra_id: CCMSLIB00010113749
+Database_name: BERKELEY-LAB.msp
+Name_in_original_database: OLEANOLIC ACID CollisionEnergy:102040
+Precursortype: [M-H]-
+Precursormz: 455.353
+Inchikey: MIJYXULNPSFWEK-UHFFFAOYSA-N
+Ionmode: negative
+Instrumenttype: LC-ESI-Orbitrap
+Instrument: Orbitrap
+Pubchem_id: 619166
+Inchi: InChI=1S/C30H48O3/c1-25(2)14-16-30(24(32)33)17-15-28(6)19(20(30)18-25)8-9-22-27(5)12-11-23(31)26(3,4)21(27)10-13-29(22,28)7/h8,20-23,31H,9-18H2,1-7H3,(H,32,33)
+Smiles: CC1(C)CCC2(C(=O)O)CCC3(C)C(=CCC4C5(C)CCC(O)C(C)(C)C5CCC43C)C2C1
+Molecular_formula: C30H48O3
+Num Peaks: 9
+66.753563 3280.0
+73.963127 3321.0
+74.933121 2251.0
+88.502472 2342.0
+89.380859 2689.0
+92.391151 3200.0
+112.985909 4552.0
+312.829895 2576.0
+455.353394 950281.0
+
+Name: Riboprine
+Gnps_spectra_id: CCMSLIB00010102005
+Database_name: BERKELEY-LAB.msp
+Name_in_original_database: N6-isopentyl adenosine CollisionEnergy:102040
+Precursortype: [M+Na]+
+Precursormz: 358.149
+Inchikey: USVMJSALORZVDV-SDBHATRESA-N
+Ionmode: positive
+Instrumenttype: LC-ESI-Orbitrap
+Instrument: Orbitrap
+Pubchem_id: 24405
+Inchi: InChI=1S/C15H21N5O4/c1-8(2)3-4-16-13-10-14(18-6-17-13)20(7-19-10)15-12(23)11(22)9(5-21)24-15/h3,6-7,9,11-12,15,21-23H,4-5H2,1-2H3,(H,16,17,18)/t9-,11-,12-,15-/m1/s1
+Smiles: CC(C)=CCNc1ncnc2c1ncn2[C@@H]1O[C@H](CO)[C@@H](O)[C@H]1O
+Molecular_formula: C15H21N5O4
+Kegg_id: C16427
+Chebi_id: 62881
+Refmet_id: RM0002239
+Refmet_name: N6-Isopentenyladenosine
+Num Peaks: 15
+51.828903 3689.835938
+59.978203 3291.875488
+65.85714 3747.680176
+67.357948 3210.411865
+104.34491 6084.40332
+114.539635 3329.388428
+146.483078 3125.668457
+147.115662 3296.608887
+160.938004 3552.68042
+197.504913 3698.065186
+199.345139 3218.05542
+298.745575 4107.382324
+358.144867 298536.53125
+358.363647 7499.803711
+627.160461 3840.050781

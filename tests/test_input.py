@@ -4,78 +4,78 @@ __date__ = "Jul 02, 2019"
 
 import sys
 
-sys.path.append(".")
 from pathlib import Path
 
-import pytest
-from matplotlib import pyplot
-
-from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
-from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
+from corems.encapsulation.constant import Labels
+from corems.encapsulation.factory.parameters import MSParameters, reset_ms_parameters
+from corems.mass_spectra.input import rawFileReader
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
-from corems.mass_spectra.input.brukerSolarix import ReadBruker_SolarixTransientMassSpectra
-from corems.mass_spectra.input.coremsHDF5 import ReadCoreMSHDF_MassSpectra
+from corems.mass_spectra.input.boosterHDF5 import ReadHDF_BoosterMassSpectra
+from corems.mass_spectra.input.brukerSolarix import (
+    ReadBruker_SolarixTransientMassSpectra,
+)
 from corems.mass_spectra.input.massList import ReadCoremsMassSpectraText
 from corems.mass_spectrum.input.boosterHDF5 import ReadHDF_BoosterMassSpectrum
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.mass_spectrum.input.massList import ReadCoremsMasslist, ReadMassList
-from corems.transient.input.brukerSolarix import ReadBrukerSolarix
-from corems.encapsulation.factory.parameters import MSParameters
+from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
 
 def test_andi_netcdf_gcms():
-
-    file_path = Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
+    file_path = (
+        Path.cwd() / "tests/tests_data/gcms/" / "GCMS_FAMES_01_GCMS-01_20191023.cdf"
+    )
 
     reader_gcms = ReadAndiNetCDF(file_path)
-	
+
     reader_gcms.run()
-    
+
+    gcms = reader_gcms.get_gcms_obj()
+
+    assert len(gcms.tic) > 0
+
+
 def test_import_booster_mass_spectrum_hdf():
+    file_path = (
+        Path.cwd()
+        / "tests/tests_data/ftms/"
+        / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
+    )
 
-    file_path = Path.cwd() / "tests/tests_data/" / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
-    
-    if file_path.exists():
-        
-        #polarity need to be set or read from the file
-        
-        booster_reader = ReadHDF_BoosterMassSpectrum(file_path, isCentroid=False)
+    booster_reader = ReadHDF_BoosterMassSpectrum(file_path, isCentroid=False)
 
-        mass_spectrum = booster_reader.get_mass_spectrum(auto_process=True, auto_noise=True)
+    mass_spectrum = booster_reader.get_mass_spectrum(auto_process=False)
+    mass_spectrum.parameters = MSParameters(use_defaults=True)
+    mass_spectrum.process_mass_spec()
 
-        #mass_spectrum.plot_mz_domain_profile()
-        
-        print(
-            "number_average_molecular_weight",
-            mass_spectrum.number_average_molecular_weight(),
-        )
-        print(
-            "weight_average_molecular_weight",
-            mass_spectrum.weight_average_molecular_weight(),
-        )
+    assert len(mass_spectrum) > 0
+    assert mass_spectrum.number_average_molecular_weight() > 0
+    assert mass_spectrum.weight_average_molecular_weight() > 0
+    assert round(mass_spectrum[0].mz_exp, 3) == 220.147
 
-        assert round(mass_spectrum[0].mz_exp,3) == 220.147
-    
-    else:
-        
-        FileNotFoundError(file_path)
 
 def test_import_booster_mass_spectra_hdf():
+    file_path = (
+        Path.cwd()
+        / "tests/tests_data/ftms/"
+        / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
+    )
 
-    file_path = Path.cwd() / "tests/tests_data/" / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
-    
-    if file_path.exists():
-        #polarity need to be set or read from the file
-        polarity = -1
+    polarity = -1
 
-        booster_reader = ReadHDF_BoosterMassSpectra(file_path, polarity)
+    booster_reader = ReadHDF_BoosterMassSpectra(file_path, polarity)
 
-        booster_reader.start()
-        booster_reader.join()
-        #lcms = booster_reader.get_lcms_obj()
-        
+    booster_reader.start()
+    booster_reader.join()
+    mass_spectra = booster_reader.get_lcms_obj()
+    assert len(mass_spectra) == 1
+
+
 def test_import_lcms_from_transient():
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_Auto.d"
 
-    file_location = Path.cwd() / "tests/tests_data/" / "NEG_ESI_SRFA_Auto.d"#"SOM_LC_PeatMix_2p8_0p6_2_30AUG19_GIMLI_ZORBAX-1186_1_01_259.d"
+    MSParameters.mass_spectrum.noise_threshold_method = "log"
+    MSParameters.mass_spectrum.noise_threshold_log_nsigma = 20
+    MSParameters.ms_peak.peak_min_prominence_percent = 1
 
     read_lcms = ReadBruker_SolarixTransientMassSpectra(file_location)
 
@@ -85,242 +85,296 @@ def test_import_lcms_from_transient():
     lcms = read_lcms.get_lcms_obj()
     lcms.find_nearest_scan(0)
     lcms.scans_number
-    lcms.set_retention_time_from_data()
-    lcms.set_tic_list_from_data()
-    lcms.retention_time
-    lcms.tic
-    lcms[0]
-    
-    for ms in lcms:
-        #assign mf
-        
-        for mspeak in ms:
-            #mspeak.mz_exp,mspeak.mz_abund 
-            for mf in mspeak:
-                mf.string, mf.mz_calc, mf.is_isotopologue
-                pass
+    lcms.set_retention_time_from_data(overwrite=True)
+    lcms.set_tic_list_from_data(overwrite=True)
+    assert lcms.retention_time[0] > 0
+    assert len(lcms.tic) > 0
+    assert len(lcms) > 0
 
-def test_import_transient():
-    
-    # from corems.structure.input.MidasDatFile import ReadMidasDatFile
-    # file_location = Path.cwd() / "tests/tests_data/SRFAII_20ppm_14Jul2020_IATp08_After_WebEx_1_01_54136.d/"
-    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d"
-    
-    MSParameters.transient.apodization_method = "Hanning"
-    MSParameters.transient.number_of_truncations = 0
-    MSParameters.transient.number_of_zero_fills = 1
+    # Return the MSParameters to the default values
+    reset_ms_parameters()
 
-    with ReadBrukerSolarix(file_location) as bruker_transient:
-        
-        #MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-        #MSParameters.mass_spectrum.relative_abundance_threshold = 1
+def test_import_transient(mass_spectrum_ftms):
+    # This test is using the fixture mass_spectrum_ftms
+    mass_spectrum_ftms.plot_profile_and_noise_threshold()
+    assert len(mass_spectrum_ftms) > 0
 
-        #MSParameters.mass_spectrum.threshold_method = 'signal_noise'
-        #MSParameters.mass_spectrum.s2n_threshold = 50
-
-        MSParameters.mass_spectrum.threshold_method = 'auto'
-        MSParameters.mass_spectrum.noise_threshold_std = 3
-
-        MSParameters.ms_peak.peak_min_prominence_percent = 1
-    
-        mass_spectrum_obj = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=True)
-        #from corems.encapsulation.constant import Labels
-        #from corems.mass_spectrum.input import numpyArray
-        
-        #mass_spectrum_test = numpyArray.ms_from_array_profile(mz=mass_spectrum_obj.mz_exp_profile,
-                                                    # abundance=mass_spectrum_obj.abundance_profile,
-                                                    # dataname='test',
-                                                    # polarity=-1,
-                                                    # data_type=Labels.booster_profile,
-                                                    # )
-
-        #mass_spectrum_test.plot_mz_domain_profile()
-
-        mass_spectrum_obj.plot_profile_and_noise_threshold()
-        
-        pyplot.show()
-        
-        #mass_spectrum_test.plot_profile_and_noise_threshold()
-        
-        #mass_spectrum_obj.filter_by_noise_threshold()
-
-        #print(mass_spectrum_obj.get_noise_threshold())     
-        
-        # pyplot.show()
-
-        #print(len(mass_spectrum_obj))
-    
-        #print(mass_spectrum_obj.mspeaks[0].mz_exp, mass_spectrum_obj.mspeaks[-1].mz_exp)
 
 def test_import_corems_hdf5():
-
-    file_location = Path.cwd() / "tests/tests_data/" / "NEG_ESI_SRFA_CoreMS.hdf5"
-    
-    #polarity need to be set or read from the file
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_CoreMS.hdf5"
     
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadCoreMSHDF_MassSpectrum(file_location)
 
+    # Import processed mass spectrum, check that the mass spectrum is loaded correctly
     mass_spectrum = mass_list_reader.get_mass_spectrum()
+    mass_spectrum.to_dataframe()
+    assert round(mass_spectrum[0].mz_exp,3) == 576.075
+    assert mass_spectrum[0][0].string == 'C25 H20 O16'
+    assert mass_spectrum.to_dataframe().shape == (20, 26)
+    assert mass_spectrum.settings.noise_threshold_method == 'log'
+    assert len(mass_spectrum) == 20
 
-    for mspeak in mass_spectrum:
-        
-        if mspeak:
-            
-            for mf in mspeak:
-                
-                print('mass_spectrum', mf.string)
-    
-    read_lc_ms = ReadCoreMSHDF_MassSpectra(file_location)
+    # Import unprocessed mass spectrum, check that the mass spectrum is loaded correctly
+    mass_spectrum2 = mass_list_reader.get_mass_spectrum(
+        load_settings=False, 
+        auto_process=False,
+        load_molecular_formula=False
+    )
+    mass_spectrum2.parameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
 
-    read_lc_ms.start()
-    read_lc_ms.join()
-    
-    mass_spectra = read_lc_ms.get_lcms_obj()
-
-    for mspeak in mass_spectra[0]:
-        
-        if mspeak:
-            
-            for mf in mspeak:
-                
-                print('mass_spectra', mf.string)
+    assert mass_spectrum2.settings.noise_threshold_method == 'relative_abundance' 
+    assert len(mass_spectrum2) == 0
  
 def test_import_corems_mass_list():
+    file_location = (
+        Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_COREMS_withdupes.csv"
+    )
 
-    file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA_COREMS.csv"
-    
-    #polarity need to be set or read from the file
-    
-    #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
-    mass_list_reader = ReadCoremsMasslist(file_location,  analyzer='ICR', instrument_label='12T')
+    MSParameters.mass_spectrum.noise_threshold_method = "relative_abundance"
+    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
 
-    mass_spectrum = mass_list_reader.get_mass_spectrum()
+    # load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
+    mass_list_reader = ReadCoremsMasslist(
+        file_location, analyzer="ICR", instrument_label="12T"
+    )
 
-    for mspeak in mass_spectrum:
-        
-        if mspeak:
-            
-            for mf in mspeak:
-                print(mf.string)
+    mass_spectrum = mass_list_reader.get_mass_spectrum(loadSettings=False)
+    assert mass_spectrum.to_dataframe().shape[1] == 26
+    assert mass_spectrum.to_dataframe().shape[0] > 0
+    assert round(mass_spectrum[0].mz_exp, 0) == 576
+    assert mass_spectrum[0][0].string == "C25 H20 O16"
 
-    file_location = Path.cwd() / "tests/tests_data/" /  "NEG_ESI_SRFA_CoreMS.corems"
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_CoreMS.corems"
 
     read_lc_ms = ReadCoremsMassSpectraText(file_location)
 
     read_lc_ms.start()
     read_lc_ms.join()
-    
-    mass_spectra = read_lc_ms.get_lcms_obj()
 
-    for mspeak in mass_spectra[0]:
-        
-        if mspeak:
-            
-            for mf in mspeak:
-                
-                print('mass_spectra', mf.string)                
+    mass_spectra = read_lc_ms.get_lcms_obj()
+    assert len(mass_spectra) > 0
+    assert mass_spectra[0].to_dataframe().shape[0] > 0
+    assert round(mass_spectra[0][0].mz_exp, 0) == 227
+
+    # Return the MSParameters to the default values
+    reset_ms_parameters()
+
 
 def test_import_thermo_profile_mass_list():
+    file_location = (
+        Path.cwd() / "tests/tests_data/ftms/" / "Thermo_Profile_MassList.txt"
+    )
 
-    file_location = Path.cwd() / "tests/tests_data/" / "Thermo_Profile_MassList.txt" 
-    
-    mass_list_reader = ReadMassList(file_location, header_lines=7, isCentroid=False, isThermoProfile=True)
+    mass_list_reader = ReadMassList(
+        file_location, header_lines=7, isCentroid=False, isThermoProfile=True
+    )
 
     polarity = +1
 
-    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True, loadSettings=False)
-    
-    #mass_spectrum.plot_profile_and_noise_threshold()
-    
-    from corems.encapsulation.constant import Labels
-    from corems.mass_spectrum.input import numpyArray
-    mass_spectrum_test = numpyArray.ms_from_array_profile(mz=mass_spectrum.mz_exp_profile,
-                                                abundance=mass_spectrum.abundance_profile,
-                                                dataname='test',
-                                                polarity=-1,
-                                                data_type=Labels.booster_profile)
+    mass_spectrum = mass_list_reader.get_mass_spectrum(
+        polarity, auto_process=False, loadSettings=False
+    )
+    mass_spectrum.parameters = MSParameters(use_defaults=True)
+    mass_spectrum.process_mass_spec()
 
-    mass_spectrum_test.plot_mz_domain_profile()
+    assert mass_spectrum.to_dataframe().shape[0] > 0
+    assert round(mass_spectrum[0].mz_exp, 0) == 59
 
-    # pyplot.show()
+
+def test_import_numpy_array_profile(mass_spectrum_ftms):
+    mass_spectrum_new = ms_from_array_profile(
+        mz=mass_spectrum_ftms.mz_exp_profile,
+        abundance=mass_spectrum_ftms.abundance_profile,
+        dataname="test",
+        polarity=-1,
+        data_type=Labels.booster_profile,
+        auto_process=False
+    )
+    mass_spectrum_new.parameters = mass_spectrum_ftms.parameters
+    mass_spectrum_new.process_mass_spec()
+    
+    assert mass_spectrum_new.to_dataframe().shape == mass_spectrum_ftms.to_dataframe().shape
+    assert round(mass_spectrum_new[0].mz_exp, 0) == round(mass_spectrum_ftms[0].mz_exp, 0)
+    assert not mass_spectrum_new.is_centroid
+
+    mass_spectrum_new.plot_mz_domain_profile()
+
 
 def test_import_maglab_pks():
-
-    file_location = Path.cwd() / "tests/tests_data/" / "SRFA.pks"
-    
-    ref_file_location = Path.cwd() / "tests/tests_data/SRFA.ref"
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "SRFA.pks"
 
     mass_list_reader = ReadMassList(file_location)
 
     polarity = -1
 
-    #MSParameters.mass_spectrum.min_calib_ppm_error = 3
-    #MSParameters.mass_spectrum.max_calib_ppm_error = 4
+    MSParameters.mass_spectrum.noise_threshold_method = "relative_abundance"
+    MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
 
     mass_spectrum = mass_list_reader.get_mass_spectrum(polarity)
 
-    #MzDomainCalibration(mass_spectrum, ref_file_location).run()
+    assert mass_spectrum.to_dataframe().shape[0] > 0
+    assert round(mass_spectrum[0].mz_exp, 0) == 131
 
-def test_import_mass_list():
+    # Return the MSParameters to the default values
+    reset_ms_parameters()
 
-    file_location = Path.cwd() / "tests/tests_data/" / "NEG_ESI_SRFA_CoreMS.xlsx"
-    
-    mass_list_reader = ReadMassList(file_location)
 
-    file_location = Path.cwd() / "tests/tests_data/" / "ESI_NEG_ESFA.ascii"
-    
-    mass_list_reader = ReadMassList(file_location)
+def test_import_xml_mass_list():
 
-    #polarity need to be set or read from the file
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "srfa_neg_xml_example.xml"
+
+    mass_list_reader = ReadMassList(file_location, isCentroid=True, isThermoProfile=False)
     polarity = -1
 
-    #MSParameters.mass_spectrum.threshold_method = 'relative_abundance'
-    #MSParameters.mass_spectrum.relative_abundance_threshold = 30
+    MSParameters.mass_spectrum.noise_threshold_method = 'absolute_abundance' 
+    MSParameters.mass_spectrum.noise_threshold_absolute_abundance = 1000 
 
-    # MSParameters.mass_spectrum.threshold_method = 'signal_noise'
-    # MSParameters.mass_spectrum.s2n_threshold = 100
+    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True, loadSettings=False)
+    # check there are lots of peaks (should be ~36k)
+    assert len(mass_spectrum)>30_000
+    # check the 100th peak is as expected 
+    assert round(mass_spectrum.mz_exp[100],3) == 118.049
+    
+    # Return the MSParameters to the default values
+    reset_ms_parameters()
 
-    MSParameters.mass_spectrum.threshold_method = 'auto'
-    MSParameters.mass_spectrum.noise_threshold_std = 32
 
-    #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
+def test_import_xml_mass_list():
+
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "srfa_neg_xml_example.xml"
+
+    mass_list_reader = ReadMassList(file_location, isCentroid=True, isThermoProfile=False)
+    polarity = -1
+
+    MSParameters.mass_spectrum.noise_threshold_method = 'absolute_abundance' 
+    MSParameters.mass_spectrum.noise_threshold_absolute_abundance = 1000 
+
+    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True, loadSettings=False)
+    # check there are lots of peaks (should be ~36k)
+    assert len(mass_spectrum)>30_000
+    # check the 100th peak is as expected 
+    assert round(mass_spectrum.mz_exp[100],3) == 118.049
+
+    # Return the MSParameters to the default values
+    reset_ms_parameters()
+
+
+def test_import_mass_list():
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_CoreMS.xlsx"
+
     mass_list_reader = ReadMassList(file_location)
 
-    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True)
-    
-    print(mass_spectrum.baselise_noise, mass_spectrum.baselise_noise_std)
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "ESI_NEG_ESFA.ascii"
+
+    mass_list_reader = ReadMassList(file_location)
+
+    # polarity need to be set or read from the file
+    polarity = -1
+
+    mass_list_reader = ReadMassList(file_location)
+
+    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=False)
+    mass_spectrum.parameters.mass_spectrum.noise_threshold_method = "relative_abundance"
+    mass_spectrum.parameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
+    mass_spectrum.process_mass_spec()
+
+    assert mass_spectrum.baseline_noise > 10000
+    assert mass_spectrum.baseline_noise_std > 10000
     mass_spectrum.filter_by_noise_threshold()
-    print(len(mass_spectrum))
-    #mass_spectrum.plot_mz_domain_profile()
+    assert mass_spectrum.to_dataframe().shape[0] > 0
+    assert len(mass_spectrum) > 0
+    assert round(mass_spectrum.number_average_molecular_weight()) > 200
+    assert round(mass_spectrum.weight_average_molecular_weight()) > 200
+
     mass_spectrum.plot_profile_and_noise_threshold()
-    # pyplot.show()
-    print(
-        "number_average_molecular_weight",
-        mass_spectrum.number_average_molecular_weight(),
-    )
-    print(
-        "weight_average_molecular_weight",
-        mass_spectrum.weight_average_molecular_weight(),
-    )
+    og_len = len(mass_spectrum)
 
     mass_spectrum.filter_by_s2n(100)
-    
-    # mass_list_reader = ReadMassList(file_location, isCentroid=False,)
-
-    # mass_spectrum = mass_list_reader.get_mass_spectrum(polarity,auto_process=True)
+    assert len(mass_spectrum) < og_len
 
 
-if __name__ == '__main__':
-    
-    # test_import_booster_mass_spectrum_hdf()
-    # test_import_booster_mass_spectra_hdf()
-    #test_import_lcms_from_transient()
-    #test_import_thermo_profile_mass_list()
-    # test_import_transient()
-    #test_import_corems_hdf5()
-    #test_import_corems_mass_list()
-    #test_import_mass_list()
-    test_import_maglab_pks()
-    #test_andi_netcdf_gcms()
+def test_import_thermo_average():
+    file_location = Path.cwd() / "tests/tests_data/ftms/" / "SRFA_NEG_ESI_ORB.raw"
+
+    # creates the parser obj
+    parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
+
+    # sums all the mass spectra
+    parser.chromatogram_settings.scans = (-1, -1)
+    mass_spectrum = parser.get_average_mass_spectrum(spectrum_mode="profile", auto_process=False)
+    mass_spectrum.parameters = MSParameters(use_defaults=True)
+    mass_spectrum.parameters.mass_spectrum.noise_threshold_method = "relative_abundance"
+    mass_spectrum.parameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
+    mass_spectrum.process_mass_spec()
+    assert len(mass_spectrum) == 762
+
+    # sums scans in selected range
+    parser.chromatogram_settings.scans = (1, 1)
+    mass_spectrum = parser.get_average_mass_spectrum(spectrum_mode="profile")
+    mass_spectrum.parameters = MSParameters(use_defaults=True)
+    mass_spectrum.parameters.mass_spectrum.noise_threshold_method = "relative_abundance"
+    mass_spectrum.parameters.mass_spectrum.noise_threshold_min_relative_abundance = 1
+    mass_spectrum.process_mass_spec()
+    assert len(mass_spectrum) == 953
+
+    parser.chromatogram_settings.scans = [1]
+
+    # sums scans in selected range
+    mass_spectrum = parser.get_average_mass_spectrum(spectrum_mode="profile")
+
+    mass_spectrum.plot_mz_domain_profile()
+    mass_spectrum.plot_profile_and_noise_threshold()
+
+    assert mass_spectrum.to_dataframe().shape[0] == 1518
+    assert round(mass_spectrum[0].mz_exp, 0) == 100
+
+
+
+def test_import_thermo_parse_metadata():
+    file_location = Path.cwd() / "tests/tests_data/lcms/" / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.raw"
+
+    # creates the parser obj
+    parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
+
+    # Get instrument data
+    instrument_data = parser.get_instrument_data()
+    assert instrument_data['Model'] == 'Orbitrap Velos Pro'
+
+    # Get the scan header
+    scan_header = parser.get_scan_header(1)
+    assert scan_header['AGC:'] == 'On'
+
+    # Get all scan filters
+    filters = parser.get_all_filters()
+    assert filters[0][1] == 'FTMS - p ESI Full ms [200.00-2000.00]'
+
+    # Read the instrument method 
+    instrument_methods = parser.get_instrument_methods()
+    assert instrument_methods[0][:10] == 'Creator: L'
+
+    # Read it without attempting to parse the strings
+    instrument_methods = parser.get_instrument_methods(parse_strings=False)
+    assert instrument_methods[0][:10] == 'Creator: L'
+
+    # Get the tune file method 
+    tune_methods = parser.get_tune_method()
+    assert tune_methods['Tune File Values']['Source Type:'] == 'HESI'
+
+    # Read the status logs
+    status_log = parser.get_status_log(retention_time=1)
+    assert status_log['API SOURCE']['Source Voltage (kV):'] == '3.48'
+
+    # Read the error logs
+    error_logs = parser.get_error_logs()
+    #assert error_logs[0]['message'] == 'm/z: 202.00000' # This fails as the dictionary is populated in a different order locally or on GIT CI/CD
+    assert any(entry['message'] == 'm/z: 202.00000' for entry in error_logs.values())
+
+    # Read the sample information
+    sampleinfo = parser.get_sample_information()
+    assert sampleinfo['BarcodeStatus'] == 'NotRead'
+
+    # Close the file
+    parser.close_file()
+    assert parser.iRawDataPlus.get_IsOpen() == False
 
