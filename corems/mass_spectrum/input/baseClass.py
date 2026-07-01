@@ -254,14 +254,21 @@ class MassListBaseClass:
                 )
 
         elif self.data_type == "pks":
+            # Predator .pks columns are positional: peak location (m/z), relative
+            # peak height (normalized 0-100), absolute abundance, resolving power,
+            # frequency, S/N. Use the absolute abundance as the intensity -- the
+            # relative peak height is per-spectrum normalized and not comparable
+            # across spectra, so it is named so header_translate drops it.
             names = [
                 "m/z",
-                "I",
-                "Scaled Peak Height",
+                "Relative Abundance",
+                "Abundance",
                 "Resolving Power",
                 "Frequency",
-                "S/N",
-            ]
+                "S/N"
+                ]
+
+        
             clean_data = []
             with self.file_location.open() as maglabfile:
                 for i in maglabfile.readlines()[8:-1]:

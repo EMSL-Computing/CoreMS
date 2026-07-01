@@ -432,11 +432,12 @@ class MolecularCombinations:
             # each chunk takes ~600Mb of memory, so if using 8 processes the total free memory needs to be 5GB
             if settings.db_jobs > 1:
                 list_insert_chunks = list(chunks(all_results, self.sql_db.chunks_count))
-                print(
-                    "Started database insert using {} iterations for a total of {} rows".format(
-                        len(list_insert_chunks), len(all_results)
+                if verbose:
+                    print(
+                        "Started database insert using {} iterations for a total of {} rows".format(
+                            len(list_insert_chunks), len(all_results)
+                        )
                     )
-                )
                 worker_args = [
                     (chunk, settings.url_database) for chunk in list_insert_chunks
                 ]
