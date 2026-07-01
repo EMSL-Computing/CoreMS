@@ -192,7 +192,7 @@ class MzDomainCalibration:
         df_ref,
         calib_ppm_error_threshold: tuple[float, float] = (-1, 1),
         calib_snr_threshold: float = 5,
-        calibration_ref_match_method: str = "legacy",
+        calibration_ref_match_method: str = "merged",
         calibration_ref_match_tolerance: float = 0.003,
         calibration_ref_match_std_raw_error_limit: float = 1.5,
     ):
@@ -212,6 +212,12 @@ class MzDomainCalibration:
             snr threshold for finding calibration masses in the spectrum. The default is 5.
             If SNR data is unavailable, peaks are filtered by intensity percentile using the formula:
             percentile = max(5, 100 - calib_snr_threshold)
+        calibration_ref_match_method : str, optional
+            method for matching calibration references. The default is "merged".
+        calibration_ref_match_tolerance : float, optional
+            tolerance for matching calibration references. The default is 0.003.
+        calibration_ref_match_std_raw_error_limit : float, optional
+            standard deviation raw error limit for calibration references. The default is 1.5.
 
         Returns
         -------
@@ -293,7 +299,6 @@ class MzDomainCalibration:
             cal_peaks_mz = list(tmpdf.values)
             cal_refs_mz = list(tmpdf.index)
         elif calibration_ref_match_method == "merged":
-            #warnings.warn("Using experimental new reference mass list merging")
             # This is a new approach (August 2024) which uses Pandas 'merged_asof' to find the peaks closest in m/z between
             # reference and measured masses. This is a quicker way to match, and seems to get more matches.
             # It may not work as well when the data are far from correc initial mass
@@ -327,35 +332,6 @@ class MzDomainCalibration:
             cal_refs_mz = list(merged_df["m/z"])
         else:
             raise ValueError(f"{calibration_ref_match_method} not allowed.")
-
-        if False:
-            min_calib_ppm_error = calib_ppm_error_threshold[0]
-            max_calib_ppm_error = calib_ppm_error_threshold[1]
-            df_raw = self.mass_spectrum.to_dataframe()
-
-            df_raw = df_raw[df_raw["S/N"] > calib_snr_threshold]
-            # optionally further subset that based on minimum S/N, RP, Peak Height
-            # to ensure only valid points are utilized
-            # in this example, only a S/N threshold is implemented.
-            imzmeas = []
-            mzrefs = []
-
-            for mzref in df_ref["m/z"]:
-                # find all peaks within a defined ppm error threshold
-                tmpdf = df_raw[
-                    ((df_raw["m/z"] - mzref) / mzref) * 1e6 < max_calib_ppm_error
-                ]
-                # Error is relative to the theoretical, so the divisor should be divisor
-
-                tmpdf = tmpdf[
-                    ((tmpdf["m/z"] - mzref) / mzref) * 1e6 > min_calib_ppm_error
-                ]
-
-                # only use the calibration point if only one peak is within the thresholds
-                # This may require some optimization of the threshold tolerances
-                if len(tmpdf) == 1:
-                    imzmeas.append(int(tmpdf.index.values))
-                    mzrefs.append(mzref)
 
         # it is crucial the mass lists are in same order
         # corems likes to do masses from high to low.

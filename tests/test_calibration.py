@@ -144,8 +144,8 @@ def test_mz_domain_calibration_centroid(mass_spectrum_centroid, ref_file_locatio
     MzDomainCalibration(mass_spectrum_centroid, ref_file_location).run()
 
     # check there is an output
-    assert mass_spectrum_centroid.calibration_points == 25
-    assert round(mass_spectrum_centroid.calibration_RMS, 2) == round(0.591, 2)
+    assert mass_spectrum_centroid.calibration_points == 18
+    assert round(mass_spectrum_centroid.calibration_RMS, 2) == round(0.408, 2)
 
 
 def test_auto_calibration_centroid(mass_spectrum_centroid, ref_file_location):

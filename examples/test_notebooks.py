@@ -6,7 +6,26 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Patterns in stderr that indicate an external service is unavailable.
+# Failures matching these patterns are treated as warnings (skipped) rather
+# than hard failures so that transient infrastructure outages do not break CI.
+EXTERNAL_SERVICE_ERROR_PATTERNS = [
+    "HTTPError",
+    "ConnectionError",
+    "requests.exceptions",
+    "503 Server Error",
+    "502 Bad Gateway",
+    "504 Gateway",
+    "Service Temporarily Unavailable",
+]
 
+
+def _is_external_service_failure(stderr: str) -> bool:
+    """Return True if stderr indicates an unavailable external service."""
+    return any(pattern in stderr for pattern in EXTERNAL_SERVICE_ERROR_PATTERNS)
+
+
+# Return values: True = pass, False = fail, None = skipped (external service)
 def test_notebook(notebook_path):
     """Test a single notebook by converting it."""
     print(f"\n{'='*60}")
@@ -14,7 +33,7 @@ def test_notebook(notebook_path):
     print(f"{'='*60}")
     
     try:
-        result = subprocess.run(
+        subprocess.run(
             [
                 sys.executable,
                 "-m",
@@ -34,6 +53,10 @@ def test_notebook(notebook_path):
         print(f"✓ {notebook_path.name} passed")
         return True
     except subprocess.CalledProcessError as e:
+        if _is_external_service_failure(e.stderr):
+            print(f"⚠ {notebook_path.name} skipped (external service unavailable)")
+            print(f"STDERR:\n{e.stderr[-2000:]}")
+            return None
         print(f"✗ {notebook_path.name} failed")
         print(f"STDOUT:\n{e.stdout}")
         print(f"STDERR:\n{e.stderr}")
@@ -75,19 +98,29 @@ def main():
     print("SUMMARY")
     print(f"{'='*60}")
     
-    passed = sum(1 for v in results.values() if v)
+    passed = sum(1 for v in results.values() if v is True)
+    skipped = sum(1 for v in results.values() if v is None)
+    failed = sum(1 for v in results.values() if v is False)
     total = len(results)
     
     for notebook, result in results.items():
-        status = "✓ PASS" if result else "✗ FAIL"
+        if result is True:
+            status = "✓ PASS"
+        elif result is None:
+            status = "⚠ SKIP"
+        else:
+            status = "✗ FAIL"
         print(f"{status}: {notebook}")
     
-    print(f"\n{passed}/{total} notebooks passed")
+    print(f"\n{passed}/{total} notebooks passed, {skipped} skipped (external service), {failed} failed")
     
-    if passed < total:
+    if failed > 0:
         sys.exit(1)
     
-    print("\nAll tests passed!")
+    if skipped > 0:
+        print("\nSome notebooks were skipped due to unavailable external services.")
+    else:
+        print("\nAll tests passed!")
 
 if __name__ == "__main__":
     main()
