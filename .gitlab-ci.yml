@@ -27,7 +27,6 @@ test-source:
   tags:
     - k8s 
     - rzr
-    - codebuilds
   script:
     - make ci-test-source LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite"
   
@@ -37,11 +36,10 @@ test-source:
 
 test-notebooks:
   image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1005
-  stage: Test Notebooks
+  stage: Pytest
   tags:
     - k8s 
     - rzr
-    - codebuilds
   script:
     - make ci-test-notebooks
   
