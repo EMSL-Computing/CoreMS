@@ -502,7 +502,7 @@ class MassSpectrumSetting:
     max_calib_ppm_error: float = 1.0
     min_calib_ppm_error: float = -1.0
     calib_sn_threshold: float = 2.0
-    calibration_ref_match_method: str = "legacy"
+    calibration_ref_match_method: str = "merged"
     calibration_ref_match_method_implemented: tuple = ("legacy", "merged")
     calibration_ref_match_tolerance: float = 0.003
     calibration_ref_match_std_raw_error_limit: float = 1.5
