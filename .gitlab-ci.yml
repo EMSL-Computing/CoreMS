@@ -29,6 +29,7 @@ cache:
   key: "$CI_COMMIT_REF_SLUG"
   paths:
     - .cache/pip
+    - tests/tests_data/lcms/202412_lipid_ref.sqlite
 
 stages:
   - test
@@ -57,6 +58,10 @@ stages:
   - python3 -m pip install -e ".[dev]"
   - export PYTHONNET_RUNTIME=coreclr
 
+.prepare-lipidomics-db: &prepare-lipidomics-db
+  - export COREMS_LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite"
+  - make download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$COREMS_LIPIDOMICS_SQLITE_PATH"
+
 # ---------------------------------------------------------------------------
 # Test
 # ---------------------------------------------------------------------------
@@ -64,10 +69,9 @@ test-source:
   stage: test
   script:
     - *install-deps
+    - *prepare-lipidomics-db
     - mkdir -p doc/coverage_html_report
     - pytest --cache-clear -p no:warnings -q --cov=corems --cov-report=html:doc/coverage_html_report --cov-report=term
-    - export COREMS_LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite"
-    - make download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$COREMS_LIPIDOMICS_SQLITE_PATH"
 
   artifacts:
     when: always
@@ -82,6 +86,7 @@ test-notebooks:
   stage: test-notebooks
   script:
     - *install-deps
+    - *prepare-lipidomics-db
     - python3 -m pip install --no-cache-dir jupyter nbconvert
     - cd examples && python3 test_notebooks.py
 
