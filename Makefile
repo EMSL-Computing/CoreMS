@@ -4,8 +4,9 @@ version := $(shell cat .bumpversion.cfg | grep current_version | cut -d= -f2 | t
 stage := $(shell cat .bumpversion.cfg | grep optional_value | cut -d= -f2 | tr -d ' ') 
 LIPIDOMICS_SQLITE_URL ?= https://nmdcdemo.emsl.pnnl.gov/lipidomics/parameter_files/202412_lipid_ref.sqlite
 LIPIDOMICS_SQLITE_PATH ?= tests/tests_data/lcms/202412_lipid_ref.sqlite
+PYTHON ?= python3
 
-.PHONY: download-lipidomics-db
+.PHONY: download-lipidomics-db ci-test-source ci-test-notebooks ci-test-all
 
 download-lipidomics-db:
 	# Check if the file already exists before downloading
@@ -93,3 +94,22 @@ fresh-stack-up:
 docu:
 	
 	pdoc --output-dir docs --docformat numpy corems
+
+ci-test-source:
+	@$(PYTHON) -V
+	@$(PYTHON) -m pip install --upgrade pip
+	@$(PYTHON) -m pip install -r requirements.txt
+	@$(PYTHON) -m pip install pytest pytest-cov psycopg2
+	@$(MAKE) download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)"
+	@$(PYTHON) -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
+	@PYTHONNET_RUNTIME=coreclr COREMS_LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)" $(PYTHON) -m pytest --cache-clear
+
+ci-test-notebooks:
+	@$(PYTHON) -V
+	@$(PYTHON) -m pip install --upgrade pip
+	@$(PYTHON) -m pip install -r requirements.txt
+	@$(PYTHON) -m pip install jupyter nbconvert psycopg2
+	@$(PYTHON) -m pip install -e .
+	@PYTHONNET_RUNTIME=coreclr $(PYTHON) examples/test_notebooks.py
+
+ci-test-all: ci-test-source ci-test-notebooks
