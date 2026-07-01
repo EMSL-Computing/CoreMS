@@ -26,7 +26,7 @@
   - [Installation](#corems-installation)  
   - [Thermo Raw File on Mac and Linux](#thermo-raw-file-access)  
 - Execution     
-  - [Jupyter Notebook and Docker containers](#docker-stack)  
+  - [Building and Running the Docker Image](#docker-image)
   - [Example for FT-ICR Data Processing](#simple-script-example)  
   - [Jupyter Notebook Examples](examples/notebooks)  
 - Sibling Projects    
@@ -205,60 +205,97 @@ To be able to open thermo file a installation of pythonnet is needed:
 
 ***
 
-## Docker stack 
+## Building and Running the CoreMS Docker Image <a name="docker-image"></a>
 
-Another option to use CoreMS is to run the docker stack that will start the CoreMS containers
+CoreMS provides a Dockerfile that packages the entire application (including .NET 8 runtime for Thermo .raw file support) into a self-contained image. This is useful for running CoreMS in a reproducible environment without installing dependencies on your host system.
 
-### Molecular Database and Jupyter Notebook Docker Containers
+### Prerequisites
+- Docker installed and running on your system.
+- The CoreMS repository cloned locally.
+- Navigate to the root of the CoreMS repository before running any commands.
 
-A docker container containing:
-- A custom python distribution will all dependencies installed
-- A Jupyter notebook server with workflow examples
-- A PostgreSQL database for the molecular formulae assignment
+### Building the Docker Image
 
-If you don't have docker installed, the easiest way is to [install docker for desktop](https://hub.docker.com/?overlay=onboarding)
+The Makefile provides convenience targets for building the image. The image is tagged with the current version from `.bumpversion.cfg`.
 
-1. Start the containers using docker-compose (easiest way): 
+**On Linux/Windows (standard build):**
+```bash
+make build-image-local
+```
 
-    On docker-compose-jupyter.yml there is a volume mapping for the tests_data directory with the data provided for testing, to change to your data location: 
-    
-    - locate the volumes on docker-compose-jupyter.yml:
+**On macOS (cross-platform build for linux/amd64):**
+```bash
+make build-image-mac-local
+```
 
-    ```bash
-    volumes:
-      - ./tests/tests_data:/home/CoreMS/data
-    ```
-    - change "./tests/tests_data" to your data directory location
+This runs `docker build` with the `--platform linux/amd64` flag, which is necessary when building on Apple Silicon (M1/M2/M3) Macs to ensure compatibility.
 
-    ```bash
-    volumes:
-      - path_to_your_data_directory:/home/corems/data
-    ```
-    - save the file and then call:
-    
-    ```bash
-    docker-compose -f docker-compose-jupyter.yml up
-    ```
+Alternatively, you can build manually with:
+```bash
+docker build -t corems:<version> .
+```
+Replace `<version>` with your desired tag (e.g., `3.11.0`).
 
-2. Another option is to manually build the containers: 
+### What the Dockerfile Does
 
-    - Build the corems image:
-        ```bash
-        docker build -t corems:local .
-        ```
-    - Start the database container:
-        ```bash
-        docker-compose up -d   
-        ```
-    - Start the Jupyter Notebook:
-        ```bash
-        docker run --rm -v ./data:/home/CoreMS/data corems:local
-        ```
-    
-    - Open your browser, copy and past the URL address provided in the terminal: `http://localhost:8888/?token=<token>.`
+The Dockerfile performs the following steps:
+1. Starts from a `python:3.13-slim` base image.
+2. Installs the .NET 8 runtime (required for Thermo .raw file support via PythonNET).
+3. Copies the CoreMS source code into the image.
+4. Installs CoreMS and all its dependencies via `pip install .`.
+5. Installs `pytest-xdist` and `pytest-cov` for running tests.
+6. Removes build-time dependencies (gcc, python3-dev) to keep the image lean.
 
-    - Open the CoreMS-Tutorial.ipynb
+### Running the Docker Image
 
+**On Linux/Windows:**
+```bash
+make image-run
+```
+
+**On macOS:**
+```bash
+make image-run-mac
+```
+
+This launches an interactive bash shell inside the container:
+```bash
+docker run -it corems:<version>
+```
+
+From within the container, you can import and use CoreMS directly:
+```python
+python3 -c "import corems; print(corems.__version__)"
+```
+
+### Mounting Data into the Container
+
+To process your own data files, mount a local directory into the container:
+```bash
+docker run -it -v /path/to/your/data:/data corilo/corems:<version>
+```
+Your files will then be accessible at `/data` inside the container.
+
+### Managing the PostgreSQL Database with Docker Compose
+
+The `docker-compose.yml` file defines a PostgreSQL database service for CoreMS. The Makefile provides targets to manage it:
+
+**Start the database:**
+```bash
+make db-up
+```
+
+**Stop the database:**
+```bash
+make db-down
+```
+
+**View database logs:**
+```bash
+make db-logs
+```
+
+These are equivalent to running `docker-compose up -d`, `docker-compose down`, and `docker-compose logs -f` respectively.
 
 ***
 

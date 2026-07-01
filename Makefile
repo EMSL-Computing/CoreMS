@@ -57,13 +57,39 @@ tag:
 	@git push origin $(version).$(stage)
 	@echo tagged $(version).$(stage) and pushed
 
+build-image-local:
+
+	@echo corems:$(version).$(stage)
+	@docker build -t corems:$(version) .
+
 build-image:
 
 	@echo corilo/corems:$(version).$(stage)
 	@docker build -t corilo/corems:$(version) .
+
+build-image-mac:
+
+	@echo corilo/corems:$(version).$(stage)
+	@docker build --platform linux/amd64 -t corilo/corems:$(version) .
+
+build-image-mac-local:
+
+	@echo corems:$(version).$(stage)
+	@docker build --platform linux/amd64 -t corems:$(version) .
+
+push-image:
+
 	@docker push corilo/corems:$(version)
 	@docker image tag corilo/corems:$(version) corilo/corems:latest
 	@docker push corilo/corems:latest
+
+image-run-mac:
+
+	@docker run -it --platform linux/amd64 corilo/corems:$(version)
+
+image-run:
+
+	@docker run -it corilo/corems:$(version)
 
 db-up:
 
@@ -80,16 +106,6 @@ db-logs:
 db-connect:
 
 	@docker exec -it molformdb psql -U postgres
-
-all-up:
-	
-	@docker-compose -f docker-compose-jupyter.yml up	
-
-fresh-stack-up:
-
-	@docker build -t corems:local .
-	@docker-compose up -d   
-	@docker run --rm -v ./data:/home/CoreMS/data corems:local
 
 docu:
 	
