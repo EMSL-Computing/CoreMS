@@ -13,23 +13,23 @@ from requests.exceptions import HTTPError, ConnectionError as RequestsConnection
 from corems.mass_spectra.calc.GC_RI_Calibration import get_rt_ri_pairs
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch
-from corems.molecular_id.search.database_interfaces import MetabRefGCInterface
+from corems.molecular_id.search.database_interfaces import GCMSLibraryInterface
 
 
-def start_gcms_metabref_sql(normalize=False, url="sqlite://"):
-    # Initialize MetabRef interface
-    metabref = MetabRefGCInterface()
-
-    # Pull contents into SQLite
-    return metabref.get_library(format="sql")
-
-
-def start_fames_metabref_sql(normalize=False, url="sqlite://"):
-    # Initialize MetabRef interface
-    metabref = MetabRefGCInterface()
+def start_gcms_sql(normalize=False, url="sqlite://"):
+    # Initialize GCMS library interface
+    gcms_lib = GCMSLibraryInterface()
 
     # Pull contents into SQLite
-    return metabref.get_fames(format="sql")
+    return gcms_lib.get_library(format="sql")
+
+
+def start_fames_sql(normalize=False, url="sqlite://"):
+    # Initialize GCMS library interface
+    gcms_lib = GCMSLibraryInterface()
+
+    # Pull contents into SQLite
+    return gcms_lib.get_fames(format="sql")
 
 
 def get_gcms(filepath):
@@ -60,7 +60,7 @@ def run(filepath, ref_dict, cal_filepath):
     gcms.calibrate_ri(ref_dict, cal_filepath)
 
     # Initialize GCMS reference database from MetabRef
-    sql_obj = start_gcms_metabref_sql()
+    sql_obj = start_gcms_sql()
 
     # Initialize spectral match
     lowResSearch = LowResMassSpectralMatch(gcms, sql_obj=sql_obj)
@@ -92,6 +92,7 @@ def test_gcms_workflow():
         fames_sql_obj = start_fames_metabref_sql()
     except (HTTPError, RequestsConnectionError) as e:
         pytest.skip(f"MetabRef API unavailable (network error): {e}")
+    fames_sql_obj = start_fames_sql()
 
     # # Determine calibration pairs
     rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj, sql_obj=fames_sql_obj)

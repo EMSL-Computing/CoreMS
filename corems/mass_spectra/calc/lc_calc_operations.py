@@ -1088,7 +1088,9 @@ class LoadEICsOperation(SampleOperation):
         
         # Get m/z values for this sample that belong to clusters
         sample_cluster_mz = set(cluster_mz_dict[sample_id])
-        
+        if len(sample_cluster_mz) == 0:
+            return {}
+
         # Load EICs for each of the sample_cluster_mz
         hdf5_path = sample.file_location
         if hdf5_path and hdf5_path.exists():

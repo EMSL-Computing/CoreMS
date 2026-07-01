@@ -707,7 +707,11 @@ class ReadCoreMSHDFMassSpectra(
                 )
 
                 for key in ms2_results_load[k][k2].keys() - {"precursor_mz"}:
-                    setattr(ms2_search_res, key, list(ms2_results_load[k][k2][key][:]))
+                    data = list(ms2_results_load[k][k2][key][:])
+                    if data and isinstance(data[0], bytes):
+                        data = [x.decode("utf-8") for x in data]
+                    setattr(ms2_search_res, key, data)
+                
                 overall_results_dict[int(k)][
                     ms2_results_load[k][k2].attrs["precursor_mz"]
                 ] = ms2_search_res

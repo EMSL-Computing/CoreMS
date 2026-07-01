@@ -66,6 +66,8 @@ test-source:
     - *install-deps
     - mkdir -p doc/coverage_html_report
     - pytest --cache-clear -p no:warnings -q --cov=corems --cov-report=html:doc/coverage_html_report --cov-report=term
+    - export COREMS_LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite"
+    - make download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$COREMS_LIPIDOMICS_SQLITE_PATH"
 
   artifacts:
     when: always
