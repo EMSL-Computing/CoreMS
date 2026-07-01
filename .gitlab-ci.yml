@@ -17,7 +17,6 @@ cache:
   key:
     files:
       - requirements.txt
-      - requirements-dev.txt
       - setup.py
   paths:
     - .cache/pip
@@ -31,10 +30,33 @@ stages:
   - Push to PyPi
   - Push to Gitlab Registry
   # - Push to Docker Hub
+
+.test_job_rules: &test_job_rules
+  - if: '$CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"'
+    changes:
+      - corems/**/*
+      - tests/**/*
+      - examples/**/*
+      - db/**/*
+      - ext_lib/**/*
+      - support_code/**/*
+      - Dockerfile*
+      - docker-compose*.yml
+      - Makefile
+      - setup.py
+      - requirements.txt
+      - requirements-dev.txt
+      - pytest.ini
+      - conftest.py
+      - .gitlab-ci.yml
+  - if: '$CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "pipeline"'
+  - if: '$CI_COMMIT_TAG'
+  - when: never
   
 test-source:
   image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1005
   stage: Pytest
+  rules: *test_job_rules
   tags:
     - k8s 
     - rzr
@@ -48,6 +70,7 @@ test-source:
 test-notebooks:
   image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1005
   stage: Pytest
+  rules: *test_job_rules
   tags:
     - k8s 
     - rzr
