@@ -250,12 +250,12 @@ The Dockerfile performs the following steps:
 
 **On Linux/Windows:**
 ```bash
-make image-run
+make image-run-local
 ```
 
 **On macOS:**
 ```bash
-make image-run-mac
+make image-run-mac-local
 ```
 
 This launches an interactive bash shell inside the container:
