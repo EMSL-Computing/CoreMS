@@ -26,7 +26,6 @@ def lcms_collection_folder(tmp_path_factory, lcms_obj):
     processed_folder = tmp_path_factory.mktemp("processed_lcms_collection")
     
     # Set parameters on the LCMS object that are reasonable for testing
-    lcms_obj = lcms_collection_source_obj
     lcms_obj.parameters = LCMSParameters(use_defaults=True)
     
     # Set persistent homology parameters for fast testing
@@ -851,4 +850,3 @@ def test_lcms_collection_plotting_methods(lcms_collection):
         lcms_collection.plot_cluster(cluster_id, to_plot=["EIC"], label_samples=True)
     except Exception as e:
         pytest.fail(f"plot_cluster after gap filling raised exception: {e}")
-

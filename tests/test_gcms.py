@@ -88,20 +88,13 @@ def test_gcms_workflow():
     gcms_ref_obj = get_gcms(calibration_filepath)
 
     # # Build calibration SQLite database from MetabRef
-    try:
-        fames_sql_obj = start_fames_metabref_sql()
-    except (HTTPError, RequestsConnectionError) as e:
-        pytest.skip(f"MetabRef API unavailable (network error): {e}")
     fames_sql_obj = start_fames_sql()
 
     # # Determine calibration pairs
     rt_ri_pairs = get_rt_ri_pairs(gcms_ref_obj, sql_obj=fames_sql_obj)
 
     # Execute
-    try:
-        output = run(filepath, rt_ri_pairs, calibration_filepath)
-    except (HTTPError, RequestsConnectionError) as e:
-        pytest.skip(f"MetabRef API unavailable (network error): {e}")
+    output = run(filepath, rt_ri_pairs, calibration_filepath)
 
     # Export results
     df = output.to_dataframe()
