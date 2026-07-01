@@ -71,6 +71,7 @@ test-source:
     - *install-deps
     - *prepare-lipidomics-db
     - mkdir -p doc/coverage_html_report
+    - touch doc/coverage_html_report/.keep
     - pytest --cache-clear -p no:warnings -q --cov=corems --cov-report=html:doc/coverage_html_report --cov-report=term
 
   artifacts:
