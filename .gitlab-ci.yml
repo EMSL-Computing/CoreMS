@@ -19,7 +19,6 @@ default:
   tags:
     - k8s
     - rzr
-    - codebuilds
 
 services:
   - postgres:18
@@ -43,7 +42,6 @@ cache:
 
 stages:
   - test
-  - test-notebooks
   - build
   - publish
   - publish-image
@@ -115,7 +113,7 @@ test-source:
 # Notebook tests
 # ---------------------------------------------------------------------------
 test-notebooks:
-  stage: test-notebooks
+  stage: test
   rules: *test_job_rules
   script:
     - *install-deps
