@@ -42,8 +42,7 @@ stages:
 # Helpers
 # ---------------------------------------------------------------------------
 .install-dotnet: &install-dotnet
-  - apt-get update -qq && apt-get install -y --no-install-recommends
-      curl ca-certificates libssl3 libkrb5-3 zlib1g gcc python3-dev
+  - apt-get update -qq && apt-get install -y --no-install-recommends curl ca-certificates libssl3 libkrb5-3 zlib1g gcc python3-dev make
   - curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
   - chmod +x /tmp/dotnet-install.sh
   - /tmp/dotnet-install.sh --runtime dotnet --channel 8.0 --install-dir /usr/local/dotnet
@@ -68,10 +67,10 @@ stages:
 test-source:
   stage: test
   script:
-    - *install-deps
-    - *prepare-lipidomics-db
     - mkdir -p doc/coverage_html_report
     - touch doc/coverage_html_report/.keep
+    - *install-deps
+    - *prepare-lipidomics-db
     - pytest --cache-clear -p no:warnings -q --cov=corems --cov-report=html:doc/coverage_html_report --cov-report=term
 
   artifacts:
