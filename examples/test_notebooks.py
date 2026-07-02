@@ -5,6 +5,7 @@ Test script to validate all example notebooks can execute without errors.
 import subprocess
 import sys
 from pathlib import Path
+import argparse
 
 # Patterns in stderr that indicate an external service is unavailable.
 # Failures matching these patterns are treated as warnings (skipped) rather
@@ -74,15 +75,33 @@ def discover_notebooks(notebooks_dir):
 
 
 def main():
-    """Run tests on all notebooks."""
+    """Run tests on all notebooks or a selected notebook."""
+    parser = argparse.ArgumentParser(description="Execute example notebooks with nbconvert")
+    parser.add_argument(
+        "--notebook",
+        "-n",
+        help="Notebook filename or path to run (e.g., LCMS_Tutorial.ipynb)",
+    )
+    args = parser.parse_args()
+
     notebooks_dir = Path(__file__).parent / "notebooks"
     
     if not notebooks_dir.exists():
         print(f"Error: notebooks directory not found at {notebooks_dir}")
         sys.exit(1)
     
-    # Discover all notebooks automatically
-    notebooks = discover_notebooks(notebooks_dir)
+    if args.notebook:
+        notebook_arg = Path(args.notebook)
+        candidate = notebook_arg if notebook_arg.is_absolute() else notebooks_dir / notebook_arg
+        candidate = candidate.resolve()
+
+        if not candidate.exists():
+            print(f"Error: notebook not found: {args.notebook}")
+            sys.exit(1)
+        notebooks = [candidate]
+    else:
+        # Discover all notebooks automatically
+        notebooks = discover_notebooks(notebooks_dir)
     
     if not notebooks:
         print("No notebooks found to test")
