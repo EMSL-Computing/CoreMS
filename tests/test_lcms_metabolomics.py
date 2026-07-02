@@ -1,5 +1,7 @@
 # %% Import libs
 import shutil
+import warnings
+
 import numpy as np
 
 from corems.mass_spectra.output.export import LCMSMetabolomicsExport
@@ -78,6 +80,17 @@ def test_lcms_metabolomics(tmp_path, postgres_database, lcms_obj, msp_file_locat
     og_ms_len = len(lcms_obj._ms)
     lcms_obj.add_associated_ms2_dda(spectrum_mode="centroid", scan_filter="hcd")
     assert len(lcms_obj._ms) > og_ms_len
+
+    # Re-adding the same MS2 scans should warn and be a no-op (no duplicate reprocessing)
+    ms_len_after_first_add = len(lcms_obj._ms)
+    existing_scan = next(iter(lcms_obj._ms))
+    existing_ms_obj = lcms_obj._ms[existing_scan]
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        lcms_obj.add_associated_ms2_dda(spectrum_mode="centroid", scan_filter="hcd")
+    assert len(lcms_obj._ms) == ms_len_after_first_add
+    assert lcms_obj._ms[existing_scan] is existing_ms_obj
+    assert any("already present in _ms" in str(w.message) for w in caught)
 
     # Query the lipidomics database to prepare a small search library for the mass features
     my_msp = MSPInterface(file_path=msp_file_location)
