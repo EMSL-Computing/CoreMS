@@ -3,6 +3,7 @@ import shutil
 import warnings
 
 import numpy as np
+import pytest
 
 from corems.mass_spectra.output.export import LCMSMetabolomicsExport
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
@@ -11,6 +12,7 @@ from corems.encapsulation.factory.parameters import LCMSParameters, reset_lcms_p
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 
 
+@pytest.mark.molecular_db
 def test_lcms_metabolomics(tmp_path, postgres_database, lcms_obj, msp_file_location):
 
     # Set parmaeters to the defaults for reproducible testing

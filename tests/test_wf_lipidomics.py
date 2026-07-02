@@ -54,6 +54,7 @@ def test_import_lcmsobj_mzml():
 
 
 @pytest.mark.lipidomics_db
+@pytest.mark.molecular_db
 def test_lipidomics_workflow(tmp_path, postgres_database, lcms_obj, lipidomics_sqlite_path):
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
     shutil.rmtree(

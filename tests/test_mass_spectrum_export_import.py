@@ -42,6 +42,7 @@ def mass_spectrum_silico(postgres_database):
     return mass_spectrum_obj
 
 
+@pytest.mark.molecular_db
 def test_molecular_formula_search(mass_spectrum_silico):
     SearchMolecularFormulas(
         mass_spectrum_silico, find_isotopologues=True
@@ -53,6 +54,7 @@ def test_molecular_formula_search(mass_spectrum_silico):
     assert mass_spectrum_silico[1][0].string == "C55 H73 N1 13C1"
 
 
+@pytest.mark.molecular_db
 def test_mass_spec_export_import_with_annote(mass_spectrum_silico):
     SearchMolecularFormulas(
         mass_spectrum_silico, find_isotopologues=True

@@ -121,19 +121,25 @@ docu:
 	pdoc --output-dir docs --docformat numpy corems
 
 SKIP_LIPIDOMICS_DB ?= 0
+SKIP_MOLECULAR_DB ?= 0
 
 ci-test-source:
 	@$(PYTHON) -V
 	@$(PYTHON) -m pip install --upgrade pip
 	@$(PYTHON) -m pip install -e ".[dev]"
-	@if [ "$(SKIP_LIPIDOMICS_DB)" = "1" ]; then \
+	@skip_flags=""; \
+	if [ "$(SKIP_LIPIDOMICS_DB)" = "1" ]; then \
 		echo "Skipping lipidomics DB download (SKIP_LIPIDOMICS_DB=1)"; \
-		PYTHONNET_RUNTIME=coreclr $(PYTHON) -m pytest --cache-clear -p no:warnings -n 4 --dist=loadfile --no-cov --skip-lipidomics-db; \
+		skip_flags="$$skip_flags --skip-lipidomics-db"; \
 	else \
 		$(MAKE) download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)"; \
-		PYTHONNET_RUNTIME=coreclr COREMS_LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)" \
-			$(PYTHON) -m pytest --cache-clear -p no:warnings -n 4 --dist=loadfile --no-cov; \
-	fi
+	fi; \
+	if [ "$(SKIP_MOLECULAR_DB)" = "1" ]; then \
+		echo "Skipping molecular formula database tests (SKIP_MOLECULAR_DB=1)"; \
+		skip_flags="$$skip_flags --skip-molecular-db"; \
+	fi; \
+	PYTHONNET_RUNTIME=coreclr COREMS_LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)" \
+		$(PYTHON) -m pytest --cache-clear -p no:warnings -n 4 --dist=loadfile --no-cov $$skip_flags
 
 ci-test-notebooks:
 	@$(PYTHON) -V

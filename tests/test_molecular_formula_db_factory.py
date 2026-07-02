@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from corems.encapsulation.constant import Labels
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 from corems.molecular_id.input.nistMSI import ReadNistMSI
@@ -24,6 +26,7 @@ def test_nist_to_sql():
         sqlLite_obj.session.close()
         sqlLite_obj.engine.dispose()
 
+@pytest.mark.molecular_db
 def test_query_sql():
 
     sqldb = MolForm_SQL()
