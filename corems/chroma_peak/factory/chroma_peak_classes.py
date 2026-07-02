@@ -273,6 +273,10 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         """
         if self.mass_spectrum is None:
             raise ValueError("MS1 spectrum is not available")
+
+        def _finite_values(values):
+            vals = np.asarray(values, dtype=float)
+            return vals[np.isfinite(vals)]
         
         title_prefix = "MS1 (deconvoluted)" if deconvoluted else "MS1 (raw)"
         if sample_name:
@@ -297,13 +301,14 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                 color="k",
                 label="Deconvoluted MS1",
             )
-            ax.set_xlim(
-                self.mass_spectrum_deconvoluted.mz_exp.min() * 0.8,
-                self.mass_spectrum_deconvoluted.mz_exp.max() * 1.1,
-            )
-            ax.set_ylim(
-                0, self.mass_spectrum_deconvoluted.abundance.max() * 1.1
-            )
+            mz_vals = _finite_values(self.mass_spectrum_deconvoluted.mz_exp)
+            ab_vals = _finite_values(self.mass_spectrum_deconvoluted.abundance)
+            if mz_vals.size:
+                ax.set_xlim(mz_vals.min() * 0.8, mz_vals.max() * 1.1)
+            if ab_vals.size:
+                ax.set_ylim(0, ab_vals.max() * 1.1)
+            else:
+                ax.set_ylim(bottom=0)
         else:
             # Plot raw only
             ax.vlines(
@@ -313,10 +318,9 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                 color="k",
                 label="Raw MS1",
             )
-            ax.set_xlim(
-                self.mass_spectrum.mz_exp.min() * 0.8,
-                self.mass_spectrum.mz_exp.max() * 1.1,
-            )
+            mz_vals = _finite_values(self.mass_spectrum.mz_exp)
+            if mz_vals.size:
+                ax.set_xlim(mz_vals.min() * 0.8, mz_vals.max() * 1.1)
             ax.set_ylim(bottom=0)
         
         # Highlight the feature m/z if close enough
