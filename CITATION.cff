@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use CoreMS in your work, please cite it as below."
+title: "CoreMS"
+abstract: "CoreMS is a comprehensive mass spectrometry framework for software development and data analysis of small molecules."
+type: software
+url: "https://github.com/EMSL-Computing/CoreMS"
+repository-code: "https://github.com/EMSL-Computing/CoreMS"
+license: BSD-3-Clause
+authors:
+  - family-names: Corilo
+    given-names: Yuri E.
+    affiliation: Pacific Northwest National Laboratory
+    orcid: "https://orcid.org/0000-0002-1368-8217"
+  - family-names: Kew
+    given-names: William R.
+    affiliation: Pacific Northwest National Laboratory
+    orcid: "https://orcid.org/0000-0002-4281-4630"
+  - family-names: Heal
+    given-names: Katherine R.
+    affiliation: Pacific Northwest National Laboratory
+    orcid: "https://orcid.org/0000-0002-4504-1039"
+keywords:
+  - mass spectrometry
+  - FT-ICR
+  - Orbitrap
+  - small molecules
+  - metabolomics
+  - natural organic matter
+  - petroleomics
+identifiers:
+  - description: "Concept DOI — always resolves to the latest release on Zenodo."
+    type: doi
+    value: 10.5281/zenodo.4641552

@@ -1,32 +1,24 @@
 {
-    "description": "CoreMS is a comprehensive mass spectrometry framework for software development and data analysis of small molecules", 
-    "license": "other-open", 
-    "title": "EMSL-Computing/CoreMS: CoreMS 1.0.0", 
-    "version": "v1.0.0", 
-    "upload_type": "software", 
-    "publication_date": "2021-03-27", 
+    "upload_type": "software",
+    "license": "BSD-3-Clause",
+    "description": "CoreMS is a comprehensive mass spectrometry framework for software development and data analysis of small molecules.",
+    "keywords": [
+        "mass spectrometry",
+        "FT-ICR",
+        "Orbitrap",
+        "small molecules",
+        "metabolomics",
+        "natural organic matter",
+        "petroleomics"
+    ],
     "creators": [
-        {
-            "name": "Yuri E. Corilo"
-        }, 
-        {
-            "name": "William R. Kew"
-        },
-        {
-            "name": "Lee Ann McCue"
-        }         
-    ], 
-    "access_right": "open", 
-    "related_identifiers": [
-        {
-            "scheme": "url", 
-            "identifier": "https://github.com/EMSL-Computing/CoreMS/tree/v1.0.1", 
-            "relation": "isSupplementTo"
-        }, 
-        {
-            "scheme": "doi", 
-            "identifier": "10.5281/zenodo.4641552", 
-            "relation": "isVersionOf"
-        }
+        {"name": "Corilo, Yuri E.", "affiliation": "Pacific Northwest National Laboratory", "orcid": ""},
+        {"name": "Kew, William R.", "affiliation": "Pacific Northwest National Laboratory", "orcid": ""},
+        {"name": "McCue, Lee Ann", "affiliation": "Pacific Northwest National Laboratory", "orcid": ""},
+        {"name": "Heal, Katherine R.", "affiliation": "Pacific Northwest National Laboratory", "orcid": "0000-0002-4504-1039"},
+        {"name": "Carr, James C.", "affiliation": "Pacific Northwest National Laboratory", "orcid": ""}
+    ],
+    "communities": [
+        {"identifier": "emsl"}
     ]
 }
