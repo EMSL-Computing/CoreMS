@@ -19,6 +19,7 @@ default:
   tags:
     - k8s
     - rzr
+    - coud
 
 services:
   - postgres:18
@@ -33,6 +34,12 @@ variables:
   PIP_ROOT_USER_ACTION: ignore
   # Avoids libicu dependency crash when .NET initialises in a slim container
   DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "1"
+  # Kubernetes runner pod sizing — undersized defaults are a common cause of
+  # slow CI wall time. Override per-job if a stage needs more/less.
+  KUBERNETES_CPU_REQUEST: "2"
+  KUBERNETES_CPU_LIMIT: "4"
+  KUBERNETES_MEMORY_REQUEST: 4Gi
+  KUBERNETES_MEMORY_LIMIT: 8Gi
 
 cache:
   key: "$CI_COMMIT_REF_SLUG"
