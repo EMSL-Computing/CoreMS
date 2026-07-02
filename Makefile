@@ -5,7 +5,7 @@ stage := $(shell cat .bumpversion.cfg | grep optional_value | cut -d= -f2 | tr -
 LIPIDOMICS_SQLITE_URL ?= https://nmdcdemo.emsl.pnnl.gov/lipidomics/parameter_files/202412_lipid_ref.sqlite
 LIPIDOMICS_SQLITE_PATH ?= tests/tests_data/lcms/202412_lipid_ref.sqlite
 
-.PHONY: download-lipidomics-db
+.PHONY: download-lipidomics-db test-pytest-xdist test-notebooks ci-test
 
 download-lipidomics-db:
 	# Check if the file already exists before downloading
@@ -118,3 +118,12 @@ db-connect:
 docu:
 	
 	pdoc --output-dir docs --docformat numpy corems
+
+test-pytest-xdist: download-lipidomics-db
+	pytest -n auto --no-cov --cache-clear -p no:warnings -q
+
+test-notebooks: download-lipidomics-db
+	python3 -m pip install --no-cache-dir jupyter nbconvert
+	cd examples && python3 test_notebooks.py
+
+ci-test: test-pytest-xdist test-notebooks
