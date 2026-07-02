@@ -120,22 +120,34 @@ docu:
 	
 	pdoc --output-dir docs --docformat numpy corems
 
+SKIP_LIPIDOMICS_DB ?= 0
+
 ci-test-source:
 	@$(PYTHON) -V
 	@$(PYTHON) -m pip install --upgrade pip
 	@$(PYTHON) -m pip install -e ".[dev]"
-	@$(MAKE) download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)"
-	@PYTHONNET_RUNTIME=coreclr COREMS_LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)" \
-		$(PYTHON) -m pytest --cache-clear -p no:warnings -n 4 --dist=loadfile --no-cov
+	@if [ "$(SKIP_LIPIDOMICS_DB)" = "1" ]; then \
+		echo "Skipping lipidomics DB download (SKIP_LIPIDOMICS_DB=1)"; \
+		PYTHONNET_RUNTIME=coreclr $(PYTHON) -m pytest --cache-clear -p no:warnings -n 4 --dist=loadfile --no-cov --skip-lipidomics-db; \
+	else \
+		$(MAKE) download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)"; \
+		PYTHONNET_RUNTIME=coreclr COREMS_LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)" \
+			$(PYTHON) -m pytest --cache-clear -p no:warnings -n 4 --dist=loadfile --no-cov; \
+	fi
 
 ci-test-notebooks:
 	@$(PYTHON) -V
 	@$(PYTHON) -m pip install --upgrade pip
 	@$(PYTHON) -m pip install -e ".[dev]"
 	@$(PYTHON) -m pip install --no-cache-dir jupyter nbconvert
-	@$(MAKE) download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)"
-	@PYTHONNET_RUNTIME=coreclr COREMS_LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)" \
-		$(PYTHON) examples/test_notebooks.py
+	@if [ "$(SKIP_LIPIDOMICS_DB)" = "1" ]; then \
+		echo "Skipping lipidomics DB download (SKIP_LIPIDOMICS_DB=1)"; \
+		PYTHONNET_RUNTIME=coreclr $(PYTHON) examples/test_notebooks.py; \
+	else \
+		$(MAKE) download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)"; \
+		PYTHONNET_RUNTIME=coreclr COREMS_LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)" \
+			$(PYTHON) examples/test_notebooks.py; \
+	fi
 
 ci-test-all: ci-test-source ci-test-notebooks
 

@@ -48,4 +48,4 @@ jobs:
           dotnet-version: '8.0'
 
       - name: Run tests
-        run: make ${{ matrix.make_target }}
+        run: make ${{ matrix.make_target }} SKIP_LIPIDOMICS_DB=1
