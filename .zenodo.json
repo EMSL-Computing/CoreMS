@@ -12,11 +12,11 @@
         "petroleomics"
     ],
     "creators": [
-        {"name": "Corilo, Yuri E.", "affiliation": "Pacific Northwest National Laboratory", "orcid": ""},
-        {"name": "Kew, William R.", "affiliation": "Pacific Northwest National Laboratory", "orcid": ""},
-        {"name": "McCue, Lee Ann", "affiliation": "Pacific Northwest National Laboratory", "orcid": ""},
+        {"name": "Corilo, Yuri E.", "affiliation": "Pacific Northwest National Laboratory", "orcid": "0000-0002-1368-8217"},
+        {"name": "Kew, William R.", "affiliation": "Pacific Northwest National Laboratory", "orcid": "0000-0002-4281-4630"},
+        {"name": "McCue, Lee Ann", "affiliation": "Pacific Northwest National Laboratory", "orcid": "0000-0003-4456-517X"},
         {"name": "Heal, Katherine R.", "affiliation": "Pacific Northwest National Laboratory", "orcid": "0000-0002-4504-1039"},
-        {"name": "Carr, James C.", "affiliation": "Pacific Northwest National Laboratory", "orcid": ""}
+        {"name": "Carr, James C.", "affiliation": "Pacific Northwest National Laboratory", "orcid": "0000-0003-1380-8095"}
     ],
     "communities": [
         {"identifier": "emsl"}

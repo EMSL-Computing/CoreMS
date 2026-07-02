@@ -15,10 +15,18 @@ authors:
     given-names: William R.
     affiliation: Pacific Northwest National Laboratory
     orcid: "https://orcid.org/0000-0002-4281-4630"
+  - family-names: McCue
+    given-names: Lee Ann
+    affiliation: Pacific Northwest National Laboratory
+    orcid: "https://orcid.org/0000-0003-4456-517X"
   - family-names: Heal
     given-names: Katherine R.
     affiliation: Pacific Northwest National Laboratory
     orcid: "https://orcid.org/0000-0002-4504-1039"
+  - family-names: Carr
+    given-names: James C.
+    affiliation: Pacific Northwest National Laboratory
+    orcid: "https://orcid.org/0000-0003-1380-8095"
 keywords:
   - mass spectrometry
   - FT-ICR
