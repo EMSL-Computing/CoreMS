@@ -120,7 +120,7 @@ docu:
 	pdoc --output-dir docs --docformat numpy corems
 
 test-pytest-xdist: download-lipidomics-db
-	pytest -n auto --no-cov --cache-clear -p no:warnings -q
+	pytest -n auto --no-cov --cache-clear -p no:warnings
 
 test-notebooks: download-lipidomics-db
 	python3 -m pip install --no-cache-dir jupyter nbconvert
