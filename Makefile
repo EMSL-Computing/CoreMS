@@ -1,11 +1,12 @@
 app_name = CoreMS
 parameters_path = parameter.json 
 version := $(shell cat .bumpversion.cfg | grep current_version | cut -d= -f2 | tr -d ' ')
-stage := $(shell cat .bumpversion.cfg | grep optional_value | cut -d= -f2 | tr -d ' ')
+stage := $(shell cat .bumpversion.cfg | grep optional_value | cut -d= -f2 | tr -d ' ') 
 LIPIDOMICS_SQLITE_URL ?= https://nmdcdemo.emsl.pnnl.gov/lipidomics/parameter_files/202412_lipid_ref.sqlite
 LIPIDOMICS_SQLITE_PATH ?= tests/tests_data/lcms/202412_lipid_ref.sqlite
+PYTHON ?= python3
 
-.PHONY: download-lipidomics-db test-pytest-xdist test-notebooks ci-test
+.PHONY: download-lipidomics-db ci-test-source ci-test-notebooks ci-test-all test-pytest-xdist test-notebooks ci-test
 
 download-lipidomics-db:
 	# Check if the file already exists before downloading
@@ -118,6 +119,25 @@ db-connect:
 docu:
 	
 	pdoc --output-dir docs --docformat numpy corems
+
+ci-test-source:
+	@$(PYTHON) -V
+	@$(PYTHON) -m pip install --upgrade pip
+	@$(PYTHON) -m pip install -e ".[dev]"
+	@$(MAKE) download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)"
+	@PYTHONNET_RUNTIME=coreclr COREMS_LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)" \
+		$(PYTHON) -m pytest --cache-clear -p no:warnings -n 4 --dist=loadfile --no-cov
+
+ci-test-notebooks:
+	@$(PYTHON) -V
+	@$(PYTHON) -m pip install --upgrade pip
+	@$(PYTHON) -m pip install -e ".[dev]"
+	@$(PYTHON) -m pip install --no-cache-dir jupyter nbconvert
+	@$(MAKE) download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)"
+	@PYTHONNET_RUNTIME=coreclr COREMS_LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)" \
+		$(PYTHON) examples/test_notebooks.py
+
+ci-test-all: ci-test-source ci-test-notebooks
 
 test-pytest-xdist: download-lipidomics-db
 	pytest -n auto --no-cov --cache-clear -p no:warnings
