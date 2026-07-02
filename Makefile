@@ -1,12 +1,20 @@
 app_name = CoreMS
 parameters_path = parameter.json 
 version := $(shell cat .bumpversion.cfg | grep current_version | cut -d= -f2 | tr -d ' ')
+<<<<<<< HEAD
 stage := $(shell cat .bumpversion.cfg | grep optional_value | cut -d= -f2 | tr -d ' ') 
 LIPIDOMICS_SQLITE_URL ?= https://nmdcdemo.emsl.pnnl.gov/lipidomics/parameter_files/202412_lipid_ref.sqlite
 LIPIDOMICS_SQLITE_PATH ?= tests/tests_data/lcms/202412_lipid_ref.sqlite
 PYTHON ?= python3
 
 .PHONY: download-lipidomics-db ci-test-source ci-test-notebooks ci-test-all
+=======
+stage := $(shell cat .bumpversion.cfg | grep optional_value | cut -d= -f2 | tr -d ' ')
+LIPIDOMICS_SQLITE_URL ?= https://nmdcdemo.emsl.pnnl.gov/lipidomics/parameter_files/202412_lipid_ref.sqlite
+LIPIDOMICS_SQLITE_PATH ?= tests/tests_data/lcms/202412_lipid_ref.sqlite
+
+.PHONY: download-lipidomics-db test-pytest-xdist test-notebooks ci-test
+>>>>>>> python3.13
 
 download-lipidomics-db:
 	# Check if the file already exists before downloading
@@ -18,8 +26,13 @@ download-lipidomics-db:
 		curl --retry 3 --retry-delay 5 --connect-timeout 30 --max-time 300 -L -o $(LIPIDOMICS_SQLITE_PATH) $(LIPIDOMICS_SQLITE_URL); \
 		echo "LC-MS lipidomics database downloaded"; \
 	fi
+<<<<<<< HEAD
 	
 cpu: 
+=======
+
+cpu:
+>>>>>>> python3.13
 	pyprof2calltree -k -i $(file)
 
 mem: 
@@ -138,3 +151,12 @@ ci-test-notebooks:
 	@PYTHONNET_RUNTIME=coreclr $(PYTHON) examples/test_notebooks.py
 
 ci-test-all: ci-test-source ci-test-notebooks
+
+test-pytest-xdist: download-lipidomics-db
+	pytest -n auto --no-cov --cache-clear -p no:warnings
+
+test-notebooks: download-lipidomics-db
+	python3 -m pip install --no-cache-dir jupyter nbconvert
+	cd examples && python3 test_notebooks.py
+
+ci-test: test-pytest-xdist test-notebooks
