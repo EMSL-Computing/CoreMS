@@ -65,17 +65,6 @@ stages:
   - export PATH="$PATH:/usr/local/dotnet"
   - rm /tmp/dotnet-install.sh
 
-.install-deps: &install-deps
-  - *install-dotnet
-  - python3 -V
-  - python3 -m pip install --upgrade pip
-  - python3 -m pip install -e ".[dev]"
-  - export PYTHONNET_RUNTIME=coreclr
-
-.prepare-lipidomics-db: &prepare-lipidomics-db
-  - export COREMS_LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite"
-  - make download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$COREMS_LIPIDOMICS_SQLITE_PATH"
-
 .test_job_rules: &test_job_rules
   - if: '$CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"'
     changes:
@@ -104,17 +93,8 @@ test-source:
   stage: test
   rules: *test_job_rules
   script:
-    - mkdir -p doc/coverage_html_report
-    - touch doc/coverage_html_report/.keep
-    - *install-deps
-    - *prepare-lipidomics-db
-    - pytest --cache-clear -p no:warnings -n 4 --dist=loadfile --cov=corems --cov-report=html:doc/coverage_html_report --cov-report=term
-
-  artifacts:
-    when: always
-    paths:
-      - doc/coverage_html_report
-    expire_in: 7 days
+    - *install-dotnet
+    - make ci-test-source LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite"
 
 # ---------------------------------------------------------------------------
 # Notebook tests
@@ -123,10 +103,8 @@ test-notebooks:
   stage: test
   rules: *test_job_rules
   script:
-    - *install-deps
-    - *prepare-lipidomics-db
-    - python3 -m pip install --no-cache-dir jupyter nbconvert
-    - cd examples && python3 test_notebooks.py
+    - *install-dotnet
+    - make ci-test-notebooks LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite"
 
   artifacts:
     when: on_failure

@@ -123,19 +123,19 @@ docu:
 ci-test-source:
 	@$(PYTHON) -V
 	@$(PYTHON) -m pip install --upgrade pip
-	@$(PYTHON) -m pip install -r requirements.txt
-	@$(PYTHON) -m pip install pytest pytest-cov psycopg2
+	@$(PYTHON) -m pip install -e ".[dev]"
 	@$(MAKE) download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)"
-	@$(PYTHON) -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
-	@PYTHONNET_RUNTIME=coreclr COREMS_LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)" $(PYTHON) -m pytest --cache-clear
+	@PYTHONNET_RUNTIME=coreclr COREMS_LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)" \
+		$(PYTHON) -m pytest --cache-clear -p no:warnings -n 4 --dist=loadfile --no-cov
 
 ci-test-notebooks:
 	@$(PYTHON) -V
 	@$(PYTHON) -m pip install --upgrade pip
-	@$(PYTHON) -m pip install -r requirements.txt
-	@$(PYTHON) -m pip install jupyter nbconvert psycopg2
-	@$(PYTHON) -m pip install -e .
-	@PYTHONNET_RUNTIME=coreclr $(PYTHON) examples/test_notebooks.py
+	@$(PYTHON) -m pip install -e ".[dev]"
+	@$(PYTHON) -m pip install --no-cache-dir jupyter nbconvert
+	@$(MAKE) download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)"
+	@PYTHONNET_RUNTIME=coreclr COREMS_LIPIDOMICS_SQLITE_PATH="$(LIPIDOMICS_SQLITE_PATH)" \
+		$(PYTHON) examples/test_notebooks.py
 
 ci-test-all: ci-test-source ci-test-notebooks
 
