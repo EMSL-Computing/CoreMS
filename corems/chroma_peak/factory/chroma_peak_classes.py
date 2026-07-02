@@ -2,6 +2,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 12, 2019"
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 import copy
@@ -274,9 +275,11 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         if self.mass_spectrum is None:
             raise ValueError("MS1 spectrum is not available")
 
-        def _finite_values(values):
-            vals = np.asarray(values, dtype=float)
-            return vals[np.isfinite(vals)]
+        def _finite_pairs(mz_values, abundance_values):
+            mz_vals = np.asarray(mz_values, dtype=float)
+            ab_vals = np.asarray(abundance_values, dtype=float)
+            mask = np.isfinite(mz_vals) & np.isfinite(ab_vals)
+            return mz_vals[mask], ab_vals[mask]
         
         title_prefix = "MS1 (deconvoluted)" if deconvoluted else "MS1 (raw)"
         if sample_name:
@@ -286,45 +289,44 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         
         if deconvoluted and self._ms_deconvoluted_idx is not None:
             # Plot both raw and deconvoluted
-            ax.vlines(
-                self.mass_spectrum.mz_exp,
-                0,
-                self.mass_spectrum.abundance,
-                color="k",
-                alpha=0.2,
-                label="Raw MS1",
+            raw_mz, raw_ab = _finite_pairs(
+                self.mass_spectrum.mz_exp, self.mass_spectrum.abundance
             )
-            ax.vlines(
+            if raw_mz.size:
+                ax.vlines(raw_mz, 0, raw_ab, color="k", alpha=0.2, label="Raw MS1")
+
+            deconv_mz, deconv_ab = _finite_pairs(
                 self.mass_spectrum_deconvoluted.mz_exp,
-                0,
                 self.mass_spectrum_deconvoluted.abundance,
-                color="k",
-                label="Deconvoluted MS1",
             )
-            mz_vals = _finite_values(self.mass_spectrum_deconvoluted.mz_exp)
-            ab_vals = _finite_values(self.mass_spectrum_deconvoluted.abundance)
-            if mz_vals.size:
-                ax.set_xlim(mz_vals.min() * 0.8, mz_vals.max() * 1.1)
-            if ab_vals.size:
-                ax.set_ylim(0, ab_vals.max() * 1.1)
+            if deconv_mz.size:
+                ax.vlines(deconv_mz, 0, deconv_ab, color="k", label="Deconvoluted MS1")
+
+            if deconv_mz.size:
+                ax.set_xlim(deconv_mz.min() * 0.8, deconv_mz.max() * 1.1)
+            elif raw_mz.size:
+                ax.set_xlim(raw_mz.min() * 0.8, raw_mz.max() * 1.1)
+            else:
+                ax.set_xlim(0, 1)
+
+            if deconv_ab.size:
+                ax.set_ylim(0, deconv_ab.max() * 1.1)
             else:
                 ax.set_ylim(bottom=0)
         else:
             # Plot raw only
-            ax.vlines(
-                self.mass_spectrum.mz_exp,
-                0,
-                self.mass_spectrum.abundance,
-                color="k",
-                label="Raw MS1",
+            raw_mz, raw_ab = _finite_pairs(
+                self.mass_spectrum.mz_exp, self.mass_spectrum.abundance
             )
-            mz_vals = _finite_values(self.mass_spectrum.mz_exp)
-            if mz_vals.size:
-                ax.set_xlim(mz_vals.min() * 0.8, mz_vals.max() * 1.1)
+            if raw_mz.size:
+                ax.vlines(raw_mz, 0, raw_ab, color="k", label="Raw MS1")
+                ax.set_xlim(raw_mz.min() * 0.8, raw_mz.max() * 1.1)
+            else:
+                ax.set_xlim(0, 1)
             ax.set_ylim(bottom=0)
         
         # Highlight the feature m/z if close enough
-        if abs(self.ms1_peak.mz_exp - self.mz) < 0.01:
+        if np.isfinite(self.ms1_peak.mz_exp) and np.isfinite(self.ms1_peak.abundance) and abs(self.ms1_peak.mz_exp - self.mz) < 0.01:
             ax.vlines(
                 self.ms1_peak.mz_exp,
                 0,
@@ -338,10 +340,20 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                     f"The m/z of the mass feature {self.id} is different from the m/z of MS1 peak, "
                     "the MS1 peak will not be plotted"
                 )
+
+        x0, x1 = ax.get_xlim()
+        if not np.isfinite(x0) or not np.isfinite(x1) or x0 == x1:
+            ax.set_xlim(0, 1)
+
+        y0, y1 = ax.get_ylim()
+        if not np.isfinite(y0) or not np.isfinite(y1) or y0 == y1:
+            ax.set_ylim(0, 1)
         
         ax.legend(loc="upper left")
         ax.set_ylabel("Intensity")
         ax.set_xlabel("m/z")
+        ax.xaxis.set_major_locator(mticker.MaxNLocator(nbins=6))
+        ax.yaxis.set_major_locator(mticker.MaxNLocator(nbins=6))
         ax.yaxis.set_tick_params(labelleft=False)
     
     def _plot_ms2_spectrum(self, ax, sample_name=None):
@@ -653,6 +665,18 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             f"time = {round(self.retention_time, ndigits=1)} minutes"
         )
 
+        def _sanitize_axis(axis):
+            x0, x1 = axis.get_xlim()
+            if not np.isfinite(x0) or not np.isfinite(x1) or x0 == x1:
+                axis.set_xlim(0, 1)
+
+            y0, y1 = axis.get_ylim()
+            if not np.isfinite(y0) or not np.isfinite(y1) or y0 == y1:
+                axis.set_ylim(0, 1)
+
+            axis.xaxis.set_major_locator(mticker.MaxNLocator(nbins=6))
+            axis.yaxis.set_major_locator(mticker.MaxNLocator(nbins=6))
+
         i = 0
         # EIC plot
         if "EIC" in to_plot:
@@ -678,13 +702,17 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             self._plot_ms2_mirror(axs[i][0], molecular_metadata=molecular_metadata, spectral_library=spectral_library)
             i += 1
 
+        for ax in axs[:, 0]:
+            _sanitize_axis(ax)
+
         # Add space between subplots
         plt.tight_layout()
 
         if return_fig:
-            # Close figure
-            plt.close(fig)
             return fig
+
+        plt.show()
+        plt.close(fig)
 
     @property
     def mz(self):
