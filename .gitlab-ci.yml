@@ -108,7 +108,7 @@ test-source:
     - touch doc/coverage_html_report/.keep
     - *install-deps
     - *prepare-lipidomics-db
-    - pytest --cache-clear -p no:warnings -q -n auto --dist=loadfile --cov=corems --cov-report=html:doc/coverage_html_report --cov-report=term
+    - pytest --cache-clear -p no:warnings -n 4 --dist=loadfile --cov=corems --cov-report=html:doc/coverage_html_report --cov-report=term
 
   artifacts:
     when: always
