@@ -1,16 +1,51 @@
 app_name = CoreMS
-parameters_path = parameter.json 
-PYTHON ?= python
-version := $(shell $(PYTHON) -c "import configparser; c=configparser.ConfigParser(); c.read('.bumpversion.cfg'); print(c['bumpversion']['current_version'].strip())")
-stage := $(shell $(PYTHON) -c "import configparser; c=configparser.ConfigParser(); c.read('.bumpversion.cfg'); print(c['bumpversion:part:release']['optional_value'].strip())")
+parameters_path = parameter.json
+
 LIPIDOMICS_SQLITE_URL ?= https://nmdcdemo.emsl.pnnl.gov/lipidomics/parameter_files/202412_lipid_ref.sqlite
 LIPIDOMICS_SQLITE_PATH ?= tests/tests_data/lcms/202412_lipid_ref.sqlite
 
-.PHONY: download-lipidomics-db ci-test-source ci-test-notebooks ci-test-all test-pytest-xdist test-notebooks ci-test
+
+# ----------------------------------------------------------------------
+# Platform-specific logic
+#
+# Default path: macOS/Linux/CI use POSIX shell tools.
+# Windows path: avoid assuming Bash, WSL, PowerShell, curl, grep, awk,
+# dirname, or mkdir -p. Use Python instead.
+# ----------------------------------------------------------------------
+
+ifeq ($(OS),Windows_NT)
+
+# Windows: Python fallback
+PYTHON ?= python
+
+version := $(shell $(PYTHON) -c "import configparser; c=configparser.ConfigParser(); c.read('.bumpversion.cfg'); print(c['bumpversion']['current_version'].strip())")
+stage := $(shell $(PYTHON) -c "import configparser; c=configparser.ConfigParser(); c.read('.bumpversion.cfg'); print(c['bumpversion:part:release']['optional_value'].strip())")
 
 download-lipidomics-db:
-	@$(PYTHON) -c "from pathlib import Path; from urllib.request import urlretrieve; import sys; p = Path(r'$(LIPIDOMICS_SQLITE_PATH)'); p.parent.mkdir(parents=True, exist_ok=True); \
-	url = r'$(LIPIDOMICS_SQLITE_URL)'; print(f'LC-MS lipidomics database already exists at {p}') if p.exists() else (print('Downloading LC-MS lipidomics database'), urlretrieve(url, p), print('LC-MS lipidomics database downloaded'))"
+	@$(PYTHON) -c "from pathlib import Path; from urllib.request import urlretrieve; p = Path(r'$(LIPIDOMICS_SQLITE_PATH)'); p.parent.mkdir(parents=True, exist_ok=True); url = r'$(LIPIDOMICS_SQLITE_URL)'; print(f'LC-MS lipidomics database already exists at {p}') if p.exists() else (print('Downloading LC-MS lipidomics database'), urlretrieve(url, p), print('LC-MS lipidomics database downloaded'))"
+
+else
+
+# macOS/Linux/CI: POSIX shell path
+PYTHON ?= python3
+
+version := $(shell grep '^[[:space:]]*current_version[[:space:]]*=' .bumpversion.cfg | head -n 1 | cut -d= -f2 | tr -d ' ')
+stage := $(shell awk 'BEGIN{section=0} /^\[bumpversion:part:release\]/{section=1; next} /^\[/{section=0} section && /^[[:space:]]*optional_value[[:space:]]*=/{split($$0,a,"="); gsub(/[[:space:]]/,"",a[2]); print a[2]; exit}' .bumpversion.cfg)
+
+download-lipidomics-db:
+	@if [ -f "$(LIPIDOMICS_SQLITE_PATH)" ]; then \
+		echo "LC-MS lipidomics database already exists at $(LIPIDOMICS_SQLITE_PATH)"; \
+	else \
+		echo "Downloading LC-MS lipidomics database"; \
+		mkdir -p "$$(dirname "$(LIPIDOMICS_SQLITE_PATH)")"; \
+		curl --retry 3 --retry-delay 5 --connect-timeout 30 --max-time 300 -L -o "$(LIPIDOMICS_SQLITE_PATH)" "$(LIPIDOMICS_SQLITE_URL)"; \
+		echo "LC-MS lipidomics database downloaded"; \
+	fi
+
+endif
+
+.PHONY: download-lipidomics-db ci-test-source ci-test-notebooks ci-test-all test-pytest-xdist test-notebooks ci-test
+
 
 cpu:
 	pyprof2calltree -k -i $(file)
