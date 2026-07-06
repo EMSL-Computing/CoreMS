@@ -24,7 +24,9 @@ class ReadCoremsMasslist(MassListBaseClass):
 
     """
 
-    def get_mass_spectrum(self, loadSettings: bool = True) -> MassSpecCentroid:
+    def get_mass_spectrum(
+        self, loadSettings: bool = True, auto_process: bool = True
+    ) -> MassSpecCentroid:
         """
         Get the mass spectrum object from the processed mass list data.
 
@@ -32,6 +34,11 @@ class ReadCoremsMasslist(MassListBaseClass):
         ----------
         loadSettings : bool, optional
             Whether to load the settings for the mass spectrum. Default is True.
+        auto_process : bool, optional
+            Whether to automatically process the mass spectrum on instantiation.
+            When False, molecular formulas are not attached; call
+            ``process_mass_spec`` and then ``add_molecular_formula`` on the
+            returned object. Default is True.
 
         Returns
         -------
@@ -62,13 +69,16 @@ class ReadCoremsMasslist(MassListBaseClass):
         output_parameters = self.get_output_parameters(polarity)
 
         mass_spec_obj = MassSpecCentroid(
-            dataframe.to_dict(orient="list"), output_parameters
+            dataframe.to_dict(orient="list"),
+            output_parameters,
+            auto_process=auto_process,
         )
 
         if loadSettings is True:
             self.load_settings(mass_spec_obj, output_parameters)
 
-        self.add_molecular_formula(mass_spec_obj, dataframe)
+        if auto_process:
+            self.add_molecular_formula(mass_spec_obj, dataframe)
 
         return mass_spec_obj
 

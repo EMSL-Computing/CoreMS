@@ -145,6 +145,24 @@ def test_import_corems_mass_list():
     assert round(mass_spectrum[0].mz_exp, 0) == 576
     assert mass_spectrum[0][0].string == "C25 H20 O16"
 
+    # Delayed processing: auto_process=False should build the mass spectrum
+    # without running process_mass_spec, so the caller can override parameters
+    # before processing without mutating global MSParameters.
+    mass_list_reader_delayed = ReadCoremsMasslist(
+        file_location, analyzer="ICR", instrument_label="12T"
+    )
+    mass_spectrum_delayed = mass_list_reader_delayed.get_mass_spectrum(
+        loadSettings=False, auto_process=False
+    )
+    assert len(mass_spectrum_delayed) == 0
+    mass_spectrum_delayed.parameters.mass_spectrum.noise_threshold_method = (
+        "relative_abundance"
+    )
+    mass_spectrum_delayed.parameters.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
+    mass_spectrum_delayed.process_mass_spec()
+    assert len(mass_spectrum_delayed) == len(mass_spectrum)
+    assert round(mass_spectrum_delayed[0].mz_exp, 0) == 576
+
     file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_CoreMS.corems"
 
     read_lc_ms = ReadCoremsMassSpectraText(file_location)
