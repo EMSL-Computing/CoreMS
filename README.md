@@ -4,7 +4,7 @@
 
 <br>
 <br>
-<a href="https://doi.org/10.5281/zenodo.14009575"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.14009575.svg" alt="DOI"></a>
+<a href="https://doi.org/10.5281/zenodo.4641552"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg" alt="DOI"></a>
 <a href="https://github.com/EMSL-Computing/CoreMS/actions/workflows/ci.yml"><img src="https://github.com/EMSL-Computing/CoreMS/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 <a href="https://pypi.org/project/CoreMS/"><img src="https://img.shields.io/pypi/v/CoreMS.svg" alt="PyPI"></a>
 <a href="https://pypi.org/project/CoreMS/"><img src="https://img.shields.io/pypi/pyversions/CoreMS.svg" alt="Python versions"></a>
@@ -381,15 +381,11 @@ UML (unified modeling language) diagrams for Direct Infusion FT-MS and GC-MS cla
 
 ## Citing CoreMS
 
-If you use CoreMS in your work, please use the following citation:
+If you use CoreMS in your work, please cite the archived release on Zenodo. The badge below is the *concept DOI* — it always resolves to the latest archived release, and each archived release also has its own version-specific DOI listed on that page.
 
-Version [3.11.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v3.11.0), archived on Zenodo:  
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg)](https://doi.org/10.5281/zenodo.4641552)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14009575.svg)](https://doi.org/10.5281/zenodo.14009575)
-
-Yuri E. Corilo, William R. Kew, Lee Ann McCue, Katherine R . Heal, James C. Carr (2024, October 29). EMSL-Computing/CoreMS: CoreMS 3.0.0 (Version v3.0.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.14009575
-
-```
+For citation metadata (BibTeX, RIS, etc.), use the "Cite this repository" button on the GitHub sidebar, click "Export" on the Zenodo page above, or see [`CITATION.cff`](CITATION.cff) in the repository root.
 
 ***
 
