@@ -591,6 +591,10 @@ class ThermoBaseClass:
                 original thermo apex scan number after peak picking
             }
         """
+        # If peak_detection or smooth is True, raise exception
+        if peak_detection or smooth:
+            raise Exception("Peak detection and smoothing are no longer implemented in this function")
+
         if trace_type == "TIC":
             settings = ChromatogramTraceSettings(TraceType.TIC)
         elif trace_type == "BPC":

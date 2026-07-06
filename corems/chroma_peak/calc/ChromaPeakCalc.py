@@ -2,6 +2,11 @@ import numpy as np
 from bisect import bisect_left
 from scipy.optimize import curve_fit
 
+try:
+    np.trapezoid
+except AttributeError:  # numpy < 2.0
+    np.trapezoid = np.trapz
+
 
 __author__ = "Yuri E. Corilo"
 __date__ = "March 11, 2020"
@@ -30,7 +35,7 @@ class GCPeakCalculation(object):
             The spacing between data points.
         """
         yy = tic[self.start_scan : self.final_scan]
-        self._area = np.trapz(yy, dx=dx)
+        self._area = np.trapezoid(yy, dx=dx)
 
     def linear_ri(
         self, right_ri: float, left_ri: float, left_rt: float, right_rt: float

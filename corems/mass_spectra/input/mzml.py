@@ -291,8 +291,6 @@ class MZMLSpectraParser(SpectraParserInterface):
         for level in res.keys():
             res[level] = pd.DataFrame(res[level], columns=cols[level]).drop(
                 columns=["controllerType", "controllerNumber"],
-                axis=1,
-                inplace=False,
             )
 
         return res
@@ -419,10 +417,22 @@ class MZMLSpectraParser(SpectraParserInterface):
         data = self.load()
 
         mass_spectrum_objects = []
-        
+        scan_set = set(scan_list)
+        spec_by_id = {}
+
+        # Iterate once through the file to collect all requested scans.
+        # Direct random-access via data[scan_number] uses pymzml's byte-offset
+        # index, which is unreliable on Windows (CRLF vs LF byte offsets).
+        for spec in data:
+            if spec.ID in scan_set:
+                spec_by_id[spec.ID] = spec
+
         for scan_number in scan_list:
-            # Pluck out individual scan mz and intensity
-            spec = data[scan_number]
+            spec = spec_by_id.get(scan_number)
+            if spec is None:
+                raise ValueError(
+                    "Scan number %d not found in mzML file" % scan_number
+                )
 
             # Get polarity
             if spec["negative scan"] is not None:

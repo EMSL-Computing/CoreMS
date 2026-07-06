@@ -235,6 +235,20 @@ class MassSpectraBase:
 
         scan_list = list(set(scan_list))
         scan_list.sort()
+
+        # Skip scans that have already been added to _ms to avoid redundant reprocessing
+        already_added = [s for s in scan_list if s in self._ms]
+        if already_added:
+            warnings.warn(
+                "Skipping {} scan(s) already present in _ms: {}".format(
+                    len(already_added), already_added
+                ),
+                UserWarning,
+            )
+            scan_list = [s for s in scan_list if s not in self._ms]
+        if not scan_list:
+            return
+
         if not use_parser:
             if self._ms_unprocessed[ms_level] is None:
                 raise ValueError(

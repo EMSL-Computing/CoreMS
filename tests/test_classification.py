@@ -1,9 +1,12 @@
 import sys
 
+import pytest
+
 from corems.molecular_id.factory.classification import  HeteroatomsClassification, Labels
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 
 
+@pytest.mark.molecular_db
 def test_heteroatoms_classification(mass_spectrum_ftms, postgres_database):
     mass_spectrum_ftms.molecular_search_settings.url_database = postgres_database
     mass_spectrum_ftms.molecular_search_settings.error_method = 'None'

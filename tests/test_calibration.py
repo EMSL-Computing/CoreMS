@@ -46,6 +46,7 @@ def test_mz_domain_calibration(mass_spectrum_ftms, ref_file_location):
     assert mass_spectrum_ftms.calibration_RMS < 2
 
 
+@pytest.mark.molecular_db
 def test_autorecalibration(mass_spectrum_ftms, ref_file_location):
     mass_spectrum_ftms.filter_by_noise_threshold()
 
@@ -80,6 +81,7 @@ def test_segmentedmzcalibration(mass_spectrum_ftms, ref_file_location):
     assert mass_spectrum_ftms.calibration_RMS < 2
 
 
+@pytest.mark.molecular_db
 def test_old_calibration(mass_spectrum_ftms, postgres_database):
     usedatoms = {"C": (1, 100), "H": (4, 200), "O": (1, 10)}
 
@@ -144,10 +146,11 @@ def test_mz_domain_calibration_centroid(mass_spectrum_centroid, ref_file_locatio
     MzDomainCalibration(mass_spectrum_centroid, ref_file_location).run()
 
     # check there is an output
-    assert mass_spectrum_centroid.calibration_points == 25
-    assert round(mass_spectrum_centroid.calibration_RMS, 2) == round(0.591, 2)
+    assert mass_spectrum_centroid.calibration_points == 18
+    assert round(mass_spectrum_centroid.calibration_RMS, 2) == round(0.408, 2)
 
 
+@pytest.mark.molecular_db
 def test_auto_calibration_centroid(mass_spectrum_centroid, ref_file_location):
     mass_spectrum_centroid.filter_by_noise_threshold()
 

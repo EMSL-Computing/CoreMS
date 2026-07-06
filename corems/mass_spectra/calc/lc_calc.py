@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 import warnings, scipy, multiprocessing
+
+if not hasattr(np, 'trapezoid'):  # numpy < 2.0
+    np.trapezoid = np.trapz
 from ripser import ripser
 from scipy import sparse
 from scipy.spatial import KDTree
@@ -632,7 +635,7 @@ class LCCalculations:
                 mf_dict[idx].final_scan = right_scan
 
                 # Find area under peak using limits from EIC centroid detector, add to mass_features and EICData
-                area = np.trapz(
+                area = np.trapezoid(
                     myEIC.eic_smoothed[l_a_r_scan_idx[0][0] : l_a_r_scan_idx[0][2] + 1],
                     myEIC.time[l_a_r_scan_idx[0][0] : l_a_r_scan_idx[0][2] + 1],
                 )
@@ -922,7 +925,7 @@ class LCCalculations:
 
             # Try catch for KeyError in case the mass feature mz is not in the correlation matrix
             try:
-                corr_subset = corr.loc[mass_feature.mz,]
+                corr_subset = corr.loc[mass_feature.mz]
             except KeyError:
                 # If the mass feature mz is not in the correlation matrix, skip to the next mass feature
                 continue

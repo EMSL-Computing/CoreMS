@@ -621,6 +621,7 @@ def test_lcms_collection_plot_cluster_with_ms2_mirror(lcms_collection, msp_file_
             pytest.fail(f"plot_cluster with MS2_mirror (no matches) raised exception: {e}")
 
 
+@pytest.mark.molecular_db
 def test_lcms_collection_molecular_formula_search(lcms_collection, postgres_database):
     """Test molecular formula search on consensus features."""
     # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
@@ -850,4 +851,3 @@ def test_lcms_collection_plotting_methods(lcms_collection):
         lcms_collection.plot_cluster(cluster_id, to_plot=["EIC"], label_samples=True)
     except Exception as e:
         pytest.fail(f"plot_cluster after gap filling raised exception: {e}")
-

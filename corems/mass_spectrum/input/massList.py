@@ -3,6 +3,8 @@ __date__ = "Jun 12, 2019"
 
 import warnings
 
+import pandas as pd
+
 from corems.encapsulation.constant import Atoms, Labels
 from corems.mass_spectrum.factory.MassSpectrumClasses import (
     MassSpecCentroid,
@@ -22,7 +24,9 @@ class ReadCoremsMasslist(MassListBaseClass):
 
     """
 
-    def get_mass_spectrum(self, loadSettings: bool = True) -> MassSpecCentroid:
+    def get_mass_spectrum(
+        self, loadSettings: bool = True, auto_process: bool = True
+    ) -> MassSpecCentroid:
         """
         Get the mass spectrum object from the processed mass list data.
 
@@ -30,6 +34,11 @@ class ReadCoremsMasslist(MassListBaseClass):
         ----------
         loadSettings : bool, optional
             Whether to load the settings for the mass spectrum. Default is True.
+        auto_process : bool, optional
+            Whether to automatically process the mass spectrum on instantiation.
+            When False, molecular formulas are not attached; call
+            ``process_mass_spec`` and then ``add_molecular_formula`` on the
+            returned object. Default is True.
 
         Returns
         -------
@@ -60,13 +69,16 @@ class ReadCoremsMasslist(MassListBaseClass):
         output_parameters = self.get_output_parameters(polarity)
 
         mass_spec_obj = MassSpecCentroid(
-            dataframe.to_dict(orient="list"), output_parameters
+            dataframe.to_dict(orient="list"),
+            output_parameters,
+            auto_process=auto_process,
         )
 
         if loadSettings is True:
             self.load_settings(mass_spec_obj, output_parameters)
 
-        self.add_molecular_formula(mass_spec_obj, dataframe)
+        if auto_process:
+            self.add_molecular_formula(mass_spec_obj, dataframe)
 
         return mass_spec_obj
 
@@ -92,8 +104,9 @@ class ReadCoremsMasslist(MassListBaseClass):
             formula_df = dataframe[
                 dataframe.columns.intersection(Atoms.atoms_order)
             ].copy()
-            formula_df.fillna(0, inplace=True)
-            formula_df.replace(b"nan", 0, inplace=True)
+            # Convert to numeric first (pandas 3.x may infer str dtype for
+            # HDF5-sourced atom count columns); coerce handles b"nan" bytes too
+            formula_df = formula_df.apply(pd.to_numeric, errors="coerce").fillna(0)
 
             ion_type_df = dataframe["Ion Type"]
             ion_charge_df = dataframe["Ion Charge"]

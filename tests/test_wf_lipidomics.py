@@ -54,7 +54,8 @@ def test_import_lcmsobj_mzml():
 
 
 @pytest.mark.lipidomics_db
-def test_lipidomics_workflow(postgres_database, lcms_obj, lipidomics_sqlite_path):
+@pytest.mark.molecular_db
+def test_lipidomics_workflow(tmp_path, postgres_database, lcms_obj, lipidomics_sqlite_path):
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
     shutil.rmtree(
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems",
@@ -189,9 +190,9 @@ def test_lipidomics_workflow(postgres_database, lcms_obj, lipidomics_sqlite_path
         scan_list=ms2_scans_oi_hr, fe_lib=spectra_library_fe, peak_sep_da=0.01
     )
     # Export the lcms object to an hdf5 file using the LipidomicsExport class
-    exporter = LipidomicsExport(
-        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801", lcms_obj
-    )
+    export_stem = tmp_path / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801"
+    export_dir = tmp_path / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems"
+    exporter = LipidomicsExport(str(export_stem), lcms_obj)
     exporter.to_hdf(overwrite=True)
     exporter.report_to_csv(molecular_metadata=lipid_metadata)
     report = exporter.to_report(molecular_metadata=lipid_metadata)
@@ -200,7 +201,7 @@ def test_lipidomics_workflow(postgres_database, lcms_obj, lipidomics_sqlite_path
 
     # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
     parser = ReadCoreMSHDFMassSpectra(
-        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems/Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.hdf5"
+        export_dir / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.hdf5"
     )
     
     # Check that creation_time was saved and can be retrieved
@@ -225,12 +226,6 @@ def test_lipidomics_workflow(postgres_database, lcms_obj, lipidomics_sqlite_path
     assert myLCMSobj2.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
     assert myLCMSobj2.mass_features_ms1_annot_to_df().shape[0] > 130
     myLCMSobj2.mass_features[0].plot(return_fig=False)
-
-    # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
-    shutil.rmtree(
-        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems",
-        ignore_errors=True,
-    )
 
     # Reset the MSParameters to the original values
     reset_lcms_parameters()

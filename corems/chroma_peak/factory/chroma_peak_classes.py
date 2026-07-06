@@ -338,7 +338,9 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         ax.legend(loc="upper left")
         ax.set_ylabel("Intensity")
         ax.set_xlabel("m/z")
-        ax.yaxis.set_tick_params(labelleft=False)
+        # Combining tick_params(labelleft=False) with set_title(loc="left") makes
+        # tight_layout() produce NaN axis positions on matplotlib 3.11/numpy 2.5.
+        ax.set_yticklabels([])
     
     def _plot_ms2_spectrum(self, ax, sample_name=None):
         """Internal method to plot MS2 spectrum on a given axis.
@@ -446,7 +448,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             if spectral_library is not None and ref_ms_id is not None:
                 # Handle both single library and list of libraries
                 libraries = spectral_library if isinstance(spectral_library, list) else [spectral_library]
-                
+
                 # Search through all libraries to find the ref_ms_id
                 for library in libraries:
                     try:
@@ -457,7 +459,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                     except ValueError:
                         # ref_ms_id not found in this library, continue to next
                         continue
-                
+
                 # If ref_ms_id was not found in any library, raise an error
                 if library_ms2_peaks is None:
                     raise ValueError(

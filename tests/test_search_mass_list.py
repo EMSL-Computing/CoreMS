@@ -1,8 +1,12 @@
 import sys
 
+import pytest
+
 from corems.molecular_formula.input.masslist_ref import ImportMassListRef
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 
+
+@pytest.mark.molecular_db
 def test_search_imported_ref_files(mass_spectrum_ftms, ref_file_location, postgres_database):
     mass_spectrum_obj = mass_spectrum_ftms
     mass_spectrum_obj.molecular_search_settings.url_database = postgres_database

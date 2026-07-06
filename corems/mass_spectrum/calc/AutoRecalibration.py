@@ -145,15 +145,18 @@ class HighResRecalibration:
             Consists of [mean_error-fwhm_error,mean_error+fwhm_error]
 
         """
-        kde = sns.kdeplot(errors)
+        # Create an isolated figure so stale lines from other tests/plots
+        # do not pollute get_lines()[0] (matplotlib global state issue)
+        fig, ax = plt.subplots()
+        kde = sns.kdeplot(errors, ax=ax)
 
-        kde_data = kde.get_lines()[0].get_data()
+        kde_data = ax.get_lines()[0].get_data()
 
         tmpdf = pd.Series(index=kde_data[0], data=kde_data[1])
         kde_apex_ppm = tmpdf.idxmax()
         kde_apex_val = tmpdf.max()
 
-        plt.close(kde.figure)
+        plt.close(fig)
         plt.close("all")
 
         lmmodel = GaussianModel()
