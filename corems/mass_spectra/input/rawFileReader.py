@@ -53,6 +53,7 @@ from ThermoFisher.CommonCore.Data.Business import ChromatogramSignal, Range
 from ThermoFisher.CommonCore.Data.Business import Device
 from ThermoFisher.CommonCore.Data.Interfaces import IChromatogramSettings
 from ThermoFisher.CommonCore.Data.Business import MassOptions, FileHeaderReaderFactory
+from ThermoFisher.CommonCore.Data.Business import Device
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 
 
