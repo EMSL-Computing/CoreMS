@@ -154,7 +154,7 @@ publish-image:
   variables:
     KANIKO_EXTRA_ARGS: "--cache=true --cache-copy-layers=true --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --destination $CI_REGISTRY_IMAGE:latest"
     CONTEXT: $CI_PROJECT_DIR
-    DOCKERFILE: Dockerfile_py310_dotnet_base_clean
+    DOCKERFILE: Dockerfile
     KUBERNETES_CPU_REQUEST: 100m
     KUBERNETES_CPU_LIMIT: "2"
     KUBERNETES_MEMORY_REQUEST: 2Gi
