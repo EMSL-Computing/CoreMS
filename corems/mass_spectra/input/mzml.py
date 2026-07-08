@@ -167,6 +167,9 @@ class MZMLSpectraParser(SpectraParserInterface):
                 scan_dict["ms_format"][i] = None
 
         scan_df = pd.DataFrame(scan_dict)
+
+        # Remove any non-mass spectra scans (e.g., MS level 0 or None)
+        scan_df = scan_df[scan_df.ms_level.notnull() & (scan_df.ms_level > 0)].reset_index(drop=True)
         
         # Apply time range filtering if specified
         if time_range is not None:
