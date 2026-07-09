@@ -6,6 +6,7 @@ from corems.encapsulation.factory.processingSetting import (
     TransientSetting,
     MassSpecPeakSetting,
     MassSpectrumSetting,
+    LCMSCollectionSettings,
 )
 from corems.encapsulation.factory.processingSetting import (
     CompoundSearchSettings,
@@ -283,6 +284,49 @@ class LCMSParameters:
                 for k4, v4 in v3.__dict__.items():
                     print("    {}: {}".format(k4, v4))
 
+
+class LCMSCollectionParameters:
+    """LCMSCollectionParameters class is used to store the parameters used for the processing of the LCMS collection
+
+    Each attribute is a class that contains the parameters for the processing of the LCMS collection, 
+    see the corems.encapsulation.factory.processingSetting module for more details.
+
+    Parameters
+    ----------
+    use_defaults: bool, optional
+        if True, the class will be instantiated with the default values, otherwise the current values will be used. 
+        Default is False.
+
+    Attributes
+    -----------
+    lcms_collection: LCMSCollectionSettings
+        LCMSCollectionSettings object
+
+    Notes
+    -----
+    One can use the use_defaults parameter to reset the parameters to the default values.
+    Alternatively, to use the current values - modify the class's contents before instantiating the class.
+    """
+    
+    lcms_collection = LCMSCollectionSettings()
+
+    def __init__(self, use_defaults=False) -> None:
+        if not use_defaults:
+            self.lcms_collection = dataclasses.replace(LCMSCollectionParameters.lcms_collection)
+        else:
+            self.lcms_collection = LCMSCollectionSettings()
+
+    def copy(self):
+        """Create a copy of the LCMSCollectionParameters object"""
+        new_lcms_collection_parameters = LCMSCollectionParameters()
+        new_lcms_collection_parameters.lcms_collection = dataclasses.replace(self.lcms_collection)
+        return new_lcms_collection_parameters
+
+    def __eq__(self, value: object) -> bool:
+        # Check that the object is of the same type
+        if not isinstance(value, LCMSCollectionParameters):
+            return False
+        return self.lcms_collection == value.lcms_collection
 
 def default_parameters(file_location):  # pragma: no cover
     """Generate parameters dictionary with the default parameters for data processing

@@ -19,8 +19,11 @@ from numpy import (
     rint,
     sqrt,
     square,
-    trapz,
 )
+try:
+    from numpy import trapezoid
+except ImportError:  # numpy < 2.0
+    from numpy import trapz as trapezoid
 
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.factory.parameters import MSParameters
@@ -162,7 +165,7 @@ class MSPeakCalculation:
             if xx[0] > xx[-1]:
                 xx = flip(xx)
                 yy = flip(yy)
-            return float(trapz(yy, xx))
+            return float(trapezoid(yy, xx))
 
         else:
             warnings.warn(

@@ -51,6 +51,17 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         self.scans = list(self.h5pydata.keys())
 
+    def close(self):
+        """Close the underlying HDF5 file handle."""
+        if self.h5pydata and self.h5pydata.id.valid:
+            self.h5pydata.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
     def load_raw_data(self, mass_spectrum, scan_index=0):
         """
         Load raw data into the mass spectrum object.

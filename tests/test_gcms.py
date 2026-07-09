@@ -7,6 +7,9 @@ import sys
 from pathlib import Path
 from multiprocessing import Pool
 
+import pytest
+from requests.exceptions import HTTPError, ConnectionError as RequestsConnectionError
+
 from corems.mass_spectra.calc.GC_RI_Calibration import get_rt_ri_pairs
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch

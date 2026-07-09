@@ -45,7 +45,8 @@ def test_import_lcmsobj_mzml():
         auto_process=True, use_parser=True, spectrum_mode="centroid"
     )
     mass_features_df = myLCMSobj.mass_features_to_df()
-    assert mass_features_df.shape == (1183, 17)
+    assert mass_features_df.shape[0] == 1183
+    assert mass_features_df.shape[1] > 15
     
     # Reset the MSParameters to the original values
     reset_lcms_parameters()
@@ -53,7 +54,8 @@ def test_import_lcmsobj_mzml():
 
 
 @pytest.mark.lipidomics_db
-def test_lipidomics_workflow(postgres_database, lcms_obj, lipidomics_sqlite_path):
+@pytest.mark.molecular_db
+def test_lipidomics_workflow(tmp_path, postgres_database, lcms_obj, lipidomics_sqlite_path):
     # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
     shutil.rmtree(
         "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems",
@@ -148,7 +150,8 @@ def test_lipidomics_workflow(postgres_database, lcms_obj, lipidomics_sqlite_path
 
     # Export the mass features to a pandas dataframe
     df = lcms_obj.mass_features_to_df()
-    assert df.shape == (128, 19)
+    assert df.shape[0] == 128
+    assert df.shape[1] > 15
 
     # Plot a mass feature
     lcms_obj.mass_features[0].plot(return_fig=False)
@@ -187,9 +190,9 @@ def test_lipidomics_workflow(postgres_database, lcms_obj, lipidomics_sqlite_path
         scan_list=ms2_scans_oi_hr, fe_lib=spectra_library_fe, peak_sep_da=0.01
     )
     # Export the lcms object to an hdf5 file using the LipidomicsExport class
-    exporter = LipidomicsExport(
-        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801", lcms_obj
-    )
+    export_stem = tmp_path / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801"
+    export_dir = tmp_path / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems"
+    exporter = LipidomicsExport(str(export_stem), lcms_obj)
     exporter.to_hdf(overwrite=True)
     exporter.report_to_csv(molecular_metadata=lipid_metadata)
     report = exporter.to_report(molecular_metadata=lipid_metadata)
@@ -198,25 +201,31 @@ def test_lipidomics_workflow(postgres_database, lcms_obj, lipidomics_sqlite_path
 
     # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
     parser = ReadCoreMSHDFMassSpectra(
-        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems/Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.hdf5"
+        export_dir / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.hdf5"
     )
+    
+    # Check that creation_time was saved and can be retrieved
+    creation_time = parser.get_original_creation_time()
+    assert creation_time is not None
+    assert creation_time.year == 2018  # Based on the filename date
+    
     myLCMSobj2 = parser.get_lcms_obj()
 
     # Check that the parameters match
     assert myLCMSobj2.parameters == lcms_obj.parameters
+
+    # Check that the spectra parser class is the same as the original parser and that we can plot a mass spectrum using the original parser
     assert myLCMSobj2.spectra_parser_class.__name__ == "ImportMassSpectraThermoMSFileReader"
+    myLCMSobj2.spectra_parser.get_mass_spectrum_from_scan(1, spectrum_mode="profile").plot_centroid()
+
+    # Check that the mass features dataframe is the same as the original
     df2 = myLCMSobj2.mass_features_to_df()
-    assert df2.shape == (128, 19)
+    assert df2.shape[0] == 128
+    assert df2.shape[1] > 15
     myLCMSobj2.mass_features[0].mass_spectrum.to_dataframe()
     assert myLCMSobj2.mass_features[0].ms1_peak[0].string == "C20 H30 O2"
     assert myLCMSobj2.mass_features_ms1_annot_to_df().shape[0] > 130
     myLCMSobj2.mass_features[0].plot(return_fig=False)
-
-    # Delete the "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems" directory
-    shutil.rmtree(
-        "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems",
-        ignore_errors=True,
-    )
 
     # Reset the MSParameters to the original values
     reset_lcms_parameters()

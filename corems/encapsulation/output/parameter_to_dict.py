@@ -1,8 +1,8 @@
 from corems.encapsulation.factory.parameters import (
     MSParameters,
     GCMSParameters,
-    LCMSParameters,
-)
+    LCMSParameters
+    )
 
 
 def get_dict_all_default_data():
@@ -111,3 +111,32 @@ def get_dict_data_gcms(gcms):
         "MolecularSearch": gcms.molecular_search_settings.__dict__,
         "GasChromatograph": gcms.chromatogram_settings.__dict__,
     }
+
+
+def get_dict_data_lcms_collection(lcms_collection):
+    """Return a dictionary with all parameters for LCMSCollection object
+
+    Parameters
+    ----------
+    lcms_collection: LCMSCollection
+        LCMSCollection object
+
+    Returns
+    -------
+    dict
+        dictionary with all parameters for LCMSCollection object
+    """
+    output_dict = {}
+    output_dict["LCMSCollection"] = lcms_collection.parameters.lcms_collection.__dict__
+    return output_dict
+
+
+def get_dict_lcms_collection_default_data():
+    """Return a dictionary with all default parameters for LCMS Collection"""
+    from corems.encapsulation.factory.processingSetting import LCMSCollectionSettings
+    
+    default_params = LCMSCollectionSettings()
+
+    output_dict = {}
+    output_dict["LCMSCollection"] = default_params.__dict__
+    return output_dict

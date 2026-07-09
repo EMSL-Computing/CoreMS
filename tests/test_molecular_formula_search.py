@@ -2,12 +2,15 @@ import sys
 
 sys.path.append(".")
 
+import pytest
+
 from corems.molecular_id.factory.classification import HeteroatomsClassification
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 
 
+@pytest.mark.molecular_db
 def test_run_molecular_formula_search(postgres_database):
     """Test for generating accurate molecular formula from mass and isotope using the local sql database"""
     # Generate a mass spectrum object from a list of mz and abundance
@@ -47,6 +50,7 @@ def test_run_molecular_formula_search(postgres_database):
     assert mass_spectrum_obj[1][0].string == "C55 H73 N1 13C1"
 
 
+@pytest.mark.molecular_db
 def test_run_molecular_formula_search_adduct(postgres_database):
     """Test for generating accurate molecular formula from mass and isotope, for an adduct, using the local sql database"""
     # Generate a mass spectrum object from a list of mz and abundance
@@ -90,6 +94,7 @@ def test_run_molecular_formula_search_adduct(postgres_database):
     assert mass_spectrum_obj[1][0].H_C == 73 / 56
 
 
+@pytest.mark.molecular_db
 def test_mspeak_search(mass_spectrum_ftms, postgres_database):
     mass_spectrum_ftms.molecular_search_settings.url_database = postgres_database
     mass_spectrum_ftms.molecular_search_settings.usedAtoms = {
@@ -116,6 +121,7 @@ def test_mspeak_search(mass_spectrum_ftms, postgres_database):
     mspeak_obj[0].mz_error
 
 
+@pytest.mark.molecular_db
 def test_molecular_formula_search_db(mass_spectrum_ftms, postgres_database):
     mass_spectrum_ftms.molecular_search_settings.url_database = postgres_database
     mass_spectrum_ftms.molecular_search_settings.usedAtoms = {
@@ -148,6 +154,7 @@ def test_molecular_formula_search_db(mass_spectrum_ftms, postgres_database):
     assert fraction_assigned > 0.7
 
 
+@pytest.mark.molecular_db
 def test_priorityAssignment(mass_spectrum_ftms, postgres_database):
     mass_spectrum_ftms.molecular_search_settings.url_database = postgres_database
     mass_spectrum_ftms.molecular_search_settings.error_method = "None"

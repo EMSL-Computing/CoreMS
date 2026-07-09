@@ -1,9 +1,28 @@
 include:
   - remote: 'https://raw.githubusercontent.com/pnnl-miscscripts/gitlab-lib/v1/gitlab-lib.yaml'
 
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "pipeline"'
+    - when: never
+
+# ---------------------------------------------------------------------------
+# Global configuration
+# ---------------------------------------------------------------------------
+default:
+  image: python:3.13-slim
+  tags:
+    - k8s
+    - rzr
+    - codebuilds
 
 services:
-  - postgres:13
+  - postgres:18
 
 variables:
   POSTGRES_DB: molformula
@@ -12,169 +31,131 @@ variables:
   POSTGRES_HOST_AUTH_METHOD: trust
   COREMS_DATABASE_URL: postgresql://coremsdb:coremsmolform@postgres:5432/molformula
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PIP_ROOT_USER_ACTION: ignore
+  # Avoids libicu dependency crash when .NET initialises in a slim container
+  DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "1"
+  # Kubernetes runner pod sizing — undersized defaults are a common cause of
+  # slow CI wall time. Override per-job if a stage needs more/less.
+  KUBERNETES_CPU_REQUEST: "2"
+  KUBERNETES_CPU_LIMIT: "4"
+  KUBERNETES_MEMORY_REQUEST: 4Gi
+  KUBERNETES_MEMORY_LIMIT: 8Gi
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .cache/pip
+    - tests/tests_data/lcms/202412_lipid_ref.sqlite
 
 stages:
-  - Pytest
-  - Test Notebooks
-  - Build Python Package
-  - Push to PyPi
-  - Push to Gitlab Registry
-  # - Push to Docker Hub
-  
-test-source:
-  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1005
-  stage: Pytest
-  tags:
-    - k8s 
-    - rzr
-    - codebuilds
-  script:
-    - python3 -V  # Print out python version for debugging
-    - python3 -m pip install --upgrade pip
-    - python3 -m pip install -r requirements.txt
-    - python3 -m pip install pytest pytest-cov
-    - python3 -m pip install psycopg2
-    - export COREMS_LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite"
-    - make download-lipidomics-db LIPIDOMICS_SQLITE_PATH="$COREMS_LIPIDOMICS_SQLITE_PATH"
-    - python3 -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('tests/win_only/__init__.py')]"
-    - export PYTHONNET_RUNTIME=coreclr
-    - pytest --cache-clear
-  
-  artifacts:
-    paths:
-      - doc/coverage_html_report  
+  - test
+  - build
+  - publish
+  - publish-image
 
-test-notebooks:
-  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1005
-  stage: Test Notebooks
-  tags:
-    - k8s 
-    - rzr
-    - codebuilds
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+.install-dotnet: &install-dotnet
+  - apt-get update -qq && apt-get install -y --no-install-recommends curl ca-certificates libssl3 libkrb5-3 zlib1g gcc python3-dev make
+  - curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
+  - chmod +x /tmp/dotnet-install.sh
+  - /tmp/dotnet-install.sh --runtime dotnet --channel 8.0 --install-dir /usr/local/dotnet
+  - export DOTNET_ROOT=/usr/local/dotnet
+  - export PATH="$PATH:/usr/local/dotnet"
+  - rm /tmp/dotnet-install.sh
+
+.test_job_rules: &test_job_rules
+  - if: '$CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"'
+    changes:
+      - corems/**/*
+      - tests/**/*
+      - examples/**/*
+      - db/**/*
+      - ext_lib/**/*
+      - support_code/**/*
+      - Dockerfile*
+      - docker-compose*.yml
+      - Makefile
+      - setup.py
+      - pyproject.toml
+      - pytest.ini
+      - conftest.py
+      - .gitlab-ci.yml
+  - if: '$CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "pipeline"'
+  - if: '$CI_COMMIT_TAG'
+  - when: never
+
+# ---------------------------------------------------------------------------
+# Test
+# ---------------------------------------------------------------------------
+test-source:
+  stage: test
+  rules: *test_job_rules
   script:
-    - python3 -V  # Print out python version for debugging
-    - python3 -m pip install --upgrade pip
-    - python3 -m pip install -r requirements.txt
-    - python3 -m pip install jupyter nbconvert
-    - python3 -m pip install psycopg2
-    - python3 -m pip install -e .
-    - export PYTHONNET_RUNTIME=coreclr
-    - cd examples && python3 test_notebooks.py
-  
+    - *install-dotnet
+    - make ci-test-source LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite"
+
+# ---------------------------------------------------------------------------
+# Notebook tests
+# ---------------------------------------------------------------------------
+test-notebooks:
+  stage: test
+  rules: *test_job_rules
+  script:
+    - *install-dotnet
+    - make ci-test-notebooks LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite"
+
   artifacts:
     when: on_failure
     paths:
       - /tmp/*_test.ipynb
- 
-build:
-  
-  stage: Build Python Package
-  image: code-registry.emsl.pnl.gov/mass-spectrometry/corems/corems-base-310-dotnet6:2.5.3-1005
-  tags:
-    - k8s 
-    - rzr
-    - codebuilds
-    
+    expire_in: 3 days
+
+# ---------------------------------------------------------------------------
+# Build sdist + wheel
+# ---------------------------------------------------------------------------
+build-package:
+  stage: build
   script:
-    
-    - apt-get install libpq-dev -y
-    - python3 -V  # Print out python version for debugging
-    - python3 -m pip install twine
-    - python3 setup.py sdist
-    - python3 -m pip install dist/*
-    # run the command here
+    - python3 -m pip install --upgrade pip build
+    - python3 -m build
 
   artifacts:
     paths:
-      - dist/*
+      - dist/
+    expire_in: 7 days
 
-#pypi:
-  
-#  stage: Push to PyPi
-#  tags:
-#    - corems
-#    - k8s 
-#    - rzr
+# ---------------------------------------------------------------------------
+# Publish to PyPI  (version tags on the default branch only, e.g. v3.11.0)
+# ---------------------------------------------------------------------------
+publish-pypi:
+  stage: publish
+  needs: [build-package]
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/ && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - python3 -m pip install --upgrade twine
+    - twine upload dist/*
+  environment:
+    name: pypi
+    url: https://pypi.org/project/CoreMS/
 
-#  script:
-#    - twine upload dist/*
-  
-#  only:
-#    - tags
-
-
-# build-base-image:
-#   extends: .pnnllib-gitlab-build-container-image
-#   stage: Push to Gitlab Registry
-#   image: gcr.io/kaniko-project/executor:debug@sha256:71d8cf6012b67979960f5b15b85408438132d87eef599926d8931f348d045957
-#   tags:
-#   - k8s
-#   - rzr
-#   - codebuilds
-#   only:
-#     - master
-#   variables:
-#     KANIKO_EXTRA_ARGS: "--cache=true --cache-copy-layers=true --destination $CI_REGISTRY_IMAGE:latest"
-#     CONTEXT: $CI_PROJECT_DIR
-#     DOCKERFILE: Dockerfile_py310_dotnet_base_clean
-#     KUBERNETES_CPU_REQUEST: 100m
-#     KUBERNETES_CPU_LIMIT: "2"
-#     KUBERNETES_MEMORY_REQUEST: 2Gi
-#     KUBERNETES_MEMORY_LIMIT: 8Gi
-#     CONTAINER_TAG: "2.0.0-1005"
-
-# deployment:
-  
-#   stage: Push to Gitlab Registry
-#   tags:
-#     - k8s 
-#     - rzr
-#     - codebuilds
-
-#   image:
-    
-#     name: gcr.io/kaniko-project/executor:debug
-#     entrypoint: [""]
-  
-#   script:
-    
-#     - export DOCKER_CONFIG=/kaniko/.docker/
-#     - export GOOGLE_APPLICATION_CREDENTIALS=/kaniko/.docker/config.json  
-#     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-#     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile_py310_dotnet_base --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
-  
-#   only:
-#     - master
-#docker push:
-  
-#  stage: Push to Docker Hub
-#  tags:
-#    - corems
-#    - k8s 
-#    - rzr
-
-#  image:
-    
-#    name: gcr.io/kaniko-project/executor:debug
-#    entrypoint: [""]
-  
-#  script:
-#    - export DOCKER_CONFIG=/kaniko/.docker/
-#    - export GOOGLE_APPLICATION_CREDENTIALS=/kaniko/.docker/config.json  
-#    - echo "{\"auths\":{\"$DOCKER_HUB_REGISTRY\":{\"username\":\"$DOCKER_HUB_USER\",\"password\":\"$DOCKER_HUB_PASSWORD\"}}}" > /kaniko/.docker/config.json
-#    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $MAJOR_VER
-  
-#  only:
-#    - master
-    
-
-#pages:
-#  script:
-#    - pip install sphinx sphinx-rtd-theme
-#    - cd doc ; make html
-#    - mv build/html/ ../public/
-#  artifacts:
-#    paths:
-#      - public
-#  only:
-#    - master
+# ---------------------------------------------------------------------------
+# Build and push the base container image to the GitLab registry
+# (runs only on the default branch or version tags)
+# ---------------------------------------------------------------------------
+publish-image:
+  extends: .pnnllib-gitlab-build-container-image
+  stage: publish-image
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/'
+  variables:
+    KANIKO_EXTRA_ARGS: "--cache=true --cache-copy-layers=true --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --destination $CI_REGISTRY_IMAGE:latest"
+    CONTEXT: $CI_PROJECT_DIR
+    DOCKERFILE: Dockerfile
+    KUBERNETES_CPU_REQUEST: 100m
+    KUBERNETES_CPU_LIMIT: "2"
+    KUBERNETES_MEMORY_REQUEST: 2Gi
+    KUBERNETES_MEMORY_LIMIT: 8Gi

@@ -1,3 +1,7 @@
+import matplotlib
+
+matplotlib.use("Agg", force=True)
+
 import pytest
 import os
 import shutil
@@ -22,6 +26,12 @@ def pytest_addoption(parser):
         default=False,
         help="Skip tests that require the lipidomics sqlite library.",
     )
+    parser.addoption(
+        "--skip-molecular-db",
+        action="store_true",
+        default=False,
+        help="Skip tests that require the molecular formula database (postgres).",
+    )
 
 
 def pytest_configure(config):
@@ -29,16 +39,25 @@ def pytest_configure(config):
         "markers",
         "lipidomics_db: mark test as requiring the lipidomics sqlite library",
     )
+    config.addinivalue_line(
+        "markers",
+        "molecular_db: mark test as requiring the molecular formula database",
+    )
 
 
 def pytest_collection_modifyitems(config, items):
-    if not config.getoption("--skip-lipidomics-db"):
+    skip_lipid = config.getoption("--skip-lipidomics-db")
+    skip_molform = config.getoption("--skip-molecular-db")
+    if not skip_lipid and not skip_molform:
         return
 
-    skip_marker = pytest.mark.skip(reason="skipped by --skip-lipidomics-db")
+    lipid_skip = pytest.mark.skip(reason="skipped by --skip-lipidomics-db")
+    molform_skip = pytest.mark.skip(reason="skipped by --skip-molecular-db")
     for item in items:
-        if "lipidomics_db" in item.keywords:
-            item.add_marker(skip_marker)
+        if skip_lipid and "lipidomics_db" in item.keywords:
+            item.add_marker(lipid_skip)
+        if skip_molform and "molecular_db" in item.keywords:
+            item.add_marker(molform_skip)
 
 
 def _download_lipidomics_db(destination):
@@ -83,7 +102,7 @@ def bruker_transient(ftms_file_location):
     return bruker_transient
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def lcms_obj():
     """Returns an LCMS object for the tests"""
     file_raw = (

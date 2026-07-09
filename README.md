@@ -4,7 +4,10 @@
 
 <br>
 <br>
-<a href="https://doi.org/10.5281/zenodo.14009575"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.14009575.svg" alt="DOI"></a>
+<a href="https://doi.org/10.5281/zenodo.4641552"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg" alt="DOI"></a>
+<a href="https://github.com/EMSL-Computing/CoreMS/actions/workflows/ci.yml"><img src="https://github.com/EMSL-Computing/CoreMS/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+<a href="https://pypi.org/project/CoreMS/"><img src="https://img.shields.io/pypi/v/CoreMS.svg" alt="PyPI"></a>
+<a href="https://pypi.org/project/CoreMS/"><img src="https://img.shields.io/pypi/pyversions/CoreMS.svg" alt="Python versions"></a>
 <br>
 </div>
 
@@ -23,7 +26,7 @@
   - [Installation](#corems-installation)  
   - [Thermo Raw File on Mac and Linux](#thermo-raw-file-access)  
 - Execution     
-  - [Jupyter Notebook and Docker containers](#docker-stack)  
+  - [Building and Running the Docker Image](#docker-image)
   - [Example for FT-ICR Data Processing](#simple-script-example)  
   - [Jupyter Notebook Examples](examples/notebooks)  
 - Sibling Projects    
@@ -48,7 +51,7 @@ CoreMS aims to provide
 
 ## Current Version
 
- `3.11.0`
+ `4.0.0`
 
 ***
 
@@ -167,16 +170,24 @@ See walkthrough in [this notebook](examples/notebooks/LCMS_Tutorial.ipynb)
 pip install corems
 ```
 
-By default the molecular formula database will be generated using SQLite
+Corems requires **Python 3.9 or later** (including Python 3.13) and is compatible with **NumPy 2.x**, **pandas 2.x**, and **SQLAlchemy 2.x**.
 
-To use Postgresql the easiest way is to build a docker container:
+To install with development and testing extras:
+
+```bash
+pip install "corems[dev]"
+```
+
+By default the molecular formula database will be generated using SQLite.
+
+To use PostgreSQL the easiest way is to build a docker container:
 
 ```bash
 docker-compose up -d
 ```
 
--  Change the url_database on MSParameters.molecular_search.url_database to: "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
--  Set the url_database env variable COREMS_DATABASE_URL to: "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
+- Change the url_database on `MSParameters.molecular_search.url_database` to: `"postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"`
+- Set the env variable `COREMS_DATABASE_URL` to: `"postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"`
 
 ### Thermo Raw File Access:
 
@@ -194,60 +205,97 @@ To be able to open thermo file a installation of pythonnet is needed:
 
 ***
 
-## Docker stack 
+## Building and Running the CoreMS Docker Image <a name="docker-image"></a>
 
-Another option to use CoreMS is to run the docker stack that will start the CoreMS containers
+CoreMS provides a Dockerfile that packages the entire application (including .NET 8 runtime for Thermo .raw file support) into a self-contained image. This is useful for running CoreMS in a reproducible environment without installing dependencies on your host system.
 
-### Molecular Database and Jupyter Notebook Docker Containers
+### Prerequisites
+- Docker installed and running on your system.
+- The CoreMS repository cloned locally.
+- Navigate to the root of the CoreMS repository before running any commands.
 
-A docker container containing:
-- A custom python distribution will all dependencies installed
-- A Jupyter notebook server with workflow examples
-- A PostgreSQL database for the molecular formulae assignment
+### Building the Docker Image
 
-If you don't have docker installed, the easiest way is to [install docker for desktop](https://hub.docker.com/?overlay=onboarding)
+The Makefile provides convenience targets for building the image. The image is tagged with the current version from `.bumpversion.cfg`.
 
-1. Start the containers using docker-compose (easiest way): 
+**On Linux/Windows (standard build):**
+```bash
+make build-image-local
+```
 
-    On docker-compose-jupyter.yml there is a volume mapping for the tests_data directory with the data provided for testing, to change to your data location: 
-    
-    - locate the volumes on docker-compose-jupyter.yml:
+**On macOS (cross-platform build for linux/amd64):**
+```bash
+make build-image-mac-local
+```
 
-    ```bash
-    volumes:
-      - ./tests/tests_data:/home/CoreMS/data
-    ```
-    - change "./tests/tests_data" to your data directory location
+This runs `docker build` with the `--platform linux/amd64` flag, which is necessary when building on Apple Silicon (M1/M2/M3) Macs to ensure compatibility.
 
-    ```bash
-    volumes:
-      - path_to_your_data_directory:/home/corems/data
-    ```
-    - save the file and then call:
-    
-    ```bash
-    docker-compose -f docker-compose-jupyter.yml up
-    ```
+Alternatively, you can build manually with:
+```bash
+docker build -t corems:<version> .
+```
+Replace `<version>` with your desired tag (e.g., `4.0.0`).
 
-2. Another option is to manually build the containers: 
+### What the Dockerfile Does
 
-    - Build the corems image:
-        ```bash
-        docker build -t corems:local .
-        ```
-    - Start the database container:
-        ```bash
-        docker-compose up -d   
-        ```
-    - Start the Jupyter Notebook:
-        ```bash
-        docker run --rm -v ./data:/home/CoreMS/data corems:local
-        ```
-    
-    - Open your browser, copy and past the URL address provided in the terminal: `http://localhost:8888/?token=<token>.`
+The Dockerfile performs the following steps:
+1. Starts from a `python:3.13-slim` base image.
+2. Installs the .NET 8 runtime (required for Thermo .raw file support via PythonNET).
+3. Copies the CoreMS source code into the image.
+4. Installs CoreMS and all its dependencies via `pip install .`.
+5. Installs `pytest-xdist` and `pytest-cov` for running tests.
+6. Removes build-time dependencies (gcc, python3-dev) to keep the image lean.
 
-    - Open the CoreMS-Tutorial.ipynb
+### Running the Docker Image
 
+**On Linux/Windows:**
+```bash
+make image-run-local
+```
+
+**On macOS:**
+```bash
+make image-run-mac-local
+```
+
+This launches an interactive bash shell inside the container:
+```bash
+docker run -it corems:<version>
+```
+
+From within the container, you can import and use CoreMS directly:
+```python
+python3 -c "import corems; print(corems.__version__)"
+```
+
+### Mounting Data into the Container
+
+To process your own data files, mount a local directory into the container:
+```bash
+docker run -it -v /path/to/your/data:/data corilo/corems:<version>
+```
+Your files will then be accessible at `/data` inside the container.
+
+### Managing the PostgreSQL Database with Docker Compose
+
+The `docker-compose.yml` file defines a PostgreSQL database service for CoreMS. The Makefile provides targets to manage it:
+
+**Start the database:**
+```bash
+make db-up
+```
+
+**Stop the database:**
+```bash
+make db-down
+```
+
+**View database logs:**
+```bash
+make db-logs
+```
+
+These are equivalent to running `docker-compose up -d`, `docker-compose down`, and `docker-compose logs -f` respectively.
 
 ***
 
@@ -333,15 +381,11 @@ UML (unified modeling language) diagrams for Direct Infusion FT-MS and GC-MS cla
 
 ## Citing CoreMS
 
-If you use CoreMS in your work, please use the following citation:
+If you use CoreMS in your work, please cite the archived release on Zenodo. The badge below is the *concept DOI* — it always resolves to the latest archived release, and each archived release also has its own version-specific DOI listed on that page.
 
-Version [3.11.0 Release on GitHub](https://github.com/EMSL-Computing/CoreMS/releases/tag/v3.11.0), archived on Zenodo:  
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4641552.svg)](https://doi.org/10.5281/zenodo.4641552)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14009575.svg)](https://doi.org/10.5281/zenodo.14009575)
-
-Yuri E. Corilo, William R. Kew, Lee Ann McCue, Katherine R . Heal, James C. Carr (2024, October 29). EMSL-Computing/CoreMS: CoreMS 3.0.0 (Version v3.0.0), as developed on Github. Zenodo. http://doi.org/10.5281/zenodo.14009575
-
-```
+For citation metadata (BibTeX, RIS, etc.), use the "Cite this repository" button on the GitHub sidebar, click "Export" on the Zenodo page above, or see [`CITATION.cff`](CITATION.cff) in the repository root.
 
 ***
 
