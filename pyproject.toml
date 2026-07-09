@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "CoreMS"
-version = "3.11.0"
+version = "4.0.0"
 description = "Mass Spectrometry Framework for Small Molecules Analysis"
 readme = "README.md"
 license = { text = "BSD" }
