@@ -6,8 +6,8 @@
 <br>
 <a href="https://doi.org/10.5281/zenodo.4641552"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.4641552-blue.svg" alt="DOI"></a>
 <a href="https://github.com/EMSL-Computing/CoreMS/actions/workflows/tests.yml"><img src="https://github.com/EMSL-Computing/CoreMS/actions/workflows/tests.yml/badge.svg" alt="CI"></a>
-<a href="https://pypi.org/project/CoreMS/"><img src="https://img.shields.io/pypi/v/CoreMS.svg" alt="PyPI"></a>
-<a href="https://pypi.org/project/CoreMS/"><img src="https://img.shields.io/pypi/pyversions/CoreMS.svg" alt="Python versions"></a>
+<a href="https://pypi.org/project/CoreMS/"><img src="https://img.shields.io/pypi/v/CoreMS.svg?cacheSeconds=60" alt="PyPI"></a>
+<a href="https://pypi.org/project/CoreMS/"><img src="https://img.shields.io/pypi/pyversions/CoreMS.svg?cacheSeconds=60" alt="Python versions"></a>
 <br>
 </div>
 
