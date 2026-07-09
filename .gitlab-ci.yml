@@ -133,10 +133,12 @@ publish-pypi:
   stage: publish
   needs: [build-package]
   rules:
-    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/ && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
   script:
     - python3 -m pip install --upgrade twine
-    - twine upload dist/*
+    - TWINE_USERNAME=__token__ TWINE_PASSWORD="$PYPI_TOKEN" twine upload dist/*
   environment:
     name: pypi
     url: https://pypi.org/project/CoreMS/
