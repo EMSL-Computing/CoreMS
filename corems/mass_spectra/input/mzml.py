@@ -421,36 +421,68 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         mass_spectrum_objects = []
         scan_set = set(scan_list)
-        spec_by_id = {}
+        # Materialize peak data during iteration. Do not retain live pymzml
+        # spectrum objects, and do not overwrite the first valid MS spectrum for
+        # a scan ID.
+        #
+        # Thermo multi-controller mzML files often reuse scan numbers across
+        # controllers (e.g. controllerType=0 MS data and controllerType=3
+        # auxiliary traces). pymzml exposes only the integer scan number as
+        # spec.ID, so sequential iteration can yield the same ID twice. Keeping
+        # the last yield (or random-access data[scan]) can replace real MS
+        # spectra with non-MS controller spectra and then fail centroid/profile
+        # checks with "spectrum is not centroided".
+        #
+        # Direct random-access via data[scan_number] also uses pymzml's
+        # byte-offset index, which is unreliable on Windows (CRLF vs LF).
+        collected = {}
 
-        # Iterate once through the file to collect all requested scans.
-        # Direct random-access via data[scan_number] uses pymzml's byte-offset
-        # index, which is unreliable on Windows (CRLF vs LF byte offsets).
         for spec in data:
-            if spec.ID in scan_set:
-                spec_by_id[spec.ID] = spec
+            scan_id = spec.ID
+            if scan_id not in scan_set or scan_id in collected:
+                continue
 
-        for scan_number in scan_list:
-            spec = spec_by_id.get(scan_number)
-            if spec is None:
-                raise ValueError(
-                    "Scan number %d not found in mzML file" % scan_number
-                )
+            # Skip non-MS / auxiliary-controller spectra that share scan numbers
+            ms_level = spec.ms_level
+            if ms_level is None or ms_level <= 0:
+                continue
 
-            # Get polarity
             if spec["negative scan"] is not None:
                 polarity = -1
             elif spec["positive scan"] is not None:
                 polarity = 1
+            else:
+                polarity = None
+
+            mz = np.asarray(spec.mz)
+            abundance = np.asarray(spec.i)
+            collected[scan_id] = {
+                "mz": mz,
+                "abundance": abundance,
+                "polarity": polarity,
+                "is_profile": bool(spec.get("MS:1000128")),
+                "is_centroid": bool(spec.get("MS:1000127")),
+            }
+
+        for scan_number in scan_list:
+            entry = collected.get(scan_number)
+            if entry is None:
+                raise ValueError(
+                    "Scan number %d not found in mzML file" % scan_number
+                )
+
+            polarity = entry["polarity"]
+            mz = entry["mz"]
+            abundance = entry["abundance"]
 
             # Get mass spectrum
             if spectrum_mode == "profile":
                 # Check if profile
-                if not spec.get("MS:1000128"):
+                if not entry["is_profile"]:
                     raise ValueError("spectrum is not profile")
                 data_dict = {
-                    Labels.mz: spec.mz,
-                    Labels.abundance: spec.i,
+                    Labels.mz: mz,
+                    Labels.abundance: abundance,
                 }
                 d_params = set_metadata(
                     scan_number,
@@ -463,13 +495,13 @@ class MZMLSpectraParser(SpectraParserInterface):
                 )
             elif spectrum_mode == "centroid":
                 # Check if centroided
-                if not spec.get("MS:1000127"):
+                if not entry["is_centroid"]:
                     raise ValueError("spectrum is not centroided")
                 data_dict = {
-                    Labels.mz: spec.mz,
-                    Labels.abundance: spec.i,
-                    Labels.rp: [np.nan] * len(spec.mz),
-                    Labels.s2n: [np.nan] * len(spec.i),
+                    Labels.mz: mz,
+                    Labels.abundance: abundance,
+                    Labels.rp: [np.nan] * len(mz),
+                    Labels.s2n: [np.nan] * len(abundance),
                 }
                 d_params = set_metadata(
                     scan_number, polarity, self.file_location, label=Labels.corems_centroid
@@ -477,7 +509,12 @@ class MZMLSpectraParser(SpectraParserInterface):
                 mass_spectrum_obj = MassSpecCentroid(
                     data_dict, d_params, auto_process=auto_process
                 )
-            
+            else:
+                raise ValueError(
+                    "spectrum_mode must be 'profile' or 'centroid', got %r"
+                    % spectrum_mode
+                )
+
             mass_spectrum_objects.append(mass_spectrum_obj)
 
         return mass_spectrum_objects

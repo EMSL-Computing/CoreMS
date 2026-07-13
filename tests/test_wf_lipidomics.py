@@ -1,9 +1,11 @@
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import shutil
 import numpy as np
 import pytest
 
+from corems.encapsulation.constant import Labels
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.mass_spectra.input.mzml import MZMLSpectraParser
 from corems.mass_spectra.output.export import LipidomicsExport
@@ -51,6 +53,46 @@ def test_import_lcmsobj_mzml():
     # Reset the MSParameters to the original values
     reset_lcms_parameters()
     reset_ms_parameters()
+
+
+def test_mzml_scan_list_skips_non_ms_controller_duplicates():
+    """Multi-controller mzML reuses scan numbers; keep MS spectra, not aux traces."""
+
+    class Spec:
+        def __init__(self, scan_id, ms_level, mz, intensity, centroid=True):
+            self.ID = scan_id
+            self.ms_level = ms_level
+            self.mz = np.asarray(mz, dtype=float)
+            self.i = np.asarray(intensity, dtype=float)
+            self._centroid = centroid
+
+        def get(self, accession):
+            if accession == "MS:1000127":
+                return True if self._centroid else None
+            return None
+
+        def __getitem__(self, key):
+            return True if key == "negative scan" else None
+
+    spectra = [
+        Spec(2, 2, [100.1, 200.2], [10.0, 20.0]),  # MS
+        Spec(2, None, [1.0], [1.0], centroid=False),  # same ID, non-MS controller
+        Spec(5, None, [9.0], [9.0], centroid=False),  # non-MS first
+        Spec(5, 1, [150.5], [42.0]),  # then MS
+    ]
+    parser = MZMLSpectraParser.__new__(MZMLSpectraParser)
+    parser.file_location = Path("fake_multicontroller.mzML")
+    reader = MagicMock()
+    reader.__iter__.return_value = iter(spectra)
+    parser.load = MagicMock(return_value=reader)
+
+    result = parser.get_mass_spectra_from_scan_list(
+        [2, 5], spectrum_mode="centroid", auto_process=False
+    )
+    assert [list(ms.data_dict[Labels.mz]) for ms in result] == [
+        pytest.approx([100.1, 200.2]),
+        pytest.approx([150.5]),
+    ]
 
 
 @pytest.mark.lipidomics_db
