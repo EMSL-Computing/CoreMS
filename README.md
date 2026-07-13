@@ -51,7 +51,7 @@ CoreMS aims to provide
 
 ## Current Version
 
- `4.0.0`
+ `4.0.1`
 
 ***
 
@@ -234,7 +234,7 @@ Alternatively, you can build manually with:
 ```bash
 docker build -t corems:<version> .
 ```
-Replace `<version>` with your desired tag (e.g., `4.0.0`).
+Replace `<version>` with your desired tag (e.g., `4.0.1`).
 
 ### What the Dockerfile Does
 
