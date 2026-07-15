@@ -94,6 +94,7 @@ As an open source project, CoreMS welcomes contributions of all forms. Before co
 - Pandas data frame (can be saved using pickle, h5, etc)
 - Text Files (.csv, tab separated .txt, etc)
 - Microsoft Excel (xlsx)
+- Apache Parquet (.parquet)
 - Automatic JSON for metadata storage and reuse
 - Self-containing Hierarchical Data Format (.hdf5) including raw data and time-series data-point for processed data-sets with all associated metadata stored as json attributes
 
@@ -318,6 +319,8 @@ mass_spectrum_obj.to_csv("filename")
 mass_spectrum_obj.to_hdf("filename")
 # to pandas Datarame pickle
 mass_spectrum_obj.to_pandas("filename")
+# to parquet
+mass_spectrum_obj.to_parquet("filename")
 
 # Extract data as a pandas Dataframe
 df = mass_spectrum_obj.to_dataframe()

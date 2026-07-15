@@ -26,6 +26,12 @@ def test_export_mass_spectrum(mass_spectrum_ftms):
     os.remove('NEG_ESI_SRFA_CoreMS.pkl')
     os.remove('NEG_ESI_SRFA_CoreMS.json')
 
+    exportMS._output_type = 'parquet'
+    exportMS.save()
+    assert os.path.exists('NEG_ESI_SRFA_CoreMS.parquet')
+    os.remove('NEG_ESI_SRFA_CoreMS.parquet')
+    os.remove('NEG_ESI_SRFA_CoreMS.json')
+
     exportMS._output_type = 'hdf5'
     exportMS.save()
     assert os.path.exists('NEG_ESI_SRFA_CoreMS.hdf5')
@@ -55,4 +61,9 @@ def test_export_mass_spectrum(mass_spectrum_ftms):
     mass_spectrum_ftms.to_pandas('NEG_ESI_SRFA_CoreMS')
     assert os.path.exists('NEG_ESI_SRFA_CoreMS.pkl')
     os.remove('NEG_ESI_SRFA_CoreMS.pkl')
+    os.remove('NEG_ESI_SRFA_CoreMS.json')
+
+    mass_spectrum_ftms.to_parquet('NEG_ESI_SRFA_CoreMS')
+    assert os.path.exists('NEG_ESI_SRFA_CoreMS.parquet')
+    os.remove('NEG_ESI_SRFA_CoreMS.parquet')
     os.remove('NEG_ESI_SRFA_CoreMS.json')

@@ -57,7 +57,7 @@ ion_type_dict = {
 class LowResGCMSExport:
     """A class to export low resolution GC-MS data.
 
-    This class provides methods to export low resolution GC-MS data to various formats such as Excel, CSV, HDF5, and Pandas DataFrame.
+    This class provides methods to export low resolution GC-MS data to various formats such as Excel, CSV, Parquet, HDF5, and Pandas DataFrame.
 
     Parameters:
     ----------
@@ -82,6 +82,8 @@ class LowResGCMSExport:
         Export the data to an Excel file.
     * to_csv(separate_output=False, write_mode="w", write_metadata=True, id_label="corems:").
         Export the data to a CSV file.
+    * to_parquet(write_metadata=True, id_label="corems:").
+        Export the data to a Parquet file.
     * to_hdf(id_label="corems:").
         Export the data to an HDF5 file.
     * get_data_stats(gcms).
@@ -310,6 +312,33 @@ class LowResGCMSExport:
 
         except IOError as ioerror:
             print(ioerror)
+
+    def to_parquet(self, write_metadata=True, id_label="corems:"):
+        """Export the data to a Parquet file.
+
+        Parameters:
+        ----------
+        write_metadata : bool, optional
+            Whether to write metadata to the output file. Default is True.
+        id_label : str, optional
+            The ID label for the data. Default is "corems:".
+
+        Notes
+        -----
+        Requires ``pyarrow`` (or ``fastparquet``) for pandas Parquet I/O.
+        """
+
+        columns = self._init_columns()
+
+        dict_data_list = self.get_list_dict_data(self.gcms)
+
+        df = DataFrame(dict_data_list, columns=columns)
+
+        out_put_path = self.output_file.with_suffix(".parquet")
+        df.to_parquet(out_put_path, index=False)
+
+        if write_metadata:
+            self.write_settings(out_put_path, self.gcms, id_label=id_label)
 
     def to_hdf(self, id_label="corems:"):
         """Export the data to an HDF5 file.
@@ -783,7 +812,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
     """A class to export high resolution mass spectra data.
 
     This class provides methods to export high resolution mass spectra data to various formats
-    such as Excel, CSV, HDF5, and Pandas DataFrame.
+    such as Excel, CSV, Parquet, HDF5, and Pandas DataFrame.
 
     Parameters
     ----------
@@ -815,7 +844,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
         self.dir_loc.mkdir(exist_ok=True)
         # Place the output file in the directory
         self.output_file = self.dir_loc / Path(out_file_path).name
-        self._output_type = output_type  # 'excel', 'csv', 'pandas' or 'hdf5'
+        self._output_type = output_type  # 'excel', 'csv', 'pandas', 'parquet' or 'hdf5'
         self.mass_spectra = mass_spectra
         self.atoms_order_list = None
         self._init_columns()
@@ -931,6 +960,40 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 writer.writeheader()
                 for data in dict_data_list:
                     writer.writerow(data)
+
+            if write_metadata:
+                self.write_settings(
+                    self.dir_loc / out_filename.with_suffix(""), mass_spectrum
+                )
+
+    def to_parquet(self, write_metadata=True):
+        """Export the data to a Parquet file.
+
+        Parameters:
+        ----------
+        write_metadata : bool, optional
+            Whether to write metadata to the output file. Default is True.
+
+        Notes
+        -----
+        Requires ``pyarrow`` (or ``fastparquet``) for pandas Parquet I/O.
+        """
+        for mass_spectrum in self.mass_spectra:
+            columns = self.columns_label + self.get_all_used_atoms_in_order(
+                mass_spectrum
+            )
+
+            dict_data_list = self.get_list_dict_data(mass_spectrum)
+
+            df = DataFrame(dict_data_list, columns=columns)
+
+            scan_number = mass_spectrum.scan_number
+
+            out_filename = Path(
+                "%s_scan%s%s" % (self.output_file, str(scan_number), ".parquet")
+            )
+
+            df.to_parquet(self.dir_loc / out_filename, index=False)
 
             if write_metadata:
                 self.write_settings(
