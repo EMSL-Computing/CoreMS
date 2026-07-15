@@ -9,7 +9,7 @@ from threading import Thread
 import h5py
 import toml
 import numpy as np
-from numpy import empty, nan as NaN
+from numpy import nan as NaN, empty
 from pandas import DataFrame
 
 from corems.encapsulation.constant import Atoms, Labels #Labels is accessed in the eval() function
@@ -207,7 +207,7 @@ class HighResMassSpecExport(Thread):
             self.mass_spectrum, additional_columns=additional_columns
         )
         df = DataFrame(dict_data_list, columns=columns)
-        df.name = self.output_file
+        df.attrs['name'] = self.output_file
         return df
 
     def write_settings(self, output_path, mass_spectrum):

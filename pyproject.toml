@@ -1,0 +1,98 @@
+[build-system]
+requires = ["setuptools>=72", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "CoreMS"
+version = "4.0.1"
+description = "Mass Spectrometry Framework for Small Molecules Analysis"
+readme = "README.md"
+license = { text = "BSD" }
+authors = [{ name = "Corilo, Yuri", email = "corilo@pnnl.gov" }]
+requires-python = ">=3.10"
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 4 - Beta",
+]
+dependencies = [
+    "beautifulsoup4>=4.12.3",
+    "chardet>=5.2.0",
+    "h5py>=3.13.0",
+    "IsoSpecPy>=2.2.2",
+    "lmfit>=1.3.0",
+    "lxml>=5.2.0",
+    "matplotlib>=3.9.0",
+    "ms-entropy>=1.2.2",
+    "netCDF4>=1.7.0",
+    "numpy>=2.1.0",
+    "openpyxl>=3.1.2",
+    "pandas>=2.2.2",
+    "pyarrow>=14.0.0",
+    "psycopg2-binary>=2.9.10",
+    "pyswarm>=0.6",
+    "pythonnet>=3.0.3",
+    "pymzml>=2.5.11",
+    "requests>=2.32.0",
+    "ripser>=0.6.4",
+    "s3path>=0.5.0",
+    "scikit_learn>=1.5.0",
+    "scipy>=1.14.0",
+    "seaborn>=0.13.2",
+    "setuptools>=72.0.0",
+    "SQLAlchemy>=2.0.0",
+    "packaging>=23.0",
+    "toml>=0.10.2",
+    "tqdm>=4.66.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/EMSL-Computing/CoreMS"
+Repository = "https://github.com/EMSL-Computing/CoreMS"
+Issues = "https://github.com/EMSL-Computing/CoreMS/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pylint",
+    "pytest>=8.3.2",
+    "pytest-cov>=5.0.0",
+    "pytest-xdist>=3.6.1",
+    "pyprof2calltree",
+    "memory_profiler",
+    "twine",
+    "bump2version",
+    "psutil>=5.6.6",
+    "PyWavelets",
+    "pdoc>=14.1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["tests*", "*.win_only"]
+
+[tool.setuptools.package-data]
+"*" = ["ext_lib/*", "ext_lib/dotnet/*", "disclaimer.txt"]
+
+[tool.pytest.ini_options]
+addopts = "-ra -v --cov=corems --cov-config=pytest.ini --cov-report html --cov-report term -p no:warnings"
+norecursedirs = ["win_only"]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+omit = [
+    "corems/mass_spectra/input/win_only/BrukerCompassXtract.py",
+    "corems/mass_spectra/input/win_only/ThermoMSFileReader.py",
+    "corems/transient/input/MidasDatFile.py",
+    "corems/encapsulation/constant.py",
+    "corems/molecular_id/factory/molecularMongo.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+]

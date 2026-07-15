@@ -191,27 +191,31 @@ class NoiseThresholdCalc:
         if max_mz_noise > max_mz_whole_ms:
             max_mz_noise = max_mz_whole_ms
 
-        # print(min_mz_noise, max_mz_noise)
-        low_mz_index = where(self.mz_exp_profile >= min_mz_noise)[0][0]
-        # print(self.mz_exp_profile[low_mz_index])
-        # low_mz_index = (argmax(self.mz_exp_profile <= min_mz_noise))
+        if min_mz_noise > max_mz_noise:
+            warnings.warn(
+                "Empty noise ROI: min_mz_noise is greater than max_mz_noise; returning empty arrays."
+            )
+            return self.mz_exp_profile[0:0], self.abundance_profile[0:0]
 
-        high_mz_index = where(self.mz_exp_profile <= max_mz_noise)[-1][-1]
+        # Inclusive ROI boundaries to preserve current threshold behavior.
+        mz_mask = (self.mz_exp_profile >= min_mz_noise) & (
+            self.mz_exp_profile <= max_mz_noise
+        )
+        indices = where(mz_mask)[0]
 
-        # high_mz_index = (argmax(self.mz_exp_profile <= max_mz_noise))
+        if indices.size == 0:
+            warnings.warn(
+                "Empty noise ROI: no m/z points found within inclusive range; returning empty arrays."
+            )
+            return self.mz_exp_profile[0:0], self.abundance_profile[0:0]
 
-        if high_mz_index > low_mz_index:
-            # pyplot.plot(self.mz_exp_profile[low_mz_index:high_mz_index], self.abundance_profile[low_mz_index:high_mz_index])
-            # pyplot.show()
-            return self.mz_exp_profile[
-                high_mz_index:low_mz_index
-            ], self.abundance_profile[low_mz_index:high_mz_index]
-        else:
-            # pyplot.plot(self.mz_exp_profile[high_mz_index:low_mz_index], self.abundance_profile[high_mz_index:low_mz_index])
-            # pyplot.show()
-            return self.mz_exp_profile[
-                high_mz_index:low_mz_index
-            ], self.abundance_profile[high_mz_index:low_mz_index]
+        start_index = indices.min()
+        end_index = indices.max() + 1
+
+        return (
+            self.mz_exp_profile[start_index:end_index],
+            self.abundance_profile[start_index:end_index],
+        )
 
     def get_noise_average(self, ymincentroid):
         """Get the average noise and standard deviation.
@@ -326,6 +330,8 @@ class NoiseThresholdCalc:
             # If the histogram had more than one maximum frequency bin, we need to reduce that to one entry
             if len(log_sigma) > 1:
                 log_sigma = average(log_sigma)
+            else:
+                log_sigma = log_sigma[0]
             ## To do : check if aFT or mFT and adjust method
             noise_mid = 10**log_sigma
             noise_1std = (

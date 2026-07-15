@@ -53,6 +53,7 @@ from ThermoFisher.CommonCore.Data.Business import ChromatogramSignal, Range
 from ThermoFisher.CommonCore.Data.Business import Device
 from ThermoFisher.CommonCore.Data.Interfaces import IChromatogramSettings
 from ThermoFisher.CommonCore.Data.Business import MassOptions, FileHeaderReaderFactory
+from ThermoFisher.CommonCore.Data.Business import Device
 from ThermoFisher.CommonCore.Data.FilterEnums import MSOrderType
 
 
@@ -591,6 +592,10 @@ class ThermoBaseClass:
                 original thermo apex scan number after peak picking
             }
         """
+        # If peak_detection or smooth is True, raise exception
+        if peak_detection or smooth:
+            raise Exception("Peak detection and smoothing are no longer implemented in this function")
+
         if trace_type == "TIC":
             settings = ChromatogramTraceSettings(TraceType.TIC)
         elif trace_type == "BPC":
@@ -1431,7 +1436,10 @@ class ImportMassSpectraThermoMSFileReader(ThermoBaseClass, SpectraParserInterfac
                 scan_df.loc[scan_df.scan == i, "ms_format"] = "centroid"
             else:
                 scan_df.loc[scan_df.scan == i, "ms_format"] = "profile"
-
+        
+        # Remove any non-mass spectra scans (e.g., MS level 0 or None)
+        scan_df = scan_df[scan_df.ms_level.notnull() & (scan_df.ms_level > 0)].reset_index(drop=True)
+        
         # Filter by time range if specified
         if time_range is not None:
             time_ranges = self._normalize_time_range(time_range)

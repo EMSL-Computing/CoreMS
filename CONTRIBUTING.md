@@ -6,6 +6,7 @@ Thank you for considering contributing to CoreMS! We appreciate your interest in
 
 - [Getting Started](#getting-started)
 - [Versioning](#versioning)
+- [Testing and CI](#testing-and-ci)
 - [Merge Request Checklist](#merge-request-checklist)
 - [Code Style](#code-style)
 - [Issue Reporting](#issue-reporting)
@@ -26,6 +27,21 @@ To get started with contributing to CoreMS, please follow these steps:
 ## Versioning
 
 We strive to use semantic versioning. To bump a new version and regenerate documentation, use one of the following make commands (according to version number)  `make major`, `make minor`, or `make patch`.  This should accompany each PiPy release.
+
+## Testing and CI
+
+CoreMS uses shared Makefile targets so GitLab CI and GitHub Actions run the same test commands.
+
+- Source tests: `make ci-test-source`
+- Notebook tests: `make ci-test-notebooks`
+- Full CI parity run: `make ci-test-all`
+
+CI definitions:
+
+- GitLab: `.gitlab-ci.yml`
+- GitHub Actions: `.github/workflows/tests.yml`
+
+For local validation before opening a merge request or pull request, run `make ci-test-all`.
 
 ## Merge Request Checklist
 

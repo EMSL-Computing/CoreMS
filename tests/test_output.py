@@ -1,7 +1,9 @@
-import sys
 import os
 
+import pandas as pd
+
 from corems.mass_spectrum.output.export import HighResMassSpecExport
+
 
 def test_export_mass_spectrum(mass_spectrum_ftms):
 
@@ -29,6 +31,9 @@ def test_export_mass_spectrum(mass_spectrum_ftms):
     exportMS._output_type = 'parquet'
     exportMS.save()
     assert os.path.exists('NEG_ESI_SRFA_CoreMS.parquet')
+    parquet_df = pd.read_parquet('NEG_ESI_SRFA_CoreMS.parquet')
+    assert parquet_df.shape[0] > 10
+    assert 'm/z' in parquet_df.columns
     os.remove('NEG_ESI_SRFA_CoreMS.parquet')
     os.remove('NEG_ESI_SRFA_CoreMS.json')
 
@@ -37,9 +42,9 @@ def test_export_mass_spectrum(mass_spectrum_ftms):
     assert os.path.exists('NEG_ESI_SRFA_CoreMS.hdf5')
     os.remove('NEG_ESI_SRFA_CoreMS.hdf5')
 
-    df = exportMS.get_pandas_df()    
+    df = exportMS.get_pandas_df()
     assert df.shape[0] > 10
-    json_dump1 = exportMS.to_json() 
+    json_dump1 = exportMS.to_json()
 
     mass_spectrum_ftms.to_excel('NEG_ESI_SRFA_CoreMS')
     assert os.path.exists('NEG_ESI_SRFA_CoreMS.xlsx')
@@ -47,7 +52,7 @@ def test_export_mass_spectrum(mass_spectrum_ftms):
     os.remove('NEG_ESI_SRFA_CoreMS.json')
     df = mass_spectrum_ftms.to_dataframe()
     assert df.shape[0] > 10
-    
+
     json_dump = mass_spectrum_ftms.to_json()
     assert len(json_dump) > 10
     assert json_dump1 == json_dump
@@ -65,5 +70,9 @@ def test_export_mass_spectrum(mass_spectrum_ftms):
 
     mass_spectrum_ftms.to_parquet('NEG_ESI_SRFA_CoreMS')
     assert os.path.exists('NEG_ESI_SRFA_CoreMS.parquet')
+    parquet_df = pd.read_parquet('NEG_ESI_SRFA_CoreMS.parquet')
+    assert parquet_df.shape[0] > 10
+    assert 'm/z' in parquet_df.columns
+    assert 'Peak Height' in parquet_df.columns
     os.remove('NEG_ESI_SRFA_CoreMS.parquet')
     os.remove('NEG_ESI_SRFA_CoreMS.json')
