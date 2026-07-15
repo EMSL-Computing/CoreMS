@@ -1,4 +1,6 @@
 # %% Import libs
+from pathlib import Path
+
 import numpy as np
 import pytest
 import pandas as pd
@@ -416,10 +418,15 @@ def test_lcms_collection_export_import_hdf5(lcms_collection, tmp_path):
         mass_spectra_collection=lcms_collection
     )
     exporter.export_to_hdf5(overwrite=True, save_parameters=True)
-    
+    exporter.export_to_parquet(overwrite=True, save_parameters=False)
+
     # Check that HDF5 file was created
     hdf5_path = export_path.with_suffix('.hdf5')
     assert hdf5_path.exists()
+    # Collection-level parquet companions
+    assert Path(str(export_path) + "_mass_features.parquet").exists() or Path(
+        str(export_path) + "_manifest.parquet"
+    ).exists()
     
     # Re-import the collection
     from corems.mass_spectra.input.corems_hdf5 import ReadSavedLCMSCollection

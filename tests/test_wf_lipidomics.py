@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import shutil
 import numpy as np
+import pandas as pd
 import pytest
 
 from corems.encapsulation.constant import Labels
@@ -236,10 +237,19 @@ def test_lipidomics_workflow(tmp_path, postgres_database, lcms_obj, lipidomics_s
     export_dir = tmp_path / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems"
     exporter = LipidomicsExport(str(export_stem), lcms_obj)
     exporter.to_hdf(overwrite=True)
+    exporter.to_parquet(overwrite=True, export_spectra=True)
     exporter.report_to_csv(molecular_metadata=lipid_metadata)
+    exporter.report_to_parquet(molecular_metadata=lipid_metadata)
     report = exporter.to_report(molecular_metadata=lipid_metadata)
     assert report['Ion Formula'][1] == 'C24 H47 O2'
     assert report['Lipid Molecular Species'][0] == 'FA 20:5'
+    parquet_path = export_dir / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.parquet"
+    assert parquet_path.exists()
+    parquet_report = pd.read_parquet(parquet_path)
+    assert parquet_report.shape[0] == report.shape[0]
+    assert 'Ion Formula' in parquet_report.columns
+    assert (export_dir / "scan_info.parquet").exists()
+    assert (export_dir / "mass_features.parquet").exists()
 
     # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
     parser = ReadCoreMSHDFMassSpectra(

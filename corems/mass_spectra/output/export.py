@@ -1083,7 +1083,8 @@ class HighResMassSpectraExport(HighResMassSpecExport):
 class LCMSExport(HighResMassSpectraExport):
     """A class to export high resolution LC-MS data.
 
-    This class provides methods to export high resolution LC-MS data to HDF5.
+    This class provides methods to export high resolution LC-MS data to HDF5
+    and Parquet (tabular datasets that mirror the main HDF5 groups).
 
     Parameters
     ----------
@@ -1095,6 +1096,216 @@ class LCMSExport(HighResMassSpectraExport):
 
     def __init__(self, out_file_path, mass_spectra):
         super().__init__(out_file_path, mass_spectra, output_type="hdf5")
+
+    @staticmethod
+    def _prepare_df_for_parquet(df):
+        """Make a DataFrame Parquet-safe by serializing nested object values.
+
+        Parameters
+        ----------
+        df : DataFrame
+            Input dataframe.
+
+        Returns
+        -------
+        DataFrame
+            Copy suitable for ``DataFrame.to_parquet``.
+        """
+        if df is None or df.empty:
+            return df
+
+        out = df.copy()
+        for col in out.columns:
+            if out[col].dtype == object:
+                def _serialize(value):
+                    if value is None:
+                        return None
+                    if isinstance(value, (list, tuple, dict)):
+                        return json.dumps(value)
+                    if isinstance(value, np.ndarray):
+                        return json.dumps(value.tolist())
+                    return value
+
+                out[col] = out[col].map(_serialize)
+        return out
+
+    def _write_parquet(self, df, filename, overwrite=False):
+        """Write a dataframe to a Parquet file under the export directory.
+
+        Parameters
+        ----------
+        df : DataFrame
+            Data to write.
+        filename : str
+            File name (with or without ``.parquet`` suffix).
+        overwrite : bool, optional
+            Whether to replace an existing file. Default is False.
+
+        Returns
+        -------
+        Path or None
+            Output path if written, otherwise None.
+        """
+        if df is None or df.empty:
+            return None
+
+        out_path = self.dir_loc / Path(filename).with_suffix(".parquet")
+        if out_path.exists() and not overwrite:
+            return out_path
+
+        self._prepare_df_for_parquet(df).to_parquet(out_path, index=False)
+        return out_path
+
+    def _mass_spectra_to_parquet_df(self):
+        """Build a single DataFrame of peak tables for all loaded mass spectra."""
+        frames = []
+        for mass_spectrum in self.mass_spectra:
+            if mass_spectrum is None:
+                continue
+            columns = self.columns_label + self.get_all_used_atoms_in_order(
+                mass_spectrum
+            )
+            dict_data_list = self.get_list_dict_data(mass_spectrum)
+            df = DataFrame(dict_data_list, columns=columns)
+            if df.empty:
+                continue
+            df.insert(0, "scan_number", mass_spectrum.scan_number)
+            if getattr(mass_spectrum, "retention_time", None) is not None:
+                df.insert(1, "retention_time", mass_spectrum.retention_time)
+            frames.append(df)
+
+        if not frames:
+            return DataFrame()
+        return pd.concat(frames, ignore_index=True)
+
+    def _eics_to_parquet_df(self):
+        """Build a long-format DataFrame of EIC time series."""
+        frames = []
+        for mz, eic_data in self.mass_spectra.eics.items():
+            if eic_data is None:
+                continue
+            n = len(getattr(eic_data, "time", []) or [])
+            if n == 0:
+                continue
+            frame = {
+                "mz": [mz] * n,
+                "scans": list(eic_data.scans) if eic_data.scans is not None else [None] * n,
+                "time": list(eic_data.time),
+                "eic": list(eic_data.eic) if eic_data.eic is not None else [None] * n,
+            }
+            if eic_data.eic_smoothed is not None and len(eic_data.eic_smoothed) == n:
+                frame["eic_smoothed"] = list(eic_data.eic_smoothed)
+            frames.append(DataFrame(frame))
+
+        if not frames:
+            return DataFrame()
+        return pd.concat(frames, ignore_index=True)
+
+    def _spectral_search_results_to_parquet_df(self):
+        """Flatten spectral search results into a single DataFrame."""
+        frames = []
+        for scan_id, by_precursor in self.mass_spectra.spectral_search_results.items():
+            for precursor_key, result in by_precursor.items():
+                try:
+                    df = result.to_dataframe()
+                except Exception:
+                    continue
+                if df is None or df.empty:
+                    continue
+                df = df.copy()
+                df.insert(0, "query_spectrum_id", getattr(result, "query_spectrum_id", scan_id))
+                df.insert(1, "precursor_mz", getattr(result, "precursor_mz", precursor_key))
+                frames.append(df)
+
+        if not frames:
+            return DataFrame()
+        return pd.concat(frames, ignore_index=True)
+
+    def to_parquet(
+        self,
+        overwrite=False,
+        save_parameters=True,
+        parameter_format="toml",
+        export_spectra=True,
+    ):
+        """Export LC-MS datasets to Parquet files (tabular mirror of ``to_hdf``).
+
+        Writes under ``{out_file_path}.corems/``:
+
+        - ``scan_info.parquet``
+        - ``mass_features.parquet``
+        - ``induced_mass_features.parquet`` (if present)
+        - ``mass_spectra.parquet`` (optional; all peak tables with scan metadata)
+        - ``eics.parquet`` (if EICs are present and export is enabled)
+        - ``spectral_search_results.parquet`` (if search results are present)
+        - parameters as JSON or TOML when ``save_parameters`` is True
+
+        Parameters
+        ----------
+        overwrite : bool, optional
+            Whether to overwrite existing Parquet files. Default is False.
+        save_parameters : bool, optional
+            Whether to save processing parameters. Default is True.
+        parameter_format : str, optional
+            Parameter file format, ``'json'`` or ``'toml'``. Default is ``'toml'``.
+        export_spectra : bool, optional
+            Whether to export loaded mass-spectrum peak tables. Default is True.
+
+        Notes
+        -----
+        Requires ``pyarrow`` (or ``fastparquet``) for pandas Parquet I/O.
+        Raw profile arrays and nested HDF5-only blobs are not reproduced in full;
+        use ``to_hdf`` for a complete self-contained archive.
+        """
+        self.dir_loc.mkdir(exist_ok=True)
+
+        # Scan metadata (same source as the HDF5 scan_info group)
+        scan_df = self.mass_spectra.scan_df
+        if scan_df is not None and not scan_df.empty:
+            self._write_parquet(scan_df.reset_index(drop=True), "scan_info", overwrite=overwrite)
+
+        # Mass features
+        if len(self.mass_spectra.mass_features) > 0:
+            mf_df = self.mass_spectra.mass_features_to_df().reset_index(drop=False)
+            self._write_parquet(mf_df, "mass_features", overwrite=overwrite)
+
+        if len(getattr(self.mass_spectra, "induced_mass_features", {}) or {}) > 0:
+            imf_df = self.mass_spectra.mass_features_to_df(
+                induced_features=True
+            ).reset_index(drop=False)
+            self._write_parquet(imf_df, "induced_mass_features", overwrite=overwrite)
+
+        # Peak tables for loaded spectra
+        if export_spectra:
+            spectra_df = self._mass_spectra_to_parquet_df()
+            self._write_parquet(spectra_df, "mass_spectra", overwrite=overwrite)
+
+        # EICs
+        export_eics = self.mass_spectra.parameters.lc_ms.export_eics
+        if export_eics and len(self.mass_spectra.eics) > 0:
+            eic_df = self._eics_to_parquet_df()
+            self._write_parquet(eic_df, "eics", overwrite=overwrite)
+
+        # Spectral search results
+        if len(self.mass_spectra.spectral_search_results) > 0:
+            search_df = self._spectral_search_results_to_parquet_df()
+            self._write_parquet(
+                search_df, "spectral_search_results", overwrite=overwrite
+            )
+
+        if save_parameters:
+            if parameter_format not in ["json", "toml"]:
+                raise ValueError("parameter_format must be 'json' or 'toml'")
+            if parameter_format == "json":
+                dump_lcms_settings_json(
+                    filename=self.output_file.with_suffix(".json"),
+                    lcms_obj=self.mass_spectra,
+                )
+            elif parameter_format == "toml":
+                dump_lcms_settings_toml(
+                    filename=self.output_file.with_suffix(".toml"),
+                    lcms_obj=self.mass_spectra,
+                )
 
     @staticmethod
     def _save_mass_features_dict_to_hdf5(mass_features_dict, mass_features_group, overwrite=False):
@@ -1391,7 +1602,8 @@ class LCMSExport(HighResMassSpectraExport):
 class LCMSMetabolomicsExport(LCMSExport):
     """A class to export LCMS metabolite data.
 
-    This class provides methods to export LCMS metabolite data to various formats and summarize the metabolite report.
+    This class provides methods to export LCMS metabolite data to various formats
+    (CSV/Parquet reports, HDF5) and summarize the metabolite report.
 
     Parameters
     ----------
@@ -1517,7 +1729,24 @@ class LCMSMetabolomicsExport(LCMSExport):
         report = self.to_report(molecular_metadata=molecular_metadata)
         out_file = self.output_file.with_suffix(".csv")
         report.to_csv(out_file, index=False)
-    
+
+    def report_to_parquet(self, molecular_metadata=None):
+        """Create a report of the mass features and their annotations and save it as a Parquet file.
+
+        Parameters
+        ----------
+        molecular_metadata : dict, optional
+            The molecular metadata. Default is None.
+
+        Notes
+        -----
+        Requires ``pyarrow`` (or ``fastparquet``) for pandas Parquet I/O.
+        Shared by metabolomics and lipidomics exporters via inheritance.
+        """
+        report = self.to_report(molecular_metadata=molecular_metadata)
+        out_file = self.output_file.with_suffix(".parquet")
+        report.to_parquet(out_file, index=False)
+
     def clean_ms1_report(self, ms1_summary_full):
         """Clean the MS1 report.
 
@@ -1852,7 +2081,8 @@ class LCMSMetabolomicsExport(LCMSExport):
 class LipidomicsExport(LCMSMetabolomicsExport):
     """A class to export lipidomics data.
 
-    This class provides methods to export lipidomics data to various formats and summarize the lipid report.
+    This class provides methods to export lipidomics data to various formats
+    (CSV/Parquet reports, HDF5) and summarize the lipid report.
 
     Parameters
     ----------
@@ -2201,11 +2431,12 @@ class LipidomicsExport(LCMSMetabolomicsExport):
 
         
 class LCMSCollectionExport():
-    """A class to export an LCMS collection to HDF5 format.
+    """A class to export an LCMS collection to HDF5 or Parquet format.
 
     This class provides methods to export collection-level data from multi-sample LC-MS
-    experiments to HDF5 files. It handles the export of metadata, retention time alignments,
-    cluster assignments, and induced mass features (gap-filled features) across the collection.
+    experiments to HDF5 or Parquet files. It handles the export of metadata, retention time
+    alignments, cluster assignments, and induced mass features (gap-filled features) across
+    the collection.
 
     The exporter is designed to work with LCMSCollection objects and complements the individual
     LCMSExport class by focusing on collection-wide data rather than individual sample data.
@@ -2213,8 +2444,8 @@ class LCMSCollectionExport():
     Parameters
     ----------
     out_file_path : str | Path
-        The output file path, do not include the file extension. The .hdf5 extension
-        will be added automatically.
+        The output file path, do not include the file extension. The .hdf5 / .parquet
+        extensions are added automatically as needed.
     mass_spectra_collection : LCMSCollection
         The LCMS collection object containing multiple LCMS samples with processed mass features,
         alignments, and clustering information.
@@ -2230,6 +2461,8 @@ class LCMSCollectionExport():
     -------
     export_to_hdf5(overwrite=False)
         Export the LCMS collection to an HDF5 file with collection-level data.
+    export_to_parquet(overwrite=False)
+        Export collection-level tabular datasets to Parquet files.
 
     Notes
     -----
@@ -2358,6 +2591,118 @@ class LCMSCollectionExport():
             if parameter_format not in ["json", "toml"]:
                 raise ValueError("parameter_format must be 'json' or 'toml'")
 
+            if parameter_format == "json":
+                dump_lcms_collection_settings_json(
+                    filename=self.out_file_path.with_suffix(".json"),
+                    lcms_collection=self.mass_spectra_collection,
+                )
+            elif parameter_format == "toml":
+                dump_lcms_collection_settings_toml(
+                    filename=self.out_file_path.with_suffix(".toml"),
+                    lcms_collection=self.mass_spectra_collection,
+                )
+
+    def export_to_parquet(self, overwrite=False, save_parameters=True, parameter_format="toml"):
+        """Export collection-level LC-MS datasets to Parquet files.
+
+        Writes next to ``out_file_path`` (same stem as the HDF5 export):
+
+        - ``{stem}_manifest.parquet`` — sample manifest
+        - ``{stem}_cluster_assignments.parquet`` — cluster labels (if present)
+        - ``{stem}_mass_features.parquet`` — collection mass-features table (if present)
+        - ``{stem}_rt_alignments.parquet`` — RT alignment curves (if aligned)
+        - parameters as JSON or TOML when ``save_parameters`` is True
+
+        Parameters
+        ----------
+        overwrite : bool, optional
+            Whether to overwrite existing Parquet files. Default is False.
+        save_parameters : bool, optional
+            Whether to save collection parameters. Default is True.
+        parameter_format : str, optional
+            Parameter file format, ``'json'`` or ``'toml'``. Default is ``'toml'``.
+
+        Notes
+        -----
+        Requires ``pyarrow`` (or ``fastparquet``) for pandas Parquet I/O.
+        This is a tabular companion to ``export_to_hdf5``; it does not replace
+        per-sample HDF5 archives or gap-fill side effects on individual LCMS files.
+        """
+        stem = self.out_file_path
+
+        def _write(df, suffix):
+            if df is None or df.empty:
+                return
+            out_path = Path(f"{stem}_{suffix}").with_suffix(".parquet")
+            if out_path.exists() and not overwrite:
+                return
+            LCMSExport._prepare_df_for_parquet(df).to_parquet(out_path, index=False)
+
+        # Manifest
+        manifest = self.mass_spectra_collection.collection_parser.manifest
+        if isinstance(manifest, dict):
+            try:
+                manifest_df = pd.DataFrame(manifest)
+            except ValueError:
+                # nested/ragged dict — one row of JSON
+                manifest_df = DataFrame(
+                    [{"manifest_json": self._convert_manifest_to_json()}]
+                )
+            _write(manifest_df.reset_index(drop=False), "manifest")
+        elif isinstance(manifest, DataFrame):
+            _write(manifest.reset_index(drop=False), "manifest")
+
+        # Cluster assignments / mass features table
+        mf_df = getattr(self.mass_spectra_collection, "mass_features_dataframe", None)
+        if mf_df is not None and not mf_df.empty:
+            _write(mf_df.reset_index(drop=False), "mass_features")
+            if "cluster" in mf_df.columns:
+                cluster_df = mf_df[["cluster"]].copy().reset_index(drop=False)
+                _write(cluster_df, "cluster_assignments")
+
+        # RT alignments as long-format table
+        if (
+            getattr(self.mass_spectra_collection, "rt_aligned", False)
+            and getattr(self.mass_spectra_collection, "rt_alignments", None)
+        ):
+            frames = []
+            for sample_idx, alignment_data in self.mass_spectra_collection.rt_alignments.items():
+                arr = np.asarray(alignment_data)
+                if arr.ndim == 1:
+                    frames.append(
+                        DataFrame(
+                            {
+                                "sample_idx": sample_idx,
+                                "point": np.arange(len(arr)),
+                                "value": arr,
+                            }
+                        )
+                    )
+                elif arr.ndim == 2 and arr.shape[1] >= 2:
+                    frames.append(
+                        DataFrame(
+                            {
+                                "sample_idx": sample_idx,
+                                "rt_original": arr[:, 0],
+                                "rt_aligned": arr[:, 1],
+                            }
+                        )
+                    )
+                else:
+                    frames.append(
+                        DataFrame(
+                            {
+                                "sample_idx": [sample_idx],
+                                "alignment_json": [json.dumps(arr.tolist())],
+                            }
+                        )
+                    )
+            if frames:
+                _write(pd.concat(frames, ignore_index=True), "rt_alignments")
+
+        if save_parameters:
+            if parameter_format not in ["json", "toml"]:
+                raise ValueError("parameter_format must be 'json' or 'toml'")
             if parameter_format == "json":
                 dump_lcms_collection_settings_json(
                     filename=self.out_file_path.with_suffix(".json"),
