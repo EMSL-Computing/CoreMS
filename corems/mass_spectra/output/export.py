@@ -1229,23 +1229,40 @@ class LCMSExport(HighResMassSpectraExport):
             return DataFrame()
         return pd.concat(frames, ignore_index=True)
 
+    @staticmethod
+    def _sequence_len(value):
+        """Return length of a sequence/array, or 0 for None/empty/scalar-missing."""
+        if value is None:
+            return 0
+        try:
+            return len(value)
+        except TypeError:
+            return 0
+
     def _eics_to_parquet_df(self):
         """Build a long-format DataFrame of EIC time series."""
         frames = []
         for mz, eic_data in self.mass_spectra.eics.items():
             if eic_data is None:
                 continue
-            n = len(getattr(eic_data, "time", []) or [])
+            # Avoid `array or []` — numpy arrays are ambiguous in boolean context
+            time = getattr(eic_data, "time", None)
+            n = self._sequence_len(time)
             if n == 0:
                 continue
+
+            scans = getattr(eic_data, "scans", None)
+            eic = getattr(eic_data, "eic", None)
+            eic_smoothed = getattr(eic_data, "eic_smoothed", None)
+
             frame = {
                 "mz": [mz] * n,
-                "scans": list(eic_data.scans) if eic_data.scans is not None else [None] * n,
-                "time": list(eic_data.time),
-                "eic": list(eic_data.eic) if eic_data.eic is not None else [None] * n,
+                "scans": list(scans) if self._sequence_len(scans) == n else [None] * n,
+                "time": list(time),
+                "eic": list(eic) if self._sequence_len(eic) == n else [None] * n,
             }
-            if eic_data.eic_smoothed is not None and len(eic_data.eic_smoothed) == n:
-                frame["eic_smoothed"] = list(eic_data.eic_smoothed)
+            if self._sequence_len(eic_smoothed) == n:
+                frame["eic_smoothed"] = list(eic_smoothed)
             frames.append(DataFrame(frame))
 
         if not frames:
