@@ -1281,8 +1281,21 @@ class LCMSExport(HighResMassSpectraExport):
                 if df is None or df.empty:
                     continue
                 df = df.copy()
-                df.insert(0, "query_spectrum_id", getattr(result, "query_spectrum_id", scan_id))
-                df.insert(1, "precursor_mz", getattr(result, "precursor_mz", precursor_key))
+                # to_dataframe() already includes these fields from the result object;
+                # only set them when missing so we do not insert duplicate columns.
+                if "query_spectrum_id" not in df.columns:
+                    df.insert(
+                        0,
+                        "query_spectrum_id",
+                        getattr(result, "query_spectrum_id", scan_id),
+                    )
+                if "precursor_mz" not in df.columns:
+                    loc = 1 if "query_spectrum_id" in df.columns else 0
+                    df.insert(
+                        loc,
+                        "precursor_mz",
+                        getattr(result, "precursor_mz", precursor_key),
+                    )
                 frames.append(df)
 
         if not frames:
