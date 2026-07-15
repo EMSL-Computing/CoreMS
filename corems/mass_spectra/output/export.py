@@ -1099,7 +1099,7 @@ class LCMSExport(HighResMassSpectraExport):
 
     @staticmethod
     def _prepare_df_for_parquet(df):
-        """Make a DataFrame Parquet-safe by serializing nested object values.
+        """Make a DataFrame Parquet-safe by normalizing nested/mixed object values.
 
         Parameters
         ----------
@@ -1110,23 +1110,74 @@ class LCMSExport(HighResMassSpectraExport):
         -------
         DataFrame
             Copy suitable for ``DataFrame.to_parquet``.
+
+        Notes
+        -----
+        Object columns with mixed Python types (especially ``bool`` mixed with
+        ``int``) fail under pyarrow. Nested containers are JSON-serialized;
+        mixed scalar object columns are coerced to a single type or strings.
         """
         if df is None or df.empty:
             return df
 
         out = df.copy()
-        for col in out.columns:
-            if out[col].dtype == object:
-                def _serialize(value):
-                    if value is None:
-                        return None
-                    if isinstance(value, (list, tuple, dict)):
-                        return json.dumps(value)
-                    if isinstance(value, np.ndarray):
-                        return json.dumps(value.tolist())
-                    return value
+        out.columns = [str(c) for c in out.columns]
 
-                out[col] = out[col].map(_serialize)
+        for col in out.columns:
+            series = out[col]
+            if series.dtype != object:
+                continue
+
+            def _normalize(value):
+                if value is None:
+                    return None
+                try:
+                    # Avoid treating array-likes as NA; only scalar NA checks
+                    if not isinstance(value, (list, tuple, dict, np.ndarray)) and pd.isna(
+                        value
+                    ):
+                        return None
+                except (TypeError, ValueError):
+                    pass
+                if isinstance(value, (list, tuple, dict)):
+                    return json.dumps(value)
+                if isinstance(value, np.ndarray):
+                    return json.dumps(value.tolist())
+                if isinstance(value, (bool, np.bool_)):
+                    return bool(value)
+                if isinstance(value, (np.integer,)):
+                    return int(value)
+                if isinstance(value, (np.floating,)):
+                    return float(value)
+                return value
+
+            normalized = series.map(_normalize)
+            non_null = [v for v in normalized.tolist() if v is not None]
+
+            has_bool = any(isinstance(v, bool) for v in non_null)
+            # bool is a subclass of int; exclude bools from int detection
+            has_int = any(isinstance(v, int) and not isinstance(v, bool) for v in non_null)
+            has_float = any(isinstance(v, float) for v in non_null)
+            has_str = any(isinstance(v, str) for v in non_null)
+            has_other = any(
+                not isinstance(v, (bool, int, float, str)) for v in non_null
+            )
+
+            if (
+                has_other
+                or (has_str and (has_bool or has_int or has_float))
+                or (has_bool and has_int)
+            ):
+                out[col] = normalized.map(lambda v: None if v is None else str(v))
+            elif has_bool and not has_float:
+                out[col] = normalized.map(
+                    lambda v: None if v is None else bool(v)
+                ).astype("boolean")
+            elif has_float or has_int:
+                out[col] = pd.to_numeric(pd.Series(normalized), errors="coerce")
+            else:
+                out[col] = normalized.map(lambda v: None if v is None else str(v))
+
         return out
 
     def _write_parquet(self, df, filename, overwrite=False):
@@ -2638,19 +2689,31 @@ class LCMSCollectionExport():
                 return
             LCMSExport._prepare_df_for_parquet(df).to_parquet(out_path, index=False)
 
-        # Manifest
-        manifest = self.mass_spectra_collection.collection_parser.manifest
-        if isinstance(manifest, dict):
-            try:
-                manifest_df = pd.DataFrame(manifest)
-            except ValueError:
-                # nested/ragged dict — one row of JSON
-                manifest_df = DataFrame(
-                    [{"manifest_json": self._convert_manifest_to_json()}]
-                )
+        # Manifest — prefer the tidy samples-as-rows dataframe
+        manifest_df = getattr(self.mass_spectra_collection, "manifest_dataframe", None)
+        if manifest_df is None or getattr(manifest_df, "empty", True):
+            manifest = getattr(
+                self.mass_spectra_collection, "manifest", None
+            ) or getattr(
+                getattr(self.mass_spectra_collection, "collection_parser", None),
+                "manifest",
+                None,
+            )
+            if isinstance(manifest, DataFrame):
+                manifest_df = manifest
+            elif isinstance(manifest, dict) and manifest:
+                try:
+                    # Collection manifests are sample -> attrs; transpose to rows
+                    manifest_df = pd.DataFrame(manifest).T
+                except ValueError:
+                    manifest_df = DataFrame(
+                        [{"manifest_json": self._convert_manifest_to_json()}]
+                    )
+            else:
+                manifest_df = None
+
+        if manifest_df is not None and not manifest_df.empty:
             _write(manifest_df.reset_index(drop=False), "manifest")
-        elif isinstance(manifest, DataFrame):
-            _write(manifest.reset_index(drop=False), "manifest")
 
         # Cluster assignments / mass features table
         mf_df = getattr(self.mass_spectra_collection, "mass_features_dataframe", None)
