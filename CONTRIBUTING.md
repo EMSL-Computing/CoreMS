@@ -1,73 +1,97 @@
 # Contributing to CoreMS
 
-Thank you for considering contributing to CoreMS! We appreciate your interest in helping us improve our project. This document outlines the guidelines and steps for contributing to CoreMS.
+Thanks for contributing. This guide covers expectations for external and internal contributors, how changes land, and how to test locally.
+
+For cutting a release, see [RELEASE.md](./RELEASE.md).
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
-- [Versioning](#versioning)
-- [Testing and CI](#testing-and-ci)
-- [Merge Request Checklist](#merge-request-checklist)
-- [Code Style](#code-style)
-- [Issue Reporting](#issue-reporting)
+- [Contributor paths](#contributor-paths)
+- [Branch model](#branch-model)
+- [Getting started](#getting-started)
+- [Local testing](#local-testing)
+- [PR / MR checklist](#pr--mr-checklist)
+- [Code style](#code-style)
+- [Issue reporting](#issue-reporting)
 - [License](#license)
 
-## Getting Started
+## Contributor paths
 
-To get started with contributing to CoreMS, please follow these steps:
+CoreMS is developed primarily on **GitLab** and mirrored to **GitHub**.
 
-1. Create an issue proposing a fix or expanded functionality and make sure it's substantially different from an existing one.
-2. Fork the CoreMS repository. If you are part of the development team, you can forgo a fork and instead make a branch.
-3. Install the necessary dependencies. Refer to the [README](./README.md) for detailed installation instructions.
-4. Make your changes or additions.
-5. Test your changes thoroughly.
-6. Commit your changes and push them to your forked repository. Reference your original issue in your commits (i.e. closes #23)
-7. Submit a merge request to the main CoreMS repository and select an appropriate reviewer for the changes. Note the merge request checklist below that will be checked before each merge into the master branch. See the merge request checklist
+| | External (public) | Internal (EMSL / PNNL) |
+|---|---|---|
+| Where you work | [GitHub](https://github.com/EMSL-Computing/CoreMS) | GitLab (`code.emsl.pnl.gov`, mass-spectrometry/corems) |
+| How you contribute | Fork, then open a **pull request** | Branch on GitLab, then open a **merge request** |
+| Target branch | `dev` only | `dev` only |
+| Review | Maintainer review on GitHub | Maintainer review on GitLab |
+| What not to do | Do not open PRs against `master` | Do not open MRs against `master` |
 
-## Versioning
+GitHub is the public mirror of the GitLab project. Prefer GitLab for internal work so CI and review stay on the source of truth.
 
-We strive to use semantic versioning. To bump a new version and regenerate documentation, use one of the following make commands (according to version number)  `make major`, `make minor`, or `make patch`.  This should accompany each PiPy release.
+## Branch model
 
-## Testing and CI
+```
+feature / fix branch  -->  dev  -->  master (releases only)
+```
 
-CoreMS uses shared Makefile targets so GitLab CI and GitHub Actions run the same test commands.
+- **`dev`**: integration branch. All PRs and MRs target `dev`.
+- **`master`**: release branch. Only maintainers merge `dev` into `master` when cutting a release. See [RELEASE.md](./RELEASE.md).
 
-- Source tests: `make ci-test-source`
-- Notebook tests: `make ci-test-notebooks`
-- Full CI parity run: `make ci-test-all`
+Do not open feature work against `master`.
 
-CI definitions:
+## Getting started
 
-- GitLab: `.gitlab-ci.yml`
-- GitHub Actions: `.github/workflows/tests.yml`
+1. Open an issue describing the bug or feature (unless one already exists).
+2. Install dependencies. See [README.md](./README.md) and [Installing CoreMS.md](./Installing%20CoreMS.md).
+3. Create a branch (or fork, for external contributors).
+4. Make your changes. Add or update tests and docs as needed.
+5. Run local tests (below).
+6. Open a PR (GitHub) or MR (GitLab) **into `dev`**. Reference the issue (e.g. `closes #23`).
+7. Address review feedback until CI is green and a maintainer approves.
 
-For local validation before opening a merge request or pull request, run `make ci-test-all`.
+Version bumps and packaging are handled at release time by maintainers, not on every feature PR/MR.
 
-## Merge Request Checklist
+## Local testing
 
-Before merging *into the master branch*, each of these will be checked by a reviewer.
+Activate your existing virtualenv first (with CoreMS, pytest, and Thermo/.NET support already set up). Then run tests from the repo root **without** reinstalling the package.
 
-1. CI/CD pipeline must pass.
-2. Each merge request must be accompanied by an appropriate bump in version number, following the major.minor.patch format (semantic versioning). 
-    - Major: Incremented when making incompatible API changes.
-    - Minor: Incremented when adding new features in a backwards-compatible manner.
-    - Patch: Incremented for backwards-compatible bug fixes.
-3. Unit tests must be added or updated to cover the changes made.
-4. Documentation must be updated and rerendered to reflect any new features or changes.
-5. Any relevant issues or pull requests should be referenced in the merge request (i.e. closes #23).
+Prefer these targets for day-to-day work. They use your current env and do not run `pip install`:
 
-## Code Style
+| Command | What it runs |
+|---|---|
+| `make test-pytest-xdist` | pytest with xdist (recommended default) |
+| `make test-notebooks` | Example notebook tests |
+| `make ci-test` | Both of the above |
+| `make download-lipidomics-db` | LC-MS lipidomics SQLite used by some tests (skipped if already present) |
 
-CoreMS follows the [NumPy documentation style guide](https://numpydoc.readthedocs.io/en/latest/format.html). Please ensure that your code adheres to this style to maintain consistency throughout the project.  
+Before opening a PR or MR:
 
-Documentation is rendered using the [pdoc package](https://github.com/mitmproxy/pdoc/tree/main).
+```bash
+make ci-test
+# or source tests only:
+make test-pytest-xdist
+```
 
-## Issue Reporting
+## PR / MR checklist
 
-If you encounter any issues or bugs while using CoreMS, please report them by opening an issue in the issue tracker. Please provide as much detail as possible, including steps to reproduce the issue and any relevant error messages.
+Reviewers check these before merging into **`dev`**:
+
+1. CI is green (tests pass).
+2. Unit tests cover new or changed behavior.
+3. Docs and docstrings are updated when the public API or user-facing behavior changes.
+4. Related issues/PRs/MRs are referenced.
+5. Target branch is `dev` (not `master`).
+
+## Code style
+
+- Docstrings follow the [NumPy style](https://numpydoc.readthedocs.io/en/latest/format.html).
+- API docs are built with [pdoc](https://github.com/mitmproxy/pdoc) (`make docu`).
+
+## Issue reporting
+
+Report bugs and feature requests in the issue tracker on the platform you use (GitHub or GitLab). Include steps to reproduce, expected vs actual behavior, and relevant logs or versions.
 
 ## License
 
-By contributing to CoreMS, you agree that your contributions will be licensed as described in the [LICENSE](./LICENSE) file.
-
-We appreciate your contributions and look forward to working with you to improve CoreMS!
+By contributing, you agree that your contributions are licensed as described in [LICENSE](./LICENSE).
