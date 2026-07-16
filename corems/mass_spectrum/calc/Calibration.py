@@ -296,7 +296,7 @@ class MzDomainCalibration:
             tmpdf = pd.Series(index=cal_refs_mz, data=cal_peaks_mz, dtype=float)
             tmpdf = tmpdf[~tmpdf.index.duplicated(keep=False)]
 
-            cal_peaks_mz = list(tmpdf.values)
+            cal_peaks_mz = list(tmpdf.to_numpy())
             cal_refs_mz = list(tmpdf.index)
         elif calibration_ref_match_method == "merged":
             # This is a new approach (August 2024) which uses Pandas 'merged_asof' to find the peaks closest in m/z between

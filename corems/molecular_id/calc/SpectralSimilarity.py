@@ -238,9 +238,11 @@ class SpectralSimilarity:
             List of abundance values for the experimental mass spectrum.
         y : list
             List of abundance values for the reference mass spectrum."""
-        df.fillna(fill_with, inplace=True)
+        df = df.fillna(fill_with)
 
-        return df.T[0].values, df.T[1].values
+        # to_numpy is preferred over .values for pandas 2/3 (CoW-safe)
+        transposed = df.T
+        return transposed.iloc[0].to_numpy(), transposed.iloc[1].to_numpy()
 
     def normalize(self, x, y, norm_func=sum):
         """Normalize the abundance values.

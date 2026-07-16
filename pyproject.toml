@@ -30,7 +30,9 @@ dependencies = [
     "netCDF4>=1.7.0",
     "numpy>=2.1.0",
     "openpyxl>=3.1.2",
-    "pandas>=2.2.2",
+    # Cap below 3.0 until CoreMS is validated on pandas 3 (Python>=3.11 only)
+    # and remaining CoW / default-str-dtype call sites are fully migrated.
+    "pandas>=2.2.2,<3",
     "psycopg2-binary>=2.9.10",
     "pyswarm>=0.6",
     "pythonnet>=3.0.3",

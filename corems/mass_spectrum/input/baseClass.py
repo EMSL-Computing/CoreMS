@@ -7,8 +7,7 @@ from pathlib import Path
 
 import chardet
 from bs4 import BeautifulSoup
-from pandas import read_csv, read_excel, read_pickle
-from pandas.core.frame import DataFrame
+from pandas import DataFrame, read_csv, read_excel, read_pickle
 from s3path import S3Path
 
 from corems.encapsulation.constant import Labels

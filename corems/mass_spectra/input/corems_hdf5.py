@@ -366,11 +366,25 @@ class ReadCoreMSHDFMassSpectra(
             scan_info[k] = dict_group_load[k][:]
         scan_df = pd.DataFrame(scan_info)
         scan_df.set_index("scan", inplace=True, drop=False)
-        str_df = scan_df.select_dtypes([object])
-        str_df = str_df.stack().str.decode("utf-8").unstack()
-        for col in str_df:
-            scan_df[col] = str_df[col]
-        
+        # HDF5 stores text as fixed-width bytes (numpy "S"). Decode only those
+        # columns. Do not use select_dtypes([object]) + str.decode: under pandas
+        # 3 / infer_string, already-decoded string columns can be selected and
+        # corrupted by a blanket decode.
+        for col in scan_df.columns:
+            series = scan_df[col]
+            sample = series.dropna()
+            if sample.empty:
+                continue
+            first = sample.iloc[0]
+            if isinstance(first, (bytes, bytearray, np.bytes_)):
+                scan_df[col] = series.map(
+                    lambda x: (
+                        x.decode("utf-8")
+                        if isinstance(x, (bytes, bytearray, np.bytes_))
+                        else x
+                    )
+                )
+
         # Apply time range filtering if specified
         if time_range is not None:
             time_ranges = self._normalize_time_range(time_range)

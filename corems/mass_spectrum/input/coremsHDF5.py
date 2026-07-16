@@ -156,7 +156,7 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         dataframe["m/z"] = dataframe["m/z"].astype(float)
         dataframe["Peak Height"] = dataframe["Peak Height"].astype(float)
 
-        polarity = dataframe["Ion Charge"].values[0]
+        polarity = dataframe["Ion Charge"].iloc[0]
 
         output_parameters = self.get_output_parameters(polarity, scan_index=scan_index)
 

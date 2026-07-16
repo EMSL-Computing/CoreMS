@@ -2369,11 +2369,19 @@ class LCMSCollectionExport():
             
             grp = hdf_handle.create_group(group_name)
 
-            # Save the index, converting strings to bytes
-            grp.create_dataset("index", data=cluster_assignments.index.astype(str).values.astype('S'))
-            
+            # Save the index, converting strings to bytes.
+            # Avoid Index.astype(str).values under pandas 3 string/CoW semantics;
+            # build a plain numpy bytes array instead.
+            index_bytes = np.asarray(
+                [str(x).encode("utf-8") for x in cluster_assignments.index],
+                dtype="S",
+            )
+            grp.create_dataset("index", data=index_bytes)
+
             # Save the "cluster" column
-            grp.create_dataset("cluster", data=cluster_assignments["cluster"].values)
+            grp.create_dataset(
+                "cluster", data=cluster_assignments["cluster"].to_numpy()
+            )
     
     def _build_cluster_mf_map(self):
         """Build a mapping of which mass features should be saved for each sample.

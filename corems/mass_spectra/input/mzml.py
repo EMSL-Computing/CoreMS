@@ -591,7 +591,9 @@ class MZMLSpectraParser(SpectraParserInterface):
         # Check if polarity is mixed
         if len(set(scan_df.polarity)) > 1:
             raise ValueError("Mixed polarities detected in scan data")
-        lcms_obj.polarity = scan_df.polarity[0]
+        # Use iloc for positional access (Series.__getitem__ is label-based;
+        # safer across pandas 2.x and 3.x).
+        lcms_obj.polarity = scan_df.polarity.iloc[0]
         lcms_obj._scans_number_list = list(scan_df.scan)
         lcms_obj._retention_time_list = list(scan_df.scan_time)
         lcms_obj._tic_list = list(scan_df.tic)
