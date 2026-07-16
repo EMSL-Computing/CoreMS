@@ -81,7 +81,8 @@ Reviewers check these before merging into **`dev`**:
 2. Unit tests cover new or changed behavior.
 3. Docs and docstrings are updated when the public API or user-facing behavior changes.
 4. Related issues/PRs/MRs are referenced.
-5. Target branch is `dev` (not `master`).
+5. Merge request title and/or description states if the PR/MR are a new feature, bug fix, or other change.
+6. Target branch is `dev` (not `master`).
 
 ## Code style
 

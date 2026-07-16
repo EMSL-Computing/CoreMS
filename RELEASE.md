@@ -27,10 +27,10 @@ Each of those updates version metadata (see `.bumpversion.cfg`) and regenerates 
 
 ## Release steps (GitLab)
 
-Do this on GitLab, not as an ad hoc push to `master` on GitHub.
+All release steps should be done on the `dev` branch and then merged into `master` via a merge request (MR). Only bump the version on `dev` and merge into `master`. 
 
 1. **Ensure `dev` is ready**
-   - CI green on `dev`.
+   - Gitlab CI green on `dev`.
    - Changelog or release notes drafted (these will be copied into the MR description and later into the release on GitHub).
    - No open blockers for the intended version.
 
@@ -39,15 +39,15 @@ Do this on GitLab, not as an ad hoc push to `master` on GitHub.
    git checkout dev
    git pull
    make patch   # or: make minor / make major
-   git add -u   # or: git add -A if you want to include new files and your repo is clean
-   git commit -m "Bump version for release"
+   git add -u   # or: git add -A if you want to include new files AND your repo is clean
+   git commit -m "Bump version for release x.y.z"
    git push origin dev
    ```
 
 3. **Open a release MR on GitLab**
    - Source: `dev`
    - Target: `master`
-   - Title: version 
+   - Title: "Bump version for release x.y.z" 
    - Description: Release notes / changelog (this will be copied into the GitHub release later!)
    - Require CI green and maintainer approval
 
