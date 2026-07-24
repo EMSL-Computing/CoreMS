@@ -25,33 +25,13 @@ from corems.encapsulation.output.parameter_to_json import (
     dump_lcms_collection_settings_toml,
 )
 from corems.mass_spectrum.output.export import HighResMassSpecExport
+from corems.molecular_formula.calc.ion_adduct import (
+    get_ion_formula as _get_ion_formula,
+    ion_type_dict,
+    precursor_mz_from_formula,
+)
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.molecular_id.calc.SpectralSimilarity import methods_name
-
-ion_type_dict = {
-    # adduct : [atoms to add, atoms to subtract when calculating formula of ion
-    "M+": [{}, {}],
-    "[M]+": [{}, {}],
-    "protonated": [{"H": 1}, {}],
-    "[M+H]+": [{"H": 1}, {}],
-    "[M+NH4]+": [{"N": 1, "H": 4}, {}],  # ammonium
-    "[M+Na]+": [{"Na": 1}, {}],
-    "[M+K]+": [{"K": 1}, {}],
-    "[M+2Na+Cl]+": [{"Na": 2, "Cl": 1}, {}],
-    "[M+2Na-H]+": [{"Na": 2}, {"H": 1}],
-    "[M+C2H3Na2O2]+": [{"C": 2, "H": 3, "Na": 2, "O": 2}, {}],
-    "[M+C4H10N3]+": [{"C": 4, "H": 10, "N": 3}, {}],
-    "[M+NH4+ACN]+": [{"C": 2, "H": 7, "N": 2}, {}],
-    "[M+H-H2O]+": [{}, {"H": 1, "O": 1}],
-    "de-protonated": [{}, {"H": 1}],
-    "[M-H]-": [{}, {"H": 1}],
-    "[M+Cl]-": [{"Cl": 1}, {}],
-    "[M+HCOO]-": [{"C": 1, "H": 1, "O": 2}, {}],  # formate
-    "[M+CH3COO]-": [{"C": 2, "H": 3, "O": 2}, {}],  # acetate
-    "[M+2NaAc+Cl]-": [{"Na": 2, "C": 2, "H": 3, "O": 2, "Cl": 1}, {}],
-    "[M+K-2H]-": [{"K": 1}, {"H": 2}],
-    "[M+Na-2H]-": [{"Na": 1}, {"H": 2}],
-}
 
 
 class LowResGCMSExport:
@@ -1341,15 +1321,14 @@ class LCMSMetabolomicsExport(LCMSExport):
     def __init__(self, out_file_path, mass_spectra):
         super().__init__(out_file_path, mass_spectra)
         self.ion_type_dict = ion_type_dict
-    
+
     @staticmethod
     def get_ion_formula(neutral_formula, ion_type):
         """From a neutral formula and an ion type, return the formula of the ion.
 
         Notes
         -----
-        This is a static method.
-        If the neutral_formula is not a string, this method will return None.
+        Delegates to :func:`corems.molecular_formula.calc.ion_adduct.get_ion_formula`.
 
         Parameters
         ----------
@@ -1360,47 +1339,27 @@ class LCMSMetabolomicsExport(LCMSExport):
             e.g. MgCl2 is parsed as 'Mg Cl2.
         ion_type : str
             The ion type, e.g. 'protonated', '[M+H]+', '[M+Na]+', etc.
-            See the self.ion_type_dict for the available ion types.
+            See ``ion_type_dict`` for the available ion types.
 
         Returns
         -------
         str
             The formula of the ion as a string (like 'C2 H4 O2'); or None if the neutral_formula is not a string.
         """
-        # If neutral_formula is not a string, return None
-        if not isinstance(neutral_formula, str):
-            return None
+        return _get_ion_formula(neutral_formula, ion_type)
 
-        # Check if there are spaces in the formula (these are outputs of the MolecularFormula class and do not need to be processed before being passed to the class)
-        if re.search(r"\s", neutral_formula):
-            neutral_formula = MolecularFormula(neutral_formula, ion_charge=0)
-        else:
-            form_pre = re.sub(r"([A-Z])", r" \1", neutral_formula)[1:]
-            elements = [re.findall(r"[A-Z][a-z]*", x) for x in form_pre.split()]
-            counts = [re.findall(r"\d+", x) for x in form_pre.split()]
-            neutral_formula = MolecularFormula(
-                dict(
-                    zip(
-                        [x[0] for x in elements],
-                        [int(x[0]) if x else 1 for x in counts],
-                    )
-                ),
-                ion_charge=0,
-            )
-        neutral_formula_dict = neutral_formula.to_dict().copy()
+    @staticmethod
+    def precursor_mz_from_formula(neutral_formula, ion_type, charge=None):
+        """Calculated precursor m/z from neutral formula and adduct / ion type.
 
-        adduct_add_dict = ion_type_dict[ion_type][0]
-        for key in adduct_add_dict:
-            if key in neutral_formula_dict.keys():
-                neutral_formula_dict[key] += adduct_add_dict[key]
-            else:
-                neutral_formula_dict[key] = adduct_add_dict[key]
-
-        adduct_subtract = ion_type_dict[ion_type][1]
-        for key in adduct_subtract:
-            neutral_formula_dict[key] -= adduct_subtract[key]
-
-        return MolecularFormula(neutral_formula_dict, ion_charge=0).string
+        Notes
+        -----
+        Delegates to
+        :func:`corems.molecular_formula.calc.ion_adduct.precursor_mz_from_formula`.
+        """
+        return precursor_mz_from_formula(
+            neutral_formula, ion_type, charge=charge
+        )
 
     @staticmethod
     def get_isotope_type(ion_formula):
