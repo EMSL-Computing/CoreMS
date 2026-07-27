@@ -7,10 +7,7 @@ import pytest
 from ms_entropy import FlashEntropySearch
 
 from corems.mass_spectra.output.export import LCMSMetabolomicsExport
-from corems.molecular_formula.calc.ion_adduct import (
-    get_ion_formula,
-    precursor_mz_from_formula,
-)
+from corems.molecular_formula.calc.MolecularFormulaCalc import MolecularFormulaCalc
 from corems.molecular_id.search.database_interfaces import (
     MSPInterface,
     SpectraverseMS2Interface,
@@ -29,18 +26,18 @@ def msp_file_location():
 
 
 def test_precursor_mz_from_formula_central_and_export_wrapper():
-    mz = precursor_mz_from_formula("C24H48O2", "[M-H]-")
+    mz = MolecularFormulaCalc.precursor_mz_from_formula("C24H48O2", "[M-H]-")
     assert abs(mz - 367.3582) < 0.01
     assert LCMSMetabolomicsExport.precursor_mz_from_formula(
         "C24H48O2", "[M-H]-"
     ) == pytest.approx(mz)
     assert LCMSMetabolomicsExport.get_ion_formula(
         "C24H48O2", "[M-H]-"
-    ) == get_ion_formula("C24H48O2", "[M-H]-")
+    ) == MolecularFormulaCalc.get_ion_formula("C24H48O2", "[M-H]-")
     # Spectraverse-style alias
-    assert get_ion_formula("C2H4O2", "[M+HCOOH-H]-") == get_ion_formula(
-        "C2H4O2", "[M+HCOO]-"
-    )
+    assert MolecularFormulaCalc.get_ion_formula(
+        "C2H4O2", "[M+HCOOH-H]-"
+    ) == MolecularFormulaCalc.get_ion_formula("C2H4O2", "[M+HCOO]-")
 
 
 def test_spectraverse_loads_ms2_only(spectraverse_mgf_path, tmp_path):

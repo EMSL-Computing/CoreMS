@@ -1657,12 +1657,14 @@ class SpectraverseMS2Interface(SpectralDatabaseInterface):
 
     def _precursor_mz_from_formula(self, formula: str, adduct: str) -> float:
         """Calculate precursor m/z from neutral formula and adduct."""
-        from corems.molecular_formula.calc.ion_adduct import precursor_mz_from_formula
+        from corems.molecular_formula.calc.MolecularFormulaCalc import (
+            MolecularFormulaCalc,
+        )
 
         key = (formula, adduct)
         if key in self._precursor_cache:
             return self._precursor_cache[key]
-        mz = precursor_mz_from_formula(formula, adduct)
+        mz = MolecularFormulaCalc.precursor_mz_from_formula(formula, adduct)
         self._precursor_cache[key] = mz
         return mz
 

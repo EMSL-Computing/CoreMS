@@ -25,11 +25,7 @@ from corems.encapsulation.output.parameter_to_json import (
     dump_lcms_collection_settings_toml,
 )
 from corems.mass_spectrum.output.export import HighResMassSpecExport
-from corems.molecular_formula.calc.ion_adduct import (
-    get_ion_formula as _get_ion_formula,
-    ion_type_dict,
-    precursor_mz_from_formula,
-)
+from corems.molecular_formula.calc.MolecularFormulaCalc import MolecularFormulaCalc
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.molecular_id.calc.SpectralSimilarity import methods_name
 
@@ -1320,7 +1316,7 @@ class LCMSMetabolomicsExport(LCMSExport):
 
     def __init__(self, out_file_path, mass_spectra):
         super().__init__(out_file_path, mass_spectra)
-        self.ion_type_dict = ion_type_dict
+        self.ion_type_dict = MolecularFormulaCalc.ion_type_dict
 
     @staticmethod
     def get_ion_formula(neutral_formula, ion_type):
@@ -1328,7 +1324,8 @@ class LCMSMetabolomicsExport(LCMSExport):
 
         Notes
         -----
-        Delegates to :func:`corems.molecular_formula.calc.ion_adduct.get_ion_formula`.
+        Delegates to
+        :meth:`corems.molecular_formula.calc.MolecularFormulaCalc.MolecularFormulaCalc.get_ion_formula`.
 
         Parameters
         ----------
@@ -1339,14 +1336,14 @@ class LCMSMetabolomicsExport(LCMSExport):
             e.g. MgCl2 is parsed as 'Mg Cl2.
         ion_type : str
             The ion type, e.g. 'protonated', '[M+H]+', '[M+Na]+', etc.
-            See ``ion_type_dict`` for the available ion types.
+            See ``MolecularFormulaCalc.ion_type_dict`` for the available ion types.
 
         Returns
         -------
         str
             The formula of the ion as a string (like 'C2 H4 O2'); or None if the neutral_formula is not a string.
         """
-        return _get_ion_formula(neutral_formula, ion_type)
+        return MolecularFormulaCalc.get_ion_formula(neutral_formula, ion_type)
 
     @staticmethod
     def precursor_mz_from_formula(neutral_formula, ion_type, charge=None):
@@ -1355,9 +1352,9 @@ class LCMSMetabolomicsExport(LCMSExport):
         Notes
         -----
         Delegates to
-        :func:`corems.molecular_formula.calc.ion_adduct.precursor_mz_from_formula`.
+        :meth:`corems.molecular_formula.calc.MolecularFormulaCalc.MolecularFormulaCalc.precursor_mz_from_formula`.
         """
-        return precursor_mz_from_formula(
+        return MolecularFormulaCalc.precursor_mz_from_formula(
             neutral_formula, ion_type, charge=charge
         )
 
