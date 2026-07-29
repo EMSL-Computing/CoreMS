@@ -1580,6 +1580,15 @@ class SpectraverseMS2Interface(SpectralDatabaseInterface):
 
     Download the release MGF from Zenodo, e.g.
     https://zenodo.org/records/19927403 (``spectraverse-1.0.2.mgf``).
+
+    References
+    ----------
+    Gupta, V., Qiang, H., Chung, H.-H., Herbst, E., & Skinnider, M. (2026).
+    Comprehensive curation and harmonization of small molecule MS/MS libraries
+    in Spectraverse [Data set]. Zenodo.
+    https://doi.org/10.5281/zenodo.17252772
+
+    See also: https://github.com/skinniderlab/spectraverse-analysis
     """
 
     def __init__(self, file_path, cache=True, cache_path=None, rebuild_cache=False):

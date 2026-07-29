@@ -92,6 +92,75 @@ def test_get_metabolomics_spectra_library_df_and_fe(spectraverse_mgf_path, tmp_p
     assert len(meta_fe) == 1
 
 
+def test_spectraverse_msp_flashentropy_search_parity(
+    spectraverse_mgf_path, msp_file_location, tmp_path
+):
+    """Shared Lignoceric MS2 spectrum: MSP and Spectraverse FE libs return same top hit and score."""
+    fe_kwargs = {
+        "normalize_intensity": True,
+        "min_ms2_difference_in_da": 0.02,
+        "max_ms2_tolerance_in_da": 0.01,
+        "max_indexed_mz": 3000,
+        "precursor_ions_removal_da": None,
+        "noise_threshold": 0,
+    }
+    msp = MSPInterface(msp_file_location, cache=False)
+    sv = SpectraverseMS2Interface(
+        spectraverse_mgf_path,
+        cache=False,
+        cache_path=tmp_path / "sv_parity.parquet",
+    )
+    msp_lib, _ = msp.get_metabolomics_spectra_library(
+        polarity="negative",
+        format="flashentropy",
+        normalize=True,
+        fe_kwargs=fe_kwargs,
+    )
+    sv_lib, _ = sv.get_metabolomics_spectra_library(
+        polarity="negative",
+        format="flashentropy",
+        normalize=True,
+        fe_kwargs=fe_kwargs,
+    )
+
+    # Identical peaks in test_db.msp (Lignoceric Acid) and test_spectraverse.mgf (NEG_1)
+    peaks = np.array(
+        [[367.359192, 999.0], [368.362396, 245.0]], dtype=np.float64
+    )
+    precursor_mz = 367.359
+    expected_inchikey = "QZZGJDVWLFXDLK-UHFFFAOYSA-N"
+
+    def top_identity_hit(fe_lib):
+        query = fe_lib.clean_spectrum_for_search(
+            precursor_mz=precursor_mz,
+            peaks=peaks,
+            precursor_ions_removal_da=None,
+            noise_threshold=0,
+            min_ms2_difference_in_da=0.02,
+        )
+        scores = fe_lib.search(
+            precursor_mz=precursor_mz,
+            peaks=query,
+            ms1_tolerance_in_da=0.05,
+            ms2_tolerance_in_da=0.005,
+            method={"identity"},
+            precursor_ions_removal_da=None,
+            noise_threshold=0,
+            target="cpu",
+        )["identity_search"]
+        idx = int(np.argmax(scores))
+        return fe_lib[idx]["molecular_data_id"], float(scores[idx])
+
+    msp_id, msp_score = top_identity_hit(msp_lib)
+    sv_id, sv_score = top_identity_hit(sv_lib)
+
+    assert msp_id == expected_inchikey
+    assert sv_id == expected_inchikey
+    assert msp_id == sv_id
+    assert msp_score == pytest.approx(sv_score, rel=0, abs=1e-6)
+    assert msp_score > 0.99
+
+
 def test_spectraverse_bad_path():
     with pytest.raises(FileNotFoundError):
         SpectraverseMS2Interface("/no/such/file.mgf", cache=False)
