@@ -1169,15 +1169,8 @@ class ReadCoreMSHDFMassSpectraCollection:
         with ReadCoreMSHDFMassSpectra(hdf5_file) as parser:
             lcms_obj = parser.get_lcms_obj(load_raw=load_raw, load_light=load_light, use_original_parser=use_original_parser, raw_file_path=raw_file_path)
             if load_light:
+                # mass_features_to_df always includes _eic_mz (object value or mz fallback)
                 mf_df = lcms_obj.mass_features_to_df()
-                # Add ._eic_mz to mf_df for each mass_feature
-                eic_mz_list = []
-                for mf_id, mf in lcms_obj.mass_features.items():
-                    if hasattr(mf, "_eic_mz"):
-                        eic_mz_list.append(mf._eic_mz)
-                    else:
-                        eic_mz_list.append(None)
-                mf_df["_eic_mz"] = eic_mz_list               
                 lcms_obj.mass_features = {}
                 lcms_obj.light_mf_df = mf_df
         return lcms_obj

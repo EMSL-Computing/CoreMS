@@ -301,6 +301,17 @@ def test_lcms_collection_gap_filling(lcms_collection):
     assert 'cluster' in induced_df.columns
     assert 'sample_name' in induced_df.columns
     assert 'mf_id' in induced_df.columns
+    assert '_eic_mz' in induced_df.columns
+    assert induced_df['_eic_mz'].notna().all(), (
+        "induced_mass_features_dataframe should have non-null _eic_mz for all rows"
+    )
+
+    # Regular collection mass_features_dataframe should also expose _eic_mz
+    mf_df = lcms_collection.mass_features_dataframe
+    assert '_eic_mz' in mf_df.columns
+    assert mf_df['_eic_mz'].notna().all(), (
+        "mass_features_dataframe should have non-null _eic_mz for all regular features"
+    )
     
     # Check induced features per sample in the dataframe (not individual objects)
     sample_3_induced = len(induced_df[induced_df['sample_id'] == 2])

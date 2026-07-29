@@ -214,6 +214,8 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         self._intensity: float = intensity
         self._persistence: float = persistence
         self._eic_data: EIC_Data = None
+        # m/z used for EIC extraction; set on integrate (may differ from mz after cal)
+        self._eic_mz: float = None
         self._dispersity_index: float = None
         self._normalized_dispersity_index: float = None
         self._half_height_width: np.ndarray = None
