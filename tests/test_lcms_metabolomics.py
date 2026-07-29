@@ -132,8 +132,8 @@ def test_lcms_metabolomics(tmp_path, postgres_database, lcms_obj, msp_file_locat
     exporter.to_hdf(overwrite=True)
     exporter.report_to_csv(molecular_metadata=metabolite_metadata_negative)
     report = exporter.to_report(molecular_metadata=metabolite_metadata_negative)
-    # MS2 spectral library formula must not fill MS1 "Molecular Formula" / "Ion Formula"
-    # (GitLab #255); library values live under Library * columns.
+    # MS2 spectral library formula must not fill MS1 "Molecular Formula" / "Ion Formula";
+    # library values live under Library * columns.
     assert report["Library Ion Formula"][1] == "C24 H47 O2"
     assert "Library Molecular Formula" in report.columns
     if "Ion Formula" in report.columns:

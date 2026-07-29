@@ -530,7 +530,7 @@ def test_lcms_collection_feature_annotations_table(lcms_collection, msp_file_loc
     if 'Entropy Similarity' in annotations_table.columns:
         matched_features = annotations_table[annotations_table['Entropy Similarity'].notna()]
         assert len(matched_features) > 0, "Should have at least some MS2 spectral matches after search"
-        # Library formula must not be written as MS1 Molecular Formula (#255)
+        # Library formula must not be written as MS1 Molecular Formula
         assert 'Library Molecular Formula' in annotations_table.columns
         lib_hits = matched_features[
             matched_features['Library Molecular Formula'].notna()

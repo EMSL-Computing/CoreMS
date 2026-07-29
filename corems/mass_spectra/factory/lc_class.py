@@ -2418,7 +2418,9 @@ class LCMSCollection(LCMSCollectionCalculations):
         ``Molecular Formula`` / ``Ion Formula`` are filled only from MS1 molecular
         formula search. Spectral-library formulas appear under
         ``Library Molecular Formula`` / ``Library Ion Formula`` so MS2-only hits
-        are not mistaken for MS1 formula assignments (GitLab #255).
+        are not mistaken for MS1 formula assignments. When MS1 and MS2 match
+        (same ion formula), the library formula columns are cleared on that
+        row to avoid repeating the MS1 values.
         
         Raises
         ------

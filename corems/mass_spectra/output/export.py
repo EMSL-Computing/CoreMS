@@ -1490,7 +1490,7 @@ class LCMSMetabolomicsExport(LCMSExport):
         ]
 
         # Keep MS1 neutral Molecular Formula so it is not confused with library formulas
-        # from MS2 spectral metadata (GitLab #255).
+        # from MS2 spectral metadata.
         ms1_summary = ms1_summary[
             [
                 "mf_id",
@@ -1582,7 +1582,7 @@ class LCMSMetabolomicsExport(LCMSExport):
             The cleaned metabolomics summary DataFrame.
         """
         metabolite_summary = metabolite_summary.reset_index()
-        # Library (MS2 metadata) formulas — keep separate from MS1 search fields (#255)
+        # Library (MS2 metadata) formulas — keep separate from MS1 search fields
         metabolite_summary["library_ion_formula"] = [
             self.get_ion_formula(f, a)
             for f, a in zip(metabolite_summary["formula"], metabolite_summary["ref_ion_type"])
@@ -1642,7 +1642,9 @@ class LCMSMetabolomicsExport(LCMSExport):
         -----
         ``Molecular Formula`` / ``Ion Formula`` come only from MS1 molecular
         formula search. MS2 spectral library formulas are exposed as
-        ``Library Molecular Formula`` / ``Library Ion Formula`` (GitLab #255).
+        ``Library Molecular Formula`` / ``Library Ion Formula``.
+        When MS1 and MS2 match (same ion formula), the library formula columns
+        are cleared so they do not repeat the MS1 values on that row.
         """
         # If there is an ms1_annot_report, merge it with the mf_report
         if ms1_annot_report is not None and not ms1_annot_report.empty:
@@ -1721,6 +1723,35 @@ class LCMSMetabolomicsExport(LCMSExport):
             "n_spectra_contributing": "Spectra with Annotation (n)",
         }
         mf_report = mf_report.rename(columns=rename_dict)
+
+        # When MS1 and MS2 co-annotate the same ion/molecular formula, library formula
+        # columns only repeat MS1 fields — clear them so the row is not redundant.
+        # Keep Library * columns populated for MS2-only (or mismatched) hits.
+        if (
+            "Ion Formula" in mf_report.columns
+            and "Library Ion Formula" in mf_report.columns
+        ):
+            ion_match = (
+                mf_report["Ion Formula"].notna()
+                & mf_report["Library Ion Formula"].notna()
+                & (mf_report["Ion Formula"] == mf_report["Library Ion Formula"])
+            )
+            mf_report.loc[ion_match, "Library Ion Formula"] = pd.NA
+            if "Library Molecular Formula" in mf_report.columns:
+                mf_report.loc[ion_match, "Library Molecular Formula"] = pd.NA
+        elif (
+            "Molecular Formula" in mf_report.columns
+            and "Library Molecular Formula" in mf_report.columns
+        ):
+            mol_match = (
+                mf_report["Molecular Formula"].notna()
+                & mf_report["Library Molecular Formula"].notna()
+                & (mf_report["Molecular Formula"] == mf_report["Library Molecular Formula"])
+            )
+            mf_report.loc[mol_match, "Library Molecular Formula"] = pd.NA
+            if "Library Ion Formula" in mf_report.columns:
+                mf_report.loc[mol_match, "Library Ion Formula"] = pd.NA
+
         mf_report["Sample Name"] = self.mass_spectra.sample_name
         mf_report["Polarity"] = self.mass_spectra.polarity
         mf_report = mf_report[
@@ -2085,7 +2116,7 @@ class LipidomicsExport(LCMSMetabolomicsExport):
             The cleaned lipid summary DataFrame.
         """
         lipid_summary = lipid_summary.reset_index()
-        # Library (MS2 metadata) formulas — keep separate from MS1 search fields (#255)
+        # Library (MS2 metadata) formulas — keep separate from MS1 search fields
         lipid_summary["library_ion_formula"] = [
             self.get_ion_formula(f, a)
             for f, a in zip(lipid_summary["formula"], lipid_summary["ref_ion_type"])
