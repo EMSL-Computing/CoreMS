@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import shutil
 import numpy as np
+import pandas as pd
 import pytest
 
 from corems.encapsulation.constant import Labels
@@ -238,8 +239,10 @@ def test_lipidomics_workflow(tmp_path, postgres_database, lcms_obj, lipidomics_s
     exporter.to_hdf(overwrite=True)
     exporter.report_to_csv(molecular_metadata=lipid_metadata)
     report = exporter.to_report(molecular_metadata=lipid_metadata)
-    # Library spectral formula is not MS1 Molecular/Ion Formula
-    assert report['Library Ion Formula'][1] == 'C24 H47 O2'
+    # This workflow runs MS1 formula search + MS2 library match. When ion formulas
+    # agree, Library Ion Formula is cleared and the value lives in Ion Formula.
+    assert report['Ion Formula'][1] == 'C24 H47 O2'
+    assert pd.isna(report['Library Ion Formula'][1])
     assert report['Lipid Molecular Species'][0] == 'FA 20:5'
 
     # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
