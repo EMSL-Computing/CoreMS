@@ -42,6 +42,51 @@ def find_closest(A, target):
     return idx
 
 
+def _finalize_plot(fig, return_fig=False, path=None, **savefig_kwargs):
+    """Shared exit path for LC-MS collection plot methods.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+        Figure to finalize.
+    return_fig : bool, optional
+        If True, leave the figure open and return it. The caller owns the
+        figure lifecycle (e.g. further customization or ``plt.close(fig)``).
+        Default is False.
+    path : str or path-like, optional
+        If set, save the figure to this path via ``fig.savefig`` before
+        showing or returning.
+    **savefig_kwargs
+        Forwarded to ``fig.savefig`` when ``path`` is set.
+
+    Returns
+    -------
+    matplotlib.figure.Figure or None
+        The open figure if ``return_fig`` is True; otherwise None.
+
+    Notes
+    -----
+    Behavior matrix:
+
+    - ``return_fig=False``, ``path=None``: call ``plt.show()`` (notebook default).
+    - ``return_fig=False``, ``path`` set: save, close the figure, do **not**
+      call ``plt.show()`` (batch / headless friendly).
+    - ``return_fig=True``: optionally save if ``path`` is set; return the open
+      figure without showing or closing it.
+    """
+    if path is not None:
+        fig.savefig(path, **savefig_kwargs)
+
+    if return_fig:
+        return fig
+
+    if path is None:
+        plt.show()
+    else:
+        plt.close(fig)
+    return None
+
+
 class LCCalculations:
     """Methods for performing LC calculations on mass spectra data.
 
@@ -3554,24 +3599,28 @@ class LCMSCollectionCalculations:
         summary_df = summary_df.set_index('cluster')
         return summary_df
 
-    def plot_mz_features_per_cluster(self, return_fig = False):
+    def plot_mz_features_per_cluster(self, return_fig=False, path=None):
         """
         Plot the number of mass features in a cluster against how many clusters
         contain that number of mass features
 
         Parameters
         -----------
-        return_fig : boolean
-            Indicates whether to plot composite feature map (False) or return figure object (True). Defaults to False.
+        return_fig : bool, optional
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
 
         Returns
         --------
-        matplotlib.pyplot.Figure
-            A figure displaying the frequency with which clusters contain the given number of m/z features
+        matplotlib.figure.Figure or None
+            The figure if ``return_fig`` is True; otherwise None.
 
         Raises
         ------
-        Warning
+        ValueError
             If consensus features haven't been added to the object yet
         """
 
@@ -3579,19 +3628,16 @@ class LCMSCollectionCalculations:
             raise ValueError(
                 'cluster_summary_dataframe is not set, must run add_consensus_mass_features() first'
             )
-        else:
-            sum_data = self.cluster_summary_dataframe
-            fig, ax = plt.subplots()
-            sum_data.sample_id_nunique.value_counts().sort_index().plot(ax = ax, kind = 'bar')
-            plt.xlabel('Number of mass features in a cluster')
-            plt.ylabel('Number of clusters with this many mass features')
-            if return_fig:
-                plt.close(fig)
-                return fig
-            else:
-                plt.show()
+        sum_data = self.cluster_summary_dataframe
+        fig, ax = plt.subplots()
+        sum_data.sample_id_nunique.value_counts().sort_index().plot(ax=ax, kind='bar')
+        plt.xlabel('Number of mass features in a cluster')
+        plt.ylabel('Number of clusters with this many mass features')
+        return _finalize_plot(fig, return_fig=return_fig, path=path)
         
-    def plot_mz_features_across_samples(self, alpha = 0.75, s = 0.005, return_fig = False):
+    def plot_mz_features_across_samples(
+        self, alpha=0.75, s=0.005, return_fig=False, path=None
+    ):
         """
         Generate Scan Time vs m/z plot of all the mass features across all 
         samples in collection where intensity of color on the plot indicates
@@ -3603,15 +3649,21 @@ class LCMSCollectionCalculations:
             Desired transparency for plotted m/z features.  Defaults to 0.75.
         s : float
             Desired size of plotted m/z features. Defaults to 0.005.
-        return_fig : boolean
-            Indicates whether to plot composite feature map (False) or return figure object (True). Defaults to False.
+        return_fig : bool, optional
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
 
         Returns
         --------
-        matplotlib.pyplot.Figure
-            A figure displaying a scan time vs m/z scatterplot of all the m/z features identified in the collection.
-            Parameters alpha (transparency) and s (marker size) allow the user to emphasize the density of features.
-            Intensity of features is not represented.
+        matplotlib.figure.Figure or None
+            A figure displaying a scan time vs m/z scatterplot of all the m/z
+            features identified in the collection if ``return_fig`` is True;
+            otherwise None. Parameters alpha (transparency) and s (marker size)
+            allow the user to emphasize the density of features. Intensity of
+            features is not represented.
         """
         df = self.mass_features_dataframe.copy()
         fig = plt.figure()
@@ -3629,13 +3681,18 @@ class LCMSCollectionCalculations:
         plt.xlim(0, np.ceil(np.max(df.scan_time)))
         plt.title('All mass features, all samples')
         
-        if return_fig:
-            plt.close(fig)
-            return fig
-        else:
-            plt.show()
+        return _finalize_plot(fig, return_fig=return_fig, path=path)
 
-    def plot_consensus_mz_features(self, xb = 'xb', xt = 'xt', yb = 'yb', yt = 'yt', show_all = True, return_fig = False):
+    def plot_consensus_mz_features(
+        self,
+        xb='xb',
+        xt='xt',
+        yb='yb',
+        yt='yt',
+        show_all=True,
+        return_fig=False,
+        path=None,
+    ):
         """
         Generate Scan Time vs m/z plot of the consensus features scaled by size
         with option ('show_all') of leaving the individual m/z features in the figure.
@@ -3652,15 +3709,22 @@ class LCMSCollectionCalculations:
             Desired ending m/z for the y-axis. Defaults to the maximum m/z value in the provided data.
         show_all : boolean
             Indicates whether to display all identified m/z features (True) or just the consensus features (False). Defaults to True.
-        return_fig : boolean
-            Indicates whether to plot composite feature map (False) or return figure object (True). Defaults to False.
+        return_fig : bool, optional
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
 
         Returns
         --------
-        matplotlib.pyplot.Figure
-            A scalable figure that overlays the consensus features over all the m/z features identified in the collection.
-            Consensus features are scaled by how many m/z features are represented in the consensus. Figure can be scaled by
-            inputting desired boundaries on the scan time (xb, xt) and m/z values (yb, yt).
+        matplotlib.figure.Figure or None
+            A scalable figure that overlays the consensus features over all the
+            m/z features identified in the collection if ``return_fig`` is True;
+            otherwise None. Consensus features are scaled by how many m/z
+            features are represented in the consensus. Figure can be scaled by
+            inputting desired boundaries on the scan time (xb, xt) and m/z
+            values (yb, yt).
         """
         df = self.cluster_summary_dataframe.copy()
         mfdf = self.mass_features_dataframe.copy()
@@ -3712,17 +3776,14 @@ class LCMSCollectionCalculations:
         plt.tight_layout()
         plt.title('Consensus Features')
 
-        if return_fig:
-            plt.close(fig)
-            return fig
-        else:
-            plt.show()
+        return _finalize_plot(fig, return_fig=return_fig, path=path)
     
     def plot_cluster(
         self,
         cluster_id,
         to_plot=["EIC", "MS1", "MS2"],
         return_fig=False,
+        path=None,
         plot_smoothed_eic=False,
         plot_eic_datapoints=False,
         eic_buffer_time=None,
@@ -3744,7 +3805,11 @@ class LCMSCollectionCalculations:
             List of strings specifying what to plot: "EIC", "MS1", "MS2", "MS2_mirror".
             Default is ["EIC", "MS1", "MS2"].
         return_fig : bool, optional
-            If True, returns the figure object. Default is False.
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
         plot_smoothed_eic : bool, optional
             If True, plots smoothed EICs. Default is False.
         plot_eic_datapoints : bool, optional
@@ -3907,12 +3972,7 @@ class LCMSCollectionCalculations:
         
         plt.tight_layout()
         
-        if return_fig:
-            plt.close(fig)
-            return fig
-        else:
-            plt.show()
-            return None
+        return _finalize_plot(fig, return_fig=return_fig, path=path)
     
     def get_representative_mass_features_for_all_clusters(self, representative_metric=None):
         """
@@ -4655,7 +4715,7 @@ class LCMSCollectionCalculations:
 
         return features
 
-    def cluster_inspection_plot(self, clu, return_fig = False):        
+    def cluster_inspection_plot(self, clu, return_fig=False, path=None):
         """
         Generate Scan Time vs m/z plot for a narrow range around a given 
         cluster. This tool is meant to support the user in fine tuning the
@@ -4668,20 +4728,23 @@ class LCMSCollectionCalculations:
         -----------
         clu :  integer
             A cluster ID that exists in self.mass_features_dataframe
-        return_fig : boolean
-            Indicates whether to plot cluster inspection figure (False) or 
-            return figure object (True). Defaults to False.
+        return_fig : bool, optional
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
 
         Returns
         --------
-        matplotlib.pyplot.Figure
+        matplotlib.figure.Figure or None
             A figure displaying a scan time vs m/z scatterplot of small region
             around a given cluster with the ten largest clusters in the region
-            distinctly identified
+            distinctly identified if ``return_fig`` is True; otherwise None.
 
         Raises
         ------
-        Warning
+        ValueError
             If cluster data haven't been added to the object yet
         """
 
@@ -4758,13 +4821,15 @@ class LCMSCollectionCalculations:
             title_str += 'Scan Time tolerance: ' + str(rttol)
             plt.title(title_str, fontsize = 10)
 
-            if return_fig:
-                plt.close(fig)
-                return fig
-            else:
-                plt.show()
+            return _finalize_plot(fig, return_fig=return_fig, path=path)
 
-    def plot_cluster_outlier_frequency(self, dim_list = ['mz', 'scan_time_aligned'], clu_size_thresh = 0.5, return_fig = False):
+    def plot_cluster_outlier_frequency(
+        self,
+        dim_list=['mz', 'scan_time_aligned'],
+        clu_size_thresh=0.5,
+        return_fig=False,
+        path=None,
+    ):
         """
         Generate histogram showing the frequency of outlier occurrences by
         clustering dimension across all clusters
@@ -4785,19 +4850,23 @@ class LCMSCollectionCalculations:
             Value between 0 and 1 that indicates what percentage of samples 
             need to be present in a cluster before it's evaluated for outliers.
             Defaults to 0.5.
-        return_fig : boolean
-            Indicates whether to plot cluster inspection figure (False) or 
-            return figure object (True). Defaults to False.
+        return_fig : bool, optional
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
 
         Returns
         --------
-        matplotlib.pyplot.Figure
+        matplotlib.figure.Figure or None
             A figure displaying the frequency of outlier occurrences across all
-            clusters in the provided measurement dimensions
+            clusters in the provided measurement dimensions if ``return_fig`` is
+            True; otherwise None.
 
         Raises
         ------
-        Warning
+        ValueError
             If cluster data haven't been added to the object yet
         """
 
@@ -4854,11 +4923,7 @@ class LCMSCollectionCalculations:
         plt.xticks(rotation = 90)
         plt.title('Frequency of outliers across all clusters by category')
         
-        if return_fig:
-            plt.close(fig)
-            return fig
-        else:
-            plt.show()
+        return _finalize_plot(fig, return_fig=return_fig, path=path)
             
     def _search_for_targeted_mass_features_in_sample(self, obj_idx, missingdf, cluster_dict, expand_on_miss=False, inplace=True):
         """
