@@ -166,13 +166,13 @@ See walkthrough in [this notebook](examples/notebooks/LCMS_Tutorial.ipynb)
 
 ***
 
-## Installation 
-    
+## Installation
+
 ```bash
 pip install corems
 ```
 
-Corems requires **Python 3.9 or later** (including Python 3.13) and is compatible with **NumPy 2.x**, **pandas 2.x**, and **SQLAlchemy 2.x**.
+CoreMS **4.0+** requires **Python 3.10 or later** (including Python 3.13) and is compatible with **NumPy 2.x**, **pandas 2.x**, and **SQLAlchemy 2.x**. Dependencies (including **pythonnet**) are installed from `pyproject.toml` with the package.
 
 To install with development and testing extras:
 
@@ -180,9 +180,11 @@ To install with development and testing extras:
 pip install "corems[dev]"
 ```
 
+Step-by-step host setup (venv, PostgreSQL, Thermo runtimes): **[Installing CoreMS.md](./Installing%20CoreMS.md)**.
+
 By default the molecular formula database will be generated using SQLite.
 
-To use PostgreSQL the easiest way is to build a docker container:
+To use PostgreSQL the easiest way is to start the compose service from a clone of this repository:
 
 ```bash
 docker-compose up -d
@@ -191,19 +193,21 @@ docker-compose up -d
 - Change the url_database on `MSParameters.molecular_search.url_database` to: `"postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"`
 - Set the env variable `COREMS_DATABASE_URL` to: `"postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"`
 
-### Thermo Raw File Access:
+### Thermo Raw File Access
 
-To be able to open thermo file a installation of pythonnet is needed:
-- Windows: 
-    ```bash
-    pip install pythonnet
-    ```
+Thermo `.raw` support uses **Python.NET** (installed with CoreMS) and a .NET runtime on the host:
 
-- Mac and Linux:
-    ```bash
-    brew install mono
-    pip install pythonnet   
-    ```  
+1. Install the **.NET 8** runtime (not .NET 9) for your platform: [Download .NET 8](https://dotnet.microsoft.com/download/dotnet/8.0).
+2. Prefer CoreCLR:
+
+```bash
+export PYTHONNET_RUNTIME=coreclr
+# set DOTNET_ROOT / PATH if the runtime is not already discoverable
+```
+
+Optional: some macOS/Linux setups still use **Mono** instead of CoreCLR. That path is not required for 4.0+. If you use Mono, set `export PYTHONNET_RUNTIME=mono` and see [Installing CoreMS.md](./Installing%20CoreMS.md#optional-mono-macos--some-linux-setups).
+
+The CoreMS Docker image already includes .NET 8; see [Building and Running the CoreMS Docker Image](#docker-image).
 
 ***
 
