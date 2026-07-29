@@ -1489,12 +1489,14 @@ class LCMSMetabolomicsExport(LCMSExport):
             self.get_isotope_type(f) for f in ms1_summary["ion_formula"].tolist()
         ]
 
-        # Reorder columns
+        # Keep MS1 neutral Molecular Formula so it is not confused with library formulas
+        # from MS2 spectral metadata (GitLab #255).
         ms1_summary = ms1_summary[
             [
                 "mf_id",
                 "ion_formula",
                 "isotopologue_type",
+                "Molecular Formula",
                 "Calculated m/z",
                 "m/z Error (ppm)",
                 "m/z Error Score",
@@ -1580,16 +1582,20 @@ class LCMSMetabolomicsExport(LCMSExport):
             The cleaned metabolomics summary DataFrame.
         """
         metabolite_summary = metabolite_summary.reset_index()
-        metabolite_summary["ion_formula"] = [
+        # Library (MS2 metadata) formulas — keep separate from MS1 search fields (#255)
+        metabolite_summary["library_ion_formula"] = [
             self.get_ion_formula(f, a)
             for f, a in zip(metabolite_summary["formula"], metabolite_summary["ref_ion_type"])
         ]
+        metabolite_summary = metabolite_summary.rename(
+            columns={"formula": "library_formula"}
+        )
 
         col_order = [
             "mf_id",
-            "ion_formula",
+            "library_ion_formula",
             "ref_ion_type",
-            "formula",
+            "library_formula",
             "inchikey",
             "name",
             "inchi",
@@ -1631,6 +1637,12 @@ class LCMSMetabolomicsExport(LCMSExport):
             The MS1 annotation report DataFrame.
         ms2_annot_report : DataFrame
             The MS2 annotation report DataFrame.
+
+        Notes
+        -----
+        ``Molecular Formula`` / ``Ion Formula`` come only from MS1 molecular
+        formula search. MS2 spectral library formulas are exposed as
+        ``Library Molecular Formula`` / ``Library Ion Formula`` (GitLab #255).
         """
         # If there is an ms1_annot_report, merge it with the mf_report
         if ms1_annot_report is not None and not ms1_annot_report.empty:
@@ -1642,24 +1654,31 @@ class LCMSMetabolomicsExport(LCMSExport):
                 on=["mf_id", "isotopologue_type"],
             )
         if ms2_annot_report is not None:
-            # If both reports contain 'ion_formula', prefer a merge that respects it.
-            # Otherwise fall back to merging on 'mf_id' only to remain robust when
-            # MS1 formula assignment wasn't performed or MS2 summary lacks the field.
-            if "ion_formula" in mf_report.columns and "ion_formula" in ms2_annot_report.columns:
+            # Prefer joining MS2 hits to matching MS1 ion formula when both exist.
+            # MS2 uses library_ion_formula so MS1 Ion Formula is not overwritten.
+            if (
+                "ion_formula" in mf_report.columns
+                and "library_ion_formula" in ms2_annot_report.columns
+            ):
                 # pull out the records without ion_formula and merge on mf_id only
                 mf_no_ion_formula = mf_report[mf_report["ion_formula"].isna()]
-                mf_no_ion_formula = mf_no_ion_formula.drop(columns=["ion_formula"]) if "ion_formula" in mf_no_ion_formula.columns else mf_no_ion_formula
+                mf_no_ion_formula = (
+                    mf_no_ion_formula.drop(columns=["ion_formula"])
+                    if "ion_formula" in mf_no_ion_formula.columns
+                    else mf_no_ion_formula
+                )
                 mf_no_ion_formula = pd.merge(
                     mf_no_ion_formula, ms2_annot_report, how="left", on=["mf_id"]
                 )
 
-                # pull out the records with ion_formula and merge on mf_id + ion_formula
+                # pull out the records with ion_formula and merge on mf_id + formula match
                 mf_with_ion_formula = mf_report[~mf_report["ion_formula"].isna()]
                 mf_with_ion_formula = pd.merge(
                     mf_with_ion_formula,
                     ms2_annot_report,
                     how="left",
-                    on=["mf_id", "ion_formula"],
+                    left_on=["mf_id", "ion_formula"],
+                    right_on=["mf_id", "library_ion_formula"],
                 )
 
                 # put back together
@@ -1688,8 +1707,9 @@ class LCMSMetabolomicsExport(LCMSExport):
             "mass_spectrum_deconvoluted_parent": "Is Largest Ion after Deconvolution",
             "associated_mass_features": "Associated Mass Features after Deconvolution",
             "ion_formula": "Ion Formula",
-            "formula": "Molecular Formula",
-            "ref_ion_type": "Ion Type",
+            "library_ion_formula": "Library Ion Formula",
+            "library_formula": "Library Molecular Formula",
+            "ref_ion_type": "Library Ion Type",
             "annot_level": "Lipid Annotation Level",
             "lipid_molecular_species_id": "Lipid Molecular Species",
             "lipid_summed_name": "Lipid Species",
@@ -2065,18 +2085,20 @@ class LipidomicsExport(LCMSMetabolomicsExport):
             The cleaned lipid summary DataFrame.
         """
         lipid_summary = lipid_summary.reset_index()
-        lipid_summary["ion_formula"] = [
+        # Library (MS2 metadata) formulas — keep separate from MS1 search fields (#255)
+        lipid_summary["library_ion_formula"] = [
             self.get_ion_formula(f, a)
             for f, a in zip(lipid_summary["formula"], lipid_summary["ref_ion_type"])
         ]
+        lipid_summary = lipid_summary.rename(columns={"formula": "library_formula"})
 
         # Reorder columns
         lipid_summary = lipid_summary[
             [
                 "mf_id",
-                "ion_formula",
+                "library_ion_formula",
                 "ref_ion_type",
-                "formula",
+                "library_formula",
                 "annot_level",
                 "lipid_molecular_species_id",
                 "lipid_summed_name",

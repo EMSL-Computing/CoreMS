@@ -2400,8 +2400,11 @@ class LCMSCollection(LCMSCollectionCalculations):
             - sample_id: sample ID
             - Mass Feature ID: mass feature ID within the sample
             - Mass feature attributes (mz, scan_time, intensity, etc.)
-            - MS1 annotations (if molecular_formula_search was run)
-            - MS2 annotations (if ms2_spectral_search was run)
+            - MS1 annotations (if molecular_formula_search was run):
+              ``Molecular Formula``, ``Ion Formula``, ``Calculated m/z``, etc.
+            - MS2 annotations (if ms2_spectral_search was run):
+              ``Library Molecular Formula``, ``Library Ion Formula``,
+              ``Entropy Similarity``, ``name``, etc.
         
         Notes
         -----
@@ -2411,6 +2414,11 @@ class LCMSCollection(LCMSCollectionCalculations):
         Only mass features that are loaded in each sample's mass_features dict
         are included (typically the representative features if load_representatives
         was used in process_consensus_features).
+
+        ``Molecular Formula`` / ``Ion Formula`` are filled only from MS1 molecular
+        formula search. Spectral-library formulas appear under
+        ``Library Molecular Formula`` / ``Library Ion Formula`` so MS2-only hits
+        are not mistaken for MS1 formula assignments (GitLab #255).
         
         Raises
         ------
@@ -2504,8 +2512,10 @@ class LCMSCollection(LCMSCollectionCalculations):
             'Isotopologue Similarity',
             'Confidence Score',
             'Ion Formula',
-            'Ion Type',
             'Molecular Formula',
+            'Library Ion Formula',
+            'Library Ion Type',
+            'Library Molecular Formula',
             'inchikey',
             'name',
             'ref_ms_id',

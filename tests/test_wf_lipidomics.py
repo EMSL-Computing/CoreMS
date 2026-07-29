@@ -238,7 +238,8 @@ def test_lipidomics_workflow(tmp_path, postgres_database, lcms_obj, lipidomics_s
     exporter.to_hdf(overwrite=True)
     exporter.report_to_csv(molecular_metadata=lipid_metadata)
     report = exporter.to_report(molecular_metadata=lipid_metadata)
-    assert report['Ion Formula'][1] == 'C24 H47 O2'
+    # Library spectral formula is not MS1 Molecular/Ion Formula (GitLab #255)
+    assert report['Library Ion Formula'][1] == 'C24 H47 O2'
     assert report['Lipid Molecular Species'][0] == 'FA 20:5'
 
     # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
