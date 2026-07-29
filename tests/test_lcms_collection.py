@@ -968,3 +968,22 @@ def test_lcms_collection_plot_cluster_finalize_return_fig(lcms_collection, tmp_p
 
     fig = lcms_collection.plot_mz_features_per_cluster(return_fig=True)
     _assert_open_and_saveable(fig, "plot_mz_features_per_cluster")
+
+    # Mass-feature plot uses the same finalize contract (prefer MS1 to avoid
+    # EIC paths that require optional MS2 associations)
+    sample = lcms_collection[0]
+    if sample.mass_features:
+        mf = next(
+            (
+                m
+                for m in sample.mass_features.values()
+                if m.mass_spectrum is not None
+            ),
+            None,
+        )
+        if mf is not None:
+            fig = mf.plot(to_plot=["MS1"], return_fig=True)
+            _assert_open_and_saveable(fig, "mass_feature_plot")
+            path_mf = tmp_path / "mass_feature_batch.png"
+            assert mf.plot(to_plot=["MS1"], return_fig=False, path=path_mf) is None
+            assert path_mf.is_file() and path_mf.stat().st_size > 0

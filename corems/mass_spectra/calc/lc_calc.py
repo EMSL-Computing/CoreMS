@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
+from corems.encapsulation.plot_utils import _finalize_plot
 from corems.mass_spectra.calc import SignalProcessing as sp
 from corems.mass_spectra.factory.chromat_data import EIC_Data
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
@@ -40,51 +41,6 @@ def find_closest(A, target):
     right = A[idx]
     idx -= target - left < right - target
     return idx
-
-
-def _finalize_plot(fig, return_fig=False, path=None, **savefig_kwargs):
-    """Shared exit path for LC-MS collection plot methods.
-
-    Parameters
-    ----------
-    fig : matplotlib.figure.Figure
-        Figure to finalize.
-    return_fig : bool, optional
-        If True, leave the figure open and return it. The caller owns the
-        figure lifecycle (e.g. further customization or ``plt.close(fig)``).
-        Default is False.
-    path : str or path-like, optional
-        If set, save the figure to this path via ``fig.savefig`` before
-        showing or returning.
-    **savefig_kwargs
-        Forwarded to ``fig.savefig`` when ``path`` is set.
-
-    Returns
-    -------
-    matplotlib.figure.Figure or None
-        The open figure if ``return_fig`` is True; otherwise None.
-
-    Notes
-    -----
-    Behavior matrix:
-
-    - ``return_fig=False``, ``path=None``: call ``plt.show()`` (notebook default).
-    - ``return_fig=False``, ``path`` set: save, close the figure, do **not**
-      call ``plt.show()`` (batch / headless friendly).
-    - ``return_fig=True``: optionally save if ``path`` is set; return the open
-      figure without showing or closing it.
-    """
-    if path is not None:
-        fig.savefig(path, **savefig_kwargs)
-
-    if return_fig:
-        return fig
-
-    if path is None:
-        plt.show()
-    else:
-        plt.close(fig)
-    return None
 
 
 class LCCalculations:
