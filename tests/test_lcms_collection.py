@@ -851,3 +851,52 @@ def test_lcms_collection_plotting_methods(lcms_collection):
         lcms_collection.plot_cluster(cluster_id, to_plot=["EIC"], label_samples=True)
     except Exception as e:
         pytest.fail(f"plot_cluster after gap filling raised exception: {e}")
+
+
+def test_get_eic_data_for_mz_tolerance_lookup():
+    """
+    Regression for GitLab #257: EIC lookup must fall back to m/z tolerance
+    when the exact dict key does not match (float noise between feature
+    _eic_mz and HDF5 EIC keys).
+    """
+    from types import SimpleNamespace
+
+    from corems.mass_spectra.calc.lc_calc import LCMSCollectionCalculations
+
+    class _FakeEIC:
+        def __init__(self, label):
+            self.label = label
+
+    # Keys differ from query by ~5e-5 Da (within default 1e-4 tolerance)
+    stored_mz = 100.00005
+    query_mz = 100.00000
+    eic = _FakeEIC("matched")
+
+    # Sample with real helper method path
+    sample = SimpleNamespace(eics={stored_mz: eic})
+    # Attach the real method from LCMSBase via binding
+    from corems.mass_spectra.factory.lc_class import LCMSBase
+    sample.get_eic_mz_for_mass_feature = LCMSBase.get_eic_mz_for_mass_feature.__get__(
+        sample, type(sample)
+    )
+
+    # Exact miss, tolerance hit
+    assert sample.eics.get(query_mz) is None
+    found = LCMSCollectionCalculations._get_eic_data_for_mz(sample, query_mz)
+    assert found is eic
+
+    # Exact hit still preferred
+    found_exact = LCMSCollectionCalculations._get_eic_data_for_mz(sample, stored_mz)
+    assert found_exact is eic
+
+    # Outside tolerance → None
+    far = LCMSCollectionCalculations._get_eic_data_for_mz(
+        sample, query_mz, tolerance=1e-6
+    )
+    assert far is None
+
+    # Empty / missing eics
+    empty = SimpleNamespace(eics={})
+    assert LCMSCollectionCalculations._get_eic_data_for_mz(empty, query_mz) is None
+    assert LCMSCollectionCalculations._get_eic_data_for_mz(sample, None) is None
+    assert LCMSCollectionCalculations._get_eic_data_for_mz(sample, float("nan")) is None

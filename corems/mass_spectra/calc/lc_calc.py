@@ -2570,6 +2570,54 @@ class LCMSCollectionCalculations:
     """
 
     @staticmethod
+    def _get_eic_data_for_mz(sample, eic_mz, tolerance=0.0001):
+        """Resolve EIC data for an m/z using exact key, then tolerance match.
+
+        Plotting previously used ``sample.eics.get(eic_mz)`` only. HDF5 EIC
+        keys and feature ``_eic_mz`` often differ by float noise, which
+        silently dropped traces (including the representative). Elsewhere
+        CoreMS uses the same default tolerance via
+        ``get_eic_mz_for_mass_feature`` / ``associate_eics_with_mass_features``.
+
+        Parameters
+        ----------
+        sample : LCMSBase
+            Sample that holds ``eics`` (dict keyed by m/z).
+        eic_mz : float or None
+            Target m/z (typically from the mass-feature ``_eic_mz`` column).
+        tolerance : float, optional
+            Maximum |Δm/z| for fallback matching. Default is 0.0001 Da.
+
+        Returns
+        -------
+        EIC_Data or None
+            Matching EIC data, or None if no key is within tolerance.
+        """
+        if eic_mz is None or pd.isna(eic_mz):
+            return None
+        if not hasattr(sample, "eics") or not sample.eics:
+            return None
+
+        eic_data = sample.eics.get(eic_mz)
+        if eic_data is not None:
+            return eic_data
+
+        # Exact key miss: tolerance match (same default as associate_eics_with_mass_features)
+        if hasattr(sample, "get_eic_mz_for_mass_feature"):
+            matched_mz = sample.get_eic_mz_for_mass_feature(
+                float(eic_mz), tolerance=tolerance
+            )
+            if matched_mz is not None:
+                return sample.eics.get(matched_mz)
+            return None
+
+        # Fallback if sample is a simple mock without the helper
+        best_key = min(sample.eics, key=lambda k: abs(float(k) - float(eic_mz)))
+        if abs(float(best_key) - float(eic_mz)) < tolerance:
+            return sample.eics[best_key]
+        return None
+
+    @staticmethod
     def _plot_multiple_eics(ax, cluster_mfs, induced_cluster_mfs, rep_sample_id, rep_mf_id,
                            median_rt, eic_buffer_time, plot_smoothed=False, 
                            plot_datapoints=False, label_samples=False, lcms_collection=None):
@@ -2614,12 +2662,10 @@ class LCMSCollectionCalculations:
             sample = lcms_collection[sample_id]
             sample_name = row['sample_name']
             
-            # Get EIC using eic_mz column from dataframe
-            eic_mz = row.get('_eic_mz')
-            if eic_mz is not None and not pd.isna(eic_mz) and hasattr(sample, 'eics') and sample.eics:
-                eic_data = sample.eics.get(eic_mz)
-            else:
-                eic_data = None
+            # Tolerance-based lookup (exact key first) — GitLab #257
+            eic_data = LCMSCollectionCalculations._get_eic_data_for_mz(
+                sample, row.get('_eic_mz')
+            )
             
             if eic_data:
                 # Determine line style and width
@@ -2681,12 +2727,10 @@ class LCMSCollectionCalculations:
                 sample = lcms_collection[sample_id]
                 sample_name = row['sample_name']
                 
-                # Get EIC using eic_mz column from dataframe
-                eic_mz = row.get('_eic_mz')
-                if eic_mz is not None and not pd.isna(eic_mz) and hasattr(sample, 'eics') and sample.eics:
-                    eic_data = sample.eics.get(eic_mz)
-                else:
-                    eic_data = None
+                # Tolerance-based lookup (exact key first) — GitLab #257
+                eic_data = LCMSCollectionCalculations._get_eic_data_for_mz(
+                    sample, row.get('_eic_mz')
+                )
                 
                 if eic_data:
                     # Induced features - even thinner line
