@@ -864,6 +864,70 @@ def test_lcms_collection_plotting_methods(lcms_collection):
         pytest.fail(f"plot_cluster after gap filling raised exception: {e}")
 
 
+def test_cluster_mz_dict_uses_dataframe_not_only_loaded_features(lcms_collection):
+    """
+    Regression for GitLab #258: after load_representatives, sample.mass_features
+    is sparse; cluster_mz_dict must still list every clustered feature m/z from
+    the collection dataframe so gather_eics loads multi-sample EICs for plotting.
+    """
+    lcms_collection = copy.deepcopy(lcms_collection)
+    if not lcms_collection.rt_alignment_attempted:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
+
+    mfdf = lcms_collection.mass_features_dataframe
+    assert 'cluster' in mfdf.columns
+    clustered = mfdf[mfdf['cluster'].notna()]
+    assert len(clustered) > 0
+
+    # Simulate sparse load: clear all in-memory mass features on every sample
+    for sample in lcms_collection:
+        sample.mass_features = {}
+        sample.eics = {}
+
+    cluster_mz_dict = lcms_collection._build_cluster_mz_dict_for_eic_loading()
+
+    # Every sample with clustered dataframe rows must have m/z targets
+    for sample_id, sample_df in clustered.groupby('sample_id'):
+        sid = int(sample_id)
+        assert sid in cluster_mz_dict, f"sample {sid} missing from cluster_mz_dict"
+        assert len(cluster_mz_dict[sid]) > 0, f"sample {sid} has empty m/z list"
+        # Object-only logic would yield empty lists when mass_features is {}
+        assert len(lcms_collection[sid].mass_features) == 0
+
+    # Full gather after load_representatives should put EICs on non-rep samples
+    lcms_collection.process_consensus_features(
+        load_representatives=True,
+        perform_gap_filling=False,
+        add_ms1=False,
+        add_ms2=False,
+        molecular_formula_search=False,
+        ms2_spectral_search=False,
+        gather_eics=True,
+        keep_raw_data=False,
+    )
+
+    # Pick a cluster with members in >1 sample; each should have a resolvable EIC
+    from corems.mass_spectra.calc.lc_calc import LCMSCollectionCalculations
+
+    multi = (
+        clustered.groupby('cluster')['sample_id']
+        .nunique()
+        .loc[lambda s: s >= 2]
+    )
+    assert len(multi) > 0, "Need a multi-sample cluster for this assertion"
+    cid = multi.index[0]
+    rows = mfdf[mfdf['cluster'] == cid]
+    for _, row in rows.iterrows():
+        sample = lcms_collection[int(row['sample_id'])]
+        query = LCMSCollectionCalculations._resolve_eic_query_mz(row)
+        eic = LCMSCollectionCalculations._get_eic_data_for_mz(sample, query)
+        assert eic is not None, (
+            f"Missing EIC for cluster {cid} sample {row['sample_id']} "
+            f"mf {row['mf_id']} query_mz={query} n_eics={len(sample.eics or {})}"
+        )
+
+
 def test_get_eic_data_for_mz_tolerance_lookup():
     """
     Regression for GitLab #257: EIC lookup must fall back to m/z tolerance

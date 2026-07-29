@@ -597,13 +597,23 @@ class ReadCoreMSHDFMassSpectra(
         object with a dictionary of the 'eics' from the HDF5 file.
 
         """
+        if "eics" not in self.h5pydata:
+            # Samples with no exported EICs (e.g. empty / fully gap-filled) have no group
+            return
+
         dict_group_load = self.h5pydata["eics"]
         dict_group_keys = dict_group_load.keys()
 
         # Prefilter dict_group_keys if mz_list is provided to EICs within tolerance
         if mz_list is not None:
-            target_mz_array = np.array(sorted(mz_list))
-            mzs = [float(k) for k in dict_group_keys if np.abs(float(k)-target_mz_array).min() < mz_tolerance]
+            if len(mz_list) == 0:
+                return
+            target_mz_array = np.array(sorted(mz_list), dtype=float)
+            mzs = [
+                float(k)
+                for k in dict_group_keys
+                if np.abs(float(k) - target_mz_array).min() < mz_tolerance
+            ]
             dict_group_keys = [str(mz) for mz in mzs]
 
         for k in dict_group_keys:

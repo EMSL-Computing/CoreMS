@@ -5463,32 +5463,57 @@ class LCMSCollectionCalculations:
         # Check if any operation needs EIC loading parameters
         needs_eic_loading = any(isinstance(op, LoadEICsOperation) for op in operations)
         if needs_eic_loading:
-            # Build cluster_mz_dict: map of sample_id -> list of m/z values in clusters
-            mfdf = self.mass_features_dataframe
-            cluster_mz_dict = {}
-            
-            # Get all mass features that belong to clusters (cluster is not NaN)
-            clustered_mf = mfdf[mfdf['cluster'].notna()]
-            
-            # Group by sample_id and collect all m/z values associated with eics
-            for sample_id in clustered_mf['sample_id'].unique():
-                sample_df = clustered_mf[clustered_mf['sample_id'] == sample_id]
-                sample = self[sample_id]  # Get the LCMS object for this sample
-                
-                # Extract _eic_mz from actual mass feature objects, not from dataframe
-                eic_mz_list = []
-                for mf_id in sample_df['mf_id'].values:
-                    if mf_id in sample.mass_features:
-                        mf = sample.mass_features[mf_id]
-                        if hasattr(mf, '_eic_mz') and mf._eic_mz is not None:
-                            eic_mz_list.append(mf._eic_mz)
-                
-                # Use the collected m/z values, or fallback to empty list if none found
-                cluster_mz_dict[sample_id] = list(set(eic_mz_list)) if eic_mz_list else []
-            
-            runtime_params['cluster_mz_dict'] = cluster_mz_dict
+            # Map sample_id -> m/z list for LoadEICsOperation.
+            # Must use collection *dataframes*, not only in-memory mass_features:
+            # after load_representatives=True each sample holds only a sparse set
+            # of representative objects, so object-only walks miss most cluster
+            # members and plot_cluster shows incomplete multi-sample EICs (#258).
+            runtime_params['cluster_mz_dict'] = self._build_cluster_mz_dict_for_eic_loading()
         
         return runtime_params
+
+    def _build_cluster_mz_dict_for_eic_loading(self):
+        """Build sample_id -> list of EIC m/z targets for all clustered features.
+
+        Uses ``mass_features_dataframe`` (and induced dataframe if present).
+        Prefers ``_eic_mz``, falls back to ``mz``. Does not require feature
+        objects to be loaded in ``sample.mass_features``.
+
+        Returns
+        -------
+        dict
+            Mapping of sample_id (int) to unique float m/z values to load.
+        """
+        cluster_mz_dict = {}
+
+        def _add_from_df(df):
+            if df is None or len(df) == 0:
+                return
+            if 'cluster' in df.columns:
+                df = df[df['cluster'].notna()]
+            if len(df) == 0 or 'sample_id' not in df.columns:
+                return
+            for sample_id, sample_df in df.groupby('sample_id'):
+                mzs = []
+                if '_eic_mz' in sample_df.columns:
+                    mzs.extend(sample_df['_eic_mz'].dropna().tolist())
+                if 'mz' in sample_df.columns:
+                    # Include mz for rows with missing _eic_mz
+                    if '_eic_mz' in sample_df.columns:
+                        missing = sample_df['_eic_mz'].isna()
+                        mzs.extend(sample_df.loc[missing, 'mz'].dropna().tolist())
+                    else:
+                        mzs.extend(sample_df['mz'].dropna().tolist())
+                sid = int(sample_id)
+                existing = cluster_mz_dict.get(sid, [])
+                cluster_mz_dict[sid] = list(set(existing + [float(m) for m in mzs]))
+
+        # Regular clustered features only: these are what were exported to per-sample
+        # HDF5 EICs. Induced (gap-filled) features get EICs at gap-fill time on the
+        # sample object; they are typically not present in the original HDF5 eics group.
+        _add_from_df(self.mass_features_dataframe)
+
+        return cluster_mz_dict
     
     def _execute_sample_pipeline(self, sample_id, operations, runtime_params, inplace=True):
         """
