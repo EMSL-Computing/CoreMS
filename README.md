@@ -72,7 +72,9 @@ Overview slides can be found [here](https://github.com/EMSL-Computing/CoreMS/blo
 
 ## Contributing
 
-As an open source project, CoreMS welcomes contributions of all forms. Before contributing, please see our [Dev Guide](./CONTRIBUTING.md)
+As an open source project, CoreMS welcomes contributions of all forms. See the [contributing guide](./CONTRIBUTING.md) for external (GitHub) and internal (GitLab) workflows. Maintainers: see the [release guide](./RELEASE.md).
+
+**Branches:** `master` is the stable release line (PyPI and tags). `dev` is the integration branch for ongoing work. Open PRs and MRs against `dev` only; maintainers merge `dev` into `master` when cutting a release.
 
 ***
 
