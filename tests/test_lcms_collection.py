@@ -858,8 +858,13 @@ def test_get_eic_data_for_mz_tolerance_lookup():
     Regression for GitLab #257: EIC lookup must fall back to m/z tolerance
     when the exact dict key does not match (float noise between feature
     _eic_mz and HDF5 EIC keys).
+
+    Also: regular mass_features_dataframe rows often have NaN ``_eic_mz`` while
+    induced rows are populated — plotting must fall back to feature ``mz``.
     """
     from types import SimpleNamespace
+
+    import pandas as pd
 
     from corems.mass_spectra.calc.lc_calc import LCMSCollectionCalculations
 
@@ -900,3 +905,16 @@ def test_get_eic_data_for_mz_tolerance_lookup():
     assert LCMSCollectionCalculations._get_eic_data_for_mz(empty, query_mz) is None
     assert LCMSCollectionCalculations._get_eic_data_for_mz(sample, None) is None
     assert LCMSCollectionCalculations._get_eic_data_for_mz(sample, float("nan")) is None
+
+    # Dataframe row: NaN _eic_mz (typical for regular features) → fall back to mz
+    row_nan_eic = pd.Series({"_eic_mz": float("nan"), "mz": stored_mz})
+    assert LCMSCollectionCalculations._resolve_eic_query_mz(row_nan_eic) == stored_mz
+    assert (
+        LCMSCollectionCalculations._get_eic_data_for_mz(
+            sample, LCMSCollectionCalculations._resolve_eic_query_mz(row_nan_eic)
+        )
+        is eic
+    )
+    # Prefer non-null _eic_mz over mz
+    row_with_eic = pd.Series({"_eic_mz": query_mz, "mz": 999.0})
+    assert LCMSCollectionCalculations._resolve_eic_query_mz(row_with_eic) == query_mz

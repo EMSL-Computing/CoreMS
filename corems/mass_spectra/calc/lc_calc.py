@@ -2570,11 +2570,32 @@ class LCMSCollectionCalculations:
     """
 
     @staticmethod
+    def _resolve_eic_query_mz(row):
+        """Pick m/z used to look up ``sample.eics`` for a mass-feature row.
+
+        Prefer ``_eic_mz`` when present (set after integrate / gap-fill).
+        Regular features in ``mass_features_dataframe`` often have NaN
+        ``_eic_mz`` (never back-filled from objects on light load / reload),
+        while induced features get ``_eic_mz`` written after gap-fill. Fall
+        back to the feature ``mz`` so regular and representative traces are
+        not silently dropped from multi-sample EIC plots.
+        """
+        if row is None:
+            return None
+        eic_mz = row.get("_eic_mz") if hasattr(row, "get") else None
+        if eic_mz is not None and not pd.isna(eic_mz):
+            return eic_mz
+        mz = row.get("mz") if hasattr(row, "get") else None
+        if mz is not None and not pd.isna(mz):
+            return mz
+        return None
+
+    @staticmethod
     def _get_eic_data_for_mz(sample, eic_mz, tolerance=0.0001):
         """Resolve EIC data for an m/z using exact key, then tolerance match.
 
         Plotting previously used ``sample.eics.get(eic_mz)`` only. HDF5 EIC
-        keys and feature ``_eic_mz`` often differ by float noise, which
+        keys and feature ``_eic_mz`` / ``mz`` often differ by float noise, which
         silently dropped traces (including the representative). Elsewhere
         CoreMS uses the same default tolerance via
         ``get_eic_mz_for_mass_feature`` / ``associate_eics_with_mass_features``.
@@ -2584,7 +2605,7 @@ class LCMSCollectionCalculations:
         sample : LCMSBase
             Sample that holds ``eics`` (dict keyed by m/z).
         eic_mz : float or None
-            Target m/z (typically from the mass-feature ``_eic_mz`` column).
+            Target m/z (typically from the mass-feature ``_eic_mz`` or ``mz``).
         tolerance : float, optional
             Maximum |Δm/z| for fallback matching. Default is 0.0001 Da.
 
@@ -2662,9 +2683,9 @@ class LCMSCollectionCalculations:
             sample = lcms_collection[sample_id]
             sample_name = row['sample_name']
             
-            # Tolerance-based lookup (exact key first) — GitLab #257
+            # Prefer _eic_mz, else feature mz; then exact/tolerance key match (#257)
             eic_data = LCMSCollectionCalculations._get_eic_data_for_mz(
-                sample, row.get('_eic_mz')
+                sample, LCMSCollectionCalculations._resolve_eic_query_mz(row)
             )
             
             if eic_data:
@@ -2727,9 +2748,9 @@ class LCMSCollectionCalculations:
                 sample = lcms_collection[sample_id]
                 sample_name = row['sample_name']
                 
-                # Tolerance-based lookup (exact key first) — GitLab #257
+                # Prefer _eic_mz, else feature mz; then exact/tolerance key match (#257)
                 eic_data = LCMSCollectionCalculations._get_eic_data_for_mz(
-                    sample, row.get('_eic_mz')
+                    sample, LCMSCollectionCalculations._resolve_eic_query_mz(row)
                 )
                 
                 if eic_data:
