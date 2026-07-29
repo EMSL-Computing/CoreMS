@@ -5769,22 +5769,22 @@ class LCMSCollectionCalculations:
                         eics_mz.append(None)
                 self.induced_mass_features_dataframe['_eic_mz'] = eics_mz
 
-            # Clear mass features from samples to free memory
-            for sample_name in self.samples:
-                self._lcms[sample_name].induced_mass_features = {}
-        
-        # Associate EICs with mass features if they were loaded
-        # This must happen after all operations complete to work on the actual sample objects
+        # Associate EICs while induced feature objects still exist (before any clear).
+        # Must run after the pipeline so sample.eics is populated on the main process.
         if gather_eics:
             print("\nAssociating EICs with mass features:")
             from tqdm import tqdm
-            
+
             for sample_id in tqdm(range(len(self.samples)), unit="sample", ncols=80):
                 sample = self[sample_id]
                 if sample.eics:  # Only if EICs were loaded
-                    # Associate EICs with regular mass features
                     sample.associate_eics_with_mass_features(induced=False)
-                    # Associate EICs with induced mass features
                     sample.associate_eics_with_mass_features(induced=True)
-                
+
+        # Drop induced feature objects to free memory. EICs remain on sample.eics
+        # (and _eic_mz on the induced dataframe) for plotting/lookup.
+        if perform_gap_filling:
+            for sample_name in self.samples:
+                self._lcms[sample_name].induced_mass_features = {}
+
         return results
