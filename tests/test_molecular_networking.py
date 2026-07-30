@@ -140,6 +140,10 @@ def test_query_vs_library_with_test_msp(msp_fe_lib):
     assert isinstance(edges, list)
     # Expect at least one edge involving the query
     assert any("mock0" in (a, b) for a, b, _ in edges)
+    # Library nodes use lib:<idx> IDs so they never collide with query mf_ids
+    assert any(
+        str(a).startswith("lib:") or str(b).startswith("lib:") for a, b, _ in edges
+    ), "expected at least one query–library edge with lib: node IDs"
     stats = mn.get_network_stats()
     assert stats["n_nodes"] >= 2
 

@@ -35,9 +35,15 @@ class NetworkVisualizeMixin:
         if fe_lib is None:
             return None
 
-        try:
-            lib_idx = int(node_id)
-        except (TypeError, ValueError):
+        parse_idx = getattr(self, "library_index_from_node_id", None)
+        if callable(parse_idx):
+            lib_idx = parse_idx(node_id)
+        else:
+            try:
+                lib_idx = int(node_id)
+            except (TypeError, ValueError):
+                lib_idx = None
+        if lib_idx is None:
             return None
 
         try:

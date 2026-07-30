@@ -43,6 +43,9 @@ from corems.molecular_networking.network_visualize import NetworkVisualizeMixin
 # Metrics that require precursor_mzs
 _PRECURSOR_REQUIRED = {"identity", "neutral_loss"}
 
+# Internal node IDs for library spectra (must not collide with query mf IDs)
+_LIB_NODE_PREFIX = "lib:"
+
 
 class MolecularNetwork(NetworkVisualizeMixin):
     """Build a molecular network around a reference library.
@@ -344,6 +347,31 @@ class MolecularNetwork(NetworkVisualizeMixin):
         """Return the edge threshold for *metric*."""
         return self.similarity_thresholds.get(metric, 0.5)
 
+    @staticmethod
+    def library_node_id(lib_idx: int) -> str:
+        """Return the internal network node ID for a library spectrum index."""
+        return f"{_LIB_NODE_PREFIX}{int(lib_idx)}"
+
+    @staticmethod
+    def library_index_from_node_id(node_id: str) -> int | None:
+        """Parse a library matrix index from an internal node ID, if any.
+
+        Accepts the canonical ``lib:<idx>`` form. Bare integer strings are
+        also accepted for backward compatibility with older matrices.
+        """
+        if node_id is None:
+            return None
+        s = str(node_id)
+        if s.startswith(_LIB_NODE_PREFIX):
+            try:
+                return int(s[len(_LIB_NODE_PREFIX) :])
+            except ValueError:
+                return None
+        try:
+            return int(s)
+        except (TypeError, ValueError):
+            return None
+
     def _update_matrices(
         self, new_scores: dict[str, dict[tuple[str, str], float]]
     ):
@@ -534,14 +562,17 @@ class MolecularNetwork(NetworkVisualizeMixin):
             lib_indices_for_query: list[int] = []
             for lib_idx, score in enumerate(result_vec):
                 if score > 0.0:
-                    entropy_pairs[(query_ids[qi], str(lib_idx))] = float(score)
+                    # Prefix library IDs so they never collide with numeric query mf_ids
+                    entropy_pairs[
+                        (query_ids[qi], self.library_node_id(lib_idx))
+                    ] = float(score)
                     if score >= self._engine.entropy_threshold_low:
                         lib_indices_for_query.append(lib_idx)
 
             if lib_indices_for_query:
                 query_to_lib_indices[qi] = lib_indices_for_query
 
-        lib_ids = [str(i) for i in range(lib_size)]
+        lib_ids = [self.library_node_id(i) for i in range(lib_size)]
         for mat in self.similarity_matrices.values():
             mat.register_spectra(lib_ids)
 
@@ -553,7 +584,9 @@ class MolecularNetwork(NetworkVisualizeMixin):
                     library_indices=lib_indices,
                 )
                 for lib_idx, score in cosine_scores.items():
-                    cosine_pairs[(query_ids[qi], str(lib_idx))] = score
+                    cosine_pairs[
+                        (query_ids[qi], self.library_node_id(lib_idx))
+                    ] = score
 
         combined: dict[str, dict[tuple[str, str], float]] = {"entropy_similarity": entropy_pairs}
         if cosine_pairs:
@@ -597,16 +630,18 @@ class MolecularNetwork(NetworkVisualizeMixin):
 
         matched_lib_indices: list[int] = sorted(
             {
-                int(lib_id)
+                lib_idx
                 for (q_id, lib_id), score in entropy_pairs.items()
-                if q_id in set(self._all_query_ids) and score >= library_similarity_threshold
+                if q_id in set(self._all_query_ids)
+                and score >= library_similarity_threshold
+                and (lib_idx := self.library_index_from_node_id(lib_id)) is not None
             }
         )
 
         n_matched = len(matched_lib_indices)
 
         if n_matched > 1:
-            matched_lib_ids = [str(i) for i in matched_lib_indices]
+            matched_lib_ids = [self.library_node_id(i) for i in matched_lib_indices]
             ll_scores = self._engine.compute_library_vs_library_filtered(
                 library_indices=matched_lib_indices,
                 spectrum_ids=matched_lib_ids,
@@ -619,18 +654,15 @@ class MolecularNetwork(NetworkVisualizeMixin):
         """Return node ID for file export.
 
         Query IDs are preserved as-is. Library nodes stored internally as
-        index strings are mapped to FlashEntropy entry ``spectra_id`` when
-        available (fallback to ``id``).
+        ``lib:<idx>`` (or bare index strings) are mapped to FlashEntropy entry
+        ``spectra_id`` when available (fallback to ``id``, then the internal
+        node ID).
         """
         if node_id in query_id_set:
             return node_id
 
-        try:
-            lib_idx = int(node_id)
-        except (TypeError, ValueError):
-            return node_id
-
-        if lib_idx < 0:
+        lib_idx = self.library_index_from_node_id(node_id)
+        if lib_idx is None or lib_idx < 0:
             return node_id
 
         try:
