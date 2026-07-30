@@ -146,8 +146,9 @@ Understand how to control data processing behavior:
 
 ---
 
-### Molecular networking scripts
+### Molecular networking
 
-- `examples/molecular_networking_demo.py` — MSP fixture + networking stages (script form)
-- `examples/molecular_networking_queries_only_demo.py` — query-only network (script form)
-- Prefer the **Molecular Networking** section in `LCMS_Tutorial.ipynb` for experimental MS2 from a real LC-MS run
+Documentation and walkthrough live in the **Molecular Networking** section of
+`notebooks/LCMS_Tutorial.ipynb` (and the multi-sample notes in
+`notebooks/LCMS_Collection_Tutorial.ipynb`). Behavior is covered by unit tests
+under `tests/test_molecular_networking.py`.
