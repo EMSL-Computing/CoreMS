@@ -3,6 +3,7 @@ import shutil
 import warnings
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from corems.mass_spectra.output.export import LCMSMetabolomicsExport
@@ -131,7 +132,15 @@ def test_lcms_metabolomics(tmp_path, postgres_database, lcms_obj, msp_file_locat
     exporter.to_hdf(overwrite=True)
     exporter.report_to_csv(molecular_metadata=metabolite_metadata_negative)
     report = exporter.to_report(molecular_metadata=metabolite_metadata_negative)
-    assert report['Ion Formula'][1] == 'C24 H47 O2'
+    # MS2 spectral library formula must not fill MS1 "Molecular Formula" / "Ion Formula";
+    # library values live under Library * columns.
+    assert report["Library Ion Formula"][1] == "C24 H47 O2"
+    assert "Library Molecular Formula" in report.columns
+    if "Ion Formula" in report.columns:
+        # No MS1 formula search in this test — MS1 ion formula should be empty
+        assert pd.isna(report["Ion Formula"][1]) or report["Ion Formula"][1] is None
+    if "Molecular Formula" in report.columns:
+        assert pd.isna(report["Molecular Formula"][1]) or report["Molecular Formula"][1] is None
     assert report['chebi'][1] == 28866
 
     # Test plotting mass feature with MS2 mirror plot

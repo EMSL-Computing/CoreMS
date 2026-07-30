@@ -920,8 +920,15 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
     def mass_features_to_df(self, induced_features=False, drop_na_cols=False, include_cols=None):
         """Returns a pandas dataframe summarizing the mass features.
 
-        The dataframe contains the following columns: mf_id, mz, apex_scan, scan_time, intensity,
-        persistence, area, monoisotopic_mf_id, and isotopologue_type.  The index is set to mf_id (mass feature ID).
+        The dataframe contains the following columns: mf_id, mz, _eic_mz, apex_scan,
+        scan_time, intensity, persistence, area, monoisotopic_mf_id, and
+        isotopologue_type. The index is set to mf_id (mass feature ID).
+
+        ``_eic_mz`` is the m/z used for EIC extraction (set on integrate). If
+        not set on the feature object, it falls back to the feature ``mz`` so
+        collection dataframes always carry a usable EIC key for regular and
+        induced features.
+
         Parameters
         -----------
         induced_features : bool, optional
@@ -941,7 +948,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         --------
         pandas.DataFrame
             A pandas dataframe of mass features with the following columns:
-            mf_id, mz, apex_scan, scan_time, intensity, persistence, area.
+            mf_id, mz, _eic_mz, apex_scan, scan_time, intensity, persistence, area.
         """
         import pandas as pd
 
@@ -1044,6 +1051,11 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             # Check if EIC for mass feature is set
             df_mf_single = pd.DataFrame(dict_mf, index=[mf_id])
             df_mf_single["mz"] = mf_dict[mf_id].mz
+            # Always expose _eic_mz: prefer value set on integrate, else feature mz
+            eic_mz = getattr(mf_dict[mf_id], "_eic_mz", None)
+            if eic_mz is None or (isinstance(eic_mz, float) and np.isnan(eic_mz)):
+                eic_mz = mf_dict[mf_id].mz
+            df_mf_single["_eic_mz"] = eic_mz
             df_mf_list.append(df_mf_single)
         df_mf = pd.concat(df_mf_list)
 
@@ -1061,6 +1073,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "type",
             "scan_time",
             "mz",
+            "_eic_mz",
             "apex_scan",
             "start_scan",
             "final_scan",
@@ -2431,8 +2444,11 @@ class LCMSCollection(LCMSCollectionCalculations):
             - sample_id: sample ID
             - Mass Feature ID: mass feature ID within the sample
             - Mass feature attributes (mz, scan_time, intensity, etc.)
-            - MS1 annotations (if molecular_formula_search was run)
-            - MS2 annotations (if ms2_spectral_search was run)
+            - MS1 annotations (if molecular_formula_search was run):
+              ``Molecular Formula``, ``Ion Formula``, ``Calculated m/z``, etc.
+            - MS2 annotations (if ms2_spectral_search was run):
+              ``Library Molecular Formula``, ``Library Ion Formula``,
+              ``Entropy Similarity``, ``name``, etc.
         
         Notes
         -----
@@ -2442,6 +2458,13 @@ class LCMSCollection(LCMSCollectionCalculations):
         Only mass features that are loaded in each sample's mass_features dict
         are included (typically the representative features if load_representatives
         was used in process_consensus_features).
+
+        ``Molecular Formula`` / ``Ion Formula`` are filled only from MS1 molecular
+        formula search. Spectral-library formulas appear under
+        ``Library Molecular Formula`` / ``Library Ion Formula`` so MS2-only hits
+        are not mistaken for MS1 formula assignments. When MS1 and MS2 match
+        (same ion formula), the library formula columns are cleared on that
+        row to avoid repeating the MS1 values.
         
         Raises
         ------
@@ -2535,8 +2558,10 @@ class LCMSCollection(LCMSCollectionCalculations):
             'Isotopologue Similarity',
             'Confidence Score',
             'Ion Formula',
-            'Ion Type',
             'Molecular Formula',
+            'Library Ion Formula',
+            'Library Ion Type',
+            'Library Molecular Formula',
             'inchikey',
             'name',
             'ref_ms_id',
