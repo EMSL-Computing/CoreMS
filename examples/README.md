@@ -146,16 +146,8 @@ Understand how to control data processing behavior:
 
 ---
 
-### Molecular_Networking_Tutorial.ipynb
-**MS2 molecular networking (entropy / cosine)**
+### Molecular networking scripts
 
-Build query-only or query+library molecular networks with CoreMS:
-- FlashEntropy library from MSP fixtures
-- Open / neutral-loss / identity search styles
-- Edge export and optional HTML visualization (`pip install "corems[networking]"`)
-
-**Data Format:** NIST MSP (repo test fixture)  
-**Recommended For:** LC-MS/MS users exploring spectral networks after annotation
-
-Also: `examples/molecular_networking_demo.py`, `examples/molecular_networking_queries_only_demo.py`
-
+- `examples/molecular_networking_demo.py` — MSP fixture + networking stages (script form)
+- `examples/molecular_networking_queries_only_demo.py` — query-only network (script form)
+- Prefer the **Molecular Networking** section in `LCMS_Tutorial.ipynb` for experimental MS2 from a real LC-MS run
