@@ -877,6 +877,8 @@ class NetworkVisualizeMixin:
         layout_seed: int = 42,
         bypass_clustering: bool = False,
         separate_communities: bool = True,
+        display_in_notebook: bool = False,
+        iframe_height: int = 650,
     ) -> str:
         """Render network HTML from precomputed clusters, or raw graph when bypassing.
 
@@ -886,6 +888,12 @@ class NetworkVisualizeMixin:
             When plotting from precomputed clusters (``bypass_clustering=False``),
             remove inter-community edges so each community renders as a separate
             subnetwork.  Default ``True``.
+        display_in_notebook : bool
+            If ``True``, embed the written HTML in the current Jupyter frontend
+            via a portable data-URI iframe (requires IPython).  Default ``False``.
+        iframe_height : int
+            Pixel height of the notebook iframe when ``display_in_notebook`` is
+            ``True``.  Default ``650``.
         """
         if metric not in self.similarity_matrices:
             raise KeyError(
@@ -1089,4 +1097,31 @@ class NetworkVisualizeMixin:
         out.parent.mkdir(parents=True, exist_ok=True)
         Sigma.write_html(G, str(out), **write_kwargs)
 
+        if display_in_notebook:
+            self._display_network_html_in_notebook(out, height=iframe_height)
+
         return str(out)
+
+    @staticmethod
+    def _display_network_html_in_notebook(html_path: Path, *, height: int = 650) -> None:
+        """Embed a written Sigma HTML file in a Jupyter notebook output cell.
+
+        Uses a base64 data-URI iframe so the notebook remains portable (no
+        machine-local ``file://`` paths).  No-ops if IPython is unavailable.
+        """
+        try:
+            from base64 import b64encode
+
+            from IPython.display import IFrame, display
+        except ImportError:
+            return
+
+        html_bytes = Path(html_path).read_bytes()
+        html_b64 = b64encode(html_bytes).decode("ascii")
+        display(
+            IFrame(
+                src=f"data:text/html;base64,{html_b64}",
+                width="100%",
+                height=int(height),
+            )
+        )
