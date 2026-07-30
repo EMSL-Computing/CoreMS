@@ -148,6 +148,77 @@ def test_query_vs_library_with_test_msp(msp_fe_lib):
     assert stats["n_nodes"] >= 2
 
 
+def test_plot_network_static_smoke(msp_fe_lib, tmp_path):
+    """Static plot_network returns a Figure and can save a PNG."""
+    fe_lib, msp = msp_fe_lib
+    df = msp._data_frame
+    row = df.iloc[0]
+    peaks = np.asarray(row.peaks, dtype=float)
+    pmz = float(getattr(row, "precursormz", 0.0) or 0.0)
+    q = MockSpectrum(peaks[:, 0], peaks[:, 1], name="q0")
+
+    mn = MolecularNetwork(
+        fe_lib=fe_lib,
+        search_type="open",
+        additional_similarities=["cosine"],
+        similarity_thresholds={"entropy_similarity": 0.1, "cosine": 0.1},
+        use_parallel=False,
+    )
+    mn.query_vs_library(
+        [q],
+        ["q0"],
+        query_precursor_mzs=[pmz],
+        fe_kwargs=FE_KWARGS,
+        hydrate_library_similarities=False,
+    )
+
+    png = tmp_path / "network.png"
+    fig = mn.plot_network(
+        metric="entropy_similarity",
+        path=str(png),
+        return_fig=True,
+        bypass_clustering=True,
+        show_labels=True,
+    )
+    assert fig is not None
+    assert hasattr(fig, "savefig")
+    assert png.is_file() and png.stat().st_size > 0
+
+
+def test_plot_interactive_network_smoke(msp_fe_lib, tmp_path):
+    """Interactive HTML plot writes a file when ipysigma is installed."""
+    pytest.importorskip("ipysigma")
+    fe_lib, msp = msp_fe_lib
+    df = msp._data_frame
+    row = df.iloc[0]
+    peaks = np.asarray(row.peaks, dtype=float)
+    pmz = float(getattr(row, "precursormz", 0.0) or 0.0)
+    q = MockSpectrum(peaks[:, 0], peaks[:, 1], name="q0")
+
+    mn = MolecularNetwork(
+        fe_lib=fe_lib,
+        search_type="open",
+        additional_similarities=["cosine"],
+        similarity_thresholds={"entropy_similarity": 0.1, "cosine": 0.1},
+        use_parallel=False,
+    )
+    mn.query_vs_library(
+        [q],
+        ["q0"],
+        query_precursor_mzs=[pmz],
+        fe_kwargs=FE_KWARGS,
+        hydrate_library_similarities=False,
+    )
+    html = tmp_path / "network.html"
+    out = mn.plot_interactive_network(
+        metric="entropy_similarity",
+        out_path=str(html),
+        bypass_clustering=True,
+    )
+    assert Path(out).is_file()
+    assert Path(out).stat().st_size > 0
+
+
 def test_prepare_query_spectra_from_lcms_object():
     class FakeMS2:
         def __init__(self):

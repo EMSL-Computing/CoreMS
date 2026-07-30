@@ -28,6 +28,7 @@ dependencies = [
     "matplotlib>=3.9.0",
     "ms-entropy>=1.2.2",
     "netCDF4>=1.7.0",
+    "networkx>=3.0",
     "numpy>=2.1.0",
     "openpyxl>=3.1.2",
     "pandas>=2.2.2",
@@ -67,9 +68,9 @@ dev = [
     "PyWavelets",
     "pdoc>=14.1.0",
 ]
-# Optional deps for MolecularNetwork.plot_network / clustering HTML viz
+# Optional: interactive HTML networks (MolecularNetwork.plot_interactive_network)
+# Static plot_network uses matplotlib + networkx (core deps).
 networking = [
-    "networkx>=3.0",
     "ipysigma>=0.24",
 ]
 

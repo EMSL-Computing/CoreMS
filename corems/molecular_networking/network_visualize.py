@@ -1,11 +1,17 @@
 """Visualization mixin for molecular networking objects.
 
-This module provides :class:`NetworkVisualizeMixin`, which adds interactive
-HTML network plotting via ``networkx`` and ``ipysigma`` for classes exposing:
+This module provides :class:`NetworkVisualizeMixin` for classes exposing:
 
 - ``similarity_matrices``: ``dict[str, SimilarityMatrix]``
 - ``_all_query_ids``: ``list[str]``
 - ``_threshold_for(metric) -> float``
+
+Public plotting:
+
+- :meth:`NetworkVisualizeMixin.plot_network` — static matplotlib snapshot
+  (GitLab/GitHub-friendly).
+- :meth:`NetworkVisualizeMixin.plot_interactive_network` — ipysigma HTML
+  (requires ``corems[networking]``).
 """
 
 from __future__ import annotations
@@ -19,7 +25,7 @@ import pandas as pd
 
 
 class NetworkVisualizeMixin:
-    """Mixin that adds HTML network plotting for similarity matrices."""
+    """Mixin that adds static and interactive network plotting."""
 
     _DEFAULT_COLOR_MAP = {
         "query": "#e74c3c",
@@ -862,10 +868,9 @@ class NetworkVisualizeMixin:
             "n_clusters": int(artifact["community_table"].shape[0]),
         }
 
-    def plot_network(
+    def _build_networkx_graph(
         self,
         metric: str = "entropy_similarity",
-        out_path: str = "network.html",
         *,
         include_queries_only: bool = True,
         score_threshold: float | None = None,
@@ -874,32 +879,28 @@ class NetworkVisualizeMixin:
         exclude_self: bool = True,
         directed: bool = False,
         color_map: dict[str, str] | None = None,
-        sigma_options: dict | None = None,
         metadata: dict[str, dict] | None = None,
         library_label_field: str | Sequence[str] | None = None,
         library_node_attrs: Sequence[str] | None = None,
         drop_components_without_queries: bool = True,
         drop_nodes_without_query_connection: bool = True,
         layout_seed: int = 42,
-        bypass_clustering: bool = False,
+        bypass_clustering: bool = True,
         separate_communities: bool = True,
-        display_in_notebook: bool = False,
-        iframe_height: int = 650,
-    ) -> str:
-        """Render network HTML from precomputed clusters, or raw graph when bypassing.
+    ) -> tuple[Any, dict | None, dict[str, str], float]:
+        """Build a NetworkX graph + layout for static or interactive plotting.
 
-        Parameters
-        ----------
-        separate_communities : bool
-            When plotting from precomputed clusters (``bypass_clustering=False``),
-            remove inter-community edges so each community renders as a separate
-            subnetwork.  Default ``True``.
-        display_in_notebook : bool
-            If ``True``, embed the written HTML in the current Jupyter frontend
-            via a portable data-URI iframe (requires IPython).  Default ``False``.
-        iframe_height : int
-            Pixel height of the notebook iframe when ``display_in_notebook`` is
-            ``True``.  Default ``650``.
+        Returns
+        -------
+        G : networkx.Graph
+            Graph with node attrs ``label``, ``node_type``, optional community
+            and viz styling fields, and edge attr ``score``.
+        layout : dict or None
+            Mapping ``node_id → {"x": float, "y": float}`` for drawing.
+        palette : dict
+            Color map for ``node_type`` values (query / library / unknown).
+        score_threshold : float
+            Effective score threshold used for edges.
         """
         if metric not in self.similarity_matrices:
             raise KeyError(
@@ -908,12 +909,11 @@ class NetworkVisualizeMixin:
 
         try:
             import networkx as nx
-            from ipysigma import Sigma
         except ImportError as exc:
             raise ImportError(
-                "networkx and ipysigma are required for plot_network(). "
-                'Install with: pip install "corems[networking]" '
-                "(or: pip install networkx ipysigma)"
+                "networkx is required for molecular network plotting. "
+                "Install with: pip install networkx  "
+                '(or: pip install "corems[networking]")'
             ) from exc
 
         cache = self._ensure_cluster_cache()
@@ -998,9 +998,7 @@ class NetworkVisualizeMixin:
                 drop_nodes_without_query_connection=drop_nodes_without_query_connection,
             )
 
-        # Default node styling: query nodes are visually emphasised.
-        # Keep this in graph attributes so callers can still override with
-        # sigma_options if they prefer another style.
+        # Default node styling (shared by static and interactive plots)
         for node in G.nodes:
             node_type = G.nodes[node].get("node_type", "unknown")
             if node_type == "query":
@@ -1081,6 +1079,288 @@ class NetworkVisualizeMixin:
                 )
                 layout = {str(n): {"x": float(x), "y": float(y)} for n, (x, y) in pos.items()}
 
+        return G, layout, palette, float(score_threshold)
+
+    def plot_network(
+        self,
+        metric: str = "entropy_similarity",
+        *,
+        ax=None,
+        path: str | None = None,
+        return_fig: bool = False,
+        include_queries_only: bool = True,
+        score_threshold: float | None = None,
+        max_edges: int | None = 500,
+        max_nodes: int | None = None,
+        exclude_self: bool = True,
+        drop_components_without_queries: bool = True,
+        drop_nodes_without_query_connection: bool = True,
+        layout_seed: int = 42,
+        bypass_clustering: bool = True,
+        separate_communities: bool = True,
+        color_map: dict[str, str] | None = None,
+        library_label_field: str | Sequence[str] | None = None,
+        show_labels: bool = True,
+        label_max_nodes: int = 40,
+        node_size_query: float = 90,
+        node_size_library: float = 55,
+        figsize: tuple[float, float] = (9, 7),
+        title: str | None = None,
+        dpi: int = 150,
+    ):
+        """Draw a static matplotlib snapshot of the molecular network.
+
+        Portable for Jupyter notebooks rendered on GitLab/GitHub (PNG output).
+        For interactive HTML exploration, use :meth:`plot_interactive_network`
+        (requires ``ipysigma`` / ``corems[networking]``).
+
+        Parameters
+        ----------
+        metric : str
+            Similarity metric key. Default ``"entropy_similarity"``.
+        ax : matplotlib.axes.Axes, optional
+            Axes to draw on. If None, a new figure is created.
+        path : str, optional
+            If set, save the figure to this path (``savefig``).
+        return_fig : bool
+            If True, return the ``Figure`` and do not call ``plt.show()``.
+            Default False.
+        include_queries_only, score_threshold, max_edges, max_nodes, …
+            Edge/node filtering and layout options (see
+            :meth:`plot_interactive_network`).
+        bypass_clustering : bool
+            If True (default), plot the raw filtered graph without requiring
+            precomputed clusters.
+        show_labels : bool
+            Draw node labels (capped by *label_max_nodes*). Default True.
+        label_max_nodes : int
+            Maximum number of labels to draw (highest-degree nodes). Default 40.
+        node_size_query, node_size_library : float
+            Matplotlib scatter sizes for query vs library nodes.
+        figsize : tuple of float
+            Figure size when *ax* is None. Default ``(9, 7)``.
+        title : str, optional
+            Axes title. Default summarizes metric, threshold, and edge count.
+        dpi : int
+            DPI used when saving *path*. Default 150.
+
+        Returns
+        -------
+        matplotlib.figure.Figure or None
+            The figure if *return_fig* is True, otherwise None.
+        """
+        import matplotlib.pyplot as plt
+        from matplotlib.lines import Line2D
+
+        G, layout, palette, thr = self._build_networkx_graph(
+            metric=metric,
+            include_queries_only=include_queries_only,
+            score_threshold=score_threshold,
+            max_edges=max_edges,
+            max_nodes=max_nodes,
+            exclude_self=exclude_self,
+            directed=False,
+            color_map=color_map,
+            library_label_field=library_label_field,
+            drop_components_without_queries=drop_components_without_queries,
+            drop_nodes_without_query_connection=drop_nodes_without_query_connection,
+            layout_seed=layout_seed,
+            bypass_clustering=bypass_clustering,
+            separate_communities=separate_communities,
+        )
+
+        if ax is None:
+            fig, ax = plt.subplots(figsize=figsize)
+        else:
+            fig = ax.figure
+
+        if layout is None or G.number_of_nodes() == 0:
+            ax.text(0.5, 0.5, "No network edges to plot", ha="center", va="center")
+            ax.set_axis_off()
+        else:
+            pos = {
+                n: (float(layout[str(n)]["x"]), float(layout[str(n)]["y"]))
+                for n in G.nodes
+                if str(n) in layout
+            }
+            # Fallback positions for any missing layout keys
+            for n in G.nodes:
+                if n not in pos:
+                    pos[n] = (0.0, 0.0)
+
+            scores = [float(d.get("score", 0.0)) for _, _, d in G.edges(data=True)]
+            smin = min(scores) if scores else 0.0
+            smax = max(scores) if scores else 1.0
+            span = (smax - smin) + 1e-12
+
+            for u, v, data in G.edges(data=True):
+                x0, y0 = pos[u]
+                x1, y1 = pos[v]
+                score = float(data.get("score", 0.0))
+                lw = 0.5 + 2.5 * ((score - smin) / span)
+                ax.plot([x0, x1], [y0, y1], color="0.65", lw=lw, zorder=1, alpha=0.85)
+
+            for n, (x, y) in pos.items():
+                is_query = G.nodes[n].get("node_type") == "query"
+                ax.scatter(
+                    [x],
+                    [y],
+                    s=node_size_query if is_query else node_size_library,
+                    c=palette.get("query" if is_query else "library", "#95a5a6"),
+                    edgecolors="white",
+                    linewidths=0.6,
+                    zorder=2,
+                )
+
+            if show_labels and G.number_of_nodes() > 0:
+                degrees = dict(G.degree())
+                label_nodes = sorted(degrees, key=lambda n: (-degrees[n], str(n)))[
+                    : max(0, int(label_max_nodes))
+                ]
+                for n in label_nodes:
+                    x, y = pos[n]
+                    label = str(G.nodes[n].get("label", n))
+                    if len(label) > 18:
+                        label = label[:15] + "…"
+                    ax.text(x, y, label, fontsize=7, ha="center", va="bottom", zorder=3)
+
+            legend = [
+                Line2D(
+                    [0],
+                    [0],
+                    marker="o",
+                    color="w",
+                    markerfacecolor=palette.get("query", "#e74c3c"),
+                    markersize=9,
+                    label="Experimental MS2 (query)",
+                ),
+                Line2D(
+                    [0],
+                    [0],
+                    marker="o",
+                    color="w",
+                    markerfacecolor=palette.get("library", "#3498db"),
+                    markersize=8,
+                    label="Library spectrum",
+                ),
+            ]
+            ax.legend(handles=legend, loc="best", frameon=True)
+            ax.set_axis_off()
+
+        if title is None:
+            title = (
+                f"Molecular network ({metric}, threshold={thr:g}, "
+                f"{G.number_of_edges()} edges)"
+            )
+        ax.set_title(title)
+        fig.tight_layout()
+
+        if path is not None:
+            fig.savefig(path, dpi=dpi, bbox_inches="tight")
+
+        if return_fig:
+            return fig
+
+        # Prefer IPython Image display so notebooks capture PNG under Agg / headless CI
+        try:
+            import io
+
+            from IPython import get_ipython
+            from IPython.display import Image, display
+
+            if get_ipython() is not None:
+                buf = io.BytesIO()
+                fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight")
+                display(Image(data=buf.getvalue()))
+                plt.close(fig)
+                return None
+        except Exception:
+            pass
+
+        plt.show()
+        return None
+
+    def plot_interactive_network(
+        self,
+        metric: str = "entropy_similarity",
+        out_path: str = "network.html",
+        *,
+        include_queries_only: bool = True,
+        score_threshold: float | None = None,
+        max_edges: int | None = 500,
+        max_nodes: int | None = None,
+        exclude_self: bool = True,
+        directed: bool = False,
+        color_map: dict[str, str] | None = None,
+        sigma_options: dict | None = None,
+        metadata: dict[str, dict] | None = None,
+        library_label_field: str | Sequence[str] | None = None,
+        library_node_attrs: Sequence[str] | None = None,
+        drop_components_without_queries: bool = True,
+        drop_nodes_without_query_connection: bool = True,
+        layout_seed: int = 42,
+        bypass_clustering: bool = False,
+        separate_communities: bool = True,
+        display_in_notebook: bool = False,
+        iframe_height: int = 650,
+    ) -> str:
+        """Write an interactive ipysigma HTML network visualization.
+
+        Prefer :meth:`plot_network` for static snapshots that render on
+        GitLab/GitHub notebook previews. This method requires **ipysigma**
+        (``pip install "corems[networking]"``).
+
+        Parameters
+        ----------
+        out_path : str
+            Output HTML file path.
+        separate_communities : bool
+            When plotting from precomputed clusters (``bypass_clustering=False``),
+            remove inter-community edges so each community renders as a separate
+            subnetwork.  Default ``True``.
+        display_in_notebook : bool
+            If ``True``, also embed the HTML in a local Jupyter frontend via a
+            data-URI iframe.  Does **not** render on GitLab/GitHub notebook
+            previews.  Default ``False``.
+        iframe_height : int
+            Pixel height of the notebook iframe when *display_in_notebook* is
+            True.  Default ``650``.
+
+        Returns
+        -------
+        str
+            Path to the written HTML file.
+        """
+        try:
+            from ipysigma import Sigma
+        except ImportError as exc:
+            raise ImportError(
+                "ipysigma is required for plot_interactive_network(). "
+                'Install with: pip install "corems[networking]" '
+                "(or: pip install ipysigma)"
+            ) from exc
+
+        G, layout, palette, _thr = self._build_networkx_graph(
+            metric=metric,
+            include_queries_only=include_queries_only,
+            score_threshold=score_threshold,
+            max_edges=max_edges,
+            max_nodes=max_nodes,
+            exclude_self=exclude_self,
+            directed=directed,
+            color_map=color_map,
+            metadata=metadata,
+            library_label_field=library_label_field,
+            library_node_attrs=library_node_attrs,
+            drop_components_without_queries=drop_components_without_queries,
+            drop_nodes_without_query_connection=drop_nodes_without_query_connection,
+            layout_seed=layout_seed,
+            bypass_clustering=bypass_clustering,
+            separate_communities=separate_communities,
+        )
+
+        cache = self._ensure_cluster_cache()
+        artifact = cache.get(metric)
         clustered_mode = not bypass_clustering and artifact is not None and G.number_of_nodes() > 0
         write_kwargs: dict = {
             "layout": layout,
@@ -1114,6 +1394,7 @@ class NetworkVisualizeMixin:
 
         Uses a base64 data-URI iframe so the notebook remains portable (no
         machine-local ``file://`` paths).  No-ops if IPython is unavailable.
+        Note: GitLab/GitHub notebook previews do not execute this iframe.
         """
         try:
             from base64 import b64encode

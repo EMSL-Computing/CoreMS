@@ -171,10 +171,10 @@ ci-test-source:
 ci-test-notebooks:
 	@$(PYTHON) -V
 	@$(PYTHON) -m pip install --upgrade pip
-	# dev: pytest tooling; networking: networkx + ipysigma for MolecularNetwork.plot_network
-	# in LCMS tutorials (embedded interactive HTML)
+	# dev: pytest tooling; networking: ipysigma for optional plot_interactive_network
+	# (static plot_network uses matplotlib + networkx, already core deps)
 	@$(PYTHON) -m pip install -e ".[dev,networking]"
-	@$(PYTHON) -m pip install --no-cache-dir jupyter nbconvert ipywidgets
+	@$(PYTHON) -m pip install --no-cache-dir jupyter nbconvert
 	@if [ "$(SKIP_LIPIDOMICS_DB)" = "1" ]; then \
 		echo "Skipping lipidomics DB download (SKIP_LIPIDOMICS_DB=1)"; \
 		PYTHONNET_RUNTIME=coreclr $(PYTHON) examples/test_notebooks.py; \

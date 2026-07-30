@@ -230,19 +230,22 @@ def run_network_demo(search_type: str, label: str):
     assert reloaded.n_spectra == network.similarity_matrices["entropy_similarity"].n_spectra
     print("  ✓ Save/load round-trip OK")
 
-    # Clustering / HTML plot need optional deps: pip install "corems[networking]"
+    # Clustering needs networkx (core). Interactive HTML needs ipysigma:
+    #   pip install "corems[networking]"
     try:
         import networkx  # noqa: F401
-        import ipysigma  # noqa: F401
-        has_viz = True
+        has_nx = True
     except ImportError:
-        has_viz = False
-        print(
-            "  Skipping cluster/plot steps (install optional viz deps with: "
-            'pip install "corems[networking]")'
-        )
+        has_nx = False
+        print("  Skipping cluster/plot steps (networkx required)")
 
-    if has_viz:
+    try:
+        import ipysigma  # noqa: F401
+        has_ipysigma = True
+    except ImportError:
+        has_ipysigma = False
+
+    if has_nx:
         for metric in ["entropy_similarity", "cosine"]:
             cluster_summary = network.compute_network_clusters(
                 metric=metric,
@@ -266,23 +269,40 @@ def run_network_demo(search_type: str, label: str):
             )
             print(f"  ✓ [{metric}] cluster artifacts: {cluster_paths['manifest']}")
 
-            html_path = OUT_DIR / f"{search_type}_network_{metric}.html"
+            png_path = OUT_DIR / f"{search_type}_network_{metric}.png"
             network.plot_network(
                 metric=metric,
-                out_path=str(html_path),
+                path=str(png_path),
+                return_fig=True,
                 max_edges=500,
                 library_label_field=("compound_name", "name", "spectra_id"),
-                library_node_attrs=(
-                    "compound_name",
-                    "name",
-                    "spectra_id",
-                    "precursor_mz",
-                    "precursortype",
-                    "inchikey",
-                ),
                 bypass_clustering=False,
             )
-            print(f"  ✓ [{metric}] interactive network HTML: {html_path}")
+            print(f"  ✓ [{metric}] static network PNG: {png_path}")
+
+            if has_ipysigma:
+                html_path = OUT_DIR / f"{search_type}_network_{metric}.html"
+                network.plot_interactive_network(
+                    metric=metric,
+                    out_path=str(html_path),
+                    max_edges=500,
+                    library_label_field=("compound_name", "name", "spectra_id"),
+                    library_node_attrs=(
+                        "compound_name",
+                        "name",
+                        "spectra_id",
+                        "precursor_mz",
+                        "precursortype",
+                        "inchikey",
+                    ),
+                    bypass_clustering=False,
+                )
+                print(f"  ✓ [{metric}] interactive network HTML: {html_path}")
+            else:
+                print(
+                    f"  Skipping interactive HTML for [{metric}] "
+                    '(pip install "corems[networking]")'
+                )
 
     return network
 

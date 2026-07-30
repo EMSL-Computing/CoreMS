@@ -449,23 +449,42 @@ if RUN_MOLECULAR_NETWORKING:
             )
             print(f"  ✓ [{metric}] cluster manifest: {cluster_paths['manifest']}")
 
-            html_path = OUT_DIR / f"{search_type}_network_{metric}.html"
+            png_path = OUT_DIR / f"{search_type}_network_{metric}.png"
             network.plot_network(
                 metric=metric,
-                out_path=str(html_path),
+                path=str(png_path),
+                return_fig=True,
                 max_edges=500,
                 library_label_field=("compound_name", "name", "spectra_id"),
-                library_node_attrs=(
-                    "compound_name",
-                    "name",
-                    "spectra_id",
-                    "precursor_mz",
-                    "precursortype",
-                    "inchikey",
-                ),
                 bypass_clustering=False,
             )
-            print(f"  ✓ [{metric}] HTML network: {html_path}")
+            print(f"  ✓ [{metric}] static network PNG: {png_path}")
+
+            try:
+                import ipysigma  # noqa: F401
+            except ImportError:
+                print(
+                    f"  Skipping interactive HTML for [{metric}] "
+                    '(pip install "corems[networking]")'
+                )
+            else:
+                html_path = OUT_DIR / f"{search_type}_network_{metric}.html"
+                network.plot_interactive_network(
+                    metric=metric,
+                    out_path=str(html_path),
+                    max_edges=500,
+                    library_label_field=("compound_name", "name", "spectra_id"),
+                    library_node_attrs=(
+                        "compound_name",
+                        "name",
+                        "spectra_id",
+                        "precursor_mz",
+                        "precursortype",
+                        "inchikey",
+                    ),
+                    bypass_clustering=False,
+                )
+                print(f"  ✓ [{metric}] interactive HTML: {html_path}")
 
         return network
 
