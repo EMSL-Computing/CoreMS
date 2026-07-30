@@ -143,3 +143,19 @@ Understand how to control data processing behavior:
 - Reset parameters to defaults
 
 **Recommended For:** All users, beginners
+
+---
+
+### Molecular_Networking_Tutorial.ipynb
+**MS2 molecular networking (entropy / cosine)**
+
+Build query-only or query+library molecular networks with CoreMS:
+- FlashEntropy library from MSP fixtures
+- Open / neutral-loss / identity search styles
+- Edge export and optional HTML visualization (`pip install "corems[networking]"`)
+
+**Data Format:** NIST MSP (repo test fixture)  
+**Recommended For:** LC-MS/MS users exploring spectral networks after annotation
+
+Also: `examples/molecular_networking_demo.py`, `examples/molecular_networking_queries_only_demo.py`
+
