@@ -2570,6 +2570,75 @@ class LCMSCollectionCalculations:
     """
 
     @staticmethod
+    def _resolve_eic_query_mz(row):
+        """Pick m/z used to look up ``sample.eics`` for a mass-feature row.
+
+        Prefer ``_eic_mz`` when present (set after integrate / gap-fill).
+        Regular features in ``mass_features_dataframe`` often have NaN
+        ``_eic_mz`` (never back-filled from objects on light load / reload),
+        while induced features get ``_eic_mz`` written after gap-fill. Fall
+        back to the feature ``mz`` so regular and representative traces are
+        not silently dropped from multi-sample EIC plots.
+        """
+        if row is None:
+            return None
+        eic_mz = row.get("_eic_mz") if hasattr(row, "get") else None
+        if eic_mz is not None and not pd.isna(eic_mz):
+            return eic_mz
+        mz = row.get("mz") if hasattr(row, "get") else None
+        if mz is not None and not pd.isna(mz):
+            return mz
+        return None
+
+    @staticmethod
+    def _get_eic_data_for_mz(sample, eic_mz, tolerance=0.0001):
+        """Resolve EIC data for an m/z using exact key, then tolerance match.
+
+        Plotting previously used ``sample.eics.get(eic_mz)`` only. HDF5 EIC
+        keys and feature ``_eic_mz`` / ``mz`` often differ by float noise, which
+        silently dropped traces (including the representative). Elsewhere
+        CoreMS uses the same default tolerance via
+        ``get_eic_mz_for_mass_feature`` / ``associate_eics_with_mass_features``.
+
+        Parameters
+        ----------
+        sample : LCMSBase
+            Sample that holds ``eics`` (dict keyed by m/z).
+        eic_mz : float or None
+            Target m/z (typically from the mass-feature ``_eic_mz`` or ``mz``).
+        tolerance : float, optional
+            Maximum |Δm/z| for fallback matching. Default is 0.0001 Da.
+
+        Returns
+        -------
+        EIC_Data or None
+            Matching EIC data, or None if no key is within tolerance.
+        """
+        if eic_mz is None or pd.isna(eic_mz):
+            return None
+        if not hasattr(sample, "eics") or not sample.eics:
+            return None
+
+        eic_data = sample.eics.get(eic_mz)
+        if eic_data is not None:
+            return eic_data
+
+        # Exact key miss: tolerance match (same default as associate_eics_with_mass_features)
+        if hasattr(sample, "get_eic_mz_for_mass_feature"):
+            matched_mz = sample.get_eic_mz_for_mass_feature(
+                float(eic_mz), tolerance=tolerance
+            )
+            if matched_mz is not None:
+                return sample.eics.get(matched_mz)
+            return None
+
+        # Fallback if sample is a simple mock without the helper
+        best_key = min(sample.eics, key=lambda k: abs(float(k) - float(eic_mz)))
+        if abs(float(best_key) - float(eic_mz)) < tolerance:
+            return sample.eics[best_key]
+        return None
+
+    @staticmethod
     def _plot_multiple_eics(ax, cluster_mfs, induced_cluster_mfs, rep_sample_id, rep_mf_id,
                            median_rt, eic_buffer_time, plot_smoothed=False, 
                            plot_datapoints=False, label_samples=False, lcms_collection=None):
@@ -2614,12 +2683,10 @@ class LCMSCollectionCalculations:
             sample = lcms_collection[sample_id]
             sample_name = row['sample_name']
             
-            # Get EIC using eic_mz column from dataframe
-            eic_mz = row.get('_eic_mz')
-            if eic_mz is not None and not pd.isna(eic_mz) and hasattr(sample, 'eics') and sample.eics:
-                eic_data = sample.eics.get(eic_mz)
-            else:
-                eic_data = None
+            # Prefer _eic_mz, else feature mz; then exact/tolerance key match (#257)
+            eic_data = LCMSCollectionCalculations._get_eic_data_for_mz(
+                sample, LCMSCollectionCalculations._resolve_eic_query_mz(row)
+            )
             
             if eic_data:
                 # Determine line style and width
@@ -2681,12 +2748,10 @@ class LCMSCollectionCalculations:
                 sample = lcms_collection[sample_id]
                 sample_name = row['sample_name']
                 
-                # Get EIC using eic_mz column from dataframe
-                eic_mz = row.get('_eic_mz')
-                if eic_mz is not None and not pd.isna(eic_mz) and hasattr(sample, 'eics') and sample.eics:
-                    eic_data = sample.eics.get(eic_mz)
-                else:
-                    eic_data = None
+                # Prefer _eic_mz, else feature mz; then exact/tolerance key match (#257)
+                eic_data = LCMSCollectionCalculations._get_eic_data_for_mz(
+                    sample, LCMSCollectionCalculations._resolve_eic_query_mz(row)
+                )
                 
                 if eic_data:
                     # Induced features - even thinner line
@@ -5398,32 +5463,57 @@ class LCMSCollectionCalculations:
         # Check if any operation needs EIC loading parameters
         needs_eic_loading = any(isinstance(op, LoadEICsOperation) for op in operations)
         if needs_eic_loading:
-            # Build cluster_mz_dict: map of sample_id -> list of m/z values in clusters
-            mfdf = self.mass_features_dataframe
-            cluster_mz_dict = {}
-            
-            # Get all mass features that belong to clusters (cluster is not NaN)
-            clustered_mf = mfdf[mfdf['cluster'].notna()]
-            
-            # Group by sample_id and collect all m/z values associated with eics
-            for sample_id in clustered_mf['sample_id'].unique():
-                sample_df = clustered_mf[clustered_mf['sample_id'] == sample_id]
-                sample = self[sample_id]  # Get the LCMS object for this sample
-                
-                # Extract _eic_mz from actual mass feature objects, not from dataframe
-                eic_mz_list = []
-                for mf_id in sample_df['mf_id'].values:
-                    if mf_id in sample.mass_features:
-                        mf = sample.mass_features[mf_id]
-                        if hasattr(mf, '_eic_mz') and mf._eic_mz is not None:
-                            eic_mz_list.append(mf._eic_mz)
-                
-                # Use the collected m/z values, or fallback to empty list if none found
-                cluster_mz_dict[sample_id] = list(set(eic_mz_list)) if eic_mz_list else []
-            
-            runtime_params['cluster_mz_dict'] = cluster_mz_dict
+            # Map sample_id -> m/z list for LoadEICsOperation.
+            # Must use collection *dataframes*, not only in-memory mass_features:
+            # after load_representatives=True each sample holds only a sparse set
+            # of representative objects, so object-only walks miss most cluster
+            # members and plot_cluster shows incomplete multi-sample EICs (#258).
+            runtime_params['cluster_mz_dict'] = self._build_cluster_mz_dict_for_eic_loading()
         
         return runtime_params
+
+    def _build_cluster_mz_dict_for_eic_loading(self):
+        """Build sample_id -> list of EIC m/z targets for all clustered features.
+
+        Uses ``mass_features_dataframe`` (and induced dataframe if present).
+        Prefers ``_eic_mz``, falls back to ``mz``. Does not require feature
+        objects to be loaded in ``sample.mass_features``.
+
+        Returns
+        -------
+        dict
+            Mapping of sample_id (int) to unique float m/z values to load.
+        """
+        cluster_mz_dict = {}
+
+        def _add_from_df(df):
+            if df is None or len(df) == 0:
+                return
+            if 'cluster' in df.columns:
+                df = df[df['cluster'].notna()]
+            if len(df) == 0 or 'sample_id' not in df.columns:
+                return
+            for sample_id, sample_df in df.groupby('sample_id'):
+                mzs = []
+                if '_eic_mz' in sample_df.columns:
+                    mzs.extend(sample_df['_eic_mz'].dropna().tolist())
+                if 'mz' in sample_df.columns:
+                    # Include mz for rows with missing _eic_mz
+                    if '_eic_mz' in sample_df.columns:
+                        missing = sample_df['_eic_mz'].isna()
+                        mzs.extend(sample_df.loc[missing, 'mz'].dropna().tolist())
+                    else:
+                        mzs.extend(sample_df['mz'].dropna().tolist())
+                sid = int(sample_id)
+                existing = cluster_mz_dict.get(sid, [])
+                cluster_mz_dict[sid] = list(set(existing + [float(m) for m in mzs]))
+
+        # Regular clustered features only: these are what were exported to per-sample
+        # HDF5 EICs. Induced (gap-filled) features get EICs at gap-fill time on the
+        # sample object; they are typically not present in the original HDF5 eics group.
+        _add_from_df(self.mass_features_dataframe)
+
+        return cluster_mz_dict
     
     def _execute_sample_pipeline(self, sample_id, operations, runtime_params, inplace=True):
         """

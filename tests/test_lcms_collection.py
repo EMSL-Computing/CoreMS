@@ -301,6 +301,17 @@ def test_lcms_collection_gap_filling(lcms_collection):
     assert 'cluster' in induced_df.columns
     assert 'sample_name' in induced_df.columns
     assert 'mf_id' in induced_df.columns
+    assert '_eic_mz' in induced_df.columns
+    assert induced_df['_eic_mz'].notna().all(), (
+        "induced_mass_features_dataframe should have non-null _eic_mz for all rows"
+    )
+
+    # Regular collection mass_features_dataframe should also expose _eic_mz
+    mf_df = lcms_collection.mass_features_dataframe
+    assert '_eic_mz' in mf_df.columns
+    assert mf_df['_eic_mz'].notna().all(), (
+        "mass_features_dataframe should have non-null _eic_mz for all regular features"
+    )
     
     # Check induced features per sample in the dataframe (not individual objects)
     sample_3_induced = len(induced_df[induced_df['sample_id'] == 2])
@@ -912,3 +923,134 @@ def test_lcms_collection_plotting_methods(lcms_collection):
         lcms_collection.plot_cluster(cluster_id, to_plot=["EIC"], label_samples=True)
     except Exception as e:
         pytest.fail(f"plot_cluster after gap filling raised exception: {e}")
+
+
+def test_cluster_mz_dict_uses_dataframe_not_only_loaded_features(lcms_collection):
+    """
+    Regression for GitLab #258: after load_representatives, sample.mass_features
+    is sparse; cluster_mz_dict must still list every clustered feature m/z from
+    the collection dataframe so gather_eics loads multi-sample EICs for plotting.
+    """
+    lcms_collection = copy.deepcopy(lcms_collection)
+    if not lcms_collection.rt_alignment_attempted:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
+
+    mfdf = lcms_collection.mass_features_dataframe
+    assert 'cluster' in mfdf.columns
+    clustered = mfdf[mfdf['cluster'].notna()]
+    assert len(clustered) > 0
+
+    # Simulate sparse load: clear all in-memory mass features on every sample
+    for sample in lcms_collection:
+        sample.mass_features = {}
+        sample.eics = {}
+
+    cluster_mz_dict = lcms_collection._build_cluster_mz_dict_for_eic_loading()
+
+    # Every sample with clustered dataframe rows must have m/z targets
+    for sample_id, sample_df in clustered.groupby('sample_id'):
+        sid = int(sample_id)
+        assert sid in cluster_mz_dict, f"sample {sid} missing from cluster_mz_dict"
+        assert len(cluster_mz_dict[sid]) > 0, f"sample {sid} has empty m/z list"
+        # Object-only logic would yield empty lists when mass_features is {}
+        assert len(lcms_collection[sid].mass_features) == 0
+
+    # Full gather after load_representatives should put EICs on non-rep samples
+    lcms_collection.process_consensus_features(
+        load_representatives=True,
+        perform_gap_filling=False,
+        add_ms1=False,
+        add_ms2=False,
+        molecular_formula_search=False,
+        ms2_spectral_search=False,
+        gather_eics=True,
+        keep_raw_data=False,
+    )
+
+    # Pick a cluster with members in >1 sample; each should have a resolvable EIC
+    from corems.mass_spectra.calc.lc_calc import LCMSCollectionCalculations
+
+    multi = (
+        clustered.groupby('cluster')['sample_id']
+        .nunique()
+        .loc[lambda s: s >= 2]
+    )
+    assert len(multi) > 0, "Need a multi-sample cluster for this assertion"
+    cid = multi.index[0]
+    rows = mfdf[mfdf['cluster'] == cid]
+    for _, row in rows.iterrows():
+        sample = lcms_collection[int(row['sample_id'])]
+        query = LCMSCollectionCalculations._resolve_eic_query_mz(row)
+        eic = LCMSCollectionCalculations._get_eic_data_for_mz(sample, query)
+        assert eic is not None, (
+            f"Missing EIC for cluster {cid} sample {row['sample_id']} "
+            f"mf {row['mf_id']} query_mz={query} n_eics={len(sample.eics or {})}"
+        )
+
+
+def test_get_eic_data_for_mz_tolerance_lookup():
+    """
+    Regression for GitLab #257: EIC lookup must fall back to m/z tolerance
+    when the exact dict key does not match (float noise between feature
+    _eic_mz and HDF5 EIC keys).
+
+    Also: regular mass_features_dataframe rows often have NaN ``_eic_mz`` while
+    induced rows are populated — plotting must fall back to feature ``mz``.
+    """
+    from types import SimpleNamespace
+
+    import pandas as pd
+
+    from corems.mass_spectra.calc.lc_calc import LCMSCollectionCalculations
+
+    class _FakeEIC:
+        def __init__(self, label):
+            self.label = label
+
+    # Keys differ from query by ~5e-5 Da (within default 1e-4 tolerance)
+    stored_mz = 100.00005
+    query_mz = 100.00000
+    eic = _FakeEIC("matched")
+
+    # Sample with real helper method path
+    sample = SimpleNamespace(eics={stored_mz: eic})
+    # Attach the real method from LCMSBase via binding
+    from corems.mass_spectra.factory.lc_class import LCMSBase
+    sample.get_eic_mz_for_mass_feature = LCMSBase.get_eic_mz_for_mass_feature.__get__(
+        sample, type(sample)
+    )
+
+    # Exact miss, tolerance hit
+    assert sample.eics.get(query_mz) is None
+    found = LCMSCollectionCalculations._get_eic_data_for_mz(sample, query_mz)
+    assert found is eic
+
+    # Exact hit still preferred
+    found_exact = LCMSCollectionCalculations._get_eic_data_for_mz(sample, stored_mz)
+    assert found_exact is eic
+
+    # Outside tolerance → None
+    far = LCMSCollectionCalculations._get_eic_data_for_mz(
+        sample, query_mz, tolerance=1e-6
+    )
+    assert far is None
+
+    # Empty / missing eics
+    empty = SimpleNamespace(eics={})
+    assert LCMSCollectionCalculations._get_eic_data_for_mz(empty, query_mz) is None
+    assert LCMSCollectionCalculations._get_eic_data_for_mz(sample, None) is None
+    assert LCMSCollectionCalculations._get_eic_data_for_mz(sample, float("nan")) is None
+
+    # Dataframe row: NaN _eic_mz (typical for regular features) → fall back to mz
+    row_nan_eic = pd.Series({"_eic_mz": float("nan"), "mz": stored_mz})
+    assert LCMSCollectionCalculations._resolve_eic_query_mz(row_nan_eic) == stored_mz
+    assert (
+        LCMSCollectionCalculations._get_eic_data_for_mz(
+            sample, LCMSCollectionCalculations._resolve_eic_query_mz(row_nan_eic)
+        )
+        is eic
+    )
+    # Prefer non-null _eic_mz over mz
+    row_with_eic = pd.Series({"_eic_mz": query_mz, "mz": 999.0})
+    assert LCMSCollectionCalculations._resolve_eic_query_mz(row_with_eic) == query_mz
