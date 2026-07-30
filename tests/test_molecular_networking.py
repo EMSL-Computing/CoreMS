@@ -178,6 +178,88 @@ def test_prepare_query_spectra_from_lcms_object():
     assert len(spectra2) == 1
 
 
+def test_prepare_query_spectra_from_lcms_collection():
+    class FakeMS2:
+        def __init__(self, seed):
+            self.mz_exp = np.array([100.0 + seed, 200.0])
+            self.abundance = np.array([1.0, 0.5])
+
+    class FakeMF:
+        def __init__(self, mid, mz, has_ms2=True):
+            self.id = mid
+            self.mz = mz
+            self.best_ms2 = FakeMS2(mid) if has_ms2 else None
+
+    class FakeSample:
+        def __init__(self, mass_features):
+            self.mass_features = mass_features
+
+    class FakeCollection:
+        def __init__(self):
+            # sample 0: mf 10 (has MS2), sample 1: mf 20 (no MS2), sample 0: mf 11 (has MS2)
+            self._samples = {
+                0: FakeSample(
+                    {
+                        10: FakeMF(10, 301.0, True),
+                        11: FakeMF(11, 302.0, True),
+                    }
+                ),
+                1: FakeSample({20: FakeMF(20, 400.0, False)}),
+            }
+            self._reps = __import__("pandas").DataFrame(
+                [
+                    {
+                        "cluster": 0,
+                        "sample_id": 0,
+                        "mf_id": 10,
+                        "coll_mf_id": "0_10",
+                        "has_ms2": True,
+                        "intensity": 100.0,
+                    },
+                    {
+                        "cluster": 1,
+                        "sample_id": 1,
+                        "mf_id": 20,
+                        "coll_mf_id": "1_20",
+                        "has_ms2": False,
+                        "intensity": 50.0,
+                    },
+                    {
+                        "cluster": 2,
+                        "sample_id": 0,
+                        "mf_id": 11,
+                        "coll_mf_id": "0_11",
+                        "has_ms2": True,
+                        "intensity": 80.0,
+                    },
+                ]
+            )
+
+        def __getitem__(self, index):
+            return self._samples[index]
+
+        def get_representative_mass_features_for_all_clusters(
+            self, representative_metric=None
+        ):
+            return self._reps.copy()
+
+    coll = FakeCollection()
+    spectra, ids, pmzs = MNClass.prepare_query_spectra_from_lcms_collection(coll)
+    # cluster 1 skipped (no MS2)
+    assert ids == ["0_10", "0_11"]
+    assert len(spectra) == 2
+    assert pmzs == pytest.approx([301.0, 302.0])
+
+    spectra2, ids2, _ = MNClass.prepare_query_spectra_from_lcms_collection(
+        coll, cluster_ids={2}
+    )
+    assert ids2 == ["0_11"]
+    assert len(spectra2) == 1
+
+    with pytest.raises(AttributeError):
+        MNClass.prepare_query_spectra_from_lcms_collection(object())
+
+
 def test_fe_build_attrs_stored_on_index(msp_fe_lib):
     fe_lib, _ = msp_fe_lib
     # database_interfaces stores selected build_index kwargs for later retrieval

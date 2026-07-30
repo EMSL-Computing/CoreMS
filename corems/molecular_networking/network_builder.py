@@ -238,6 +238,106 @@ class MolecularNetwork(NetworkVisualizeMixin):
             query_precursor_mzs.append(float(mf.mz))
         return query_spectra, query_ids, query_precursor_mzs
 
+    @staticmethod
+    def prepare_query_spectra_from_lcms_collection(
+        lcms_collection,
+        cluster_ids: set | None = None,
+        representative_metric: str | None = None,
+    ) -> tuple[list, list[str], list[float]]:
+        """Build query lists from representative mass features in an ``LCMSCollection``.
+
+        Uses :meth:`~corems.mass_spectra.calc.lc_calc.LCMSCollectionCalculations.get_representative_mass_features_for_all_clusters`
+        to select one mass feature per consensus cluster, then collects each
+        feature's ``best_ms2`` from the corresponding sample object.
+
+        Representative mass features must already be loaded with MS2 spectra
+        (e.g. via ``process_consensus_features(load_representatives=True,
+        add_ms2=True, ...)`` or ``reload_representative_mass_features(add_ms2=True)``).
+        Clusters whose representative has no usable MS2 are skipped.
+
+        Parameters
+        ----------
+        lcms_collection : LCMSCollection
+            Collection with consensus clusters and loaded representative
+            mass features (with MS2 where available).
+        cluster_ids : set, optional
+            If provided, only representatives for these cluster IDs are
+            included.
+        representative_metric : str, optional
+            Metric passed to
+            :meth:`~corems.mass_spectra.calc.lc_calc.LCMSCollectionCalculations.get_representative_mass_features_for_all_clusters`.
+            If ``None``, uses the collection parameter
+            ``consensus_representative_metric``.
+
+        Returns
+        -------
+        (query_spectra, query_ids, query_precursor_mzs)
+            Three parallel lists ready to pass to :meth:`query_vs_library`
+            or :meth:`run_query_vs_query_only`.  Query IDs are collection-level
+            ``coll_mf_id`` strings (``"{sample_id}_{mf_id}"``).
+
+        Raises
+        ------
+        AttributeError
+            If *lcms_collection* does not expose representative lookup or
+            sample indexing (not an ``LCMSCollection``-like object).
+        """
+        if not hasattr(lcms_collection, "get_representative_mass_features_for_all_clusters"):
+            raise AttributeError(
+                "lcms_collection must provide get_representative_mass_features_for_all_clusters "
+                "(expected an LCMSCollection)."
+            )
+
+        representatives = lcms_collection.get_representative_mass_features_for_all_clusters(
+            representative_metric=representative_metric
+        )
+        if cluster_ids is not None:
+            representatives = representatives[
+                representatives["cluster"].isin(cluster_ids)
+            ]
+
+        query_spectra: list = []
+        query_ids: list[str] = []
+        query_precursor_mzs: list[float] = []
+
+        for _, row in representatives.iterrows():
+            sample_id = int(row["sample_id"])
+            mf_id = row["mf_id"]
+            coll_mf_id = str(row["coll_mf_id"])
+
+            try:
+                sample = lcms_collection[sample_id]
+            except (IndexError, KeyError, TypeError):
+                continue
+
+            mass_features = getattr(sample, "mass_features", None) or {}
+            mf = mass_features.get(mf_id)
+            if mf is None:
+                # mf_id from dataframes may not match dict key type (int/str/np)
+                try:
+                    mf = mass_features.get(int(mf_id))
+                except (TypeError, ValueError):
+                    mf = None
+            if mf is None:
+                try:
+                    mf = mass_features.get(str(mf_id))
+                except (TypeError, ValueError):
+                    mf = None
+            if mf is None:
+                continue
+
+            ms2 = getattr(mf, "best_ms2", None)
+            if ms2 is None:
+                continue
+            if not hasattr(ms2, "mz_exp") or len(ms2.mz_exp) == 0:
+                continue
+
+            query_spectra.append(ms2)
+            query_ids.append(coll_mf_id)
+            query_precursor_mzs.append(float(mf.mz))
+
+        return query_spectra, query_ids, query_precursor_mzs
+
     # ── Internal helpers ──────────────────────────────────────────────────────
 
     def _threshold_for(self, metric: str) -> float:
