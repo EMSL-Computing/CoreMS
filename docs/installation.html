@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Installing CoreMS — CoreMS</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #555;
+      --link: #0b57d0;
+      --border: #e0e0e0;
+      --code-bg: #f0f0f0;
+      --nav-bg: #111827;
+      --nav-fg: #f9fafb;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1115;
+        --fg: #e8eaed;
+        --muted: #9aa0a6;
+        --link: #8ab4f8;
+        --border: #2a2f3a;
+        --code-bg: #1c212b;
+        --nav-bg: #0b0d12;
+        --nav-fg: #e8eaed;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.55;
+      color: var(--fg);
+      background: var(--bg);
+    }
+    header.site-nav {
+      background: var(--nav-bg);
+      color: var(--nav-fg);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      gap: 1.25rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    header.site-nav a {
+      color: var(--nav-fg);
+      text-decoration: none;
+      opacity: 0.9;
+    }
+    header.site-nav a:hover { opacity: 1; text-decoration: underline; }
+    header.site-nav a.active { font-weight: 700; text-decoration: underline; }
+    header.site-nav .brand { font-weight: 700; margin-right: 0.5rem; }
+    main {
+      max-width: 52rem;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+    }
+    h1, h2, h3, h4 { line-height: 1.25; }
+    h1 { font-size: 1.85rem; margin-top: 0; }
+    h2 { font-size: 1.35rem; margin-top: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; }
+    h3 { font-size: 1.1rem; margin-top: 1.4rem; }
+    a { color: var(--link); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92em;
+      background: var(--code-bg);
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+      overflow-x: auto;
+    }
+    pre code { background: transparent; padding: 0; }
+    table.user-doc-table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0;
+      font-size: 0.95rem;
+    }
+    table.user-doc-table th, table.user-doc-table td {
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.6rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    table.user-doc-table th { background: var(--code-bg); }
+    ul, ol { padding-left: 1.4rem; }
+    p { margin: 0.75rem 0; }
+    footer {
+      max-width: 52rem;
+      margin: 0 auto;
+      padding: 0 1.25rem 2rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-nav">
+    <span class="brand">CoreMS</span>
+    <a href="installation.html" class="active">Installation</a>
+    <a href="corems.html" >API reference</a>
+    <a href="https://github.com/EMSL-Computing/CoreMS">GitHub</a>
+  </header>
+  <main>
+<h1 id="installing-corems">Installing CoreMS</h1>
+<p>How to install <strong>CoreMS 4.0+</strong> for normal use, development, optional databases, and Thermo <code>.raw</code> support.</p>
+<p>This is the <strong>canonical install guide</strong>. The <a href="../../README.md">README</a> only has a short quickstart. Generated HTML for this page is produced by <code>make docu</code> as <code>docs/installation.html</code> (also published with the API docs site).</p>
+<h2 id="requirements">Requirements</h2>
+<table class="user-doc-table">
+<thead><tr>
+<th>Requirement</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Python 3.10–3.13</strong></td>
+<td>From <code>requires-python</code> in <code>pyproject.toml</code></td>
+</tr>
+<tr>
+<td><strong>pip</strong></td>
+<td>Prefer upgrading: <code>python -m pip install -U pip</code></td>
+</tr>
+<tr>
+<td><strong>Optional: Docker</strong></td>
+<td>PostgreSQL via <code>docker-compose</code>, or the full CoreMS image</td>
+</tr>
+<tr>
+<td><strong>Optional: .NET 8 runtime</strong></td>
+<td>Host Thermo <code>.raw</code> via Python.NET (see <a href="#system-dependencies-thermo-raw">system dependencies</a>)</td>
+</tr>
+</tbody></table>
+<p>Declared Python dependencies (including <strong>pythonnet</strong>) are installed with the package. You do <strong>not</strong> need a separate <code>pip install pythonnet</code>.</p>
+<h2 id="quick-install-pypi">Quick install (PyPI)</h2>
+<p>Use an isolated environment (venv or conda). Example with venv:</p>
+<pre><code class="language-bash">python -m venv venv
+# Windows: venv\Scripts\activate
+source venv/bin/activate
+
+python -m pip install -U pip
+pip install corems</code></pre>
+<p>Verify:</p>
+<pre><code class="language-bash">python -c &quot;import corems; print(corems.__version__)&quot;</code></pre>
+<p>By default the molecular formula database uses <strong>SQLite</strong> (local file; no extra services).</p>
+<h2 id="optional-extras">Optional extras</h2>
+<p>Install extras from <code>pyproject.toml</code> as needed:</p>
+<pre><code class="language-bash">pip install &quot;corems[dev]&quot;          # tests, lint, docs tooling (incl. pdoc)
+# Future / other branches may add more extras (e.g. networking visualization).</code></pre>
+<p>Check the installed package metadata or <code>pyproject.toml</code> for the current list of extras.</p>
+<h2 id="install-from-source">Install from source</h2>
+<pre><code class="language-bash">git clone https://github.com/EMSL-Computing/CoreMS.git
+cd CoreMS
+
+python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+
+python -m pip install -U pip
+pip install .
+# editable install for development:
+# pip install -e &quot;.[dev]&quot;</code></pre>
+<p>Internal GitLab (same install after clone):</p>
+<pre><code class="language-text">https://code.emsl.pnl.gov/mass-spectrometry/corems.git</code></pre>
+<h2 id="molecular-formula-database">Molecular formula database</h2>
+<h3 id="sqlite-default">SQLite (default)</h3>
+<p>No extra services. Suitable for most users and light workloads.</p>
+<h3 id="postgresql-optional">PostgreSQL (optional)</h3>
+<p>For multi-user or higher-load molecular formula search:</p>
+<ol>
+<li>Install and start <a href="https://www.docker.com/">Docker</a>.</li>
+<li>From the CoreMS repository root:</li>
+</ol>
+<pre><code class="language-bash">docker-compose up -d</code></pre>
+<ol>
+<li>Point CoreMS at the database (either approach):</li>
+</ol>
+<pre><code class="language-bash">export COREMS_DATABASE_URL=&quot;postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp&quot;</code></pre>
+<p>Or set <code>MSParameters.molecular_search.url_database</code> to the same URL.</p>
+<p>Keep Docker running while you use this database.</p>
+<h2 id="system-dependencies-thermo-raw">System dependencies (Thermo <code>.raw</code>)</h2>
+<p>Reading Thermo <code>.raw</code> files uses <strong>Python.NET</strong> (a package dependency) plus a <strong>.NET runtime on the host</strong>. This is separate from <code>pip install</code>.</p>
+<h3 id="recommended-net-8-coreclr">Recommended: .NET 8 (CoreCLR)</h3>
+<p>Matches CoreMS CI and the project Dockerfile (<strong>.NET 8</strong>, not .NET 9).</p>
+<ol>
+<li>Install the <strong>.NET 8 runtime</strong> for your OS and CPU (x64 or arm64): <a href="https://dotnet.microsoft.com/download/dotnet/8.0">Download .NET 8</a>.</li>
+<li>Prefer CoreCLR:</li>
+</ol>
+<pre><code class="language-bash">export PYTHONNET_RUNTIME=coreclr
+# If the runtime is not on the default path:
+# export DOTNET_ROOT=/usr/local/dotnet
+# export PATH=&quot;$PATH:$DOTNET_ROOT&quot;</code></pre>
+<ol>
+<li>Confirm:</li>
+</ol>
+<pre><code class="language-bash">dotnet --list-runtimes
+# should list a Microsoft.NETCore.App 8.x runtime</code></pre>
+<p>On <strong>Apple Silicon</strong>, install the <strong>arm64</strong> .NET 8 runtime when running Python natively on arm64. The CoreMS <strong>Docker image</strong> already includes .NET 8, so host .NET is optional if you only run inside the image.</p>
+<h3 id="optional-mono">Optional: Mono</h3>
+<p>Some users still use <a href="https://www.mono-project.com/">Mono</a> with Python.NET. That path is <strong>not</strong> required for CoreMS 4.0+. If you use Mono:</p>
+<pre><code class="language-bash">export PYTHONNET_RUNTIME=mono</code></pre>
+<p>You may also need Mono’s libraries discoverable on your system (distribution-specific). Prefer CoreCLR unless you already depend on Mono.</p>
+<h3 id="windows">Windows</h3>
+<ul>
+<li><code>pip install corems</code> installs pythonnet with the package.</li>
+<li>Install <strong>.NET 8</strong> if you need Thermo <code>.raw</code> support; use <code>PYTHONNET_RUNTIME=coreclr</code> when required.</li>
+</ul>
+<h2 id="docker-image-full-application">Docker image (full application)</h2>
+<p>To run CoreMS in a container that already includes <strong>.NET 8</strong> and dependencies, see <a href="../../README.md#docker-image">Building and Running the CoreMS Docker Image</a> in the README (<code>make build-image-local</code> / <code>make build-image-mac-local</code> on Apple Silicon).</p>
+<h2 id="example-notebooks">Example notebooks</h2>
+<p>Workflow examples live under <code>examples/notebooks/</code>. Use any Jupyter-capable environment to run them; IDE product setup is out of scope for this guide.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<table class="user-doc-table">
+<thead><tr>
+<th>Symptom</th>
+<th>What to check</th>
+</tr></thead><tbody>
+<tr>
+<td><code>import corems</code> fails / wrong Python</td>
+<td>Active venv; <code>python --version</code> is 3.10+</td>
+</tr>
+<tr>
+<td>Thermo <code>.raw</code> / pythonnet errors</td>
+<td>.NET <strong>8</strong> installed; <code>PYTHONNET_RUNTIME=coreclr</code>; <code>dotnet --list-runtimes</code></td>
+</tr>
+<tr>
+<td>Using Mono deliberately</td>
+<td><code>PYTHONNET_RUNTIME=mono</code>; Mono installed</td>
+</tr>
+<tr>
+<td>PostgreSQL connection errors</td>
+<td><code>docker-compose up -d</code>; <code>COREMS_DATABASE_URL</code> / URL in parameters</td>
+</tr>
+<tr>
+<td>Apple Silicon Docker builds</td>
+<td>macOS image build targets in the README (<code>linux/amd64</code>)</td>
+</tr>
+</tbody></table>
+<h2 id="building-this-documentation">Building this documentation</h2>
+<p>User guides under <code>docs/user/</code> and the API reference are generated together:</p>
+<pre><code class="language-bash">make docu</code></pre>
+<p>That runs <strong>pdoc</strong> (API → <code>docs/corems.html</code>) and renders Markdown user pages (e.g. this file → <code>docs/installation.html</code>).</p>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="../../README.md">README.md</a> — overview, short install, Docker image</li>
+<li><a href="../../CONTRIBUTING.md">CONTRIBUTING.md</a> — development workflow and local tests</li>
+<li><a href="../../RELEASE.md">RELEASE.md</a> — versioning and releases (maintainers)</li>
+<li><a href="https://emsl-computing.github.io/CoreMS/corems.html">API documentation</a> (generated)</li>
+</ul>
+  </main>
+  <footer>
+    Generated from <code>docs/user/</code> Markdown via <code>make docu</code> / <code>scripts/render_user_docs.py</code>.
+  </footer>
+</body>
+</html>

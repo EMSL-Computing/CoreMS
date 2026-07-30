@@ -144,8 +144,9 @@ db-connect:
 	@docker exec -it molformdb psql -U postgres
 
 docu:
-	
+
 	pdoc --output-dir docs --docformat numpy corems
+	@$(PYTHON) scripts/render_user_docs.py
 
 SKIP_LIPIDOMICS_DB ?= 0
 SKIP_MOLECULAR_DB ?= 0

@@ -64,9 +64,11 @@ CoreMS aims to provide
 
 ## Documentation
 
-API documentation can be found [here](https://emsl-computing.github.io/CoreMS/corems.html).
+- **Installation guide:** [docs/user/installation.md](./docs/user/installation.md) (source) · [docs site](https://emsl-computing.github.io/CoreMS/installation.html) (generated)
+- **API reference:** [docs site](https://emsl-computing.github.io/CoreMS/corems.html) (pdoc)
+- **Overview slides:** [CoreMS-Overview.pdf](https://github.com/EMSL-Computing/CoreMS/blob/master/examples/CoreMS-Overview.pdf)
 
-Overview slides can be found [here](https://github.com/EMSL-Computing/CoreMS/blob/master/examples/CoreMS-Overview.pdf).
+Build local docs (API + user guides): `make docu`, then open `docs/installation.html` and `docs/corems.html`.
 
 ***
 
@@ -169,45 +171,24 @@ See walkthrough in [this notebook](examples/notebooks/LCMS_Tutorial.ipynb)
 ## Installation
 
 ```bash
+python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -U pip
 pip install corems
+python -c "import corems; print(corems.__version__)"
 ```
 
-CoreMS **4.0+** requires **Python 3.10 or later** (including Python 3.13) and is compatible with **NumPy 2.x**, **pandas 2.x**, and **SQLAlchemy 2.x**. Dependencies (including **pythonnet**) are installed from `pyproject.toml` with the package.
-
-To install with development and testing extras:
+CoreMS **4.0+** requires **Python 3.10+** (including 3.13). Dependencies (including **pythonnet**) come from `pyproject.toml` with the package.
 
 ```bash
-pip install "corems[dev]"
+pip install "corems[dev]"   # tests / docs tooling
 ```
 
-Step-by-step host setup (venv, PostgreSQL, Thermo runtimes): **[Installing CoreMS.md](./Installing%20CoreMS.md)**.
+**Full guide** (venv, extras, SQLite vs PostgreSQL, Thermo `.raw` / .NET 8, troubleshooting):
 
-By default the molecular formula database will be generated using SQLite.
+→ **[docs/user/installation.md](./docs/user/installation.md)**  
+→ Generated site: [installation.html](https://emsl-computing.github.io/CoreMS/installation.html)
 
-To use PostgreSQL the easiest way is to start the compose service from a clone of this repository:
-
-```bash
-docker-compose up -d
-```
-
-- Change the url_database on `MSParameters.molecular_search.url_database` to: `"postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"`
-- Set the env variable `COREMS_DATABASE_URL` to: `"postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"`
-
-### Thermo Raw File Access
-
-Thermo `.raw` support uses **Python.NET** (installed with CoreMS) and a .NET runtime on the host:
-
-1. Install the **.NET 8** runtime (not .NET 9) for your platform: [Download .NET 8](https://dotnet.microsoft.com/download/dotnet/8.0).
-2. Prefer CoreCLR:
-
-```bash
-export PYTHONNET_RUNTIME=coreclr
-# set DOTNET_ROOT / PATH if the runtime is not already discoverable
-```
-
-Optional: some macOS/Linux setups still use **Mono** instead of CoreCLR. That path is not required for 4.0+. If you use Mono, set `export PYTHONNET_RUNTIME=mono` and see [Installing CoreMS.md](./Installing%20CoreMS.md#optional-mono-macos--some-linux-setups).
-
-The CoreMS Docker image already includes .NET 8; see [Building and Running the CoreMS Docker Image](#docker-image).
+Thermo RAW needs a host **.NET 8** runtime and `PYTHONNET_RUNTIME=coreclr` (details in the install guide). The CoreMS Docker image already includes .NET 8; see [Docker image](#docker-image).
 
 ***
 

@@ -23,7 +23,7 @@ Release when `dev` has a coherent set of changes ready for users (features, fixe
 | `make minor` | Backwards-compatible new features |
 | `make major` | Incompatible API changes |
 
-Each of those updates version metadata (see `.bumpversion.cfg`) and regenerates docs via `make docu`.
+Each of those updates version metadata (see `.bumpversion.cfg`) and regenerates docs via `make docu` (pdoc API reference plus user guides such as `docs/installation.html` from `docs/user/`).
 
 ## Release steps (GitLab)
 
