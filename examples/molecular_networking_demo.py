@@ -39,10 +39,14 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 from corems.molecular_id.search.database_interfaces import MSPInterface
 from corems.molecular_networking import MolecularNetwork, SimilarityMatrix
 
-MSP_FILE = REPO_ROOT / "tests/tests_data/lcms/test_db.msp"
+# Public fixture shipped with the repo (no private tmp_data / large MSP required).
+# Optional override for a larger local library:
+#   export COREMS_NETWORKING_MSP=/path/to/library.msp
+import os
 
-# Larger lipid library (51 k spectra) for library search.
-LARGE_MSP = REPO_ROOT / "tmp_data" / "20250407_database.msp"
+_default_msp = REPO_ROOT / "tests/tests_data/lcms/test_db.msp"
+_env_msp = os.environ.get("COREMS_NETWORKING_MSP")
+MSP_FILE = Path(_env_msp) if _env_msp else _default_msp
 
 # Keep query set small so demo finishes fast and query-vs-query stays readable.
 DEMO_QUERY_COUNT = 6
@@ -54,9 +58,15 @@ print("=" * 65)
 print("STEP 1 – Load MSP library and build FlashEntropy index")
 print("=" * 65)
 
-msp = MSPInterface(file_path=str(LARGE_MSP))
+if not MSP_FILE.is_file():
+    raise FileNotFoundError(
+        f"MSP library not found: {MSP_FILE}\n"
+        f"Use the repo fixture or set COREMS_NETWORKING_MSP."
+    )
+
+msp = MSPInterface(file_path=str(MSP_FILE))
 df = msp._data_frame
-print(f"  Parsed {len(df)} spectra from {LARGE_MSP.name}")
+print(f"  Parsed {len(df)} spectra from {MSP_FILE.name}")
 
 fe_lib = msp._to_flashentropy(
     input_dataframe=df,
@@ -96,7 +106,8 @@ all_spectra = []
 all_ids = []
 all_precursor_mzs = []
 
-idxs_of_interest = [34142, 16093, 718, 757]  
+n_lib = len(df)
+idxs_of_interest = list(range(min(DEMO_QUERY_COUNT, n_lib)))
 for idx in idxs_of_interest:
     row = df.iloc[idx]
     peaks = np.array(row.peaks, dtype=float)
@@ -121,14 +132,13 @@ for idx in idxs_of_interest:
     all_ids.append(str(spec_id))
     all_precursor_mzs.append(pmz)
 
-print(f"\n  Created {len(all_spectra)} query spectra ({len(all_spectra) - 1} noisy + 1 exact)")
+print(f"\n  Created {len(all_spectra)} query spectra from library rows {idxs_of_interest}")
 for i in range(min(3, len(all_spectra))):
     print(f"    [{i}] id={all_ids[i]!r}  precursor_mz={all_precursor_mzs[i]:.4f}  "
           f"n_peaks={len(all_spectra[i].mz_exp)}")
 
 print(f"\n  Will run tiered query with {len(all_spectra)} query spectra")
 print(f"  Library-vs-library threshold: {LIBRARY_SIMILARITY_THRESHOLD}")
-
 
 def run_network_demo(search_type: str, label: str):
     print("\n" + "=" * 65)
@@ -220,46 +230,59 @@ def run_network_demo(search_type: str, label: str):
     assert reloaded.n_spectra == network.similarity_matrices["entropy_similarity"].n_spectra
     print("  ✓ Save/load round-trip OK")
 
-    for metric in ["entropy_similarity", "cosine"]:
-        cluster_summary = network.compute_network_clusters(
-            metric=metric,
-            include_queries_only=True,
-            max_edges=500,
-            cluster_method="weighted_greedy_modularity",
-            cluster_super_threshold=400,
-            cluster_sparsify_top_k=8,
-            cluster_recursive_split=True,
-            layout_seed=42,
-        )
+    # Clustering / HTML plot need optional deps: pip install "corems[networking]"
+    try:
+        import networkx  # noqa: F401
+        import ipysigma  # noqa: F401
+        has_viz = True
+    except ImportError:
+        has_viz = False
         print(
-            f"  ✓ [{metric}] clusters: {cluster_summary['n_clusters']} clusters "
-            f"across {cluster_summary['n_nodes']} nodes"
+            "  Skipping cluster/plot steps (install optional viz deps with: "
+            'pip install "corems[networking]")'
         )
 
-        cluster_paths = network.save_network_clusters(
-            str(OUT_DIR),
-            metric=metric,
-            run_id=search_type,
-        )
-        print(f"  ✓ [{metric}] cluster artifacts: {cluster_paths['manifest']}")
+    if has_viz:
+        for metric in ["entropy_similarity", "cosine"]:
+            cluster_summary = network.compute_network_clusters(
+                metric=metric,
+                include_queries_only=True,
+                max_edges=500,
+                cluster_method="weighted_greedy_modularity",
+                cluster_super_threshold=400,
+                cluster_sparsify_top_k=8,
+                cluster_recursive_split=True,
+                layout_seed=42,
+            )
+            print(
+                f"  ✓ [{metric}] clusters: {cluster_summary['n_clusters']} clusters "
+                f"across {cluster_summary['n_nodes']} nodes"
+            )
 
-        html_path = OUT_DIR / f"{search_type}_network_{metric}.html"
-        network.plot_network(
-            metric=metric,
-            out_path=str(html_path),
-            max_edges=500,
-            library_label_field=("compound_name", "name","spectra_id"),
-            library_node_attrs=(
-                "compound_name",
-                "name",
-                "spectra_id",
-                "precursor_mz",
-                "precursortype",
-                "inchikey",
-            ),
-            bypass_clustering=False,
-        )
-        print(f"  ✓ [{metric}] interactive network HTML: {html_path}")
+            cluster_paths = network.save_network_clusters(
+                str(OUT_DIR),
+                metric=metric,
+                run_id=search_type,
+            )
+            print(f"  ✓ [{metric}] cluster artifacts: {cluster_paths['manifest']}")
+
+            html_path = OUT_DIR / f"{search_type}_network_{metric}.html"
+            network.plot_network(
+                metric=metric,
+                out_path=str(html_path),
+                max_edges=500,
+                library_label_field=("compound_name", "name", "spectra_id"),
+                library_node_attrs=(
+                    "compound_name",
+                    "name",
+                    "spectra_id",
+                    "precursor_mz",
+                    "precursortype",
+                    "inchikey",
+                ),
+                bypass_clustering=False,
+            )
+            print(f"  ✓ [{metric}] interactive network HTML: {html_path}")
 
     return network
 

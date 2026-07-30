@@ -1,6 +1,12 @@
 """
-Single-File LC-MS with Molecular Networking
-============================================
+Single-File LC-MS with Molecular Networking (research / debug)
+==============================================================
+
+**Not the primary public exemplar.** Paths below are placeholders for local
+research data. For a fixture-based demo that runs out of the box, use:
+
+- ``examples/molecular_networking_demo.py`` (MSP fixture + mock queries)
+- ``examples/molecular_networking_queries_only_demo.py`` (query-only mocks)
 
 End-to-end debug script for a single Thermo RAW DDA file:
 
@@ -19,7 +25,7 @@ End-to-end debug script for a single Thermo RAW DDA file:
     STEP 12 – Build MolecularNetwork (open + neutral_loss)            [if RUN_MOLECULAR_NETWORKING]
     STEP 13 – Summary
 
-Run from the repo root:
+Run from the repo root (after editing RAW_FILE / MSP_FILE to local paths):
     python examples/single_file_lcms_with_molecular_networking.py
 
 # Some hits we are expecting to see in the LCMS data (based on publication):
@@ -27,6 +33,7 @@ rt 16.1 min, m/zs at 670.151, 721.0677, 723.0630
 molecular formulas C30H27N3O15 
 """
 
+import os
 import sys
 import numpy as np
 from pathlib import Path
@@ -38,14 +45,24 @@ print("=" * 65)
 print("STEP 1 – Config / paths")
 print("=" * 65)
 
-# ── Input file ────────────────────────────────────────────────────────────────
+# ── Input file (set COREMS_NETWORKING_RAW or edit this path) ─────────────────
 RAW_FILE = Path(
-    "/Volumes/LaCie/boiteau_data/Prosser soil enrichments/RMB_CWD_180608_prosserM9enrich_hrms2_5.raw"
+    os.environ.get(
+        "COREMS_NETWORKING_RAW",
+        "/path/to/your_file.raw",
+    )
 )
 
-# ── MSP spectral library (same as molecular_networking_demo.py) ───────────────
+# ── MSP spectral library ──────────────────────────────────────────────────────
+# Prefer env override; else optional large local library; else repo fixture.
 # Falls back to fe_lib=None (query-vs-query only) if file is missing.
-MSP_FILE = Path("tmp_data") / "20250407_database.msp"
+_msp_env = os.environ.get("COREMS_NETWORKING_MSP")
+if _msp_env:
+    MSP_FILE = Path(_msp_env)
+elif (Path("tmp_data") / "20250407_database.msp").is_file():
+    MSP_FILE = Path("tmp_data") / "20250407_database.msp"
+else:
+    MSP_FILE = Path("tests/tests_data/lcms/test_db.msp")
 
 # ── Feature flags ─────────────────────────────────────────────────────────────
 # Set to False to skip the molecular networking steps (Steps 9–11) while

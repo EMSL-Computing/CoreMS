@@ -898,7 +898,8 @@ class NetworkVisualizeMixin:
         except ImportError as exc:
             raise ImportError(
                 "networkx and ipysigma are required for plot_network(). "
-                "Install with: pip install networkx ipysigma"
+                'Install with: pip install "corems[networking]" '
+                "(or: pip install networkx ipysigma)"
             ) from exc
 
         cache = self._ensure_cluster_cache()

@@ -67,6 +67,11 @@ dev = [
     "PyWavelets",
     "pdoc>=14.1.0",
 ]
+# Optional deps for MolecularNetwork.plot_network / clustering HTML viz
+networking = [
+    "networkx>=3.0",
+    "ipysigma>=0.24",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
