@@ -441,26 +441,11 @@ class MolecularNetwork(NetworkVisualizeMixin):
             if lib_indices_for_query:
                 query_to_lib_indices[qi] = lib_indices_for_query
 
-        total_pairs = sum(len(v) for v in query_to_lib_indices.values())
-        print(
-            f"  [query_vs_library] Found {total_pairs} query-vs-library pairs above entropy threshold "
-            f"({self._engine.entropy_threshold_low})"
-        )
-
         lib_ids = [str(i) for i in range(lib_size)]
         for mat in self.similarity_matrices.values():
             mat.register_spectra(lib_ids)
 
         if "cosine" in self._engine.additional_similarities and query_to_lib_indices:
-            print(
-                f"  [query_vs_library] Computing cosine for {len(query_to_lib_indices)} queries against library..."
-            )
-            if self.search_type == "neutral_loss":
-                print(
-                    "  [query_vs_library] neutral_loss mode: cosine computed in neutral-loss mass space "
-                    "(precursor_mz - fragment_mz)."
-                )
-
             for qi, lib_indices in query_to_lib_indices.items():
                 cosine_scores = self._engine._compute_cosine_for_query_vs_library(
                     query_spectrum=query_spectra[qi],
@@ -469,8 +454,6 @@ class MolecularNetwork(NetworkVisualizeMixin):
                 )
                 for lib_idx, score in cosine_scores.items():
                     cosine_pairs[(query_ids[qi], str(lib_idx))] = score
-
-            print(f"  [query_vs_library] Stored {len(cosine_pairs)} cosine pairs")
 
         combined: dict[str, dict[tuple[str, str], float]] = {"entropy_similarity": entropy_pairs}
         if cosine_pairs:
@@ -521,10 +504,6 @@ class MolecularNetwork(NetworkVisualizeMixin):
         )
 
         n_matched = len(matched_lib_indices)
-        print(
-            f"  [query_vs_library] Stage 3 – library-vs-library for {n_matched} matched library spectra "
-            f"(threshold={library_similarity_threshold}) …"
-        )
 
         if n_matched > 1:
             matched_lib_ids = [str(i) for i in matched_lib_indices]
@@ -533,14 +512,6 @@ class MolecularNetwork(NetworkVisualizeMixin):
                 spectrum_ids=matched_lib_ids,
             )
             self._update_matrices(ll_scores)
-            n_ll_pairs = sum(len(v) for v in ll_scores.values())
-            print(
-                f"  [query_vs_library] Stage 3 complete – {n_ll_pairs} library-vs-library pairs stored."
-            )
-        else:
-            print(
-                "  [query_vs_library] Stage 3 skipped – fewer than 2 library spectra matched the threshold."
-            )
 
         self.stage_library_library_done = True
 
@@ -899,7 +870,6 @@ class MolecularNetwork(NetworkVisualizeMixin):
         ]
         df = pd.DataFrame(export_edges, columns=["id1", "id2", "score"])
         df.to_csv(path, index=False)
-        print(f"Saved edge list ({len(export_edges)} edges) to {path}")
 
     def save_similarity_matrix(
         self,
@@ -921,7 +891,6 @@ class MolecularNetwork(NetworkVisualizeMixin):
         mat = self._get_matrix(metric)
         df = mat.to_dataframe(threshold=threshold)
         df.to_csv(path, index=False)
-        print(f"Saved similarity matrix ({len(df)} pairs) to {path}")
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
