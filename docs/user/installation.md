@@ -2,7 +2,7 @@
 
 How to install **CoreMS 4.0+** for normal use, development, optional databases, and Thermo `.raw` support.
 
-This is the **canonical install guide**. The [README](../../README.md) only has a short quickstart. Generated HTML for this page is produced by `make docu` as `docs/installation.html` (also published with the API docs site).
+This is the **canonical install guide**. The [README](../../README.md) has a short quickstart only. This file is loaded into `corems.__doc__` (together with the README) so `make docu` / pdoc shows it on the package landing page with the same styling as the API docs.
 
 ## Requirements
 
@@ -42,7 +42,6 @@ Install extras from `pyproject.toml` as needed:
 
 ```bash
 pip install "corems[dev]"          # tests, lint, docs tooling (incl. pdoc)
-# Future / other branches may add more extras (e.g. networking visualization).
 ```
 
 Check the installed package metadata or `pyproject.toml` for the current list of extras.
@@ -143,7 +142,7 @@ To run CoreMS in a container that already includes **.NET 8** and dependencies, 
 
 ## Example notebooks
 
-Workflow examples live under `examples/notebooks/`. Use any Jupyter-capable environment to run them; IDE product setup is out of scope for this guide.
+Workflow examples live under `examples/notebooks/`. These are intended as demonstrations and starting points for your own analysis. 
 
 ## Troubleshooting
 
@@ -155,19 +154,17 @@ Workflow examples live under `examples/notebooks/`. Use any Jupyter-capable envi
 | PostgreSQL connection errors | `docker-compose up -d`; `COREMS_DATABASE_URL` / URL in parameters |
 | Apple Silicon Docker builds | macOS image build targets in the README (`linux/amd64`) |
 
-## Building this documentation
-
-User guides under `docs/user/` and the API reference are generated together:
+## Building the documentation site
 
 ```bash
 make docu
 ```
 
-That runs **pdoc** (API → `docs/corems.html`) and renders Markdown user pages (e.g. this file → `docs/installation.html`).
+Opens as `docs/corems.html`. The landing module page includes this install guide via `corems/__init__.py`.
 
 ## See also
 
 - [README.md](../../README.md) — overview, short install, Docker image
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — development workflow and local tests
 - [RELEASE.md](../../RELEASE.md) — versioning and releases (maintainers)
-- [API documentation](https://emsl-computing.github.io/CoreMS/corems.html) (generated)
+- [Package / API docs](https://emsl-computing.github.io/CoreMS/corems.html) (generated)

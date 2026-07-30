@@ -87,7 +87,7 @@ Reviewers check these before merging into **`dev`**:
 ## Code style
 
 - Docstrings follow the [NumPy style](https://numpydoc.readthedocs.io/en/latest/format.html).
-- API docs are built with [pdoc](https://github.com/mitmproxy/pdoc); user guides under `docs/user/` are rendered to HTML. Run both with `make docu`.
+- API docs are built with [pdoc](https://github.com/mitmproxy/pdoc) (`make docu`). The package landing page (`corems.__doc__`) includes `README.md` and `docs/user/installation.md` so install content uses the same pdoc styling as the API.
 
 ## Issue reporting
 

@@ -64,11 +64,11 @@ CoreMS aims to provide
 
 ## Documentation
 
-- **Installation guide:** [docs/user/installation.md](./docs/user/installation.md) (source) · [docs site](https://emsl-computing.github.io/CoreMS/installation.html) (generated)
-- **API reference:** [docs site](https://emsl-computing.github.io/CoreMS/corems.html) (pdoc)
+- **Docs site (pdoc):** [corems.html](https://emsl-computing.github.io/CoreMS/corems.html) — package landing page includes the README and the full [installation guide](https://emsl-computing.github.io/CoreMS/corems.html#installing-corems)
+- **Installation source:** [docs/user/installation.md](./docs/user/installation.md) (also rendered into the pdoc landing page via `corems.__doc__`)
 - **Overview slides:** [CoreMS-Overview.pdf](https://github.com/EMSL-Computing/CoreMS/blob/master/examples/CoreMS-Overview.pdf)
 
-Build local docs (API + user guides): `make docu`, then open `docs/installation.html` and `docs/corems.html`.
+Build local docs: `make docu`, then open `docs/corems.html`.
 
 ***
 
@@ -185,8 +185,8 @@ pip install "corems[dev]"   # tests / docs tooling
 
 **Full guide** (venv, extras, SQLite vs PostgreSQL, Thermo `.raw` / .NET 8, troubleshooting):
 
-→ **[docs/user/installation.md](./docs/user/installation.md)**  
-→ Generated site: [installation.html](https://emsl-computing.github.io/CoreMS/installation.html)
+→ **[docs/user/installation.md](./docs/user/installation.md)** (source)  
+→ On the docs site: [Installing CoreMS](https://emsl-computing.github.io/CoreMS/corems.html#installing-corems) (same page as the API landing docs)
 
 Thermo RAW needs a host **.NET 8** runtime and `PYTHONNET_RUNTIME=coreclr` (details in the install guide). The CoreMS Docker image already includes .NET 8; see [Docker image](#docker-image).
 
