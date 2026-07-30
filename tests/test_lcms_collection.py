@@ -231,6 +231,68 @@ def test_lcms_collection_rt_alignment(lcms_collection):
         pytest.fail(f"plot_alignments raised an exception: {e}")
 
 
+def test_lcms_collection_plot_finalize_return_fig_and_path(lcms_collection, tmp_path):
+    """Shared plot finalize contract: open return_fig, path save without show."""
+    import io
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.figure import Figure
+
+    lcms_collection = copy.deepcopy(lcms_collection)
+
+    def _assert_open_and_saveable(fig, label):
+        assert fig is not None, f"{label} should return a figure"
+        assert isinstance(fig, Figure), f"{label} should return a matplotlib Figure"
+        assert plt.fignum_exists(fig.number), (
+            f"{label}: figure was closed before return"
+        )
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        assert buf.tell() > 0, f"{label}: savefig produced empty output"
+        out_path = tmp_path / f"{label}.png"
+        fig.savefig(out_path)
+        assert out_path.stat().st_size > 0, f"{label}: on-disk savefig is empty"
+        plt.close(fig)
+
+    # plot_tics: return_fig leaves figure open
+    fig = lcms_collection.plot_tics(
+        ms_level=1, type="raw", plot_legend=False, return_fig=True
+    )
+    _assert_open_and_saveable(fig, "plot_tics")
+
+    # Default path still returns None
+    assert lcms_collection.plot_tics(ms_level=1, type="raw") is None
+
+    # Headless batch save via path= (no return_fig)
+    path_tics = tmp_path / "tics_batch.png"
+    assert (
+        lcms_collection.plot_tics(ms_level=1, type="raw", path=path_tics) is None
+    )
+    assert path_tics.is_file() and path_tics.stat().st_size > 0
+
+    # return_fig + path: save and return open figure
+    path_tics2 = tmp_path / "tics_return.png"
+    fig = lcms_collection.plot_tics(
+        ms_level=1, type="raw", return_fig=True, path=path_tics2
+    )
+    assert path_tics2.is_file() and path_tics2.stat().st_size > 0
+    _assert_open_and_saveable(fig, "plot_tics_path_return")
+
+    # plot_alignments needs scan_time_aligned
+    if not lcms_collection.rt_alignment_attempted:
+        lcms_collection.align_lcms_objects()
+
+    fig = lcms_collection.plot_alignments(plot_legend=False, return_fig=True)
+    _assert_open_and_saveable(fig, "plot_alignments")
+    assert lcms_collection.plot_alignments() is None
+
+    path_align = tmp_path / "align_batch.png"
+    assert lcms_collection.plot_alignments(path=path_align) is None
+    assert path_align.is_file() and path_align.stat().st_size > 0
+
+
 def test_lcms_collection_consensus_features(lcms_collection):
     """Test generation of consensus mass features (clustering)."""
     # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
@@ -925,11 +987,84 @@ def test_lcms_collection_plotting_methods(lcms_collection):
         pytest.fail(f"plot_cluster after gap filling raised exception: {e}")
 
 
+def test_lcms_collection_plot_cluster_finalize_return_fig(lcms_collection, tmp_path):
+    """return_fig=True leaves figures open; path= saves for collection plot helpers."""
+    import io
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.figure import Figure
+
+    lcms_collection = copy.deepcopy(lcms_collection)
+    if not lcms_collection.rt_alignment_attempted:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
+
+    cluster_summary = lcms_collection.cluster_summary_dataframe
+    assert len(cluster_summary) > 0, "Should have clusters for plotting tests"
+    cluster_id = cluster_summary.index[0]
+
+    def _assert_open_and_saveable(fig, label):
+        assert fig is not None, f"{label} should return a figure"
+        assert isinstance(fig, Figure), f"{label} should return a matplotlib Figure"
+        assert plt.fignum_exists(fig.number), (
+            f"{label}: figure was closed before return"
+        )
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        assert buf.tell() > 0, f"{label}: savefig produced empty output"
+        out_path = tmp_path / f"{label}.png"
+        fig.savefig(out_path)
+        assert out_path.stat().st_size > 0, f"{label}: on-disk savefig is empty"
+        plt.close(fig)
+
+    fig = lcms_collection.plot_cluster(cluster_id, to_plot=["EIC"], return_fig=True)
+    _assert_open_and_saveable(fig, "plot_cluster")
+
+    path_cluster = tmp_path / "cluster_batch.png"
+    assert (
+        lcms_collection.plot_cluster(
+            cluster_id, to_plot=["EIC"], path=path_cluster
+        )
+        is None
+    )
+    assert path_cluster.is_file() and path_cluster.stat().st_size > 0
+
+    fig = lcms_collection.plot_consensus_mz_features(return_fig=True)
+    _assert_open_and_saveable(fig, "plot_consensus_mz_features")
+
+    fig = lcms_collection.plot_mz_features_across_samples(return_fig=True)
+    _assert_open_and_saveable(fig, "plot_mz_features_across_samples")
+
+    fig = lcms_collection.plot_mz_features_per_cluster(return_fig=True)
+    _assert_open_and_saveable(fig, "plot_mz_features_per_cluster")
+
+    # Mass-feature plot uses the same finalize contract (prefer MS1 to avoid
+    # EIC paths that require optional MS2 associations)
+    sample = lcms_collection[0]
+    if sample.mass_features:
+        mf = next(
+            (
+                m
+                for m in sample.mass_features.values()
+                if m.mass_spectrum is not None
+            ),
+            None,
+        )
+        if mf is not None:
+            fig = mf.plot(to_plot=["MS1"], return_fig=True)
+            _assert_open_and_saveable(fig, "mass_feature_plot")
+            path_mf = tmp_path / "mass_feature_batch.png"
+            assert mf.plot(to_plot=["MS1"], return_fig=False, path=path_mf) is None
+            assert path_mf.is_file() and path_mf.stat().st_size > 0
+
+
 def test_cluster_mz_dict_uses_dataframe_not_only_loaded_features(lcms_collection):
     """
-    Regression for GitLab #258: after load_representatives, sample.mass_features
-    is sparse; cluster_mz_dict must still list every clustered feature m/z from
-    the collection dataframe so gather_eics loads multi-sample EICs for plotting.
+    After load_representatives, sample.mass_features is sparse; cluster_mz_dict
+    must still list every clustered feature m/z from the collection dataframe
+    so gather_eics loads multi-sample EICs for plotting.
     """
     lcms_collection = copy.deepcopy(lcms_collection)
     if not lcms_collection.rt_alignment_attempted:
@@ -991,9 +1126,8 @@ def test_cluster_mz_dict_uses_dataframe_not_only_loaded_features(lcms_collection
 
 def test_get_eic_data_for_mz_tolerance_lookup():
     """
-    Regression for GitLab #257: EIC lookup must fall back to m/z tolerance
-    when the exact dict key does not match (float noise between feature
-    _eic_mz and HDF5 EIC keys).
+    EIC lookup must fall back to m/z tolerance when the exact dict key does not
+    match (float noise between feature _eic_mz and HDF5 EIC keys).
 
     Also: regular mass_features_dataframe rows often have NaN ``_eic_mz`` while
     induced rows are populated — plotting must fall back to feature ``mz``.

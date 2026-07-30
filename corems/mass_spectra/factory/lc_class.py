@@ -8,10 +8,15 @@ import multiprocessing
 import matplotlib.pyplot as plt
 
 from corems.encapsulation.factory.parameters import LCMSParameters, LCMSCollectionParameters
-from corems.mass_spectra.calc.lc_calc import LCCalculations, PHCalculations, LCMSCollectionCalculations
+from corems.encapsulation.plot_utils import _finalize_plot
+from corems.mass_spectra.calc.lc_calc import (
+    LCCalculations,
+    PHCalculations,
+    LCMSCollectionCalculations,
+    find_closest,
+)
 from corems.molecular_id.search.lcms_spectral_search import LCMSSpectralSearch
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile, ms_from_array_centroid
-from corems.mass_spectra.calc.lc_calc import find_closest
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 
 
@@ -455,7 +460,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         Sets the retention time list from the data in the _ms dictionary.
     * set_scans_number_from_data(overwrite=False)
         Sets the scan number list from the data in the _ms dictionary.
-    * plot_composite_mz_features(binsize = 1e-4, ph_int_min_thresh = 0.001, mf_plot = True, ms2_plot = True, return_fig = False)
+    * plot_composite_mz_features(binsize = 1e-4, ph_int_min_thresh = 0.001, mf_plot = True, ms2_plot = True, return_fig = False, path = None)
         Generates plot of M/Z features comparing scan time vs M/Z value
     * search_for_targeted_mass_feature(ms1df: pd.DataFrame, sample: pd.Series, tol_flag = 0)
         Searches for mass features in specific M/Z and scan time windows that
@@ -1254,7 +1259,15 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         return annot_ms2_df_full
 
-    def plot_composite_mz_features(self, binsize = 1e-4, ph_int_min_thresh = 0.001, mf_plot = True, ms2_plot = True, return_fig = False):
+    def plot_composite_mz_features(
+        self,
+        binsize=1e-4,
+        ph_int_min_thresh=0.001,
+        mf_plot=True,
+        ms2_plot=True,
+        return_fig=False,
+        path=None,
+    ):
         """Returns a figure displaying 
             (1) thresholded, unprocessed data
             (2) the m/z features
@@ -1268,23 +1281,29 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             Indicates whether to plot the m/z features. Defaults to True.
         ms2_plot : boolean
             Indicates whether to identify m/z features with associated MS2 spectra. Defaults to True.
-        return_fig : boolean
-            Indicates whether to plot composite feature map (False) or return figure object (True). Defaults to False.
+        return_fig : bool, optional
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
 
         Returns
         --------
-        matplotlib.pyplot.Figure
-            A figure with the thresholded, unprocessed data on an axis of m/z value with respect to 
-            scan time. Unprocessed data is displayed in gray scale with darker colors indicating 
-            higher intensities. If m/z features are plotted, they are displayed in cyan. If m/z
-            features with associated with MS2 spectra are plotted, they are displayed in red.
+        matplotlib.figure.Figure or None
+            A figure with the thresholded, unprocessed data on an axis of m/z
+            value with respect to scan time if ``return_fig`` is True; otherwise
+            None. Unprocessed data is displayed in gray scale with darker colors
+            indicating higher intensities. If m/z features are plotted, they are
+            displayed in cyan. If m/z features associated with MS2 spectra are
+            plotted, they are displayed in red.
 
         Raises
         ------
-        Warning
+        ValueError
             If m/z features are set to be plot but aren't in the dataset.
-            If m/z features with associated MS2 data are set to be plot but no MS2 annotations 
-            were found for the m/z features in the dataset.
+            If m/z features with associated MS2 data are set to be plot but no
+            MS2 annotations were found for the m/z features in the dataset.
         """
         if mf_plot:
             # Check if mass_features is set, raise error if not
@@ -1373,12 +1392,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         plt.xlim(0, np.ceil(np.max(df.scan_time)))
         plt.title('Composite Feature Map')
 
-        if return_fig:
-            plt.close(fig)
-            return fig
-
-        else:
-            plt.show()
+        return _finalize_plot(fig, return_fig=return_fig, path=path)
             
     def search_for_targeted_mass_features_batch(
             self,
@@ -2007,9 +2021,9 @@ class LCMSCollection(LCMSCollectionCalculations):
                 else:
                     self._combined_mass_features = cmb_mf_merged
     
-    def plot_tics(self, ms_level=1, type = "raw", plot_legend=False):
+    def plot_tics(self, ms_level=1, type="raw", plot_legend=False, return_fig=False, path=None):
         """Plots the TICs for all the LCMS objects in the collection.
-        
+
         Parameters
         -----------
         ms_level : int, optional
@@ -2018,8 +2032,18 @@ class LCMSCollection(LCMSCollectionCalculations):
             The type of TIC to plot, either "raw" or "corrected" or "both". Defaults to "raw".
         plot_legend : bool, optional
             If True, plots a legend on the TIC plot that labels each sample. Defaults to False.
+        return_fig : bool, optional
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
+
+        Returns
+        --------
+        matplotlib.figure.Figure or None
+            The figure if ``return_fig`` is True; otherwise None.
         """
-        to_plot = []
         if type == "both":
             to_plot = ["raw", "corrected"]
         else:
@@ -2028,16 +2052,12 @@ class LCMSCollection(LCMSCollectionCalculations):
         fig, axs = plt.subplots(
             len(to_plot), 1, figsize=(10, 5 * len(to_plot)), sharex=True, squeeze=False
         )
-        
+
         for i, plot_type in enumerate(to_plot):
             ax = axs[i, 0]
             colors = iter(plt.cm.rainbow(np.linspace(0, 1, len(self))))
             for lcms_obj in self:
                 c = next(colors)
-                # check if lcms_obj is the center of the collection
-                self.manifest_dataframe[self.manifest_dataframe['center']].collection_id.values
-
-                
                 scan_df = lcms_obj.scan_df
                 scan_df = scan_df[scan_df.ms_level == ms_level]
                 if plot_type == "corrected":
@@ -2052,15 +2072,26 @@ class LCMSCollection(LCMSCollectionCalculations):
             ax.set_ylabel("TIC")
             if plot_legend:
                 ax.legend()
-        plt.show()
+        return _finalize_plot(fig, return_fig=return_fig, path=path)
 
-    def plot_alignments(self, plot_legend=False):
+    def plot_alignments(self, plot_legend=False, return_fig=False, path=None):
         """Plots the alignment of the LCMS objects in the collection.
-        
+
         Parameters
         -----------
         plot_legend : bool, optional
-            If True, plots a legend on the alignment plot that labels each sample. Defaults to False.        
+            If True, plots a legend on the alignment plot that labels each sample. Defaults to False.
+        return_fig : bool, optional
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
+
+        Returns
+        --------
+        matplotlib.figure.Figure or None
+            The figure if ``return_fig`` is True; otherwise None.
         """
         fig, ax = plt.subplots(figsize=(10, 5))
         colors = iter(plt.cm.rainbow(np.linspace(0, 1, len(self))))
@@ -2077,7 +2108,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         ax.set_ylabel("Time Difference (min)")
         if plot_legend:
             ax.legend()
-        plt.show()
+        return _finalize_plot(fig, return_fig=return_fig, path=path)
 
     def _drop_isotopologues(self):
         """Drops isotopologues from the mass features in combined_mass_features dataframe."""
