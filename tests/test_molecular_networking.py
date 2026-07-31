@@ -147,6 +147,7 @@ def test_query_vs_library_with_test_msp(msp_fe_lib):
 
 def test_plot_network_static_smoke(msp_fe_lib, tmp_path):
     """Static plot_network returns a Figure and can save a PNG."""
+    pytest.importorskip("networkx")
     fe_lib, msp = msp_fe_lib
     df = msp._data_frame
     row = df.iloc[0]
@@ -183,6 +184,7 @@ def test_plot_network_static_smoke(msp_fe_lib, tmp_path):
 
 def test_plot_interactive_network_smoke(msp_fe_lib, tmp_path):
     """Interactive HTML plot writes a file when ipysigma is installed."""
+    pytest.importorskip("networkx")
     pytest.importorskip("ipysigma")
     fe_lib, msp = msp_fe_lib
     df = msp._data_frame
@@ -612,6 +614,7 @@ def _network_with_edges(msp_fe_lib):
 
 
 def test_compute_network_clusters_smoke(msp_fe_lib):
+    pytest.importorskip("networkx")
     mn = _network_with_edges(msp_fe_lib)
     summary = mn.compute_network_clusters(
         metric="entropy_similarity",
@@ -629,6 +632,7 @@ def test_compute_network_clusters_smoke(msp_fe_lib):
 
 def test_save_and_load_network_clusters_roundtrip(msp_fe_lib, tmp_path):
     """save_network_clusters writes CSVs; load_network_clusters restores cache."""
+    pytest.importorskip("networkx")
     mn = _network_with_edges(msp_fe_lib)
     summary = mn.compute_network_clusters(
         metric="entropy_similarity",
@@ -683,6 +687,7 @@ def test_load_network_clusters_missing_files(tmp_path):
 
 
 def test_drop_network_clusters_clears_cache(msp_fe_lib):
+    pytest.importorskip("networkx")
     mn = _network_with_edges(msp_fe_lib)
     mn.compute_network_clusters(metric="entropy_similarity", max_edges=50)
     assert "entropy_similarity" in mn._network_clusters

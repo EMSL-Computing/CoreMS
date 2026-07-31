@@ -28,10 +28,9 @@ Quick start
 
     edges = mn.get_network_edges(metric="entropy_similarity")
     mn.save_edge_list("edges.csv")
-    mn.plot_network(path="network.png", return_fig=True)  # static (matplotlib + networkx)
-
-    # Interactive HTML requires: pip install "corems[networking]"  (ipysigma)
-    # mn.plot_interactive_network(out_path="network.html")
+    # Plotting/clustering require: pip install "corems[networking]"  (networkx + ipysigma)
+    mn.plot_network(path="network.png", return_fig=True)  # static
+    # mn.plot_interactive_network(out_path="network.html")  # interactive HTML
 
 Stages
 ------

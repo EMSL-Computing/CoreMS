@@ -153,7 +153,8 @@ SKIP_MOLECULAR_DB ?= 0
 ci-test-source:
 	@$(PYTHON) -V
 	@$(PYTHON) -m pip install --upgrade pip
-	@$(PYTHON) -m pip install -e ".[dev]"
+	# networking: networkx for molecular network plot/cluster unit tests
+	@$(PYTHON) -m pip install -e ".[dev,networking]"
 	@skip_flags=""; \
 	if [ "$(SKIP_LIPIDOMICS_DB)" = "1" ]; then \
 		echo "Skipping lipidomics DB download (SKIP_LIPIDOMICS_DB=1)"; \
@@ -171,8 +172,7 @@ ci-test-source:
 ci-test-notebooks:
 	@$(PYTHON) -V
 	@$(PYTHON) -m pip install --upgrade pip
-	# dev: pytest tooling; networking: ipysigma for optional plot_interactive_network
-	# (static plot_network uses matplotlib + networkx, already core deps)
+	# dev: pytest tooling; networking: networkx + ipysigma for plot/cluster/HTML
 	@$(PYTHON) -m pip install -e ".[dev,networking]"
 	@$(PYTHON) -m pip install --no-cache-dir jupyter nbconvert
 	@if [ "$(SKIP_LIPIDOMICS_DB)" = "1" ]; then \

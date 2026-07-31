@@ -21,8 +21,19 @@ import json
 from pathlib import Path
 from typing import Any, Sequence
 
-import networkx as nx
 import pandas as pd
+
+
+def _import_networkx():
+    """Import networkx or raise a clear optional-dependency error."""
+    try:
+        import networkx as nx
+    except ImportError as exc:
+        raise ImportError(
+            "networkx is required for molecular network plotting and clustering. "
+            'Install with: pip install "corems[networking]"'
+        ) from exc
+    return nx
 
 
 class NetworkVisualizeMixin:
@@ -183,6 +194,7 @@ class NetworkVisualizeMixin:
         recursive_split: bool,
     ) -> list[set]:
         """Detect weighted communities with optional recursive splitting."""
+        nx = _import_networkx()
 
         def partition_graph(graph, depth: int = 0) -> list[set]:
             if graph.number_of_nodes() <= 1:
@@ -235,6 +247,7 @@ class NetworkVisualizeMixin:
     @staticmethod
     def _compute_hierarchical_layout(G, communities: list[set], *, weight_attr: str, seed: int):
         """Compute two-level (community + local) weighted spring layout."""
+        nx = _import_networkx()
         if G.number_of_nodes() == 0:
             return {}
 
@@ -518,6 +531,8 @@ class NetworkVisualizeMixin:
                 "Unsupported cluster_method. "
                 "Currently supported: ['weighted_greedy_modularity']"
             )
+
+        nx = _import_networkx()
 
         if score_threshold is None:
             score_threshold = self._threshold_for(metric)
@@ -904,6 +919,8 @@ class NetworkVisualizeMixin:
                 f"Unknown metric '{metric}'. Available: {list(self.similarity_matrices.keys())}"
             )
 
+        nx = _import_networkx()
+
         cache = self._ensure_cluster_cache()
         artifact = cache.get(metric)
         if not bypass_clustering and artifact is None:
@@ -934,7 +951,7 @@ class NetworkVisualizeMixin:
         if max_edges is not None and not edges.empty:
             edges = edges.nlargest(max_edges, "score")
 
-        G: nx.Graph = nx.DiGraph() if directed else nx.Graph()
+        G = nx.DiGraph() if directed else nx.Graph()
 
         palette = dict(self._DEFAULT_COLOR_MAP)
         if color_map:
