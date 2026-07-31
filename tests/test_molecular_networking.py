@@ -594,3 +594,112 @@ def test_search_queries_against_library_public_api(msp_fe_lib):
     entropy = scores["entropy_similarity"]
     assert entropy
     assert any(qid == "q0" and str(lid).startswith("lib:") for qid, lid in entropy)
+
+
+def _network_with_edges(msp_fe_lib):
+    """Build a MolecularNetwork that has at least one query–library edge."""
+    fe_lib, msp = msp_fe_lib
+    df = msp._data_frame
+    row = df.iloc[0]
+    peaks = np.asarray(row.peaks, dtype=float)
+    pmz = float(getattr(row, "precursormz", 0.0) or 0.0)
+    q = MockSpectrum(peaks[:, 0], peaks[:, 1], name="q0")
+    mn = MolecularNetwork(
+        fe_lib=fe_lib,
+        search_type="open",
+        additional_similarities=["cosine"],
+        similarity_thresholds={"entropy_similarity": 0.1, "cosine": 0.1},
+        use_parallel=False,
+    )
+    mn.query_vs_library(
+        [q],
+        ["q0"],
+        query_precursor_mzs=[pmz],
+        fe_kwargs=FE_KWARGS,
+        hydrate_library_similarities=False,
+    )
+    return mn
+
+
+def test_compute_network_clusters_smoke(msp_fe_lib):
+    mn = _network_with_edges(msp_fe_lib)
+    summary = mn.compute_network_clusters(
+        metric="entropy_similarity",
+        max_edges=100,
+        compute_layout=True,
+    )
+    assert summary["metric"] == "entropy_similarity"
+    assert summary["n_nodes"] >= 1
+    assert "entropy_similarity" in mn._network_clusters
+    artifact = mn._network_clusters["entropy_similarity"]
+    assert not artifact["node_table"].empty or summary["n_nodes"] == 0
+    assert "schema_version" in artifact
+    assert artifact["schema_version"] == 1
+
+
+def test_save_and_load_network_clusters_roundtrip(msp_fe_lib, tmp_path):
+    """save_network_clusters writes CSVs; load_network_clusters restores cache."""
+    mn = _network_with_edges(msp_fe_lib)
+    summary = mn.compute_network_clusters(
+        metric="entropy_similarity",
+        max_edges=100,
+        compute_layout=True,
+    )
+    assert summary["n_nodes"] >= 1
+
+    out_dir = tmp_path / "clusters"
+    paths = mn.save_network_clusters(
+        str(out_dir), metric="entropy_similarity", run_id="runA"
+    )
+    for key in ("nodes", "communities", "edges", "layout", "manifest"):
+        assert key in paths
+        assert Path(paths[key]).is_file()
+        assert Path(paths[key]).stat().st_size > 0
+
+    # Filenames include metric + run_id suffix
+    assert "entropy_similarity_clusters_runA_nodes.csv" in paths["nodes"]
+    assert "entropy_similarity_clusters_runA_manifest.csv" in paths["manifest"]
+
+    # Clear cache and reload from disk
+    mn.drop_network_clusters(metric="entropy_similarity")
+    assert "entropy_similarity" not in mn._network_clusters
+
+    loaded = mn.load_network_clusters(
+        str(out_dir), metric="entropy_similarity", run_id="runA"
+    )
+    assert loaded["metric"] == "entropy_similarity"
+    assert loaded["n_nodes"] == summary["n_nodes"]
+    assert loaded["n_edges"] == summary["n_edges"]
+    assert loaded["n_clusters"] == summary["n_clusters"]
+
+    restored = mn._network_clusters["entropy_similarity"]
+    assert restored["schema_version"] == 1
+    assert list(restored["node_table"].columns)
+    assert "params" in restored
+    # Layout may be empty for tiny graphs but file/table should exist
+    assert "layout_table" in restored
+
+
+def test_save_network_clusters_requires_compute(msp_fe_lib, tmp_path):
+    mn = _network_with_edges(msp_fe_lib)
+    with pytest.raises(RuntimeError, match="No clusters available"):
+        mn.save_network_clusters(str(tmp_path), metric="entropy_similarity")
+
+
+def test_load_network_clusters_missing_files(tmp_path):
+    mn = MolecularNetwork(fe_lib=None)
+    with pytest.raises(FileNotFoundError, match="Missing cluster artifact"):
+        mn.load_network_clusters(str(tmp_path), metric="entropy_similarity")
+
+
+def test_drop_network_clusters_clears_cache(msp_fe_lib):
+    mn = _network_with_edges(msp_fe_lib)
+    mn.compute_network_clusters(metric="entropy_similarity", max_edges=50)
+    assert "entropy_similarity" in mn._network_clusters
+
+    mn.drop_network_clusters(metric="entropy_similarity")
+    assert "entropy_similarity" not in mn._network_clusters
+
+    mn.compute_network_clusters(metric="entropy_similarity", max_edges=50)
+    mn.drop_network_clusters()  # clear all
+    assert mn._network_clusters == {}
