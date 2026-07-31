@@ -541,3 +541,56 @@ def test_staged_api_stage2_has_no_threshold_kwarg():
     assert "library_similarity_threshold" not in sig.parameters
     sig3 = inspect.signature(MolecularNetwork.run_library_vs_library_stage)
     assert "library_similarity_threshold" in sig3.parameters
+
+
+def test_defaults_search_type_open_and_use_parallel_false():
+    """Constructor defaults match notebook-safe DDA networking settings."""
+    from corems.molecular_networking.similarity_engine import SimilarityEngine
+
+    mn = MolecularNetwork(fe_lib=None)
+    assert mn.search_type == "open"
+    assert mn._engine.use_parallel is False
+
+    eng = SimilarityEngine(fe_lib=None)
+    assert eng.search_type == "open"
+    assert eng.use_parallel is False
+
+
+def test_dual_path_compute_all_vs_all_removed():
+    """Slow O(n²) dual path was deleted; only FE vectorised path remains."""
+    from corems.molecular_networking.similarity_engine import SimilarityEngine
+
+    assert not hasattr(SimilarityEngine, "compute_all_vs_all")
+    assert not hasattr(SimilarityEngine, "_pairwise_entropy")
+    assert not hasattr(SimilarityEngine, "_entropy_score_pair")
+    assert hasattr(SimilarityEngine, "compute_all_vs_all_with_lib")
+    assert hasattr(SimilarityEngine, "search_queries_against_library")
+
+
+def test_search_queries_against_library_public_api(msp_fe_lib):
+    """Public engine Q–L API returns scores + library_size without private hooks."""
+    from corems.molecular_networking.similarity_engine import SimilarityEngine
+
+    fe_lib, msp = msp_fe_lib
+    df = msp._data_frame
+    row = df.iloc[0]
+    peaks = np.asarray(row.peaks, dtype=float)
+    pmz = float(getattr(row, "precursormz", 0.0) or 0.0)
+    q = MockSpectrum(peaks[:, 0], peaks[:, 1], name="q0")
+
+    engine = SimilarityEngine(
+        fe_lib=fe_lib,
+        search_type="open",
+        additional_similarities=["cosine"],
+        use_parallel=False,
+    )
+    scores, lib_size = engine.search_queries_against_library(
+        [q],
+        ["q0"],
+        query_precursor_mzs=[pmz],
+        format_library_id=MolecularNetwork.library_node_id,
+    )
+    assert lib_size >= 1
+    entropy = scores["entropy_similarity"]
+    assert entropy
+    assert any(qid == "q0" and str(lid).startswith("lib:") for qid, lid in entropy)

@@ -31,7 +31,7 @@ Parallel processing uses :mod:`multiprocessing` to match CoreMS conventions.
 from __future__ import annotations
 
 import multiprocessing
-from itertools import combinations
+from collections.abc import Callable
 from typing import Any
 
 import numpy as np
@@ -162,11 +162,14 @@ class SimilarityEngine:
         library unless overridden by *ms2_tolerance_da*.
     search_type : str
         FlashEntropy search mode: ``"identity"``, ``"open"``, or
-        ``"neutral_loss"``.  Default ``"identity"``.
+        ``"neutral_loss"``.  Default ``"open"`` (matches typical DDA
+        molecular-networking use; use ``"identity"`` when precursor
+        filtering is required).
     additional_similarities : list of str, optional
         Extra similarity metrics to compute for pairs that pass the entropy
         threshold.  Currently supported: ``["cosine"]``.
-        Default ``["cosine"]``.
+        Default ``["cosine"]``.  Cosine is a best-effort peak-aligned
+        score gated by *entropy_threshold_low* (not a second primary engine).
     ms1_tolerance_da : float, optional
         Precursor m/z tolerance (Da) used **only** for ``"identity"`` search
         to filter library candidates by precursor m/z.  Ignored for
@@ -180,11 +183,12 @@ class SimilarityEngine:
         Minimum entropy similarity score required to trigger additional
         metric computation.  Default 0.1.
     use_parallel : bool
-        Enable multiprocessing for additional metric computation.
-        Default ``True``.
+        Enable a :mod:`multiprocessing` pool for **cosine all-vs-all pair
+        batches** only (see Notes).  Default ``False`` (safer for notebooks,
+        macOS spawn, and CI).  Set ``True`` for large offline batch jobs.
     n_jobs : int
-        Number of worker processes.  ``-1`` uses all available cores.
-        Default ``-1``.
+        Number of worker processes when *use_parallel* is ``True``.
+        ``-1`` uses all available cores.  Default ``-1``.
 
     Attributes
     ----------
@@ -197,6 +201,10 @@ class SimilarityEngine:
         Precursor m/z tolerance for identity search.
     entropy_threshold_low : float
         Low-entropy gate for triggering additional metric computation.
+    use_parallel : bool
+        Whether cosine all-vs-all batches may use a process pool.
+    n_jobs : int
+        Resolved worker count (``cpu_count()`` when constructed with ``-1``).
 
     Notes
     -----
@@ -216,17 +224,31 @@ class SimilarityEngine:
     - ``"neutral_loss"`` : precursor filter is disabled for the same reason
       as ``"open"``; matching occurs in neutral-loss mass space
       (``precursor_mz − fragment_mz``), not on the precursor itself.
+
+    **Parallelism (*use_parallel* / *n_jobs*):**
+
+    Only the cosine path in :meth:`_compute_cosine_for_pairs` is parallelized
+    (used by :meth:`compute_all_vs_all_with_lib` for query–query and filtered
+    library–library all-vs-all).  In detail:
+
+    - **Parallel when** ``use_parallel=True``, ``"cosine"`` is in
+      *additional_similarities*, more than one pair is scored, and
+      ``n_jobs > 1``.
+    - **Not parallel:** FlashEntropy / entropy similarity (always sequential
+      per spectrum search); query–library cosine via
+      :meth:`search_queries_against_library` (always serial per query).
+    - **No-op** if cosine is not requested or there are fewer than two pairs.
     """
 
     def __init__(
         self,
         fe_lib,
-        search_type: str = "identity",
+        search_type: str = "open",
         additional_similarities: list[str] | None = None,
         ms1_tolerance_da: float | None = None,
         ms2_tolerance_da: float | None = None,
         entropy_threshold_low: float = 0.1,
-        use_parallel: bool = True,
+        use_parallel: bool = False,
         n_jobs: int = -1,
     ):
         if search_type not in _FE_METHOD_MAP:
@@ -524,27 +546,6 @@ class SimilarityEngine:
         
         return cosine_scores
 
-    def _entropy_score_pair(
-        self,
-        spec_a,
-        precursor_a: float | None,
-        spec_b,
-        precursor_b: float | None,
-    ) -> float:
-        """Placeholder — not implemented; use :meth:`compute_all_vs_all_with_lib`.
-
-        Raises
-        ------
-        NotImplementedError
-            Always.  Pairwise entropy similarity is computed via
-            :meth:`_compute_entropy_matrix_and_pairs` which leverages
-            FlashEntropy's vectorised search rather than per-pair calls.
-        """
-        raise NotImplementedError(
-            "_entropy_score_pair is not used directly; "
-            "use compute_all_vs_all_with_lib instead."
-        )
-
     def _compute_entropy_matrix_and_pairs(
         self,
         spectra: list,
@@ -702,129 +703,118 @@ class SimilarityEngine:
 
     # ── Public API ────────────────────────────────────────────────────────────
 
-    def compute_all_vs_all(
+    def search_queries_against_library(
         self,
-        spectra: list,
-        spectrum_ids: list[str],
-        precursor_mzs: list[float | None] | None = None,
-        lib_indices: list[int | None] | None = None,
-    ) -> dict[str, dict[tuple[str, str], float]]:
-        """Compute all-vs-all pairwise similarities.
+        query_spectra: list,
+        query_ids: list[str],
+        query_precursor_mzs: list[float | None] | None = None,
+        *,
+        format_library_id: Callable[[int], str] | None = None,
+    ) -> tuple[dict[str, dict[tuple[str, str], float]], int]:
+        """Search each query spectrum against ``self.fe_lib`` (query–library).
+
+        Computes entropy similarity for all library hits with score > 0 and,
+        when configured, cosine for pairs at or above
+        :attr:`entropy_threshold_low`.
 
         Parameters
         ----------
-        spectra : list
-            Spectrum objects (must have .mz_exp and .abundance).
-        spectrum_ids : list of str
-            User-provided IDs, one per spectrum.
-        precursor_mzs : list of float or None, optional
-            Precursor m/z for each spectrum.  Required for ``"identity"`` and
-            ``"neutral_loss"`` search types.  Ignored for ``"open"``.
-        lib_indices : list of int or None, optional
-            Index of each spectrum in the FlashEntropy library.  If None,
-            entropy similarity is computed by searching each spectrum against
-            the library and using the best match.  Providing correct indices
-            gives exact pairwise scores.
+        query_spectra : list
+            Spectrum objects with ``.mz_exp`` and ``.abundance``.
+        query_ids : list of str
+            Unique ID for each query (same length as *query_spectra*).
+        query_precursor_mzs : list of float or None, optional
+            Precursor m/z per query.  Required for ``"identity"`` and
+            ``"neutral_loss"``; optional for ``"open"``.
+        format_library_id : callable, optional
+            Maps library index → node ID string used in pair keys.
+            Default ``str`` (bare index).  Callers that need non-colliding
+            IDs (e.g. ``MolecularNetwork.library_node_id``) should pass a
+            formatter.
 
         Returns
         -------
-        dict
-            ``{metric_name: {(id1, id2): score}}``
-            where ``metric_name`` is ``"entropy_similarity"`` plus any
-            additional metrics.  Only upper-triangle pairs are returned.
+        scores : dict
+            ``{metric_name: {(query_id, library_id): score}}`` with
+            ``"entropy_similarity"`` and optionally ``"cosine"``.
+        library_size : int
+            Length of the FlashEntropy result vector (library size used for
+            registration / indexing).  ``0`` if no successful searches ran.
+
+        Raises
+        ------
+        RuntimeError
+            If ``self.fe_lib`` is ``None``.
+        ValueError
+            If lengths of *query_ids* / *query_precursor_mzs* do not match
+            *query_spectra*.
         """
-        n = len(spectra)
-        if n == 0:
-            return {}
-
-        if precursor_mzs is None:
-            precursor_mzs = [None] * n
-        if len(precursor_mzs) != n:
-            raise ValueError("precursor_mzs must have the same length as spectra.")
-
-        # ── Stage 1: entropy similarity ───────────────────────────────────────
-        entropy_pairs: dict[tuple[str, str], float] = {}
-        pairs_for_additional: list[tuple[int, int]] = []
-
-        for i, j in combinations(range(n), 2):
-            score = self._pairwise_entropy(
-                spectra[i], precursor_mzs[i],
-                spectra[j], precursor_mzs[j],
-                lib_indices[i] if lib_indices else None,
-                lib_indices[j] if lib_indices else None,
+        if self.fe_lib is None:
+            raise RuntimeError(
+                "search_queries_against_library requires a reference FE library "
+                "(fe_lib)."
             )
-            if score > 0.0:
-                entropy_pairs[(spectrum_ids[i], spectrum_ids[j])] = score
-                if score >= self.entropy_threshold_low:
-                    pairs_for_additional.append((i, j))
 
-        result: dict[str, dict[tuple[str, str], float]] = {
+        n_query = len(query_spectra)
+        if len(query_ids) != n_query:
+            raise ValueError(
+                f"query_ids length ({len(query_ids)}) must match "
+                f"query_spectra length ({n_query})."
+            )
+        if query_precursor_mzs is None:
+            query_precursor_mzs = [None] * n_query
+        elif len(query_precursor_mzs) != n_query:
+            raise ValueError(
+                f"query_precursor_mzs length ({len(query_precursor_mzs)}) must match "
+                f"query_spectra length ({n_query})."
+            )
+
+        id_fmt = format_library_id if format_library_id is not None else str
+
+        entropy_pairs: dict[tuple[str, str], float] = {}
+        cosine_pairs: dict[tuple[str, str], float] = {}
+        query_to_lib_indices: dict[int, list[int]] = {}
+        library_size = 0
+
+        for qi, (spec, pmz) in enumerate(zip(query_spectra, query_precursor_mzs)):
+            peaks = self._peaks_array(spec)
+            if peaks.shape[0] == 0:
+                continue
+            result_vec = self._clean_and_search(peaks, pmz)
+            if result_vec is None:
+                continue
+            library_size = max(library_size, len(result_vec))
+
+            lib_indices_for_query: list[int] = []
+            for lib_idx, score in enumerate(result_vec):
+                if score > 0.0:
+                    entropy_pairs[
+                        (query_ids[qi], id_fmt(lib_idx))
+                    ] = float(score)
+                    if score >= self.entropy_threshold_low:
+                        lib_indices_for_query.append(lib_idx)
+
+            if lib_indices_for_query:
+                query_to_lib_indices[qi] = lib_indices_for_query
+
+        if "cosine" in self.additional_similarities and query_to_lib_indices:
+            for qi, lib_indices in query_to_lib_indices.items():
+                cosine_scores = self._compute_cosine_for_query_vs_library(
+                    query_spectrum=query_spectra[qi],
+                    query_precursor_mz=query_precursor_mzs[qi],
+                    library_indices=lib_indices,
+                )
+                for lib_idx, score in cosine_scores.items():
+                    cosine_pairs[(query_ids[qi], id_fmt(lib_idx))] = score
+
+        scores: dict[str, dict[tuple[str, str], float]] = {
             "entropy_similarity": entropy_pairs
         }
+        if cosine_pairs:
+            scores["cosine"] = cosine_pairs
 
-        # ── Stage 2: additional metrics ───────────────────────────────────────
-        for metric in self.additional_similarities:
-            if metric == "cosine":
-                cosine_idx_scores = self._compute_cosine_for_pairs(
-                    pairs_for_additional,
-                    lib_indices,
-                )
-                result["cosine"] = {
-                    (spectrum_ids[i], spectrum_ids[j]): score
-                    for (i, j), score in cosine_idx_scores.items()
-                }
+        return scores, library_size
 
-        return result
-
-
-    def _pairwise_entropy(
-        self,
-        spec_a,
-        pmz_a: float | None,
-        spec_b,
-        pmz_b: float | None,
-        lib_idx_a: int | None,
-        lib_idx_b: int | None,
-        fe_lib_override=None,
-    ) -> float:
-        """Compute entropy similarity between two spectra.
-
-        Strategy: search spec_a against the library and read off the score
-        at lib_idx_b (the library position of spec_b).  If lib_idx_b is None,
-        fall back to searching spec_b and reading lib_idx_a.
-
-        If neither library index is known, returns 0.0 (cannot compute without
-        library indices for the query-vs-query case).
-
-        Parameters
-        ----------
-        fe_lib_override : optional
-            If provided, use this FlashEntropy library instead of ``self.fe_lib``.
-            Used for query-vs-query searches where a temporary index is built
-            from the query spectra themselves.
-        """
-        peaks_a = self._peaks_array(spec_a)
-        if peaks_a.shape[0] == 0:
-            return 0.0
-
-        if lib_idx_b is not None:
-            result_vec = self._clean_and_search(peaks_a, pmz_a, fe_lib_override=fe_lib_override)
-            if lib_idx_b < len(result_vec):
-                return float(result_vec[lib_idx_b])
-            return 0.0
-
-        if lib_idx_a is not None:
-            peaks_b = self._peaks_array(spec_b)
-            if peaks_b.shape[0] == 0:
-                return 0.0
-            result_vec = self._clean_and_search(peaks_b, pmz_b, fe_lib_override=fe_lib_override)
-            if lib_idx_a < len(result_vec):
-                return float(result_vec[lib_idx_a])
-            return 0.0
-
-        # No library indices available – cannot compute entropy similarity
-        return 0.0
-    
     def build_fe_index_from_spectra(
         self,
         spectra: list,
@@ -1032,12 +1022,9 @@ class SimilarityEngine:
     ) -> dict[str, dict[tuple[str, str], float]]:
         """Compute all-vs-all pairwise similarities using a provided FE library.
 
-        Uses FlashEntropy's built-in search to efficiently compute the full
-        similarity matrix. Each spectrum is searched once against the library,
-        and pairwise scores are extracted from the result vectors.
-
-        This is much more efficient than calling _pairwise_entropy for each pair,
-        as it leverages FE's optimized search implementation.
+        Canonical all-vs-all path: each spectrum is searched once against the
+        FlashEntropy index (*fe_lib_override* or ``self.fe_lib``), and
+        upper-triangle pairwise scores are extracted from the result vectors.
 
         Parameters
         ----------

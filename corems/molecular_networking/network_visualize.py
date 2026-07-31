@@ -21,6 +21,7 @@ import json
 from pathlib import Path
 from typing import Any, Sequence
 
+import networkx as nx
 import pandas as pd
 
 
@@ -188,7 +189,7 @@ class NetworkVisualizeMixin:
                 return [set(graph.nodes)]
 
             communities = list(
-                __import__("networkx").community.greedy_modularity_communities(
+                nx.community.greedy_modularity_communities(
                     graph,
                     weight=weight_attr,
                 )
@@ -234,8 +235,6 @@ class NetworkVisualizeMixin:
     @staticmethod
     def _compute_hierarchical_layout(G, communities: list[set], *, weight_attr: str, seed: int):
         """Compute two-level (community + local) weighted spring layout."""
-        nx = __import__("networkx")
-
         if G.number_of_nodes() == 0:
             return {}
 
@@ -519,8 +518,6 @@ class NetworkVisualizeMixin:
                 "Unsupported cluster_method. "
                 "Currently supported: ['weighted_greedy_modularity']"
             )
-
-        nx = __import__("networkx")
 
         if score_threshold is None:
             score_threshold = self._threshold_for(metric)
@@ -906,15 +903,6 @@ class NetworkVisualizeMixin:
             raise KeyError(
                 f"Unknown metric '{metric}'. Available: {list(self.similarity_matrices.keys())}"
             )
-
-        try:
-            import networkx as nx
-        except ImportError as exc:
-            raise ImportError(
-                "networkx is required for molecular network plotting. "
-                "Install with: pip install networkx  "
-                '(or: pip install "corems[networking]")'
-            ) from exc
 
         cache = self._ensure_cluster_cache()
         artifact = cache.get(metric)

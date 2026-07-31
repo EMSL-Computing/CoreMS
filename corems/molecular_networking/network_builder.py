@@ -64,10 +64,12 @@ class MolecularNetwork(NetworkVisualizeMixin):
         *ms2_tolerance_da*.
     search_type : str
         FlashEntropy search mode: ``"identity"``, ``"open"``, or
-        ``"neutral_loss"``.  Default ``"identity"``.
+        ``"neutral_loss"``.  Default ``"open"`` (typical DDA networking;
+        use ``"identity"`` when precursor filtering is required).
     additional_similarities : list of str, optional
         Extra similarity metrics to compute alongside entropy similarity.
         Currently supported: ``["cosine"]``.  Default ``["cosine"]``.
+        Cosine is gated by *entropy_threshold_low* (best-effort secondary score).
     similarity_thresholds : dict, optional
         Mapping of metric name → edge threshold.  Edges are created in each
         metric's network when score >= threshold.  Metrics not listed use
@@ -88,9 +90,14 @@ class MolecularNetwork(NetworkVisualizeMixin):
         computation (e.g. cosine).  If None (default), set to half the lowest
         non-entropy similarity threshold, or 0.25 when no thresholds are given.
     use_parallel : bool
-        Enable multiprocessing for additional metric computation.  Default True.
+        Forwarded to :class:`~corems.molecular_networking.similarity_engine.SimilarityEngine`.
+        When ``True``, cosine scores for **all-vs-all pair batches** (query–query
+        and optional library–library stages) may use a process pool.
+        Does **not** parallelize FlashEntropy scoring or query–library cosine.
+        Default ``False`` (safer for notebooks / macOS spawn / CI).  See Notes.
     n_jobs : int
-        Number of worker processes.  -1 uses all available cores.  Default -1.
+        Worker process count when *use_parallel* is ``True`` (``-1`` = all
+        cores).  Default ``-1``.
 
     Attributes
     ----------
@@ -122,18 +129,34 @@ class MolecularNetwork(NetworkVisualizeMixin):
     - ``"neutral_loss"`` : precursor filter is disabled; matching occurs in
       neutral-loss mass space (``precursor_mz − fragment_mz``), not on the
       precursor itself.
+
+    **Parallelism (*use_parallel* / *n_jobs*):**
+
+    These kwargs are stored only on the internal
+    :class:`~corems.molecular_networking.similarity_engine.SimilarityEngine`
+    (not as attributes of this class).  Scope:
+
+    - **Uses a process pool when** ``use_parallel=True``, cosine is in
+      *additional_similarities*, and there are multiple entropy-gated pairs
+      to score in an all-vs-all batch (stage 1 query–query, and stage 3
+      library–library when enabled).
+    - **Never parallelizes** FlashEntropy / entropy similarity itself.
+    - **Does not** parallelize query–library cosine (stage 2); that path is
+      always serial per query.
+    - **No-op** if cosine is disabled, only one pair is scored, or
+      ``n_jobs <= 1``.
     """
 
     def __init__(
         self,
         fe_lib=None,
-        search_type: str = "identity",
+        search_type: str = "open",
         additional_similarities: list[str] | None = None,
         similarity_thresholds: dict[str, float] | None = None,
         ms1_tolerance_da: float | None = None,
         ms2_tolerance_da: float | None = None,
         entropy_threshold_low: float | None = None,
-        use_parallel: bool = True,
+        use_parallel: bool = False,
         n_jobs: int = -1,
     ):
         if additional_similarities is None:
@@ -541,57 +564,21 @@ class MolecularNetwork(NetworkVisualizeMixin):
                 "Construct MolecularNetwork with fe_lib or use run_query_vs_query_only for query-only networks."
             )
 
-        query_spectra = self._all_query_spectra
-        query_ids = self._all_query_ids
-        query_precursor_mzs = self._all_query_precursor_mzs
-
-        entropy_pairs: dict[tuple[str, str], float] = {}
-        cosine_pairs: dict[tuple[str, str], float] = {}
-        query_to_lib_indices: dict[int, list[int]] = {}
-        lib_size = 0
-
-        for qi, (spec, pmz) in enumerate(zip(query_spectra, query_precursor_mzs)):
-            peaks = self._engine._peaks_array(spec)
-            if peaks.shape[0] == 0:
-                continue
-            result_vec = self._engine._clean_and_search(peaks, pmz)
-            if result_vec is None:
-                continue
-            lib_size = max(lib_size, len(result_vec))
-
-            lib_indices_for_query: list[int] = []
-            for lib_idx, score in enumerate(result_vec):
-                if score > 0.0:
-                    # Prefix library IDs so they never collide with numeric query mf_ids
-                    entropy_pairs[
-                        (query_ids[qi], self.library_node_id(lib_idx))
-                    ] = float(score)
-                    if score >= self._engine.entropy_threshold_low:
-                        lib_indices_for_query.append(lib_idx)
-
-            if lib_indices_for_query:
-                query_to_lib_indices[qi] = lib_indices_for_query
+        combined, lib_size = self._engine.search_queries_against_library(
+            query_spectra=self._all_query_spectra,
+            query_ids=self._all_query_ids,
+            query_precursor_mzs=self._all_query_precursor_mzs,
+            format_library_id=self.library_node_id,
+        )
 
         lib_ids = [self.library_node_id(i) for i in range(lib_size)]
         for mat in self.similarity_matrices.values():
             mat.register_spectra(lib_ids)
 
-        if "cosine" in self._engine.additional_similarities and query_to_lib_indices:
-            for qi, lib_indices in query_to_lib_indices.items():
-                cosine_scores = self._engine._compute_cosine_for_query_vs_library(
-                    query_spectrum=query_spectra[qi],
-                    query_precursor_mz=query_precursor_mzs[qi],
-                    library_indices=lib_indices,
-                )
-                for lib_idx, score in cosine_scores.items():
-                    cosine_pairs[
-                        (query_ids[qi], self.library_node_id(lib_idx))
-                    ] = score
-
-        combined: dict[str, dict[tuple[str, str], float]] = {"entropy_similarity": entropy_pairs}
-        if cosine_pairs:
-            combined["cosine"] = cosine_pairs
         self._update_matrices(combined)
+
+        entropy_pairs = combined.get("entropy_similarity", {})
+        cosine_pairs = combined.get("cosine", {})
 
         self.stage_query_library_done = True
         self._stage2_entropy_pairs = entropy_pairs

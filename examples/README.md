@@ -148,7 +148,30 @@ Understand how to control data processing behavior:
 
 ### Molecular networking
 
-Documentation and walkthrough live in the **Molecular Networking** section of
-`notebooks/LCMS_Tutorial.ipynb` (and the multi-sample notes in
-`notebooks/LCMS_Collection_Tutorial.ipynb`). Behavior is covered by unit tests
-under `tests/test_molecular_networking.py`.
+Build MS2 molecular networks with **entropy similarity** (FlashEntropy) and
+optional **cosine** via `corems.molecular_networking.MolecularNetwork`.
+
+**Install**
+
+- Core (static plots): CoreMS already depends on `networkx` + `matplotlib`
+- Interactive HTML: `pip install "corems[networking]"` (adds `ipysigma`)
+
+**Typical flow**
+
+1. Prepare query spectra (`prepare_query_spectra_from_lcms_object` or
+   `prepare_query_spectra_from_lcms_collection`)
+2. `query_vs_library(...)` or staged `run_query_vs_query_only` →
+   `run_query_vs_library_stage` → optional `run_library_vs_library_stage`
+3. Export edges (`save_edge_list`) and plot (`plot_network` static, or
+   `plot_interactive_network` with the optional extra)
+
+Defaults: `search_type="open"`, `use_parallel=False` (notebook/CI-friendly).
+Library nodes are stored as `lib:<idx>` and mapped to `spectra_id` on export.
+
+**Docs & tests**
+
+- Walkthrough: **Molecular Networking** section of
+  `notebooks/LCMS_Tutorial.ipynb` and multi-sample notes in
+  `notebooks/LCMS_Collection_Tutorial.ipynb`
+- Package docstring: `corems.molecular_networking`
+- Unit tests: `tests/test_molecular_networking.py`
