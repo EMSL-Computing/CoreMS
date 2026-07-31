@@ -70,7 +70,6 @@ def test_query_vs_query_open_produces_edges():
         search_type="open",
         additional_similarities=["cosine"],
         similarity_thresholds={"entropy_similarity": 0.1, "cosine": 0.1},
-        use_parallel=False,
     )
     mn.run_query_vs_query_only(
         spectra, ids, query_precursor_mzs=precursor_mzs
@@ -96,7 +95,6 @@ def test_query_vs_query_neutral_loss_smoke():
         search_type="neutral_loss",
         additional_similarities=["cosine"],
         similarity_thresholds={"entropy_similarity": 0.05, "cosine": 0.05},
-        use_parallel=False,
     )
     mn.run_query_vs_query_only(
         spectra, ids, query_precursor_mzs=precursor_mzs
@@ -127,7 +125,6 @@ def test_query_vs_library_with_test_msp(msp_fe_lib):
         search_type="open",
         additional_similarities=["cosine"],
         similarity_thresholds={"entropy_similarity": 0.2, "cosine": 0.2},
-        use_parallel=False,
     )
     mn.query_vs_library(
         [q],
@@ -162,7 +159,6 @@ def test_plot_network_static_smoke(msp_fe_lib, tmp_path):
         search_type="open",
         additional_similarities=["cosine"],
         similarity_thresholds={"entropy_similarity": 0.1, "cosine": 0.1},
-        use_parallel=False,
     )
     mn.query_vs_library(
         [q],
@@ -200,7 +196,6 @@ def test_plot_interactive_network_smoke(msp_fe_lib, tmp_path):
         search_type="open",
         additional_similarities=["cosine"],
         similarity_thresholds={"entropy_similarity": 0.1, "cosine": 0.1},
-        use_parallel=False,
     )
     mn.query_vs_library(
         [q],
@@ -372,7 +367,6 @@ def test_library_vs_library_filtered_skips_empty_preserves_ids():
         search_type="open",
         additional_similarities=[],
         ms2_tolerance_da=0.01,
-        use_parallel=False,
     )
     result = engine.compute_library_vs_library_filtered(
         library_indices=[0, 1, 2],
@@ -394,7 +388,6 @@ def test_drop_queries_resets_stage_flags_and_allows_rerun():
         search_type="open",
         additional_similarities=["cosine"],
         similarity_thresholds={"entropy_similarity": 0.1, "cosine": 0.1},
-        use_parallel=False,
     )
     mn.run_query_vs_query_only(spectra, ids, query_precursor_mzs=precursor_mzs)
     assert mn.stage_query_query_done is True
@@ -433,7 +426,6 @@ def test_hydrate_library_similarities_stage3(msp_fe_lib):
         search_type="open",
         additional_similarities=["cosine"],
         similarity_thresholds={"entropy_similarity": 0.1, "cosine": 0.1},
-        use_parallel=False,
     )
     mn.query_vs_library(
         [q],
@@ -467,7 +459,6 @@ def test_identity_search_type_smoke(msp_fe_lib):
         additional_similarities=["cosine"],
         similarity_thresholds={"entropy_similarity": 0.1, "cosine": 0.1},
         ms1_tolerance_da=0.5,
-        use_parallel=False,
     )
     mn.query_vs_library(
         [q],
@@ -495,7 +486,6 @@ def test_save_edge_list_export_maps_lib_to_spectra_id(msp_fe_lib, tmp_path):
         search_type="open",
         additional_similarities=[],
         similarity_thresholds={"entropy_similarity": 0.1},
-        use_parallel=False,
     )
     mn.query_vs_library(
         [q],
@@ -543,17 +533,19 @@ def test_staged_api_stage2_has_no_threshold_kwarg():
     assert "library_similarity_threshold" in sig3.parameters
 
 
-def test_defaults_search_type_open_and_use_parallel_false():
-    """Constructor defaults match notebook-safe DDA networking settings."""
+def test_defaults_search_type_open():
+    """Constructor default search_type is open (DDA-friendly)."""
     from corems.molecular_networking.similarity_engine import SimilarityEngine
 
     mn = MolecularNetwork(fe_lib=None)
     assert mn.search_type == "open"
-    assert mn._engine.use_parallel is False
+    assert not hasattr(mn._engine, "use_parallel")
+    assert not hasattr(mn._engine, "n_jobs")
 
     eng = SimilarityEngine(fe_lib=None)
     assert eng.search_type == "open"
-    assert eng.use_parallel is False
+    assert not hasattr(eng, "use_parallel")
+    assert not hasattr(eng, "n_jobs")
 
 
 def test_dual_path_compute_all_vs_all_removed():
@@ -582,7 +574,6 @@ def test_search_queries_against_library_public_api(msp_fe_lib):
         fe_lib=fe_lib,
         search_type="open",
         additional_similarities=["cosine"],
-        use_parallel=False,
     )
     scores, lib_size = engine.search_queries_against_library(
         [q],
@@ -609,7 +600,6 @@ def _network_with_edges(msp_fe_lib):
         search_type="open",
         additional_similarities=["cosine"],
         similarity_thresholds={"entropy_similarity": 0.1, "cosine": 0.1},
-        use_parallel=False,
     )
     mn.query_vs_library(
         [q],

@@ -165,7 +165,7 @@ optional **cosine** via `corems.molecular_networking.MolecularNetwork`.
 3. Export edges (`save_edge_list`) and plot (`plot_network` static, or
    `plot_interactive_network` with the optional extra)
 
-Defaults: `search_type="open"`, `use_parallel=False` (notebook/CI-friendly).
+Default: `search_type="open"` (cosine scoring is single-threaded).
 Library nodes are stored as `lib:<idx>` and mapped to `spectra_id` on export.
 
 **Docs & tests**

@@ -25,16 +25,16 @@ Supported FlashEntropy search modes
     query spectrum.  The precursor filter is **disabled** (set to 1e9 Da)
     because neutral-loss matching does not operate on the precursor itself.
 
-Parallel processing uses :mod:`multiprocessing` to match CoreMS conventions.
 """
 
 from __future__ import annotations
 
-import multiprocessing
 from collections.abc import Callable
 from typing import Any
 
 import numpy as np
+
+from corems.mass_spectra.calc.lc_calc import find_closest
 
 # Supported additional similarity metrics
 _SUPPORTED_ADDITIONAL = {"cosine"}
@@ -47,11 +47,99 @@ _FE_METHOD_MAP = {
 }
 
 
+def _sort_peaks_by_mz(mz, abun):
+    """Return float m/z and abundance arrays sorted by m/z (same argsort as cosine)."""
+    mz = np.asarray(mz, dtype=float)
+    abun = np.asarray(abun, dtype=float)
+    if mz.size == 0:
+        return mz, abun
+    idx = np.argsort(mz)
+    return mz[idx], abun[idx]
+
+
+def _align_and_compute_cosine_presorted(mz1, abun1, mz2, abun2, tolerance_da):
+    """Cosine similarity assuming both spectra are already sorted by m/z.
+
+    Internal hot path for batch cosine after unique spectra have been
+    pre-sorted once.  Callers must pass m/z-sorted peak lists (e.g. from
+    :func:`_sort_peaks_by_mz`).  Behaviour matches sorting then aligning.
+
+    Parameters
+    ----------
+    mz1, abun1, mz2, abun2 : array-like
+        Peak arrays **sorted by m/z ascending** within each spectrum.
+    tolerance_da : float
+        m/z matching tolerance in Da.
+
+    Returns
+    -------
+    float
+        Cosine similarity in [0, 1].  Empty spectra return 0.0.
+    """
+    mz1 = np.asarray(mz1, dtype=float)
+    abun1 = np.asarray(abun1, dtype=float)
+    mz2 = np.asarray(mz2, dtype=float)
+    abun2 = np.asarray(abun2, dtype=float)
+
+    n1 = mz1.size
+    n2 = mz2.size
+    if n1 == 0 or n2 == 0:
+        return 0.0
+
+    # Vectorised closest-peak search (both arrays sorted, as required by
+    # find_closest).  Same per-peak result as calling find_closest once per
+    # spectrum-1 peak.
+    closest_idx = find_closest(mz2, mz1)
+    diffs = np.abs(mz2[closest_idx] - mz1)
+    matched = diffs <= float(tolerance_da)
+
+    # Aligned vectors: first n1 entries follow spectrum-1 peak order (matched
+    # or unmatched).  Same layout as the original list-append loop.
+    vec1 = np.empty(n1, dtype=float)
+    vec2 = np.empty(n1, dtype=float)
+    vec1[:] = abun1
+    vec2[:] = 0.0
+    if np.any(matched):
+        vec2[matched] = abun2[closest_idx[matched]]
+
+    used_spec2 = np.zeros(n2, dtype=bool)
+    if np.any(matched):
+        used_spec2[closest_idx[matched]] = True
+
+    unmatched2 = ~used_spec2
+    n_unmatched2 = int(np.count_nonzero(unmatched2))
+    if n_unmatched2:
+        vec1 = np.concatenate((vec1, np.zeros(n_unmatched2, dtype=float)))
+        vec2 = np.concatenate((vec2, abun2[unmatched2]))
+
+    norm1 = np.linalg.norm(vec1)
+    norm2 = np.linalg.norm(vec2)
+    if norm1 == 0.0 or norm2 == 0.0:
+        return 0.0
+
+    cosine = float(np.dot(vec1, vec2) / (norm1 * norm2))
+    return float(np.clip(cosine, 0.0, 1.0))
+
+
 def _align_and_compute_cosine(mz1, abun1, mz2, abun2, tolerance_da):
     """Align two spectra by m/z tolerance and compute cosine similarity.
 
-    Builds aligned vectors including both matched and unmatched peaks
-    (unmatched peaks get 0 abundance in the other spectrum).
+    Sorts both spectra, then delegates to
+    :func:`_align_and_compute_cosine_presorted`.  Numerically identical to
+    the original sequential alignment:
+
+    1. Sort both spectra by m/z.
+    2. For each peak in spectrum 1, take the closest m/z in spectrum 2
+       (:func:`~corems.mass_spectra.calc.lc_calc.find_closest`).
+    3. If within *tolerance_da*, pair abundances; otherwise pair spectrum-1
+       abundance with 0.  The same spectrum-2 peak may be paired more than
+       once (matching does not skip already-used peaks).
+    4. Append unused spectrum-2 peaks as (0, abundance).
+    5. Cosine of the two aligned vectors, clipped to [0, 1].
+
+    For batch work over unique spectra, pre-sort once with
+    :func:`_sort_peaks_by_mz` and call
+    :func:`_align_and_compute_cosine_presorted` to avoid repeated sorts.
 
     Parameters
     ----------
@@ -68,85 +156,11 @@ def _align_and_compute_cosine(mz1, abun1, mz2, abun2, tolerance_da):
         Cosine similarity score in [0, 1].  Empty spectra return 0.0.
         Unexpected input errors are not swallowed (they propagate).
     """
-    from corems.mass_spectra.calc.lc_calc import find_closest
-
-    mz1 = np.asarray(mz1, dtype=float)
-    abun1 = np.asarray(abun1, dtype=float)
-    mz2 = np.asarray(mz2, dtype=float)
-    abun2 = np.asarray(abun2, dtype=float)
-
-    if len(mz1) == 0 or len(mz2) == 0:
-        return 0.0
-
-    # Sort both spectra by m/z
-    idx1 = np.argsort(mz1)
-    mz1_sorted = mz1[idx1]
-    abun1_sorted = abun1[idx1]
-
-    idx2 = np.argsort(mz2)
-    mz2_sorted = mz2[idx2]
-    abun2_sorted = abun2[idx2]
-
-    # Build aligned vectors including all peaks
-    vec1 = []
-    vec2 = []
-    used_spec2 = np.zeros(len(mz2_sorted), dtype=bool)
-
-    # For each peak in spec1, find match in spec2 or add as unmatched
-    for i in range(len(mz1_sorted)):
-        closest_idx = find_closest(mz2_sorted, np.array([mz1_sorted[i]]))[0]
-        diff = abs(mz2_sorted[closest_idx] - mz1_sorted[i])
-
-        if diff <= tolerance_da:
-            # Matched peak
-            vec1.append(abun1_sorted[i])
-            vec2.append(abun2_sorted[closest_idx])
-            used_spec2[closest_idx] = True
-        else:
-            # Unmatched peak in spec1
-            vec1.append(abun1_sorted[i])
-            vec2.append(0.0)
-
-    # Add unmatched peaks from spec2
-    for j in range(len(mz2_sorted)):
-        if not used_spec2[j]:
-            vec1.append(0.0)
-            vec2.append(abun2_sorted[j])
-
-    vec1 = np.array(vec1, dtype=float)
-    vec2 = np.array(vec2, dtype=float)
-
-    norm1 = np.linalg.norm(vec1)
-    norm2 = np.linalg.norm(vec2)
-
-    if norm1 == 0 or norm2 == 0:
-        return 0.0
-
-    cosine = np.dot(vec1, vec2) / (norm1 * norm2)
-    return float(np.clip(cosine, 0.0, 1.0))
-
-
-def _compute_cosine_pair(args):
-    """Worker function for multiprocessing: compute cosine similarity for one pair.
-
-    Parameters
-    ----------
-    args : tuple
-        (mz1, abun1, mz2, abun2, tolerance_da)
-        where tolerance_da is the m/z matching tolerance in Da.
-
-    Returns
-    -------
-    float
-        Cosine similarity score in [0, 1].
-    """
-    if len(args) == 5:
-        mz1, abun1, mz2, abun2, tolerance_da = args
-    else:
-        mz1, abun1, mz2, abun2 = args
-        tolerance_da = 0.01
-    
-    return _align_and_compute_cosine(mz1, abun1, mz2, abun2, tolerance_da)
+    mz1_s, abun1_s = _sort_peaks_by_mz(mz1, abun1)
+    mz2_s, abun2_s = _sort_peaks_by_mz(mz2, abun2)
+    return _align_and_compute_cosine_presorted(
+        mz1_s, abun1_s, mz2_s, abun2_s, tolerance_da
+    )
 
 
 class SimilarityEngine:
@@ -182,13 +196,6 @@ class SimilarityEngine:
     entropy_threshold_low : float
         Minimum entropy similarity score required to trigger additional
         metric computation.  Default 0.1.
-    use_parallel : bool
-        Enable a :mod:`multiprocessing` pool for **cosine all-vs-all pair
-        batches** only (see Notes).  Default ``False`` (safer for notebooks,
-        macOS spawn, and CI).  Set ``True`` for large offline batch jobs.
-    n_jobs : int
-        Number of worker processes when *use_parallel* is ``True``.
-        ``-1`` uses all available cores.  Default ``-1``.
 
     Attributes
     ----------
@@ -201,10 +208,6 @@ class SimilarityEngine:
         Precursor m/z tolerance for identity search.
     entropy_threshold_low : float
         Low-entropy gate for triggering additional metric computation.
-    use_parallel : bool
-        Whether cosine all-vs-all batches may use a process pool.
-    n_jobs : int
-        Resolved worker count (``cpu_count()`` when constructed with ``-1``).
 
     Notes
     -----
@@ -225,19 +228,9 @@ class SimilarityEngine:
       as ``"open"``; matching occurs in neutral-loss mass space
       (``precursor_mz − fragment_mz``), not on the precursor itself.
 
-    **Parallelism (*use_parallel* / *n_jobs*):**
-
-    Only the cosine path in :meth:`_compute_cosine_for_pairs` is parallelized
-    (used by :meth:`compute_all_vs_all_with_lib` for query–query and filtered
-    library–library all-vs-all).  In detail:
-
-    - **Parallel when** ``use_parallel=True``, ``"cosine"`` is in
-      *additional_similarities*, more than one pair is scored, and
-      ``n_jobs > 1``.
-    - **Not parallel:** FlashEntropy / entropy similarity (always sequential
-      per spectrum search); query–library cosine via
-      :meth:`search_queries_against_library` (always serial per query).
-    - **No-op** if cosine is not requested or there are fewer than two pairs.
+    Cosine (when requested) runs **single-threaded**: unique spectra are
+    pre-sorted once, then pairs are scored sequentially via
+    :func:`_align_and_compute_cosine_presorted`.
     """
 
     def __init__(
@@ -248,8 +241,6 @@ class SimilarityEngine:
         ms1_tolerance_da: float | None = None,
         ms2_tolerance_da: float | None = None,
         entropy_threshold_low: float = 0.1,
-        use_parallel: bool = False,
-        n_jobs: int = -1,
     ):
         if search_type not in _FE_METHOD_MAP:
             raise ValueError(
@@ -282,10 +273,6 @@ class SimilarityEngine:
         self.ms1_tolerance_da = ms1_tolerance_da if ms1_tolerance_da is not None else 0.01
 
         self.entropy_threshold_low = entropy_threshold_low
-        self.use_parallel = use_parallel
-        self.n_jobs = (
-            multiprocessing.cpu_count() if n_jobs == -1 else max(1, n_jobs)
-        )
 
     # ── Internal helpers ──────────────────────────────────────────────────────
 
@@ -500,14 +487,11 @@ class SimilarityEngine:
                 "Query spectrum",
             )
         
-        # Sort cleaned query peaks by m/z
-        query_mz = cleaned_query[:, 0]
-        query_abun = cleaned_query[:, 1]
-        sort_idx = np.argsort(query_mz)
-        query_mz_sorted = query_mz[sort_idx]
-        query_abun_sorted = query_abun[sort_idx]
-        
-        # Compute cosine for each library spectrum
+        # Sort query once; each library spectrum is sorted once before cosine
+        query_mz_sorted, query_abun_sorted = _sort_peaks_by_mz(
+            cleaned_query[:, 0], cleaned_query[:, 1]
+        )
+
         cosine_scores = {}
         for lib_idx in library_indices:
             # Extract cleaned peaks from FE library (same as entropy similarity uses)
@@ -523,27 +507,24 @@ class SimilarityEngine:
                     lib_entry.get("precursor_mz"),
                     f"Library spectrum at index {lib_idx}",
                 )
-            
+
             if lib_peaks.ndim != 2 or lib_peaks.shape[1] < 2 or lib_peaks.shape[0] == 0:
                 continue
-            
-            lib_mz = lib_peaks[:, 0]
-            lib_abun = lib_peaks[:, 1]
-            
-            # Sort library peaks by m/z
-            lib_sort_idx = np.argsort(lib_mz)
-            lib_mz_sorted = lib_mz[lib_sort_idx]
-            lib_abun_sorted = lib_abun[lib_sort_idx]
-            
-            # Use shared cosine computation
-            cosine = _align_and_compute_cosine(
-                query_mz_sorted, query_abun_sorted,
-                lib_mz_sorted, lib_abun_sorted,
-                self.ms2_tolerance_da
+
+            lib_mz_sorted, lib_abun_sorted = _sort_peaks_by_mz(
+                lib_peaks[:, 0], lib_peaks[:, 1]
+            )
+
+            cosine = _align_and_compute_cosine_presorted(
+                query_mz_sorted,
+                query_abun_sorted,
+                lib_mz_sorted,
+                lib_abun_sorted,
+                self.ms2_tolerance_da,
             )
             if cosine > 0.0:
                 cosine_scores[lib_idx] = cosine
-        
+
         return cosine_scores
 
     def _compute_entropy_matrix_and_pairs(
@@ -646,8 +627,9 @@ class SimilarityEngine:
         # Extract unique indices from all pairs
         unique_indices = {i for i, _ in pairs} | {j for _, j in pairs}
 
-        # Extract cleaned peaks from FE library for all unique spectra
-        cleaned_peaks = {}
+        # Extract cleaned peaks once per unique spectrum and sort by m/z once
+        # so pair scoring can use _align_and_compute_cosine_presorted.
+        sorted_peaks: dict[int, tuple[np.ndarray, np.ndarray]] = {}
         for idx in unique_indices:
             if lib_indices[idx] is not None:
                 spec_dict = fe[lib_indices[idx]]
@@ -664,42 +646,25 @@ class SimilarityEngine:
                         f"Library spectrum at index {lib_indices[idx]}",
                     )
 
-                cleaned_peaks[idx] = peaks
+                mz_s, ab_s = _sort_peaks_by_mz(peaks[:, 0], peaks[:, 1])
+                sorted_peaks[idx] = (mz_s, ab_s)
             else:
                 raise ValueError(
                     f"Spectrum index {idx} has no library index. "
                     "All spectra must be indexed in FlashEntropy library."
                 )
 
-        # Build worker args with cleaned peaks
-        args = [
-            (
-                cleaned_peaks[i][:, 0],  # m/z array (already sorted)
-                cleaned_peaks[i][:, 1],  # abundance array (already normalized)
-                cleaned_peaks[j][:, 0],
-                cleaned_peaks[j][:, 1],
-                self.ms2_tolerance_da,
+        # Score pairs sequentially with pre-sorted peak arrays
+        cosine_scores: dict[tuple[int, int], float] = {}
+        tol = self.ms2_tolerance_da
+        for i, j in pairs:
+            mz_i, ab_i = sorted_peaks[i]
+            mz_j, ab_j = sorted_peaks[j]
+            cosine_scores[(i, j)] = _align_and_compute_cosine_presorted(
+                mz_i, ab_i, mz_j, ab_j, tol
             )
-            for i, j in pairs
-        ]
 
-        if self.use_parallel and len(args) > 1 and self.n_jobs > 1:
-            # Batch pairs into chunks to reduce pool overhead
-            n_workers = min(self.n_jobs, len(args))
-            chunk_size = max(1, len(args) // (n_workers * 4))  # 4 chunks per worker
-            
-            def _compute_cosine_batch(batch):
-                return [_compute_cosine_pair(a) for a in batch]
-            
-            chunks = [args[i:i+chunk_size] for i in range(0, len(args), chunk_size)]
-            
-            with multiprocessing.Pool(n_workers) as pool:
-                results = pool.map(_compute_cosine_batch, chunks)
-                cosine_scores = [score for batch in results for score in batch]
-        else:
-            cosine_scores = [_compute_cosine_pair(a) for a in args]
-
-        return {pair: score for pair, score in zip(pairs, cosine_scores)}
+        return cosine_scores
 
     # ── Public API ────────────────────────────────────────────────────────────
 

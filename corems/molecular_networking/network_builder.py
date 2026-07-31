@@ -89,15 +89,6 @@ class MolecularNetwork(NetworkVisualizeMixin):
         Minimum entropy similarity score required to trigger additional metric
         computation (e.g. cosine).  If None (default), set to half the lowest
         non-entropy similarity threshold, or 0.25 when no thresholds are given.
-    use_parallel : bool
-        Forwarded to :class:`~corems.molecular_networking.similarity_engine.SimilarityEngine`.
-        When ``True``, cosine scores for **all-vs-all pair batches** (query–query
-        and optional library–library stages) may use a process pool.
-        Does **not** parallelize FlashEntropy scoring or query–library cosine.
-        Default ``False`` (safer for notebooks / macOS spawn / CI).  See Notes.
-    n_jobs : int
-        Worker process count when *use_parallel* is ``True`` (``-1`` = all
-        cores).  Default ``-1``.
 
     Attributes
     ----------
@@ -130,21 +121,8 @@ class MolecularNetwork(NetworkVisualizeMixin):
       neutral-loss mass space (``precursor_mz − fragment_mz``), not on the
       precursor itself.
 
-    **Parallelism (*use_parallel* / *n_jobs*):**
-
-    These kwargs are stored only on the internal
-    :class:`~corems.molecular_networking.similarity_engine.SimilarityEngine`
-    (not as attributes of this class).  Scope:
-
-    - **Uses a process pool when** ``use_parallel=True``, cosine is in
-      *additional_similarities*, and there are multiple entropy-gated pairs
-      to score in an all-vs-all batch (stage 1 query–query, and stage 3
-      library–library when enabled).
-    - **Never parallelizes** FlashEntropy / entropy similarity itself.
-    - **Does not** parallelize query–library cosine (stage 2); that path is
-      always serial per query.
-    - **No-op** if cosine is disabled, only one pair is scored, or
-      ``n_jobs <= 1``.
+    Cosine scoring (when requested) is single-threaded: unique spectra are
+    pre-sorted once, then pairs are scored sequentially.
     """
 
     def __init__(
@@ -156,8 +134,6 @@ class MolecularNetwork(NetworkVisualizeMixin):
         ms1_tolerance_da: float | None = None,
         ms2_tolerance_da: float | None = None,
         entropy_threshold_low: float | None = None,
-        use_parallel: bool = False,
-        n_jobs: int = -1,
     ):
         if additional_similarities is None:
             additional_similarities = ["cosine"]
@@ -189,8 +165,6 @@ class MolecularNetwork(NetworkVisualizeMixin):
             ms1_tolerance_da=ms1_tolerance_da,
             ms2_tolerance_da=ms2_tolerance_da,
             entropy_threshold_low=entropy_threshold_low,
-            use_parallel=use_parallel,
-            n_jobs=n_jobs,
         )
 
         # One SimilarityMatrix per metric – empty until query_vs_library() is called
