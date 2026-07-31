@@ -1225,6 +1225,25 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         exportMS = HighResMassSpecExport(out_file_path, self)
         exportMS.to_pandas(write_metadata=write_metadata)
 
+    def to_parquet(self, out_file_path, write_metadata=True):
+        """Export the mass spectrum to a Parquet file.
+
+        Parameters
+        ----------
+        out_file_path : str
+            The path to the Parquet file to export to.
+        write_metadata : bool, optional
+            Whether to write the metadata to a JSON file. Defaults to True.
+
+        Notes
+        -----
+        Requires ``pyarrow`` (or ``fastparquet``) for pandas Parquet I/O.
+        """
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+
+        exportMS = HighResMassSpecExport(out_file_path, self)
+        exportMS.to_parquet(write_metadata=write_metadata)
+
     def to_dataframe(self, additional_columns=None):
         """Return the mass spectrum as a Pandas dataframe.
 
