@@ -340,3 +340,204 @@ def test_fe_build_attrs_stored_on_index(msp_fe_lib):
     # database_interfaces stores selected build_index kwargs for later retrieval
     assert hasattr(fe_lib, "_build_min_ms2_difference_in_da")
     assert fe_lib._build_min_ms2_difference_in_da == 0.02
+
+
+def test_library_vs_library_filtered_skips_empty_preserves_ids():
+    """Empty mid-list library entries must not shift IDs/precursors of survivors."""
+    from corems.molecular_networking.similarity_engine import SimilarityEngine
+
+    class FakeFELib:
+        def __init__(self, entries):
+            self._entries = entries
+            # SimilarityEngine may read ms2 tolerance from fe_lib.entropy_search
+            self.entropy_search = SimpleNamespace(max_ms2_tolerance_in_da=0.01)
+
+        def __getitem__(self, idx):
+            return self._entries[idx]
+
+        def __len__(self):
+            return len(self._entries)
+
+    peaks_a = np.array([[100.0, 1.0], [150.0, 0.8], [200.0, 0.5]], dtype=float)
+    peaks_c = peaks_a + np.array([[0.0001, 0.0], [0.0001, 0.0], [0.0001, 0.0]])
+    # Index 1 is empty → skipped; survivors should keep ids id0 and id2 (not id0, id1)
+    entries = [
+        {"peaks": peaks_a, "precursor_mz": 300.0, "spectra_id": "A"},
+        {"peaks": np.empty((0, 2), dtype=float), "precursor_mz": 999.0, "spectra_id": "EMPTY"},
+        {"peaks": peaks_c, "precursor_mz": 301.0, "spectra_id": "C"},
+    ]
+    fe = FakeFELib(entries)
+    engine = SimilarityEngine(
+        fe_lib=fe,
+        search_type="open",
+        additional_similarities=[],
+        ms2_tolerance_da=0.01,
+        use_parallel=False,
+    )
+    result = engine.compute_library_vs_library_filtered(
+        library_indices=[0, 1, 2],
+        spectrum_ids=["id0", "id1", "id2"],
+        precursor_mzs=[300.0, 999.0, 301.0],
+    )
+    entropy_pairs = result.get("entropy_similarity", {})
+    # Only the two valid spectra participate; pair keys must use id0/id2
+    assert entropy_pairs, "expected at least one pair among non-empty library spectra"
+    for (a, b), score in entropy_pairs.items():
+        assert {a, b} == {"id0", "id2"}, f"unexpected pair ids {(a, b)} (id1 is empty)"
+        assert score > 0.5
+
+
+def test_drop_queries_resets_stage_flags_and_allows_rerun():
+    spectra, ids, precursor_mzs = _mock_spectra_pair()
+    mn = MolecularNetwork(
+        fe_lib=None,
+        search_type="open",
+        additional_similarities=["cosine"],
+        similarity_thresholds={"entropy_similarity": 0.1, "cosine": 0.1},
+        use_parallel=False,
+    )
+    mn.run_query_vs_query_only(spectra, ids, query_precursor_mzs=precursor_mzs)
+    assert mn.stage_query_query_done is True
+    assert mn._has_queries_run is True
+    assert len(mn.get_network_edges()) >= 1
+
+    mn.drop_queries()
+    assert mn.stage_query_query_done is False
+    assert mn.stage_query_library_done is False
+    assert mn.stage_library_library_done is False
+    assert mn._has_queries_run is False
+    assert mn._stage2_entropy_pairs is None
+    assert mn.get_network_edges() == []
+    assert mn.similarity_matrices["entropy_similarity"].n_spectra == 0
+
+    # Lifecycle: can run again after clear
+    mn.run_query_vs_query_only(spectra[:2], ids[:2], query_precursor_mzs=precursor_mzs[:2])
+    assert mn.stage_query_query_done is True
+    assert mn.similarity_matrices["entropy_similarity"].n_spectra == 2
+
+
+def test_hydrate_library_similarities_stage3(msp_fe_lib):
+    """Stage 3 (library–library among matched entries) runs without error."""
+    fe_lib, msp = msp_fe_lib
+    df = msp._data_frame
+    if len(df) < 2:
+        pytest.skip("need at least 2 library spectra for stage-3 edges")
+
+    row = df.iloc[0]
+    peaks = np.asarray(row.peaks, dtype=float)
+    pmz = float(getattr(row, "precursormz", 0.0) or 0.0)
+    q = MockSpectrum(peaks[:, 0], peaks[:, 1], name="q0")
+
+    mn = MolecularNetwork(
+        fe_lib=fe_lib,
+        search_type="open",
+        additional_similarities=["cosine"],
+        similarity_thresholds={"entropy_similarity": 0.1, "cosine": 0.1},
+        use_parallel=False,
+    )
+    mn.query_vs_library(
+        [q],
+        ["q0"],
+        query_precursor_mzs=[pmz],
+        fe_kwargs=FE_KWARGS,
+        hydrate_library_similarities=True,
+        library_similarity_threshold=0.1,
+    )
+    assert mn.stage_query_query_done is True
+    assert mn.stage_query_library_done is True
+    assert mn.stage_library_library_done is True
+    edges = mn.get_network_edges(metric="entropy_similarity")
+    assert any("q0" in (a, b) for a, b, _ in edges)
+
+
+def test_identity_search_type_smoke(msp_fe_lib):
+    """Default-ish identity mode with precursor filtering smoke-tests cleanly."""
+    fe_lib, msp = msp_fe_lib
+    df = msp._data_frame
+    row = df.iloc[0]
+    peaks = np.asarray(row.peaks, dtype=float)
+    pmz = float(getattr(row, "precursormz", 0.0) or 0.0)
+    if pmz <= 0:
+        pytest.skip("library row lacks precursor m/z for identity search")
+
+    q = MockSpectrum(peaks[:, 0], peaks[:, 1], name="q_id")
+    mn = MolecularNetwork(
+        fe_lib=fe_lib,
+        search_type="identity",
+        additional_similarities=["cosine"],
+        similarity_thresholds={"entropy_similarity": 0.1, "cosine": 0.1},
+        ms1_tolerance_da=0.5,
+        use_parallel=False,
+    )
+    mn.query_vs_library(
+        [q],
+        ["q_id"],
+        query_precursor_mzs=[pmz],
+        fe_kwargs=FE_KWARGS,
+        hydrate_library_similarities=False,
+    )
+    stats = mn.get_network_stats()
+    assert stats["n_nodes"] >= 1
+    assert mn.stage_query_library_done is True
+
+
+def test_save_edge_list_export_maps_lib_to_spectra_id(msp_fe_lib, tmp_path):
+    """CSV export should map internal lib:<idx> nodes to spectra_id when present."""
+    fe_lib, msp = msp_fe_lib
+    df = msp._data_frame
+    row = df.iloc[0]
+    peaks = np.asarray(row.peaks, dtype=float)
+    pmz = float(getattr(row, "precursormz", 0.0) or 0.0)
+    q = MockSpectrum(peaks[:, 0], peaks[:, 1], name="q0")
+
+    mn = MolecularNetwork(
+        fe_lib=fe_lib,
+        search_type="open",
+        additional_similarities=[],
+        similarity_thresholds={"entropy_similarity": 0.1},
+        use_parallel=False,
+    )
+    mn.query_vs_library(
+        [q],
+        ["q0"],
+        query_precursor_mzs=[pmz],
+        fe_kwargs=FE_KWARGS,
+        hydrate_library_similarities=False,
+    )
+    edges = mn.get_network_edges(metric="entropy_similarity")
+    lib_nodes = []
+    for a, b, _ in edges:
+        for node in (a, b):
+            if str(node).startswith("lib:"):
+                lib_nodes.append(str(node))
+    assert lib_nodes, "need internal lib: edges before export"
+
+    # Resolve expected export IDs for every library endpoint in the edge list
+    expected_export_ids = set()
+    for lib_node in lib_nodes:
+        lib_idx = MolecularNetwork.library_index_from_node_id(lib_node)
+        assert lib_idx is not None
+        entry = fe_lib[lib_idx]
+        assert isinstance(entry, dict)
+        export_id = str(entry.get("spectra_id") or entry.get("id") or "")
+        assert export_id, f"library entry {lib_idx} has no spectra_id/id"
+        expected_export_ids.add(export_id)
+
+    out = tmp_path / "edges.csv"
+    mn.save_edge_list(str(out), metric="entropy_similarity")
+    text = out.read_text()
+    assert "q0" in text
+    for export_id in expected_export_ids:
+        assert export_id in text
+    # No internal lib: ids should remain in the CSV
+    assert "lib:" not in text
+
+
+def test_staged_api_stage2_has_no_threshold_kwarg():
+    """Stage 2 no longer accepts library_similarity_threshold (lives on stage 3)."""
+    import inspect
+
+    sig = inspect.signature(MolecularNetwork.run_query_vs_library_stage)
+    assert "library_similarity_threshold" not in sig.parameters
+    sig3 = inspect.signature(MolecularNetwork.run_library_vs_library_stage)
+    assert "library_similarity_threshold" in sig3.parameters

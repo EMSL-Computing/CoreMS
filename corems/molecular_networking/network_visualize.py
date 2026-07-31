@@ -54,7 +54,7 @@ class NetworkVisualizeMixin:
 
         try:
             record = fe_lib[lib_idx]
-        except Exception:
+        except (IndexError, KeyError, TypeError):
             return None
 
         return record if isinstance(record, dict) else None
@@ -377,7 +377,7 @@ class NetworkVisualizeMixin:
         if callable(export_fn):
             try:
                 return str(export_fn(node_id, query_id_set))
-            except Exception:
+            except (TypeError, ValueError, KeyError, IndexError):
                 pass
         return str(node_id)
 
@@ -847,7 +847,7 @@ class NetworkVisualizeMixin:
                 params_json = mdf.iloc[0].get("params_json", "{}")
                 try:
                     params = json.loads(params_json) if isinstance(params_json, str) else {}
-                except Exception:
+                except (json.JSONDecodeError, TypeError, ValueError):
                     params = {}
 
         artifact = {
@@ -1274,7 +1274,7 @@ class NetworkVisualizeMixin:
                 display(Image(data=buf.getvalue()))
                 plt.close(fig)
                 return None
-        except Exception:
+        except ImportError:
             pass
 
         plt.show()

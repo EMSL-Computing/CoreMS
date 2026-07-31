@@ -665,9 +665,12 @@ class MolecularNetwork(NetworkVisualizeMixin):
         if lib_idx is None or lib_idx < 0:
             return node_id
 
+        if self.fe_lib is None:
+            return node_id
+
         try:
             lib_entry = self.fe_lib[lib_idx]
-        except Exception:
+        except (IndexError, KeyError, TypeError):
             return node_id
 
         if not isinstance(lib_entry, dict):
@@ -736,22 +739,16 @@ class MolecularNetwork(NetworkVisualizeMixin):
         self._run_query_vs_query(fe_kwargs=fe_kwargs)
         self._has_queries_run = True
 
-    def run_query_vs_library_stage(
-        self,
-        library_similarity_threshold: float = 0.3,
-    ) -> None:
+    def run_query_vs_library_stage(self) -> None:
         """Continue from stage 1 and compute query-vs-library similarities (stage 2).
 
         Searches each stored query spectrum against the reference FE library
         and stores entropy + cosine scores in :attr:`similarity_matrices`.
         After this call, :attr:`stage_query_library_done` is ``True``.
 
-        Parameters
-        ----------
-        library_similarity_threshold : float, optional
-            Minimum entropy similarity score a library entry must have against
-            any query to be considered for the optional stage-3
-            library-vs-library computation.  Default 0.3.
+        Stage-3 library subset selection uses
+        *library_similarity_threshold* on :meth:`run_library_vs_library_stage`
+        (or the same keyword on :meth:`query_vs_library`), not this method.
 
         Raises
         ------
@@ -1037,17 +1034,11 @@ class MolecularNetwork(NetworkVisualizeMixin):
     def drop_queries(self):
         """Clear all stored queries and computed similarity results.
 
-        Resets internal query storage, clears the stage-2 entropy-pair cache,
-        and reinitialises all :attr:`similarity_matrices` to empty so that
+        Resets internal query storage, stage flags, the stage-2 entropy-pair
+        cache, clustering artifacts, and reinitialises all
+        :attr:`similarity_matrices` to empty so that
         :meth:`run_query_vs_query_only` or :meth:`query_vs_library` can be
-        called again.
-
-        .. note::
-            Stage flags (:attr:`stage_query_query_done`,
-            :attr:`stage_query_library_done`,
-            :attr:`stage_library_library_done`) are **not** reset here; they
-            will be reset automatically when the next query preparation begins
-            via :meth:`_prepare_queries`.
+        called again with a consistent cleared state.
         """
         # Clear stored queries
         self._all_query_spectra = []
@@ -1055,6 +1046,11 @@ class MolecularNetwork(NetworkVisualizeMixin):
         self._all_query_precursor_mzs = []
         self._has_queries_run = False
         self._stage2_entropy_pairs = None
+
+        # Stage flags must match empty matrices (not "stale done")
+        self.stage_query_query_done = False
+        self.stage_query_library_done = False
+        self.stage_library_library_done = False
 
         # Recreate empty similarity matrices for each metric
         all_metrics = list(self.similarity_matrices.keys())
