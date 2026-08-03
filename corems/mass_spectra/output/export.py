@@ -57,7 +57,7 @@ ion_type_dict = {
 class LowResGCMSExport:
     """A class to export low resolution GC-MS data.
 
-    This class provides methods to export low resolution GC-MS data to various formats such as Excel, CSV, HDF5, and Pandas DataFrame.
+    This class provides methods to export low resolution GC-MS data to various formats such as Excel, CSV, Parquet, HDF5, and Pandas DataFrame.
 
     Parameters:
     ----------
@@ -82,6 +82,8 @@ class LowResGCMSExport:
         Export the data to an Excel file.
     * to_csv(separate_output=False, write_mode="w", write_metadata=True, id_label="corems:").
         Export the data to a CSV file.
+    * to_parquet(write_metadata=True, id_label="corems:").
+        Export the data to a Parquet file.
     * to_hdf(id_label="corems:").
         Export the data to an HDF5 file.
     * get_data_stats(gcms).
@@ -171,7 +173,7 @@ class LowResGCMSExport:
 
         df = DataFrame(dict_data_list, columns=columns)
 
-        df.name = self.gcms.sample_name
+        df.attrs["name"] = self.gcms.sample_name
 
         return df
 
@@ -310,6 +312,33 @@ class LowResGCMSExport:
 
         except IOError as ioerror:
             print(ioerror)
+
+    def to_parquet(self, write_metadata=True, id_label="corems:"):
+        """Export the data to a Parquet file.
+
+        Parameters:
+        ----------
+        write_metadata : bool, optional
+            Whether to write metadata to the output file. Default is True.
+        id_label : str, optional
+            The ID label for the data. Default is "corems:".
+
+        Notes
+        -----
+        Requires ``pyarrow`` (or ``fastparquet``) for pandas Parquet I/O.
+        """
+
+        columns = self._init_columns()
+
+        dict_data_list = self.get_list_dict_data(self.gcms)
+
+        df = DataFrame(dict_data_list, columns=columns)
+
+        out_put_path = self.output_file.with_suffix(".parquet")
+        df.to_parquet(out_put_path, index=False)
+
+        if write_metadata:
+            self.write_settings(out_put_path, self.gcms, id_label=id_label)
 
     def to_hdf(self, id_label="corems:"):
         """Export the data to an HDF5 file.
@@ -783,7 +812,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
     """A class to export high resolution mass spectra data.
 
     This class provides methods to export high resolution mass spectra data to various formats
-    such as Excel, CSV, HDF5, and Pandas DataFrame.
+    such as Excel, CSV, Parquet, HDF5, and Pandas DataFrame.
 
     Parameters
     ----------
@@ -815,7 +844,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
         self.dir_loc.mkdir(exist_ok=True)
         # Place the output file in the directory
         self.output_file = self.dir_loc / Path(out_file_path).name
-        self._output_type = output_type  # 'excel', 'csv', 'pandas' or 'hdf5'
+        self._output_type = output_type  # 'excel', 'csv', 'pandas', 'parquet' or 'hdf5'
         self.mass_spectra = mass_spectra
         self.atoms_order_list = None
         self._init_columns()
@@ -836,7 +865,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
 
             scan_number = mass_spectrum.scan_number
 
-            df.name = str(self.output_file) + "_" + str(scan_number)
+            df.attrs["name"] = str(self.output_file) + "_" + str(scan_number)
 
             list_df.append(df)
 
@@ -937,6 +966,40 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                     self.dir_loc / out_filename.with_suffix(""), mass_spectrum
                 )
 
+    def to_parquet(self, write_metadata=True):
+        """Export the data to a Parquet file.
+
+        Parameters:
+        ----------
+        write_metadata : bool, optional
+            Whether to write metadata to the output file. Default is True.
+
+        Notes
+        -----
+        Requires ``pyarrow`` (or ``fastparquet``) for pandas Parquet I/O.
+        """
+        for mass_spectrum in self.mass_spectra:
+            columns = self.columns_label + self.get_all_used_atoms_in_order(
+                mass_spectrum
+            )
+
+            dict_data_list = self.get_list_dict_data(mass_spectrum)
+
+            df = DataFrame(dict_data_list, columns=columns)
+
+            scan_number = mass_spectrum.scan_number
+
+            out_filename = Path(
+                "%s_scan%s%s" % (self.output_file, str(scan_number), ".parquet")
+            )
+
+            df.to_parquet(self.dir_loc / out_filename, index=False)
+
+            if write_metadata:
+                self.write_settings(
+                    self.dir_loc / out_filename.with_suffix(""), mass_spectrum
+                )
+
     def get_mass_spectra_attrs(self):
         """Get the mass spectra attributes as a JSON string.
 
@@ -1020,7 +1083,8 @@ class HighResMassSpectraExport(HighResMassSpecExport):
 class LCMSExport(HighResMassSpectraExport):
     """A class to export high resolution LC-MS data.
 
-    This class provides methods to export high resolution LC-MS data to HDF5.
+    This class provides methods to export high resolution LC-MS data to HDF5
+    and Parquet (tabular datasets that mirror the main HDF5 groups).
 
     Parameters
     ----------
@@ -1032,6 +1096,297 @@ class LCMSExport(HighResMassSpectraExport):
 
     def __init__(self, out_file_path, mass_spectra):
         super().__init__(out_file_path, mass_spectra, output_type="hdf5")
+
+    @staticmethod
+    def _prepare_df_for_parquet(df):
+        """Make a DataFrame Parquet-safe by normalizing nested/mixed object values.
+
+        Parameters
+        ----------
+        df : DataFrame
+            Input dataframe.
+
+        Returns
+        -------
+        DataFrame
+            Copy suitable for ``DataFrame.to_parquet``.
+
+        Notes
+        -----
+        Object columns with mixed Python types (especially ``bool`` mixed with
+        ``int``) fail under pyarrow. Nested containers are JSON-serialized;
+        mixed scalar object columns are coerced to a single type or strings.
+        """
+        if df is None or df.empty:
+            return df
+
+        out = df.copy()
+        out.columns = [str(c) for c in out.columns]
+
+        for col in out.columns:
+            series = out[col]
+            if series.dtype != object:
+                continue
+
+            def _normalize(value):
+                if value is None:
+                    return None
+                try:
+                    # Avoid treating array-likes as NA; only scalar NA checks
+                    if not isinstance(value, (list, tuple, dict, np.ndarray)) and pd.isna(
+                        value
+                    ):
+                        return None
+                except (TypeError, ValueError):
+                    pass
+                if isinstance(value, (list, tuple, dict)):
+                    return json.dumps(value)
+                if isinstance(value, np.ndarray):
+                    return json.dumps(value.tolist())
+                if isinstance(value, (bool, np.bool_)):
+                    return bool(value)
+                if isinstance(value, (np.integer,)):
+                    return int(value)
+                if isinstance(value, (np.floating,)):
+                    return float(value)
+                return value
+
+            normalized = series.map(_normalize)
+            non_null = [v for v in normalized.tolist() if v is not None]
+
+            has_bool = any(isinstance(v, bool) for v in non_null)
+            # bool is a subclass of int; exclude bools from int detection
+            has_int = any(isinstance(v, int) and not isinstance(v, bool) for v in non_null)
+            has_float = any(isinstance(v, float) for v in non_null)
+            has_str = any(isinstance(v, str) for v in non_null)
+            has_other = any(
+                not isinstance(v, (bool, int, float, str)) for v in non_null
+            )
+
+            if (
+                has_other
+                or (has_str and (has_bool or has_int or has_float))
+                or (has_bool and has_int)
+            ):
+                out[col] = normalized.map(lambda v: None if v is None else str(v))
+            elif has_bool and not has_float:
+                out[col] = normalized.map(
+                    lambda v: None if v is None else bool(v)
+                ).astype("boolean")
+            elif has_float or has_int:
+                out[col] = pd.to_numeric(pd.Series(normalized), errors="coerce")
+            else:
+                out[col] = normalized.map(lambda v: None if v is None else str(v))
+
+        return out
+
+    def _write_parquet(self, df, filename, overwrite=False):
+        """Write a dataframe to a Parquet file under the export directory.
+
+        Parameters
+        ----------
+        df : DataFrame
+            Data to write.
+        filename : str
+            File name (with or without ``.parquet`` suffix).
+        overwrite : bool, optional
+            Whether to replace an existing file. Default is False.
+
+        Returns
+        -------
+        Path or None
+            Output path if written, otherwise None.
+        """
+        if df is None or df.empty:
+            return None
+
+        out_path = self.dir_loc / Path(filename).with_suffix(".parquet")
+        if out_path.exists() and not overwrite:
+            return out_path
+
+        self._prepare_df_for_parquet(df).to_parquet(out_path, index=False)
+        return out_path
+
+    def _mass_spectra_to_parquet_df(self):
+        """Build a single DataFrame of peak tables for all loaded mass spectra."""
+        frames = []
+        for mass_spectrum in self.mass_spectra:
+            if mass_spectrum is None:
+                continue
+            columns = self.columns_label + self.get_all_used_atoms_in_order(
+                mass_spectrum
+            )
+            dict_data_list = self.get_list_dict_data(mass_spectrum)
+            df = DataFrame(dict_data_list, columns=columns)
+            if df.empty:
+                continue
+            df.insert(0, "scan_number", mass_spectrum.scan_number)
+            if getattr(mass_spectrum, "retention_time", None) is not None:
+                df.insert(1, "retention_time", mass_spectrum.retention_time)
+            frames.append(df)
+
+        if not frames:
+            return DataFrame()
+        return pd.concat(frames, ignore_index=True)
+
+    @staticmethod
+    def _sequence_len(value):
+        """Return length of a sequence/array, or 0 for None/empty/scalar-missing."""
+        if value is None:
+            return 0
+        try:
+            return len(value)
+        except TypeError:
+            return 0
+
+    def _eics_to_parquet_df(self):
+        """Build a long-format DataFrame of EIC time series."""
+        frames = []
+        for mz, eic_data in self.mass_spectra.eics.items():
+            if eic_data is None:
+                continue
+            # Avoid `array or []` — numpy arrays are ambiguous in boolean context
+            time = getattr(eic_data, "time", None)
+            n = self._sequence_len(time)
+            if n == 0:
+                continue
+
+            scans = getattr(eic_data, "scans", None)
+            eic = getattr(eic_data, "eic", None)
+            eic_smoothed = getattr(eic_data, "eic_smoothed", None)
+
+            frame = {
+                "mz": [mz] * n,
+                "scans": list(scans) if self._sequence_len(scans) == n else [None] * n,
+                "time": list(time),
+                "eic": list(eic) if self._sequence_len(eic) == n else [None] * n,
+            }
+            if self._sequence_len(eic_smoothed) == n:
+                frame["eic_smoothed"] = list(eic_smoothed)
+            frames.append(DataFrame(frame))
+
+        if not frames:
+            return DataFrame()
+        return pd.concat(frames, ignore_index=True)
+
+    def _spectral_search_results_to_parquet_df(self):
+        """Flatten spectral search results into a single DataFrame."""
+        frames = []
+        for scan_id, by_precursor in self.mass_spectra.spectral_search_results.items():
+            for precursor_key, result in by_precursor.items():
+                try:
+                    df = result.to_dataframe()
+                except Exception:
+                    continue
+                if df is None or df.empty:
+                    continue
+                df = df.copy()
+                # to_dataframe() already includes these fields from the result object;
+                # only set them when missing so we do not insert duplicate columns.
+                if "query_spectrum_id" not in df.columns:
+                    df.insert(
+                        0,
+                        "query_spectrum_id",
+                        getattr(result, "query_spectrum_id", scan_id),
+                    )
+                if "precursor_mz" not in df.columns:
+                    loc = 1 if "query_spectrum_id" in df.columns else 0
+                    df.insert(
+                        loc,
+                        "precursor_mz",
+                        getattr(result, "precursor_mz", precursor_key),
+                    )
+                frames.append(df)
+
+        if not frames:
+            return DataFrame()
+        return pd.concat(frames, ignore_index=True)
+
+    def to_parquet(
+        self,
+        overwrite=False,
+        save_parameters=True,
+        parameter_format="toml",
+        export_spectra=True,
+    ):
+        """Export LC-MS datasets to Parquet files (tabular mirror of ``to_hdf``).
+
+        Writes under ``{out_file_path}.corems/``:
+
+        - ``scan_info.parquet``
+        - ``mass_features.parquet``
+        - ``induced_mass_features.parquet`` (if present)
+        - ``mass_spectra.parquet`` (optional; all peak tables with scan metadata)
+        - ``eics.parquet`` (if EICs are present and export is enabled)
+        - ``spectral_search_results.parquet`` (if search results are present)
+        - parameters as JSON or TOML when ``save_parameters`` is True
+
+        Parameters
+        ----------
+        overwrite : bool, optional
+            Whether to overwrite existing Parquet files. Default is False.
+        save_parameters : bool, optional
+            Whether to save processing parameters. Default is True.
+        parameter_format : str, optional
+            Parameter file format, ``'json'`` or ``'toml'``. Default is ``'toml'``.
+        export_spectra : bool, optional
+            Whether to export loaded mass-spectrum peak tables. Default is True.
+
+        Notes
+        -----
+        Requires ``pyarrow`` (or ``fastparquet``) for pandas Parquet I/O.
+        Raw profile arrays and nested HDF5-only blobs are not reproduced in full;
+        use ``to_hdf`` for a complete self-contained archive.
+        """
+        self.dir_loc.mkdir(exist_ok=True)
+
+        # Scan metadata (same source as the HDF5 scan_info group)
+        scan_df = self.mass_spectra.scan_df
+        if scan_df is not None and not scan_df.empty:
+            self._write_parquet(scan_df.reset_index(drop=True), "scan_info", overwrite=overwrite)
+
+        # Mass features
+        if len(self.mass_spectra.mass_features) > 0:
+            mf_df = self.mass_spectra.mass_features_to_df().reset_index(drop=False)
+            self._write_parquet(mf_df, "mass_features", overwrite=overwrite)
+
+        if len(getattr(self.mass_spectra, "induced_mass_features", {}) or {}) > 0:
+            imf_df = self.mass_spectra.mass_features_to_df(
+                induced_features=True
+            ).reset_index(drop=False)
+            self._write_parquet(imf_df, "induced_mass_features", overwrite=overwrite)
+
+        # Peak tables for loaded spectra
+        if export_spectra:
+            spectra_df = self._mass_spectra_to_parquet_df()
+            self._write_parquet(spectra_df, "mass_spectra", overwrite=overwrite)
+
+        # EICs
+        export_eics = self.mass_spectra.parameters.lc_ms.export_eics
+        if export_eics and len(self.mass_spectra.eics) > 0:
+            eic_df = self._eics_to_parquet_df()
+            self._write_parquet(eic_df, "eics", overwrite=overwrite)
+
+        # Spectral search results
+        if len(self.mass_spectra.spectral_search_results) > 0:
+            search_df = self._spectral_search_results_to_parquet_df()
+            self._write_parquet(
+                search_df, "spectral_search_results", overwrite=overwrite
+            )
+
+        if save_parameters:
+            if parameter_format not in ["json", "toml"]:
+                raise ValueError("parameter_format must be 'json' or 'toml'")
+            if parameter_format == "json":
+                dump_lcms_settings_json(
+                    filename=self.output_file.with_suffix(".json"),
+                    lcms_obj=self.mass_spectra,
+                )
+            elif parameter_format == "toml":
+                dump_lcms_settings_toml(
+                    filename=self.output_file.with_suffix(".toml"),
+                    lcms_obj=self.mass_spectra,
+                )
 
     @staticmethod
     def _save_mass_features_dict_to_hdf5(mass_features_dict, mass_features_group, overwrite=False):
@@ -1328,7 +1683,8 @@ class LCMSExport(HighResMassSpectraExport):
 class LCMSMetabolomicsExport(LCMSExport):
     """A class to export LCMS metabolite data.
 
-    This class provides methods to export LCMS metabolite data to various formats and summarize the metabolite report.
+    This class provides methods to export LCMS metabolite data to various formats
+    (CSV/Parquet reports, HDF5) and summarize the metabolite report.
 
     Parameters
     ----------
@@ -1454,7 +1810,24 @@ class LCMSMetabolomicsExport(LCMSExport):
         report = self.to_report(molecular_metadata=molecular_metadata)
         out_file = self.output_file.with_suffix(".csv")
         report.to_csv(out_file, index=False)
-    
+
+    def report_to_parquet(self, molecular_metadata=None):
+        """Create a report of the mass features and their annotations and save it as a Parquet file.
+
+        Parameters
+        ----------
+        molecular_metadata : dict, optional
+            The molecular metadata. Default is None.
+
+        Notes
+        -----
+        Requires ``pyarrow`` (or ``fastparquet``) for pandas Parquet I/O.
+        Shared by metabolomics and lipidomics exporters via inheritance.
+        """
+        report = self.to_report(molecular_metadata=molecular_metadata)
+        out_file = self.output_file.with_suffix(".parquet")
+        report.to_parquet(out_file, index=False)
+
     def clean_ms1_report(self, ms1_summary_full):
         """Clean the MS1 report.
 
@@ -1489,12 +1862,14 @@ class LCMSMetabolomicsExport(LCMSExport):
             self.get_isotope_type(f) for f in ms1_summary["ion_formula"].tolist()
         ]
 
-        # Reorder columns
+        # Keep MS1 neutral Molecular Formula so it is not confused with library formulas
+        # from MS2 spectral metadata.
         ms1_summary = ms1_summary[
             [
                 "mf_id",
                 "ion_formula",
                 "isotopologue_type",
+                "Molecular Formula",
                 "Calculated m/z",
                 "m/z Error (ppm)",
                 "m/z Error Score",
@@ -1580,16 +1955,20 @@ class LCMSMetabolomicsExport(LCMSExport):
             The cleaned metabolomics summary DataFrame.
         """
         metabolite_summary = metabolite_summary.reset_index()
-        metabolite_summary["ion_formula"] = [
+        # Library (MS2 metadata) formulas — keep separate from MS1 search fields
+        metabolite_summary["library_ion_formula"] = [
             self.get_ion_formula(f, a)
             for f, a in zip(metabolite_summary["formula"], metabolite_summary["ref_ion_type"])
         ]
+        metabolite_summary = metabolite_summary.rename(
+            columns={"formula": "library_formula"}
+        )
 
         col_order = [
             "mf_id",
-            "ion_formula",
+            "library_ion_formula",
             "ref_ion_type",
-            "formula",
+            "library_formula",
             "inchikey",
             "name",
             "inchi",
@@ -1631,6 +2010,14 @@ class LCMSMetabolomicsExport(LCMSExport):
             The MS1 annotation report DataFrame.
         ms2_annot_report : DataFrame
             The MS2 annotation report DataFrame.
+
+        Notes
+        -----
+        ``Molecular Formula`` / ``Ion Formula`` come only from MS1 molecular
+        formula search. MS2 spectral library formulas are exposed as
+        ``Library Molecular Formula`` / ``Library Ion Formula``.
+        When MS1 and MS2 match (same ion formula), the library formula columns
+        are cleared so they do not repeat the MS1 values on that row.
         """
         # If there is an ms1_annot_report, merge it with the mf_report
         if ms1_annot_report is not None and not ms1_annot_report.empty:
@@ -1642,24 +2029,31 @@ class LCMSMetabolomicsExport(LCMSExport):
                 on=["mf_id", "isotopologue_type"],
             )
         if ms2_annot_report is not None:
-            # If both reports contain 'ion_formula', prefer a merge that respects it.
-            # Otherwise fall back to merging on 'mf_id' only to remain robust when
-            # MS1 formula assignment wasn't performed or MS2 summary lacks the field.
-            if "ion_formula" in mf_report.columns and "ion_formula" in ms2_annot_report.columns:
+            # Prefer joining MS2 hits to matching MS1 ion formula when both exist.
+            # MS2 uses library_ion_formula so MS1 Ion Formula is not overwritten.
+            if (
+                "ion_formula" in mf_report.columns
+                and "library_ion_formula" in ms2_annot_report.columns
+            ):
                 # pull out the records without ion_formula and merge on mf_id only
                 mf_no_ion_formula = mf_report[mf_report["ion_formula"].isna()]
-                mf_no_ion_formula = mf_no_ion_formula.drop(columns=["ion_formula"]) if "ion_formula" in mf_no_ion_formula.columns else mf_no_ion_formula
+                mf_no_ion_formula = (
+                    mf_no_ion_formula.drop(columns=["ion_formula"])
+                    if "ion_formula" in mf_no_ion_formula.columns
+                    else mf_no_ion_formula
+                )
                 mf_no_ion_formula = pd.merge(
                     mf_no_ion_formula, ms2_annot_report, how="left", on=["mf_id"]
                 )
 
-                # pull out the records with ion_formula and merge on mf_id + ion_formula
+                # pull out the records with ion_formula and merge on mf_id + formula match
                 mf_with_ion_formula = mf_report[~mf_report["ion_formula"].isna()]
                 mf_with_ion_formula = pd.merge(
                     mf_with_ion_formula,
                     ms2_annot_report,
                     how="left",
-                    on=["mf_id", "ion_formula"],
+                    left_on=["mf_id", "ion_formula"],
+                    right_on=["mf_id", "library_ion_formula"],
                 )
 
                 # put back together
@@ -1688,8 +2082,9 @@ class LCMSMetabolomicsExport(LCMSExport):
             "mass_spectrum_deconvoluted_parent": "Is Largest Ion after Deconvolution",
             "associated_mass_features": "Associated Mass Features after Deconvolution",
             "ion_formula": "Ion Formula",
-            "formula": "Molecular Formula",
-            "ref_ion_type": "Ion Type",
+            "library_ion_formula": "Library Ion Formula",
+            "library_formula": "Library Molecular Formula",
+            "ref_ion_type": "Library Ion Type",
             "annot_level": "Lipid Annotation Level",
             "lipid_molecular_species_id": "Lipid Molecular Species",
             "lipid_summed_name": "Lipid Species",
@@ -1701,6 +2096,35 @@ class LCMSMetabolomicsExport(LCMSExport):
             "n_spectra_contributing": "Spectra with Annotation (n)",
         }
         mf_report = mf_report.rename(columns=rename_dict)
+
+        # When MS1 and MS2 co-annotate the same ion/molecular formula, library formula
+        # columns only repeat MS1 fields — clear them so the row is not redundant.
+        # Keep Library * columns populated for MS2-only (or mismatched) hits.
+        if (
+            "Ion Formula" in mf_report.columns
+            and "Library Ion Formula" in mf_report.columns
+        ):
+            ion_match = (
+                mf_report["Ion Formula"].notna()
+                & mf_report["Library Ion Formula"].notna()
+                & (mf_report["Ion Formula"] == mf_report["Library Ion Formula"])
+            )
+            mf_report.loc[ion_match, "Library Ion Formula"] = pd.NA
+            if "Library Molecular Formula" in mf_report.columns:
+                mf_report.loc[ion_match, "Library Molecular Formula"] = pd.NA
+        elif (
+            "Molecular Formula" in mf_report.columns
+            and "Library Molecular Formula" in mf_report.columns
+        ):
+            mol_match = (
+                mf_report["Molecular Formula"].notna()
+                & mf_report["Library Molecular Formula"].notna()
+                & (mf_report["Molecular Formula"] == mf_report["Library Molecular Formula"])
+            )
+            mf_report.loc[mol_match, "Library Molecular Formula"] = pd.NA
+            if "Library Ion Formula" in mf_report.columns:
+                mf_report.loc[mol_match, "Library Ion Formula"] = pd.NA
+
         mf_report["Sample Name"] = self.mass_spectra.sample_name
         mf_report["Polarity"] = self.mass_spectra.polarity
         mf_report = mf_report[
@@ -1789,7 +2213,8 @@ class LCMSMetabolomicsExport(LCMSExport):
 class LipidomicsExport(LCMSMetabolomicsExport):
     """A class to export lipidomics data.
 
-    This class provides methods to export lipidomics data to various formats and summarize the lipid report.
+    This class provides methods to export lipidomics data to various formats
+    (CSV/Parquet reports, HDF5) and summarize the lipid report.
 
     Parameters
     ----------
@@ -2065,18 +2490,20 @@ class LipidomicsExport(LCMSMetabolomicsExport):
             The cleaned lipid summary DataFrame.
         """
         lipid_summary = lipid_summary.reset_index()
-        lipid_summary["ion_formula"] = [
+        # Library (MS2 metadata) formulas — keep separate from MS1 search fields
+        lipid_summary["library_ion_formula"] = [
             self.get_ion_formula(f, a)
             for f, a in zip(lipid_summary["formula"], lipid_summary["ref_ion_type"])
         ]
+        lipid_summary = lipid_summary.rename(columns={"formula": "library_formula"})
 
         # Reorder columns
         lipid_summary = lipid_summary[
             [
                 "mf_id",
-                "ion_formula",
+                "library_ion_formula",
                 "ref_ion_type",
-                "formula",
+                "library_formula",
                 "annot_level",
                 "lipid_molecular_species_id",
                 "lipid_summed_name",
@@ -2138,11 +2565,12 @@ class LipidomicsExport(LCMSMetabolomicsExport):
 
         
 class LCMSCollectionExport():
-    """A class to export an LCMS collection to HDF5 format.
+    """A class to export an LCMS collection to HDF5 or Parquet format.
 
     This class provides methods to export collection-level data from multi-sample LC-MS
-    experiments to HDF5 files. It handles the export of metadata, retention time alignments,
-    cluster assignments, and induced mass features (gap-filled features) across the collection.
+    experiments to HDF5 or Parquet files. It handles the export of metadata, retention time
+    alignments, cluster assignments, and induced mass features (gap-filled features) across
+    the collection.
 
     The exporter is designed to work with LCMSCollection objects and complements the individual
     LCMSExport class by focusing on collection-wide data rather than individual sample data.
@@ -2150,8 +2578,8 @@ class LCMSCollectionExport():
     Parameters
     ----------
     out_file_path : str | Path
-        The output file path, do not include the file extension. The .hdf5 extension
-        will be added automatically.
+        The output file path, do not include the file extension. The .hdf5 / .parquet
+        extensions are added automatically as needed.
     mass_spectra_collection : LCMSCollection
         The LCMS collection object containing multiple LCMS samples with processed mass features,
         alignments, and clustering information.
@@ -2167,6 +2595,8 @@ class LCMSCollectionExport():
     -------
     export_to_hdf5(overwrite=False)
         Export the LCMS collection to an HDF5 file with collection-level data.
+    export_to_parquet(overwrite=False)
+        Export collection-level tabular datasets to Parquet files.
 
     Notes
     -----
@@ -2295,6 +2725,130 @@ class LCMSCollectionExport():
             if parameter_format not in ["json", "toml"]:
                 raise ValueError("parameter_format must be 'json' or 'toml'")
 
+            if parameter_format == "json":
+                dump_lcms_collection_settings_json(
+                    filename=self.out_file_path.with_suffix(".json"),
+                    lcms_collection=self.mass_spectra_collection,
+                )
+            elif parameter_format == "toml":
+                dump_lcms_collection_settings_toml(
+                    filename=self.out_file_path.with_suffix(".toml"),
+                    lcms_collection=self.mass_spectra_collection,
+                )
+
+    def export_to_parquet(self, overwrite=False, save_parameters=True, parameter_format="toml"):
+        """Export collection-level LC-MS datasets to Parquet files.
+
+        Writes next to ``out_file_path`` (same stem as the HDF5 export):
+
+        - ``{stem}_manifest.parquet`` — sample manifest
+        - ``{stem}_cluster_assignments.parquet`` — cluster labels (if present)
+        - ``{stem}_mass_features.parquet`` — collection mass-features table (if present)
+        - ``{stem}_rt_alignments.parquet`` — RT alignment curves (if aligned)
+        - parameters as JSON or TOML when ``save_parameters`` is True
+
+        Parameters
+        ----------
+        overwrite : bool, optional
+            Whether to overwrite existing Parquet files. Default is False.
+        save_parameters : bool, optional
+            Whether to save collection parameters. Default is True.
+        parameter_format : str, optional
+            Parameter file format, ``'json'`` or ``'toml'``. Default is ``'toml'``.
+
+        Notes
+        -----
+        Requires ``pyarrow`` (or ``fastparquet``) for pandas Parquet I/O.
+        This is a tabular companion to ``export_to_hdf5``; it does not replace
+        per-sample HDF5 archives or gap-fill side effects on individual LCMS files.
+        """
+        stem = self.out_file_path
+
+        def _write(df, suffix):
+            if df is None or df.empty:
+                return
+            out_path = Path(f"{stem}_{suffix}").with_suffix(".parquet")
+            if out_path.exists() and not overwrite:
+                return
+            LCMSExport._prepare_df_for_parquet(df).to_parquet(out_path, index=False)
+
+        # Manifest — prefer the tidy samples-as-rows dataframe
+        manifest_df = getattr(self.mass_spectra_collection, "manifest_dataframe", None)
+        if manifest_df is None or getattr(manifest_df, "empty", True):
+            manifest = getattr(
+                self.mass_spectra_collection, "manifest", None
+            ) or getattr(
+                getattr(self.mass_spectra_collection, "collection_parser", None),
+                "manifest",
+                None,
+            )
+            if isinstance(manifest, DataFrame):
+                manifest_df = manifest
+            elif isinstance(manifest, dict) and manifest:
+                try:
+                    # Collection manifests are sample -> attrs; transpose to rows
+                    manifest_df = pd.DataFrame(manifest).T
+                except ValueError:
+                    manifest_df = DataFrame(
+                        [{"manifest_json": self._convert_manifest_to_json()}]
+                    )
+            else:
+                manifest_df = None
+
+        if manifest_df is not None and not manifest_df.empty:
+            _write(manifest_df.reset_index(drop=False), "manifest")
+
+        # Cluster assignments / mass features table
+        mf_df = getattr(self.mass_spectra_collection, "mass_features_dataframe", None)
+        if mf_df is not None and not mf_df.empty:
+            _write(mf_df.reset_index(drop=False), "mass_features")
+            if "cluster" in mf_df.columns:
+                cluster_df = mf_df[["cluster"]].copy().reset_index(drop=False)
+                _write(cluster_df, "cluster_assignments")
+
+        # RT alignments as long-format table
+        if (
+            getattr(self.mass_spectra_collection, "rt_aligned", False)
+            and getattr(self.mass_spectra_collection, "rt_alignments", None)
+        ):
+            frames = []
+            for sample_idx, alignment_data in self.mass_spectra_collection.rt_alignments.items():
+                arr = np.asarray(alignment_data)
+                if arr.ndim == 1:
+                    frames.append(
+                        DataFrame(
+                            {
+                                "sample_idx": sample_idx,
+                                "point": np.arange(len(arr)),
+                                "value": arr,
+                            }
+                        )
+                    )
+                elif arr.ndim == 2 and arr.shape[1] >= 2:
+                    frames.append(
+                        DataFrame(
+                            {
+                                "sample_idx": sample_idx,
+                                "rt_original": arr[:, 0],
+                                "rt_aligned": arr[:, 1],
+                            }
+                        )
+                    )
+                else:
+                    frames.append(
+                        DataFrame(
+                            {
+                                "sample_idx": [sample_idx],
+                                "alignment_json": [json.dumps(arr.tolist())],
+                            }
+                        )
+                    )
+            if frames:
+                _write(pd.concat(frames, ignore_index=True), "rt_alignments")
+
+        if save_parameters:
+            if parameter_format not in ["json", "toml"]:
+                raise ValueError("parameter_format must be 'json' or 'toml'")
             if parameter_format == "json":
                 dump_lcms_collection_settings_json(
                     filename=self.out_file_path.with_suffix(".json"),

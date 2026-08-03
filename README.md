@@ -72,7 +72,9 @@ Overview slides can be found [here](https://github.com/EMSL-Computing/CoreMS/blo
 
 ## Contributing
 
-As an open source project, CoreMS welcomes contributions of all forms. Before contributing, please see our [Dev Guide](./CONTRIBUTING.md)
+As an open source project, CoreMS welcomes contributions of all forms. See the [contributing guide](./CONTRIBUTING.md) for external (GitHub) and internal (GitLab) workflows. Maintainers: see the [release guide](./RELEASE.md).
+
+**Branches:** `master` is the stable release line (PyPI and tags). `dev` is the integration branch for ongoing work. Open PRs and MRs against `dev` only; maintainers merge `dev` into `master` when cutting a release.
 
 ***
 
@@ -97,6 +99,7 @@ As an open source project, CoreMS welcomes contributions of all forms. Before co
 - Pandas data frame (can be saved using pickle, h5, etc)
 - Text Files (.csv, tab separated .txt, etc)
 - Microsoft Excel (xlsx)
+- Apache Parquet (.parquet)
 - Automatic JSON for metadata storage and reuse
 - Self-containing Hierarchical Data Format (.hdf5) including raw data and time-series data-point for processed data-sets with all associated metadata stored as json attributes
 
@@ -366,6 +369,8 @@ mass_spectrum_obj.to_csv("filename")
 mass_spectrum_obj.to_hdf("filename")
 # to pandas Datarame pickle
 mass_spectrum_obj.to_pandas("filename")
+# to parquet
+mass_spectrum_obj.to_parquet("filename")
 
 # Extract data as a pandas Dataframe
 df = mass_spectrum_obj.to_dataframe()
