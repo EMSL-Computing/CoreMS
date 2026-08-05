@@ -18,7 +18,10 @@ from tqdm import tqdm
 from corems import chunks, timeit
 from corems.encapsulation.constant import Atoms
 from corems.encapsulation.factory.parameters import MSParameters
-from corems.encapsulation.factory.processingSetting import MolecularLookupDictSettings
+from corems.encapsulation.factory.processingSetting import (
+    MolecularLookupDictSettings,
+    validate_used_atoms_keys,
+)
 from corems.molecular_id.factory.molecularSQL import (
     CarbonHydrogen,
     HeteroAtoms,
@@ -465,6 +468,7 @@ class MolecularCombinations:
             A dictionary of classes in order.
             structure is  ('HC', {'HC': 1})
         """
+        validate_used_atoms_keys(molecular_search_settings.usedAtoms)
 
         usedAtoms = deepcopy(molecular_search_settings.usedAtoms)
 
