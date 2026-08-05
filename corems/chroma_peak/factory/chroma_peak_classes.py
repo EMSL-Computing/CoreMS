@@ -10,6 +10,7 @@ from corems.chroma_peak.calc.ChromaPeakCalc import (
     GCPeakCalculation,
     LCMSMassFeatureCalculation,
 )
+from corems.encapsulation.plot_utils import _finalize_plot
 from corems.mass_spectra.factory.chromat_data import EIC_Data
 from corems.molecular_id.factory.EI_SQL import LowResCompoundRef
 
@@ -214,6 +215,8 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         self._intensity: float = intensity
         self._persistence: float = persistence
         self._eic_data: EIC_Data = None
+        # m/z used for EIC extraction; set on integrate (may differ from mz after cal)
+        self._eic_mz: float = None
         self._dispersity_index: float = None
         self._normalized_dispersity_index: float = None
         self._half_height_width: np.ndarray = None
@@ -592,6 +595,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         self,
         to_plot=["EIC", "MS1", "MS2"],
         return_fig=True,
+        path=None,
         plot_smoothed_eic=False,
         plot_eic_datapoints=False,
         molecular_metadata=None,
@@ -606,7 +610,11 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             "EIC", "MS2", "MS2_mirror", and "MS1".
             Default is ["EIC", "MS1", "MS2"].
         return_fig : bool, optional
-            If True, the figure is returned. Default is True.
+            If True, return the open figure (caller owns lifecycle).
+            Default is True.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
         plot_smoothed_eic : bool, optional
             If True, the smoothed EIC is plotted. Default is False.
         plot_eic_datapoints : bool, optional
@@ -621,8 +629,9 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         Returns
         -------
         matplotlib.figure.Figure or None
-            The figure object if `return_fig` is True.
-            Otherwise None and the figure is displayed.
+            The figure object if `return_fig` is True (left open for the caller).
+            Otherwise None; the figure is displayed with ``plt.show()`` when
+            ``path`` is not set.
         """
         # Adjust to_plot list if there are not spectra added to the mass features
         if self.mass_spectrum is None:
@@ -679,10 +688,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         # Add space between subplots
         plt.tight_layout()
 
-        if return_fig:
-            # Close figure
-            plt.close(fig)
-            return fig
+        return _finalize_plot(fig, return_fig=return_fig, path=path)
 
     @property
     def mz(self):

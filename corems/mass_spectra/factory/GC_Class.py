@@ -556,6 +556,31 @@ class GCMSBase(GC_Calculations, MassDeconvolution):
 
         return out_file_path.with_suffix(".pkl")
 
+    def to_parquet(self, out_file_path, write_metadata=True, id_label="corems:"):
+        """Export the GC-MS data to a Parquet file.
+
+        Parameters
+        ----------
+        out_file_path : str, pathlib.Path, or s3path.S3Path
+            Path object containing the file location.
+        write_metadata : bool, optional
+            If True, write the metadata. Defaults to True.
+        id_label : str, optional
+            Label of the ID. Defaults to 'corems:'.
+
+        Notes
+        -----
+        Requires ``pyarrow`` (or ``fastparquet``) for pandas Parquet I/O.
+        """
+
+        if isinstance(out_file_path, str):
+            out_file_path = Path(out_file_path)
+
+        exportMS = LowResGCMSExport(out_file_path, self)
+        exportMS.to_parquet(id_label=id_label, write_metadata=write_metadata)
+
+        return out_file_path.with_suffix(".parquet")
+
     def to_dataframe(self, id_label="corems:"):
         """Export the GC-MS data to a Pandas dataframe.
 

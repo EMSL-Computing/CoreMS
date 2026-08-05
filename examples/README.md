@@ -143,3 +143,11 @@ Understand how to control data processing behavior:
 - Reset parameters to defaults
 
 **Recommended For:** All users, beginners
+
+---
+
+### Molecular networking
+
+See the **Molecular Networking** sections of
+`notebooks/LCMS_Tutorial.ipynb` (single sample) and
+`notebooks/LCMS_Collection_Tutorial.ipynb` (multi-sample representatives).

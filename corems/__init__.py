@@ -5,20 +5,32 @@ import os
 import sys
 import hashlib
 
-# Get the path to the README file
-readme_path = os.path.join(os.path.dirname(__file__), "..", "README.md")
+# Package documentation for pdoc: README plus the full install how-to so the
+# landing page uses the same styling as the rest of the API site.
+_pkg_dir = os.path.dirname(__file__)
+_repo_root = os.path.join(_pkg_dir, "..")
+_fallback_doc = (
+    "CoreMS: A comprehensive mass spectrometry framework for software "
+    "development and data analysis of small molecules analysis."
+)
 
-# Read the contents of the README file if it exists
-if os.path.exists(readme_path):
+_doc_parts = []
+for _rel in (
+    "README.md",
+    os.path.join("docs", "user", "installation.md"),
+):
+    _path = os.path.join(_repo_root, _rel)
+    if not os.path.exists(_path):
+        continue
     try:
-        with open(readme_path, "r", encoding="utf-8") as readme_file:
-            __doc__ = readme_file.read()
+        with open(_path, "r", encoding="utf-8") as _fh:
+            _text = _fh.read().strip()
+        if _text:
+            _doc_parts.append(_text)
     except Exception as e:
-        __doc__ = "CoreMS: A comprehensive mass spectrometry framework for software development and data analysis of small molecules analysis."
-        print(f"Warning: Could not read README.md file. Error: {e}")
-else:
-    __doc__ = "CoreMS: A comprehensive mass spectrometry framework for software development and data analysis of small molecules analysis."
+        print(f"Warning: Could not read {_rel} for package docs. Error: {e}")
 
+__doc__ = "\n\n---\n\n".join(_doc_parts) if _doc_parts else _fallback_doc
 
 
 def timeit(print_time=True):

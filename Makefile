@@ -144,7 +144,7 @@ db-connect:
 	@docker exec -it molformdb psql -U postgres
 
 docu:
-	
+
 	pdoc --output-dir docs --docformat numpy corems
 
 SKIP_LIPIDOMICS_DB ?= 0
@@ -153,7 +153,8 @@ SKIP_MOLECULAR_DB ?= 0
 ci-test-source:
 	@$(PYTHON) -V
 	@$(PYTHON) -m pip install --upgrade pip
-	@$(PYTHON) -m pip install -e ".[dev]"
+	# networking: networkx for molecular network plot/cluster unit tests
+	@$(PYTHON) -m pip install -e ".[dev,networking]"
 	@skip_flags=""; \
 	if [ "$(SKIP_LIPIDOMICS_DB)" = "1" ]; then \
 		echo "Skipping lipidomics DB download (SKIP_LIPIDOMICS_DB=1)"; \
@@ -171,7 +172,8 @@ ci-test-source:
 ci-test-notebooks:
 	@$(PYTHON) -V
 	@$(PYTHON) -m pip install --upgrade pip
-	@$(PYTHON) -m pip install -e ".[dev]"
+	# dev: pytest tooling; networking: networkx + ipysigma for plot/cluster/HTML
+	@$(PYTHON) -m pip install -e ".[dev,networking]"
 	@$(PYTHON) -m pip install --no-cache-dir jupyter nbconvert
 	@if [ "$(SKIP_LIPIDOMICS_DB)" = "1" ]; then \
 		echo "Skipping lipidomics DB download (SKIP_LIPIDOMICS_DB=1)"; \
@@ -188,7 +190,8 @@ test-pytest-xdist: download-lipidomics-db
 	pytest -n auto --no-cov --cache-clear -p no:warnings
 
 test-notebooks: download-lipidomics-db
-	python3 -m pip install --no-cache-dir jupyter nbconvert
+	python3 -m pip install --no-cache-dir jupyter nbconvert ipywidgets
+	python3 -m pip install -e ".[networking]"
 	cd examples && python3 test_notebooks.py
 
 ci-test: test-pytest-xdist test-notebooks

@@ -42,7 +42,8 @@ def test_notebook(notebook_path):
                 "--to",
                 "notebook",
                 "--execute",
-                "--ExecutePreprocessor.timeout=300",
+                # LCMS tutorials + molecular networking (ipysigma) can exceed 5 min
+                "--ExecutePreprocessor.timeout=900",
                 "--output",
                 f"/tmp/{notebook_path.stem}_test.ipynb",
                 str(notebook_path),

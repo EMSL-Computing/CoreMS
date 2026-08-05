@@ -53,6 +53,7 @@ dependencies = [
 Homepage = "https://github.com/EMSL-Computing/CoreMS"
 Repository = "https://github.com/EMSL-Computing/CoreMS"
 Issues = "https://github.com/EMSL-Computing/CoreMS/issues"
+Documentation = "https://emsl-computing.github.io/CoreMS/corems.html"
 
 [project.optional-dependencies]
 dev = [
@@ -67,6 +68,12 @@ dev = [
     "psutil>=5.6.6",
     "PyWavelets",
     "pdoc>=14.1.0",
+]
+# Optional: molecular network graph layout/plotting + interactive HTML
+# (MolecularNetwork.plot_network, clustering, plot_interactive_network)
+networking = [
+    "networkx>=3.0",
+    "ipysigma>=0.24",
 ]
 
 [tool.setuptools.packages.find]

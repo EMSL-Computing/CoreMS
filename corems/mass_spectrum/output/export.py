@@ -27,7 +27,7 @@ class HighResMassSpecExport(Thread):
     mass_spectrum : MassSpectrum
         The mass spectrum to export.
     output_type : str, optional
-        The type of output file. Defaults to 'excel'. Can be 'excel', 'csv', 'pandas' or 'hdf5'.
+        The type of output file. Defaults to 'excel'. Can be 'excel', 'csv', 'pandas', 'parquet' or 'hdf5'.
 
     Attributes
     ----------
@@ -58,6 +58,8 @@ class HighResMassSpecExport(Thread):
         Exports the mass spectrum data to an Excel file.
     * to_csv(write_metadata=True).
         Exports the mass spectrum data to a CSV file.
+    * to_parquet(write_metadata=True).
+        Exports the mass spectrum data to a Parquet file.
     * to_json().
         Exports the mass spectrum data to a JSON string.
     * to_hdf().
@@ -127,12 +129,12 @@ class HighResMassSpecExport(Thread):
 
     @output_type.setter
     def output_type(self, output_type):
-        output_types = ["excel", "csv", "pandas", "hdf5"]
+        output_types = ["excel", "csv", "pandas", "parquet", "hdf5"]
         if output_type in output_types:
             self._output_type = output_type
         else:
             raise TypeError(
-                'Supported types are "excel", "csv" or "pandas", %s entered'
+                'Supported types are "excel", "csv", "pandas", "parquet" or "hdf5", %s entered'
                 % output_type
             )
 
@@ -151,11 +153,13 @@ class HighResMassSpecExport(Thread):
             self.to_csv()
         elif self.output_type == "pandas":
             self.to_pandas()
+        elif self.output_type == "parquet":
+            self.to_parquet()
         elif self.output_type == "hdf5":
             self.to_hdf()
         else:
             raise ValueError(
-                "Unkown output type: %s; it can be 'excel', 'csv' or 'pandas'"
+                "Unkown output type: %s; it can be 'excel', 'csv', 'pandas', 'parquet' or 'hdf5'"
                 % self.output_type
             )
 
@@ -203,7 +207,7 @@ class HighResMassSpecExport(Thread):
             self.mass_spectrum, additional_columns=additional_columns
         )
         df = DataFrame(dict_data_list, columns=columns)
-        df.name = self.output_file
+        df.attrs['name'] = self.output_file
         return df
 
     def write_settings(self, output_path, mass_spectrum):
@@ -308,6 +312,32 @@ class HighResMassSpecExport(Thread):
 
         except IOError as ioerror:
             print(ioerror)
+
+    def to_parquet(self, write_metadata=True):
+        """Exports the mass spectrum data to a Parquet file.
+
+        Parameters
+        ----------
+        write_metadata : bool, optional
+            Whether to write the metadata to a JSON file. Defaults to True.
+
+        Notes
+        -----
+        Requires ``pyarrow`` (or ``fastparquet``) for pandas Parquet I/O.
+        """
+
+        columns = self.columns_label + self.get_all_used_atoms_in_order(
+            self.mass_spectrum
+        )
+
+        dict_data_list = self.get_list_dict_data(self.mass_spectrum)
+
+        df = DataFrame(dict_data_list, columns=columns)
+
+        df.to_parquet(self.output_file.with_suffix(".parquet"), index=False)
+
+        if write_metadata:
+            self.write_settings(self.output_file, self.mass_spectrum)
 
     def to_json(self):
         """Exports the mass spectrum data to a JSON string."""

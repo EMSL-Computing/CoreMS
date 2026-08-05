@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
+from corems.encapsulation.plot_utils import _finalize_plot
 from corems.mass_spectra.calc import SignalProcessing as sp
 from corems.mass_spectra.factory.chromat_data import EIC_Data
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
@@ -2570,6 +2571,75 @@ class LCMSCollectionCalculations:
     """
 
     @staticmethod
+    def _resolve_eic_query_mz(row):
+        """Pick m/z used to look up ``sample.eics`` for a mass-feature row.
+
+        Prefer ``_eic_mz`` when present (set after integrate / gap-fill).
+        Regular features in ``mass_features_dataframe`` often have NaN
+        ``_eic_mz`` (never back-filled from objects on light load / reload),
+        while induced features get ``_eic_mz`` written after gap-fill. Fall
+        back to the feature ``mz`` so regular and representative traces are
+        not silently dropped from multi-sample EIC plots.
+        """
+        if row is None:
+            return None
+        eic_mz = row.get("_eic_mz") if hasattr(row, "get") else None
+        if eic_mz is not None and not pd.isna(eic_mz):
+            return eic_mz
+        mz = row.get("mz") if hasattr(row, "get") else None
+        if mz is not None and not pd.isna(mz):
+            return mz
+        return None
+
+    @staticmethod
+    def _get_eic_data_for_mz(sample, eic_mz, tolerance=0.0001):
+        """Resolve EIC data for an m/z using exact key, then tolerance match.
+
+        Plotting previously used ``sample.eics.get(eic_mz)`` only. HDF5 EIC
+        keys and feature ``_eic_mz`` / ``mz`` often differ by float noise, which
+        silently dropped traces (including the representative). Elsewhere
+        CoreMS uses the same default tolerance via
+        ``get_eic_mz_for_mass_feature`` / ``associate_eics_with_mass_features``.
+
+        Parameters
+        ----------
+        sample : LCMSBase
+            Sample that holds ``eics`` (dict keyed by m/z).
+        eic_mz : float or None
+            Target m/z (typically from the mass-feature ``_eic_mz`` or ``mz``).
+        tolerance : float, optional
+            Maximum |Δm/z| for fallback matching. Default is 0.0001 Da.
+
+        Returns
+        -------
+        EIC_Data or None
+            Matching EIC data, or None if no key is within tolerance.
+        """
+        if eic_mz is None or pd.isna(eic_mz):
+            return None
+        if not hasattr(sample, "eics") or not sample.eics:
+            return None
+
+        eic_data = sample.eics.get(eic_mz)
+        if eic_data is not None:
+            return eic_data
+
+        # Exact key miss: tolerance match (same default as associate_eics_with_mass_features)
+        if hasattr(sample, "get_eic_mz_for_mass_feature"):
+            matched_mz = sample.get_eic_mz_for_mass_feature(
+                float(eic_mz), tolerance=tolerance
+            )
+            if matched_mz is not None:
+                return sample.eics.get(matched_mz)
+            return None
+
+        # Fallback if sample is a simple mock without the helper
+        best_key = min(sample.eics, key=lambda k: abs(float(k) - float(eic_mz)))
+        if abs(float(best_key) - float(eic_mz)) < tolerance:
+            return sample.eics[best_key]
+        return None
+
+    @staticmethod
     def _plot_multiple_eics(ax, cluster_mfs, induced_cluster_mfs, rep_sample_id, rep_mf_id,
                            median_rt, eic_buffer_time, plot_smoothed=False, 
                            plot_datapoints=False, label_samples=False, lcms_collection=None):
@@ -2614,12 +2684,10 @@ class LCMSCollectionCalculations:
             sample = lcms_collection[sample_id]
             sample_name = row['sample_name']
             
-            # Get EIC using eic_mz column from dataframe
-            eic_mz = row.get('_eic_mz')
-            if eic_mz is not None and not pd.isna(eic_mz) and hasattr(sample, 'eics') and sample.eics:
-                eic_data = sample.eics.get(eic_mz)
-            else:
-                eic_data = None
+            # Prefer _eic_mz, else feature mz; then exact/tolerance key match (#257)
+            eic_data = LCMSCollectionCalculations._get_eic_data_for_mz(
+                sample, LCMSCollectionCalculations._resolve_eic_query_mz(row)
+            )
             
             if eic_data:
                 # Determine line style and width
@@ -2681,12 +2749,10 @@ class LCMSCollectionCalculations:
                 sample = lcms_collection[sample_id]
                 sample_name = row['sample_name']
                 
-                # Get EIC using eic_mz column from dataframe
-                eic_mz = row.get('_eic_mz')
-                if eic_mz is not None and not pd.isna(eic_mz) and hasattr(sample, 'eics') and sample.eics:
-                    eic_data = sample.eics.get(eic_mz)
-                else:
-                    eic_data = None
+                # Prefer _eic_mz, else feature mz; then exact/tolerance key match (#257)
+                eic_data = LCMSCollectionCalculations._get_eic_data_for_mz(
+                    sample, LCMSCollectionCalculations._resolve_eic_query_mz(row)
+                )
                 
                 if eic_data:
                     # Induced features - even thinner line
@@ -3554,24 +3620,28 @@ class LCMSCollectionCalculations:
         summary_df = summary_df.set_index('cluster')
         return summary_df
 
-    def plot_mz_features_per_cluster(self, return_fig = False):
+    def plot_mz_features_per_cluster(self, return_fig=False, path=None):
         """
         Plot the number of mass features in a cluster against how many clusters
         contain that number of mass features
 
         Parameters
         -----------
-        return_fig : boolean
-            Indicates whether to plot composite feature map (False) or return figure object (True). Defaults to False.
+        return_fig : bool, optional
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
 
         Returns
         --------
-        matplotlib.pyplot.Figure
-            A figure displaying the frequency with which clusters contain the given number of m/z features
+        matplotlib.figure.Figure or None
+            The figure if ``return_fig`` is True; otherwise None.
 
         Raises
         ------
-        Warning
+        ValueError
             If consensus features haven't been added to the object yet
         """
 
@@ -3579,19 +3649,16 @@ class LCMSCollectionCalculations:
             raise ValueError(
                 'cluster_summary_dataframe is not set, must run add_consensus_mass_features() first'
             )
-        else:
-            sum_data = self.cluster_summary_dataframe
-            fig, ax = plt.subplots()
-            sum_data.sample_id_nunique.value_counts().sort_index().plot(ax = ax, kind = 'bar')
-            plt.xlabel('Number of mass features in a cluster')
-            plt.ylabel('Number of clusters with this many mass features')
-            if return_fig:
-                plt.close(fig)
-                return fig
-            else:
-                plt.show()
+        sum_data = self.cluster_summary_dataframe
+        fig, ax = plt.subplots()
+        sum_data.sample_id_nunique.value_counts().sort_index().plot(ax=ax, kind='bar')
+        plt.xlabel('Number of mass features in a cluster')
+        plt.ylabel('Number of clusters with this many mass features')
+        return _finalize_plot(fig, return_fig=return_fig, path=path)
         
-    def plot_mz_features_across_samples(self, alpha = 0.75, s = 0.005, return_fig = False):
+    def plot_mz_features_across_samples(
+        self, alpha=0.75, s=0.005, return_fig=False, path=None
+    ):
         """
         Generate Scan Time vs m/z plot of all the mass features across all 
         samples in collection where intensity of color on the plot indicates
@@ -3603,15 +3670,21 @@ class LCMSCollectionCalculations:
             Desired transparency for plotted m/z features.  Defaults to 0.75.
         s : float
             Desired size of plotted m/z features. Defaults to 0.005.
-        return_fig : boolean
-            Indicates whether to plot composite feature map (False) or return figure object (True). Defaults to False.
+        return_fig : bool, optional
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
 
         Returns
         --------
-        matplotlib.pyplot.Figure
-            A figure displaying a scan time vs m/z scatterplot of all the m/z features identified in the collection.
-            Parameters alpha (transparency) and s (marker size) allow the user to emphasize the density of features.
-            Intensity of features is not represented.
+        matplotlib.figure.Figure or None
+            A figure displaying a scan time vs m/z scatterplot of all the m/z
+            features identified in the collection if ``return_fig`` is True;
+            otherwise None. Parameters alpha (transparency) and s (marker size)
+            allow the user to emphasize the density of features. Intensity of
+            features is not represented.
         """
         df = self.mass_features_dataframe.copy()
         fig = plt.figure()
@@ -3629,13 +3702,18 @@ class LCMSCollectionCalculations:
         plt.xlim(0, np.ceil(np.max(df.scan_time)))
         plt.title('All mass features, all samples')
         
-        if return_fig:
-            plt.close(fig)
-            return fig
-        else:
-            plt.show()
+        return _finalize_plot(fig, return_fig=return_fig, path=path)
 
-    def plot_consensus_mz_features(self, xb = 'xb', xt = 'xt', yb = 'yb', yt = 'yt', show_all = True, return_fig = False):
+    def plot_consensus_mz_features(
+        self,
+        xb='xb',
+        xt='xt',
+        yb='yb',
+        yt='yt',
+        show_all=True,
+        return_fig=False,
+        path=None,
+    ):
         """
         Generate Scan Time vs m/z plot of the consensus features scaled by size
         with option ('show_all') of leaving the individual m/z features in the figure.
@@ -3652,15 +3730,22 @@ class LCMSCollectionCalculations:
             Desired ending m/z for the y-axis. Defaults to the maximum m/z value in the provided data.
         show_all : boolean
             Indicates whether to display all identified m/z features (True) or just the consensus features (False). Defaults to True.
-        return_fig : boolean
-            Indicates whether to plot composite feature map (False) or return figure object (True). Defaults to False.
+        return_fig : bool, optional
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
 
         Returns
         --------
-        matplotlib.pyplot.Figure
-            A scalable figure that overlays the consensus features over all the m/z features identified in the collection.
-            Consensus features are scaled by how many m/z features are represented in the consensus. Figure can be scaled by
-            inputting desired boundaries on the scan time (xb, xt) and m/z values (yb, yt).
+        matplotlib.figure.Figure or None
+            A scalable figure that overlays the consensus features over all the
+            m/z features identified in the collection if ``return_fig`` is True;
+            otherwise None. Consensus features are scaled by how many m/z
+            features are represented in the consensus. Figure can be scaled by
+            inputting desired boundaries on the scan time (xb, xt) and m/z
+            values (yb, yt).
         """
         df = self.cluster_summary_dataframe.copy()
         mfdf = self.mass_features_dataframe.copy()
@@ -3712,17 +3797,14 @@ class LCMSCollectionCalculations:
         plt.tight_layout()
         plt.title('Consensus Features')
 
-        if return_fig:
-            plt.close(fig)
-            return fig
-        else:
-            plt.show()
+        return _finalize_plot(fig, return_fig=return_fig, path=path)
     
     def plot_cluster(
         self,
         cluster_id,
         to_plot=["EIC", "MS1", "MS2"],
         return_fig=False,
+        path=None,
         plot_smoothed_eic=False,
         plot_eic_datapoints=False,
         eic_buffer_time=None,
@@ -3744,7 +3826,11 @@ class LCMSCollectionCalculations:
             List of strings specifying what to plot: "EIC", "MS1", "MS2", "MS2_mirror".
             Default is ["EIC", "MS1", "MS2"].
         return_fig : bool, optional
-            If True, returns the figure object. Default is False.
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
         plot_smoothed_eic : bool, optional
             If True, plots smoothed EICs. Default is False.
         plot_eic_datapoints : bool, optional
@@ -3907,12 +3993,7 @@ class LCMSCollectionCalculations:
         
         plt.tight_layout()
         
-        if return_fig:
-            plt.close(fig)
-            return fig
-        else:
-            plt.show()
-            return None
+        return _finalize_plot(fig, return_fig=return_fig, path=path)
     
     def get_representative_mass_features_for_all_clusters(self, representative_metric=None):
         """
@@ -4655,7 +4736,7 @@ class LCMSCollectionCalculations:
 
         return features
 
-    def cluster_inspection_plot(self, clu, return_fig = False):        
+    def cluster_inspection_plot(self, clu, return_fig=False, path=None):
         """
         Generate Scan Time vs m/z plot for a narrow range around a given 
         cluster. This tool is meant to support the user in fine tuning the
@@ -4668,20 +4749,23 @@ class LCMSCollectionCalculations:
         -----------
         clu :  integer
             A cluster ID that exists in self.mass_features_dataframe
-        return_fig : boolean
-            Indicates whether to plot cluster inspection figure (False) or 
-            return figure object (True). Defaults to False.
+        return_fig : bool, optional
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
 
         Returns
         --------
-        matplotlib.pyplot.Figure
+        matplotlib.figure.Figure or None
             A figure displaying a scan time vs m/z scatterplot of small region
             around a given cluster with the ten largest clusters in the region
-            distinctly identified
+            distinctly identified if ``return_fig`` is True; otherwise None.
 
         Raises
         ------
-        Warning
+        ValueError
             If cluster data haven't been added to the object yet
         """
 
@@ -4758,13 +4842,15 @@ class LCMSCollectionCalculations:
             title_str += 'Scan Time tolerance: ' + str(rttol)
             plt.title(title_str, fontsize = 10)
 
-            if return_fig:
-                plt.close(fig)
-                return fig
-            else:
-                plt.show()
+            return _finalize_plot(fig, return_fig=return_fig, path=path)
 
-    def plot_cluster_outlier_frequency(self, dim_list = ['mz', 'scan_time_aligned'], clu_size_thresh = 0.5, return_fig = False):
+    def plot_cluster_outlier_frequency(
+        self,
+        dim_list=['mz', 'scan_time_aligned'],
+        clu_size_thresh=0.5,
+        return_fig=False,
+        path=None,
+    ):
         """
         Generate histogram showing the frequency of outlier occurrences by
         clustering dimension across all clusters
@@ -4785,19 +4871,23 @@ class LCMSCollectionCalculations:
             Value between 0 and 1 that indicates what percentage of samples 
             need to be present in a cluster before it's evaluated for outliers.
             Defaults to 0.5.
-        return_fig : boolean
-            Indicates whether to plot cluster inspection figure (False) or 
-            return figure object (True). Defaults to False.
+        return_fig : bool, optional
+            If True, return the open figure (caller owns lifecycle).
+            Default is False.
+        path : str or path-like, optional
+            If set, save the figure to this path. When ``return_fig`` is False,
+            the figure is closed after saving and ``plt.show()`` is not called.
 
         Returns
         --------
-        matplotlib.pyplot.Figure
+        matplotlib.figure.Figure or None
             A figure displaying the frequency of outlier occurrences across all
-            clusters in the provided measurement dimensions
+            clusters in the provided measurement dimensions if ``return_fig`` is
+            True; otherwise None.
 
         Raises
         ------
-        Warning
+        ValueError
             If cluster data haven't been added to the object yet
         """
 
@@ -4854,11 +4944,7 @@ class LCMSCollectionCalculations:
         plt.xticks(rotation = 90)
         plt.title('Frequency of outliers across all clusters by category')
         
-        if return_fig:
-            plt.close(fig)
-            return fig
-        else:
-            plt.show()
+        return _finalize_plot(fig, return_fig=return_fig, path=path)
             
     def _search_for_targeted_mass_features_in_sample(self, obj_idx, missingdf, cluster_dict, expand_on_miss=False, inplace=True):
         """
@@ -5398,32 +5484,57 @@ class LCMSCollectionCalculations:
         # Check if any operation needs EIC loading parameters
         needs_eic_loading = any(isinstance(op, LoadEICsOperation) for op in operations)
         if needs_eic_loading:
-            # Build cluster_mz_dict: map of sample_id -> list of m/z values in clusters
-            mfdf = self.mass_features_dataframe
-            cluster_mz_dict = {}
-            
-            # Get all mass features that belong to clusters (cluster is not NaN)
-            clustered_mf = mfdf[mfdf['cluster'].notna()]
-            
-            # Group by sample_id and collect all m/z values associated with eics
-            for sample_id in clustered_mf['sample_id'].unique():
-                sample_df = clustered_mf[clustered_mf['sample_id'] == sample_id]
-                sample = self[sample_id]  # Get the LCMS object for this sample
-                
-                # Extract _eic_mz from actual mass feature objects, not from dataframe
-                eic_mz_list = []
-                for mf_id in sample_df['mf_id'].values:
-                    if mf_id in sample.mass_features:
-                        mf = sample.mass_features[mf_id]
-                        if hasattr(mf, '_eic_mz') and mf._eic_mz is not None:
-                            eic_mz_list.append(mf._eic_mz)
-                
-                # Use the collected m/z values, or fallback to empty list if none found
-                cluster_mz_dict[sample_id] = list(set(eic_mz_list)) if eic_mz_list else []
-            
-            runtime_params['cluster_mz_dict'] = cluster_mz_dict
+            # Map sample_id -> m/z list for LoadEICsOperation.
+            # Must use collection *dataframes*, not only in-memory mass_features:
+            # after load_representatives=True each sample holds only a sparse set
+            # of representative objects, so object-only walks miss most cluster
+            # members and plot_cluster shows incomplete multi-sample EICs (#258).
+            runtime_params['cluster_mz_dict'] = self._build_cluster_mz_dict_for_eic_loading()
         
         return runtime_params
+
+    def _build_cluster_mz_dict_for_eic_loading(self):
+        """Build sample_id -> list of EIC m/z targets for all clustered features.
+
+        Uses ``mass_features_dataframe`` (and induced dataframe if present).
+        Prefers ``_eic_mz``, falls back to ``mz``. Does not require feature
+        objects to be loaded in ``sample.mass_features``.
+
+        Returns
+        -------
+        dict
+            Mapping of sample_id (int) to unique float m/z values to load.
+        """
+        cluster_mz_dict = {}
+
+        def _add_from_df(df):
+            if df is None or len(df) == 0:
+                return
+            if 'cluster' in df.columns:
+                df = df[df['cluster'].notna()]
+            if len(df) == 0 or 'sample_id' not in df.columns:
+                return
+            for sample_id, sample_df in df.groupby('sample_id'):
+                mzs = []
+                if '_eic_mz' in sample_df.columns:
+                    mzs.extend(sample_df['_eic_mz'].dropna().tolist())
+                if 'mz' in sample_df.columns:
+                    # Include mz for rows with missing _eic_mz
+                    if '_eic_mz' in sample_df.columns:
+                        missing = sample_df['_eic_mz'].isna()
+                        mzs.extend(sample_df.loc[missing, 'mz'].dropna().tolist())
+                    else:
+                        mzs.extend(sample_df['mz'].dropna().tolist())
+                sid = int(sample_id)
+                existing = cluster_mz_dict.get(sid, [])
+                cluster_mz_dict[sid] = list(set(existing + [float(m) for m in mzs]))
+
+        # Regular clustered features only: these are what were exported to per-sample
+        # HDF5 EICs. Induced (gap-filled) features get EICs at gap-fill time on the
+        # sample object; they are typically not present in the original HDF5 eics group.
+        _add_from_df(self.mass_features_dataframe)
+
+        return cluster_mz_dict
     
     def _execute_sample_pipeline(self, sample_id, operations, runtime_params, inplace=True):
         """
@@ -5769,22 +5880,22 @@ class LCMSCollectionCalculations:
                         eics_mz.append(None)
                 self.induced_mass_features_dataframe['_eic_mz'] = eics_mz
 
-            # Clear mass features from samples to free memory
-            for sample_name in self.samples:
-                self._lcms[sample_name].induced_mass_features = {}
-        
-        # Associate EICs with mass features if they were loaded
-        # This must happen after all operations complete to work on the actual sample objects
+        # Associate EICs while induced feature objects still exist (before any clear).
+        # Must run after the pipeline so sample.eics is populated on the main process.
         if gather_eics:
             print("\nAssociating EICs with mass features:")
             from tqdm import tqdm
-            
+
             for sample_id in tqdm(range(len(self.samples)), unit="sample", ncols=80):
                 sample = self[sample_id]
                 if sample.eics:  # Only if EICs were loaded
-                    # Associate EICs with regular mass features
                     sample.associate_eics_with_mass_features(induced=False)
-                    # Associate EICs with induced mass features
                     sample.associate_eics_with_mass_features(induced=True)
-                
+
+        # Drop induced feature objects to free memory. EICs remain on sample.eics
+        # (and _eic_mz on the induced dataframe) for plotting/lookup.
+        if perform_gap_filling:
+            for sample_name in self.samples:
+                self._lcms[sample_name].induced_mass_features = {}
+
         return results

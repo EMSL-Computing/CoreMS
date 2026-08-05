@@ -597,13 +597,23 @@ class ReadCoreMSHDFMassSpectra(
         object with a dictionary of the 'eics' from the HDF5 file.
 
         """
+        if "eics" not in self.h5pydata:
+            # Samples with no exported EICs (e.g. empty / fully gap-filled) have no group
+            return
+
         dict_group_load = self.h5pydata["eics"]
         dict_group_keys = dict_group_load.keys()
 
         # Prefilter dict_group_keys if mz_list is provided to EICs within tolerance
         if mz_list is not None:
-            target_mz_array = np.array(sorted(mz_list))
-            mzs = [float(k) for k in dict_group_keys if np.abs(float(k)-target_mz_array).min() < mz_tolerance]
+            if len(mz_list) == 0:
+                return
+            target_mz_array = np.array(sorted(mz_list), dtype=float)
+            mzs = [
+                float(k)
+                for k in dict_group_keys
+                if np.abs(float(k) - target_mz_array).min() < mz_tolerance
+            ]
             dict_group_keys = [str(mz) for mz in mzs]
 
         for k in dict_group_keys:
@@ -1169,15 +1179,8 @@ class ReadCoreMSHDFMassSpectraCollection:
         with ReadCoreMSHDFMassSpectra(hdf5_file) as parser:
             lcms_obj = parser.get_lcms_obj(load_raw=load_raw, load_light=load_light, use_original_parser=use_original_parser, raw_file_path=raw_file_path)
             if load_light:
+                # mass_features_to_df always includes _eic_mz (object value or mz fallback)
                 mf_df = lcms_obj.mass_features_to_df()
-                # Add ._eic_mz to mf_df for each mass_feature
-                eic_mz_list = []
-                for mf_id, mf in lcms_obj.mass_features.items():
-                    if hasattr(mf, "_eic_mz"):
-                        eic_mz_list.append(mf._eic_mz)
-                    else:
-                        eic_mz_list.append(None)
-                mf_df["_eic_mz"] = eic_mz_list               
                 lcms_obj.mass_features = {}
                 lcms_obj.light_mf_df = mf_df
         return lcms_obj
