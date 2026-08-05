@@ -649,11 +649,14 @@ class LCCalculations:
 
         if drop_duplicates:
             # Prepare mass feature dataframe
+            # Skip features without scan bounds (failed EIC limits when
+            # drop_if_fail=False); they cannot participate in containment de-dup
             if induced_features:
                 mf_df = self.mass_features_to_df(induced_features = True).copy()
-                mf_df = mf_df[mf_df.start_scan.notna()]        
+                mf_df = mf_df[mf_df.start_scan.notna() & mf_df.final_scan.notna()]
             else:
                 mf_df = self.mass_features_to_df(induced_features = False).copy()
+                mf_df = mf_df[mf_df.start_scan.notna() & mf_df.final_scan.notna()]
 
             # For each mass feature, find all mass features within the clustering tolerance ppm and drop if their start and end times are within another mass feature
             # Keep the first mass feature (highest persistence)
@@ -671,10 +674,15 @@ class LCCalculations:
                 # For all mass features within the clustering tolerance, check if the start and end times are within the start and end times of the mass feature
                 for idx2, mass_feature2 in mf_df_sub.iterrows():
                     if idx2 != idx:
-                        if (
-                            mass_feature2.start_scan >= mass_feature.start_scan
-                            and mass_feature2.final_scan <= mass_feature.final_scan
-                        ):
+                        s1, e1 = mass_feature.start_scan, mass_feature.final_scan
+                        s2, e2 = mass_feature2.start_scan, mass_feature2.final_scan
+                        # Guard incomplete bounds (None / NaN) so ordering
+                        # comparisons never raise TypeError
+                        if s1 is None or e1 is None or s2 is None or e2 is None:
+                            continue
+                        if pd.isna(s1) or pd.isna(e1) or pd.isna(s2) or pd.isna(e2):
+                            continue
+                        if s2 >= s1 and e2 <= e1:
                             if idx2 in self.mass_features.keys():
                                 self.mass_features.pop(idx2)
         
