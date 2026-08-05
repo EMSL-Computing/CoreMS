@@ -8,6 +8,7 @@ import tqdm
 
 from corems import chunks, timeit
 from corems.encapsulation.constant import Labels
+from corems.encapsulation.factory.processingSetting import validate_used_atoms_keys
 from corems.molecular_formula.factory.MolecularFormulaFactory import (
     LCMSLibRefMolecularFormula,
     MolecularFormula,
@@ -78,6 +79,11 @@ class SearchMolecularFormulas:
         self.find_isotopologues = find_isotopologues
 
         self.mass_spectrum_obj = mass_spectrum_obj
+
+        # Catch in-place usedAtoms mutations after settings construction
+        validate_used_atoms_keys(
+            mass_spectrum_obj.molecular_search_settings.usedAtoms
+        )
 
         if not sql_db:
             self.sql_db = MolForm_SQL(
@@ -912,6 +918,11 @@ class SearchMolecularFormulasLC:
         self.find_isotopologues = find_isotopologues
 
         self.lcms_obj = lcms_obj
+
+        # Catch in-place usedAtoms mutations after settings construction
+        validate_used_atoms_keys(
+            self.lcms_obj.parameters.mass_spectrum["ms1"].molecular_search.usedAtoms
+        )
 
         if not sql_db:
             self.sql_db = MolForm_SQL(
