@@ -705,7 +705,8 @@ class HighResMassSpecExport(Thread):
                 "Peak Area": ms_peak.area,
                 "Resolving Power": ms_peak.resolving_power,
                 "S/N": ms_peak.signal_to_noise,
-                "Ion Charge": ms_peak.ion_charge,
+                # Assignment charge (search charge), not peak polarity label
+                "Ion Charge": mformula.ion_charge,
                 "m/z Error (ppm)": mformula.mz_error,
                 "Confidence Score": mformula.confidence_score,
                 "Isotopologue Similarity": mformula.isotopologue_similarity,

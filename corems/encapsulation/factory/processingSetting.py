@@ -897,7 +897,20 @@ class MolecularFormulaSearchSettings:
     db_chunk_size : int, optional
         Chunk size to use for database queries. Default is 300.
     ion_charge : int, optional
-        Ion charge. Default is -1.
+        Legacy single ion-charge field. Default is -1.
+        Formula search charge **range** uses ``min_ion_charge`` / ``max_ion_charge``
+        (polarity supplies the sign). Prefer those settings for multi-charge search.
+    min_ion_charge : int, optional
+        Minimum **absolute** ion charge for molecular formula search. Default is 1.
+        With ``max_ion_charge``, defines the inclusive absolute charge range searched
+        at polarity-signed values (e.g. positive polarity and max 2 → z = +1, +2).
+        No 13C-based charge determination is performed; every selected peak is
+        searched at each charge and candidates are ranked by existing formula
+        scores (isotopologue similarity, confidence). Peak ``ion_charge`` remains
+        polarity-based; assignment charge lives on ``MolecularFormula.ion_charge``.
+    max_ion_charge : int, optional
+        Maximum **absolute** ion charge for molecular formula search. Default is 1
+        (legacy single-charge behavior). Must be >= ``min_ion_charge``.
     min_hc_filter : float, optional
         Minimum hydrogen to carbon ratio. Default is 0.3.
     max_hc_filter : float, optional
@@ -987,6 +1000,11 @@ class MolecularFormulaSearchSettings:
 
     # query setting========
     ion_charge: int = -1
+
+    # Absolute charge range for formula search (polarity supplies sign).
+    # Defaults 1..1 preserve single-charge behavior.
+    min_ion_charge: int = 1
+    max_ion_charge: int = 1
 
     min_hc_filter: float = 0.3
 

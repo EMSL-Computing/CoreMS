@@ -2,7 +2,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jul 29, 2019"
 
 
-from typing import List
+from typing import List, Tuple, Union
 
 import tqdm
 
@@ -63,6 +63,8 @@ class SearchMolecularFormulas:
         Run the molecular formula search on the given list of mass spectrum peaks.
     * search_mol_formulas().
         Search for molecular formulas in the mass spectrum.
+    * ion_charges_for_search().
+        Build the signed charge tuple from polarity and absolute min/max settings.
 
     """
 
@@ -96,6 +98,70 @@ class SearchMolecularFormulas:
         self.sql_db.close()
 
         return False
+
+    @staticmethod
+    def ion_charges_for_search(
+        polarity: Union[int, str],
+        min_ion_charge: int = 1,
+        max_ion_charge: int = 1,
+    ) -> Tuple[int, ...]:
+        """Signed ion charges to use for molecular formula search.
+
+        Absolute charges from ``min_ion_charge`` through ``max_ion_charge``
+        (inclusive) are multiplied by the polarity sign. No charge-state
+        determination is performed; every selected peak is searched at each
+        returned charge and candidates are ranked by formula scores.
+
+        Peak ``ion_charge`` is not updated by this helper or by multi-charge
+        search; assignment charge lives on ``MolecularFormula.ion_charge``.
+
+        Parameters
+        ----------
+        polarity : int or str
+            Mass-spectrum polarity as ``+1`` / ``-1``, or LCMS polarity string
+            ``\"positive\"`` / ``\"negative\"``.
+        min_ion_charge : int, optional
+            Minimum absolute charge (default 1).
+        max_ion_charge : int, optional
+            Maximum absolute charge (default 1). Must be >= ``min_ion_charge``.
+
+        Returns
+        -------
+        tuple of int
+            Signed charges sorted by ``(abs(z), z)`` so lower |z| is first
+            (relevant when ``first_hit=True``).
+
+        Raises
+        ------
+        ValueError
+            If polarity is invalid, min < 1, or max < min.
+        """
+        min_z = int(min_ion_charge)
+        max_z = int(max_ion_charge)
+        if min_z < 1:
+            raise ValueError("min_ion_charge must be >= 1")
+        if max_z < min_z:
+            raise ValueError("max_ion_charge must be >= min_ion_charge")
+
+        if isinstance(polarity, str):
+            p = polarity.strip().lower()
+            if p == "positive":
+                sign = 1
+            elif p == "negative":
+                sign = -1
+            else:
+                raise ValueError(
+                    "polarity string must be 'positive' or 'negative', "
+                    f"got {polarity!r}"
+                )
+        else:
+            pol = int(polarity)
+            if pol == 0:
+                raise ValueError("polarity must be non-zero")
+            sign = 1 if pol > 0 else -1
+
+        charges = [sign * z for z in range(min_z, max_z + 1)]
+        return tuple(sorted(charges, key=lambda z: (abs(z), z)))
 
     def run_search(
         self,
@@ -295,11 +361,19 @@ class SearchMolecularFormulas:
             Most notably, print_time, which is a boolean flag to indicate whether to print the time 
             and passed to the timeit decorator.
         """
-        ion_charge = self.mass_spectrum_obj.polarity
+        settings = self.mass_spectrum_obj.molecular_search_settings
+        polarity = int(self.mass_spectrum_obj.polarity) if self.mass_spectrum_obj.polarity else 1
+        # Multi-charge formula search: expand absolute min..max (default 1..1).
+        # Does not rewrite MSPeak.ion_charge (remains polarity-based).
+        search_charges = self.ion_charges_for_search(
+            polarity,
+            min_ion_charge=settings.min_ion_charge,
+            max_ion_charge=settings.max_ion_charge,
+        )
         min_abundance = self.mass_spectrum_obj.min_abundance
         nominal_mzs = self.mass_spectrum_obj.nominal_mz
 
-        verbose = self.mass_spectrum_obj.molecular_search_settings.verbose_processing
+        verbose = settings.verbose_processing
         # reset average error, only relevant is average mass error method is being used
         SearchMolecularFormulaWorker(
             find_isotopologues=self.find_isotopologues
@@ -307,87 +381,44 @@ class SearchMolecularFormulas:
 
         # check database for all possible molecular formula combinations based on the setting passed to self.mass_spectrum_obj.molecular_search_settings
         classes = MolecularCombinations(self.sql_db).runworker(
-            self.mass_spectrum_obj.molecular_search_settings,
-            print_time=self.mass_spectrum_obj.molecular_search_settings.verbose_processing
+            settings,
+            print_time=settings.verbose_processing
         )
 
         # split the database load to not blowout the memory
         # TODO add to the settings
         for classe_chunk in chunks(
-            classes, self.mass_spectrum_obj.molecular_search_settings.db_chunk_size
+            classes, settings.db_chunk_size
         ):
             classes_str_list = [class_tuple[0] for class_tuple in classe_chunk]
 
-            # load the molecular formula objs binned by ion type and heteroatoms classes, {ion type:{classe:[list_formula]}}
-            # for adduct ion type a third key is added {atoms:{ion type:{classe:[list_formula]}}}
-            dict_res = self.database_to_dict(
-                classes_str_list,
-                nominal_mzs,
-                self.mass_spectrum_obj.molecular_search_settings,
-                ion_charge,
-                sql_db=self.sql_db,
-            )
-            pbar = tqdm.tqdm(classe_chunk, disable = not verbose)
-            for classe_tuple in pbar:
-                # class string is a json serialized dict
-                classe_str = classe_tuple[0]
-                classe_dict = classe_tuple[1]
+            for ion_charge in search_charges:
+                # load the molecular formula objs binned by ion type and heteroatoms classes, {ion type:{classe:[list_formula]}}
+                # for adduct ion type a third key is added {atoms:{ion type:{classe:[list_formula]}}}
+                # Reload per charge: DB bins by ion m/z at that charge.
+                dict_res = self.database_to_dict(
+                    classes_str_list,
+                    nominal_mzs,
+                    settings,
+                    ion_charge,
+                    sql_db=self.sql_db,
+                )
+                pbar = tqdm.tqdm(classe_chunk, disable=not verbose)
+                for classe_tuple in pbar:
+                    # class string is a json serialized dict
+                    classe_str = classe_tuple[0]
+                    classe_dict = classe_tuple[1]
 
-                if self.mass_spectrum_obj.molecular_search_settings.isProtonated:
-                    ion_type = Labels.protonated_de_ion
-                    if verbose:
-                        pbar.set_description_str(
-                            desc="Started molecular formula search for class %s, (de)protonated "
-                            % classe_str,
-                            refresh=True,
-                        )
+                    if settings.isProtonated:
+                        ion_type = Labels.protonated_de_ion
+                        if verbose:
+                            pbar.set_description_str(
+                                desc="Started molecular formula search for class %s, (de)protonated z=%s "
+                                % (classe_str, ion_charge),
+                                refresh=True,
+                            )
 
-                    candidate_formulas = dict_res.get(ion_type).get(classe_str)
-
-                    if candidate_formulas:
-                        self.run_search(
-                            ms_peaks,
-                            candidate_formulas,
-                            min_abundance,
-                            ion_type,
-                            ion_charge,
-                        )
-
-                if self.mass_spectrum_obj.molecular_search_settings.isRadical:
-                    if verbose:
-                        pbar.set_description_str(
-                            desc="Started molecular formula search for class %s, radical "
-                            % classe_str,
-                            refresh=True,
-                        )
-
-                    ion_type = Labels.radical_ion
-
-                    candidate_formulas = dict_res.get(ion_type).get(classe_str)
-
-                    if candidate_formulas:
-                        self.run_search(
-                            ms_peaks,
-                            candidate_formulas,
-                            min_abundance,
-                            ion_type,
-                            ion_charge,
-                        )
-                # looks for adduct, used_atom_valences should be 0
-                # this code does not support H exchance by halogen atoms
-                if self.mass_spectrum_obj.molecular_search_settings.isAdduct:
-                    if verbose:
-                        pbar.set_description_str(
-                            desc="Started molecular formula search for class %s, adduct "
-                            % classe_str,
-                            refresh=True,
-                        )
-
-                    ion_type = Labels.adduct_ion
-                    dict_atoms_formulas = dict_res.get(ion_type)
-
-                    for adduct_atom, dict_by_class in dict_atoms_formulas.items():
-                        candidate_formulas = dict_by_class.get(classe_str)
+                        candidate_formulas = dict_res.get(ion_type).get(classe_str)
 
                         if candidate_formulas:
                             self.run_search(
@@ -396,8 +427,53 @@ class SearchMolecularFormulas:
                                 min_abundance,
                                 ion_type,
                                 ion_charge,
-                                adduct_atom=adduct_atom,
                             )
+
+                    if settings.isRadical:
+                        if verbose:
+                            pbar.set_description_str(
+                                desc="Started molecular formula search for class %s, radical z=%s "
+                                % (classe_str, ion_charge),
+                                refresh=True,
+                            )
+
+                        ion_type = Labels.radical_ion
+
+                        candidate_formulas = dict_res.get(ion_type).get(classe_str)
+
+                        if candidate_formulas:
+                            self.run_search(
+                                ms_peaks,
+                                candidate_formulas,
+                                min_abundance,
+                                ion_type,
+                                ion_charge,
+                            )
+                    # looks for adduct, used_atom_valences should be 0
+                    # this code does not support H exchance by halogen atoms
+                    if settings.isAdduct:
+                        if verbose:
+                            pbar.set_description_str(
+                                desc="Started molecular formula search for class %s, adduct z=%s "
+                                % (classe_str, ion_charge),
+                                refresh=True,
+                            )
+
+                        ion_type = Labels.adduct_ion
+                        dict_atoms_formulas = dict_res.get(ion_type)
+
+                        for adduct_atom, dict_by_class in dict_atoms_formulas.items():
+                            candidate_formulas = dict_by_class.get(classe_str)
+
+                            if candidate_formulas:
+                                self.run_search(
+                                    ms_peaks,
+                                    candidate_formulas,
+                                    min_abundance,
+                                    ion_type,
+                                    ion_charge,
+                                    adduct_atom=adduct_atom,
+                                )
         self.sql_db.close()
 
     def search_mol_formulas(
@@ -957,33 +1033,42 @@ class SearchMolecularFormulasLC:
             )
 
     def bulk_run_molecular_formula_search(self, mass_spectrum_list, ms_peaks_list, mass_spectrum_setting_key='ms1'):
-        """Run the molecular formula search on the given list of mass spectra
+        """Run the molecular formula search on the given list of mass spectra.
+
+        Uses ``min_ion_charge`` / ``max_ion_charge`` from molecular search settings
+        to search each peak at every signed charge in that absolute range
+        (defaults 1..1 = single-charge). Does not determine or rewrite peak
+        ``ion_charge``; assignment charge is on each ``MolecularFormula``.
 
         Parameters
         ----------
         mass_spectrum_list : list of MassSpectrum
             The list of mass spectra to search.
-        ms_peaks_list : list of lists of MSPeak objects 
+        ms_peaks_list : list of lists of MSPeak objects
             The mass peaks to perform molecular formula search within each mass spectrum
         mass_spectrum_setting_key : str, optional
             The mass spectrum setting key, by default 'ms1'.
             This is used to get the appropriate molecular search settings from the LCMSBase object
         """
-        # Set min_abundance and nominal_mzs
-        if self.lcms_obj.polarity == "positive":
-            ion_charge = 1
-        elif self.lcms_obj.polarity == "negative":
-            ion_charge = -1
-        else:
+        if self.lcms_obj.polarity not in ("positive", "negative"):
             raise ValueError("Polarity must be either 'positive' or 'negative'")
-        
+
         # Check that the length of the mass spectrum list and the ms_peaks list are the same
         if len(mass_spectrum_list) != len(ms_peaks_list):
             raise ValueError("The length of the mass spectrum list and the ms_peaks list must be the same")
-        
+
+        mol_settings = self.lcms_obj.parameters.mass_spectrum[
+            mass_spectrum_setting_key
+        ].molecular_search
+        search_charges = SearchMolecularFormulas.ion_charges_for_search(
+            self.lcms_obj.polarity,
+            min_ion_charge=mol_settings.min_ion_charge,
+            max_ion_charge=mol_settings.max_ion_charge,
+        )
+
         nominal_mzs = [x.nominal_mz for x in mass_spectrum_list]
         nominal_mzs = list(set([item for sublist in nominal_mzs for item in sublist]))
-        verbose = self.lcms_obj.parameters.mass_spectrum[mass_spectrum_setting_key].molecular_search.verbose_processing 
+        verbose = mol_settings.verbose_processing
 
         # reset average error, only relevant if average mass error method is being used
         SearchMolecularFormulaWorker(
@@ -992,89 +1077,43 @@ class SearchMolecularFormulasLC:
 
         # check database for all possible molecular formula combinations based on the setting passed to self.mass_spectrum_obj.molecular_search_settings
         classes = MolecularCombinations(self.sql_db).runworker(
-            self.lcms_obj.parameters.mass_spectrum[mass_spectrum_setting_key].molecular_search,
-            print_time=self.lcms_obj.parameters.mass_spectrum[mass_spectrum_setting_key].molecular_search.verbose_processing
+            mol_settings,
+            print_time=mol_settings.verbose_processing
         )
-        
+
         try:
             # split the database load to not blowout the memory
             for classe_chunk in chunks(
-                classes, self.lcms_obj.parameters.mass_spectrum[mass_spectrum_setting_key].molecular_search.db_chunk_size
+                classes, mol_settings.db_chunk_size
             ):
                 classes_str_list = [class_tuple[0] for class_tuple in classe_chunk]
 
-                # load the molecular formula objs binned by ion type and heteroatoms classes, {ion type:{classe:[list_formula]}}
-                # for adduct ion type a third key is added {atoms:{ion type:{classe:[list_formula]}}}
-                dict_res = SearchMolecularFormulas.database_to_dict(
-                    classes_str_list,
-                    nominal_mzs,
-                    self.lcms_obj.parameters.mass_spectrum[mass_spectrum_setting_key].molecular_search,
-                    ion_charge,
-                    sql_db=self.sql_db,
-                )
+                for ion_charge in search_charges:
+                    # Reload per charge: DB bins by ion m/z at that charge.
+                    dict_res = SearchMolecularFormulas.database_to_dict(
+                        classes_str_list,
+                        nominal_mzs,
+                        mol_settings,
+                        ion_charge,
+                        sql_db=self.sql_db,
+                    )
 
-                pbar = tqdm.tqdm(classe_chunk, disable=not verbose)
-                for classe_tuple in pbar:
-                    # class string is a json serialized dict
-                    classe_str = classe_tuple[0]
+                    pbar = tqdm.tqdm(classe_chunk, disable=not verbose)
+                    for classe_tuple in pbar:
+                        # class string is a json serialized dict
+                        classe_str = classe_tuple[0]
 
-                    # Perform search for (de)protonated ion type
-                    if self.lcms_obj.parameters.mass_spectrum[mass_spectrum_setting_key].molecular_search.isProtonated:
-                        ion_type = Labels.protonated_de_ion
+                        # Perform search for (de)protonated ion type
+                        if mol_settings.isProtonated:
+                            ion_type = Labels.protonated_de_ion
 
-                        pbar.set_description_str(
-                            desc="Started molecular formula search for class %s, (de)protonated "
-                            % classe_str,
-                            refresh=True,
-                        )
-
-                        candidate_formulas = dict_res.get(ion_type).get(classe_str)
-
-                        if candidate_formulas:
-                            self.search_spectra_against_candidates(
-                                mass_spectrum_list=mass_spectrum_list,
-                                ms_peaks_list=ms_peaks_list,
-                                candidate_formulas=candidate_formulas,
-                                ion_type=ion_type,
-                                ion_charge=ion_charge,
+                            pbar.set_description_str(
+                                desc="Started molecular formula search for class %s, (de)protonated z=%s "
+                                % (classe_str, ion_charge),
+                                refresh=True,
                             )
 
-                    # Perform search for radical ion type
-                    if self.lcms_obj.parameters.mass_spectrum[mass_spectrum_setting_key].molecular_search.isRadical:
-                        pbar.set_description_str(
-                            desc="Started molecular formula search for class %s, radical "
-                            % classe_str,
-                            refresh=True,
-                        )
-
-                        ion_type = Labels.radical_ion
-
-                        candidate_formulas = dict_res.get(ion_type).get(classe_str)
-
-                        if candidate_formulas:
-                            self.search_spectra_against_candidates(
-                                mass_spectrum_list=mass_spectrum_list,
-                                ms_peaks_list=ms_peaks_list,
-                                candidate_formulas=candidate_formulas,
-                                ion_type=ion_type,
-                                ion_charge=ion_charge,
-                            )
-
-                    # Perform search for adduct ion type
-                    # looks for adduct, used_atom_valences should be 0
-                    # this code does not support H exchance by halogen atoms
-                    if self.lcms_obj.parameters.mass_spectrum[mass_spectrum_setting_key].molecular_search.isAdduct:
-                        pbar.set_description_str(
-                            desc="Started molecular formula search for class %s, adduct "
-                            % classe_str,
-                            refresh=True,
-                        )
-
-                        ion_type = Labels.adduct_ion
-                        dict_atoms_formulas = dict_res.get(ion_type)
-
-                        for adduct_atom, dict_by_class in dict_atoms_formulas.items():
-                            candidate_formulas = dict_by_class.get(classe_str)
+                            candidate_formulas = dict_res.get(ion_type).get(classe_str)
 
                             if candidate_formulas:
                                 self.search_spectra_against_candidates(
@@ -1084,13 +1123,61 @@ class SearchMolecularFormulasLC:
                                     ion_type=ion_type,
                                     ion_charge=ion_charge,
                                 )
+
+                        # Perform search for radical ion type
+                        if mol_settings.isRadical:
+                            pbar.set_description_str(
+                                desc="Started molecular formula search for class %s, radical z=%s "
+                                % (classe_str, ion_charge),
+                                refresh=True,
+                            )
+
+                            ion_type = Labels.radical_ion
+
+                            candidate_formulas = dict_res.get(ion_type).get(classe_str)
+
+                            if candidate_formulas:
+                                self.search_spectra_against_candidates(
+                                    mass_spectrum_list=mass_spectrum_list,
+                                    ms_peaks_list=ms_peaks_list,
+                                    candidate_formulas=candidate_formulas,
+                                    ion_type=ion_type,
+                                    ion_charge=ion_charge,
+                                )
+
+                        # Perform search for adduct ion type
+                        # looks for adduct, used_atom_valences should be 0
+                        # this code does not support H exchance by halogen atoms
+                        if mol_settings.isAdduct:
+                            pbar.set_description_str(
+                                desc="Started molecular formula search for class %s, adduct z=%s "
+                                % (classe_str, ion_charge),
+                                refresh=True,
+                            )
+
+                            ion_type = Labels.adduct_ion
+                            dict_atoms_formulas = dict_res.get(ion_type)
+
+                            for adduct_atom, dict_by_class in dict_atoms_formulas.items():
+                                candidate_formulas = dict_by_class.get(classe_str)
+
+                                if candidate_formulas:
+                                    self.search_spectra_against_candidates(
+                                        mass_spectrum_list=mass_spectrum_list,
+                                        ms_peaks_list=ms_peaks_list,
+                                        candidate_formulas=candidate_formulas,
+                                        ion_type=ion_type,
+                                        ion_charge=ion_charge,
+                                    )
         finally:
             self.sql_db.close()
-        
+
     def run_mass_feature_search(self):
         """Run the molecular formula search on the mass features.
-        
+
         Calls bulk_run_molecular_formula_search() with specified mass spectra and mass peaks.
+        Multi-charge range comes from molecular search ``min_ion_charge`` /
+        ``max_ion_charge``. Peak ``ion_charge`` is not rewritten.
         """
         mass_features_df = self.lcms_obj.mass_features_to_df()
 
