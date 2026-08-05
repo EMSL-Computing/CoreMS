@@ -69,6 +69,12 @@ dev = [
     "PyWavelets",
     "pdoc>=14.1.0",
 ]
+# Optional: molecular network graph layout/plotting + interactive HTML
+# (MolecularNetwork.plot_network, clustering, plot_interactive_network)
+networking = [
+    "networkx>=3.0",
+    "ipysigma>=0.24",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
