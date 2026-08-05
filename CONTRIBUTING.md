@@ -43,7 +43,7 @@ Do not open feature work against `master`.
 ## Getting started
 
 1. Open an issue describing the bug or feature (unless one already exists).
-2. Install dependencies. See [README.md](./README.md) and [Installing CoreMS.md](./Installing%20CoreMS.md).
+2. Install dependencies. See [README.md](./README.md) and the [installation guide](./docs/user/installation.md).
 3. Create a branch (or fork, for external contributors).
 4. Make your changes. Add or update tests and docs as needed.
 5. Run local tests (below).
@@ -87,7 +87,7 @@ Reviewers check these before merging into **`dev`**:
 ## Code style
 
 - Docstrings follow the [NumPy style](https://numpydoc.readthedocs.io/en/latest/format.html).
-- API docs are built with [pdoc](https://github.com/mitmproxy/pdoc) (`make docu`).
+- API docs are built with [pdoc](https://github.com/mitmproxy/pdoc) (`make docu`). The package landing page (`corems.__doc__`) includes `README.md` and `docs/user/installation.md` so install content uses the same pdoc styling as the API.
 
 ## Issue reporting
 

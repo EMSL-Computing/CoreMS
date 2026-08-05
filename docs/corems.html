@@ -38,6 +38,20 @@
     <li><a href="#uml-diagrams">UML Diagrams</a></li>
     <li><a href="#citing-corems">Citing CoreMS</a></li>
   </ul></li>
+  <li><a href="#installing-corems">Installing CoreMS</a>
+  <ul>
+    <li><a href="#requirements">Requirements</a></li>
+    <li><a href="#quick-install-pypi">Quick install (PyPI)</a></li>
+    <li><a href="#optional-extras">Optional extras</a></li>
+    <li><a href="#install-from-source">Install from source</a></li>
+    <li><a href="#molecular-formula-database">Molecular formula database</a></li>
+    <li><a href="#system-dependencies-thermo-raw">System dependencies (Thermo <code>.raw</code>)</a></li>
+    <li><a href="#docker-image-full-application">Docker image (full application)</a></li>
+    <li><a href="#example-notebooks">Example notebooks</a></li>
+    <li><a href="#troubleshooting">Troubleshooting</a></li>
+    <li><a href="#building-the-documentation-site">Building the documentation site</a></li>
+    <li><a href="#see-also">See also</a></li>
+  </ul></li>
 </ul>
 
 
@@ -55,9 +69,6 @@
 
             <h2>API Documentation</h2>
                 <ul class="memberlist">
-            <li>
-                    <a class="variable" href="#readme_path">readme_path</a>
-            </li>
             <li>
                     <a class="function" href="#timeit">timeit</a>
             </li>
@@ -172,15 +183,21 @@ corems    </h1>
 
 <h2 id="documentation">Documentation</h2>
 
-<p>API documentation can be found <a href="https://emsl-computing.github.io/CoreMS/corems.html">here</a>.</p>
+<ul>
+<li><strong>Docs site (pdoc):</strong> <a href="https://emsl-computing.github.io/CoreMS/corems.html">corems.html</a> — package landing page includes the README and the full <a href="https://emsl-computing.github.io/CoreMS/corems.html#installing-corems">installation guide</a></li>
+<li><strong>Installation source:</strong> <a href="./docs/user/installation.md">docs/user/installation.md</a> (also rendered into the pdoc landing page via <code>corems.__doc__</code>)</li>
+<li><strong>Overview slides:</strong> <a href="https://github.com/EMSL-Computing/CoreMS/blob/master/examples/CoreMS-Overview.pdf">CoreMS-Overview.pdf</a></li>
+</ul>
 
-<p>Overview slides can be found <a href="https://github.com/EMSL-Computing/CoreMS/blob/master/examples/CoreMS-Overview.pdf">here</a>.</p>
+<p>Build local docs: <code>make docu</code>, then open <code>docs/corems.html</code>.</p>
 
 <hr />
 
 <h2 id="contributing">Contributing</h2>
 
-<p>As an open source project, CoreMS welcomes contributions of all forms. Before contributing, please see our <a href="./CONTRIBUTING.md">Dev Guide</a></p>
+<p>As an open source project, CoreMS welcomes contributions of all forms. See the <a href="./CONTRIBUTING.md">contributing guide</a> for external (GitHub) and internal (GitLab) workflows. Maintainers: see the <a href="./RELEASE.md">release guide</a>.</p>
+
+<p><strong>Branches:</strong> <code>master</code> is the stable release line (PyPI and tags). <code>dev</code> is the integration branch for ongoing work. Open PRs and MRs against <code>dev</code> only; maintainers merge <code>dev</code> into <code>master</code> when cutting a release.</p>
 
 <hr />
 
@@ -292,56 +309,26 @@ corems    </h1>
 <h2 id="installation">Installation</h2>
 
 <div class="pdoc-code codehilite">
-<pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>corems
+<pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">source</span><span class="w"> </span>venv/bin/activate<span class="w">   </span><span class="c1"># Windows: venv\Scripts\activate</span>
+pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pip
+pip<span class="w"> </span>install<span class="w"> </span>corems
+python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import corems; print(corems.__version__)&quot;</span>
 </code></pre>
 </div>
 
-<p>Corems requires <strong>Python 3.9 or later</strong> (including Python 3.13) and is compatible with <strong>NumPy 2.x</strong>, <strong>pandas 2.x</strong>, and <strong>SQLAlchemy 2.x</strong>.</p>
-
-<p>To install with development and testing extras:</p>
+<p>CoreMS <strong>4.0+</strong> requires <strong>Python 3.10+</strong> (including 3.13). Dependencies (including <strong>pythonnet</strong>) come from <code>pyproject.toml</code> with the package.</p>
 
 <div class="pdoc-code codehilite">
-<pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;corems[dev]&quot;</span>
+<pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;corems[dev]&quot;</span><span class="w">   </span><span class="c1"># tests / docs tooling</span>
 </code></pre>
 </div>
 
-<p>By default the molecular formula database will be generated using SQLite.</p>
+<p><strong>Full guide</strong> (venv, extras, SQLite vs PostgreSQL, Thermo <code>.raw</code> / .NET 8, troubleshooting):</p>
 
-<p>To use PostgreSQL the easiest way is to build a docker container:</p>
+<p>→ <strong><a href="./docs/user/installation.md">docs/user/installation.md</a></strong> (source)<br />
+→ On the docs site: <a href="https://emsl-computing.github.io/CoreMS/corems.html#installing-corems">Installing CoreMS</a> (same page as the API landing docs)</p>
 
-<div class="pdoc-code codehilite">
-<pre><span></span><code>docker-compose<span class="w"> </span>up<span class="w"> </span>-d
-</code></pre>
-</div>
-
-<ul>
-<li>Change the url_database on <code>MSParameters.molecular_search.url_database</code> to: <code>"postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"</code></li>
-<li>Set the env variable <code>COREMS_DATABASE_URL</code> to: <code>"postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"</code></li>
-</ul>
-
-<h3 id="thermo-raw-file-access">Thermo Raw File Access:</h3>
-
-<p>To be able to open thermo file a installation of pythonnet is needed:</p>
-
-<ul>
-<li>Windows: </li>
-</ul>
-
-<pre><code><div class="pdoc-code codehilite">
-<pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>pythonnet
-</code></pre>
-</div>
-</code></pre>
-
-<ul>
-<li><p>Mac and Linux:</p>
-
-<div class="pdoc-code codehilite">
-<pre><span></span><code>brew<span class="w"> </span>install<span class="w"> </span>mono
-pip<span class="w"> </span>install<span class="w"> </span>pythonnet<span class="w">   </span>
-</code></pre>
-</div></li>
-</ul>
+<p>Thermo RAW needs a host <strong>.NET 8</strong> runtime and <code>PYTHONNET_RUNTIME=coreclr</code> (details in the install guide). The CoreMS Docker image already includes .NET 8; see <a href="#docker-image">Docker image</a>.</p>
 
 <hr />
 
@@ -585,6 +572,245 @@ reflect those of the United States Government or any agency thereof.</p>
                UNITED STATES DEPARTMENT OF ENERGY
                 under Contract DE-AC05-76RL01830
 </code></pre>
+
+<hr />
+
+<h1 id="installing-corems">Installing CoreMS</h1>
+
+<p>How to install <strong>CoreMS 4.0+</strong> for normal use, development, optional databases, and Thermo <code>.raw</code> support.</p>
+
+<p>This is the <strong>canonical install guide</strong>. The <a href="../../README.md">README</a> has a short quickstart only. This file is loaded into <code>corems.__doc__</code> (together with the README) so <code>make docu</code> / pdoc shows it on the package landing page with the same styling as the API docs.</p>
+
+<h2 id="requirements">Requirements</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Requirement</th>
+  <th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Python 3.10–3.13</strong></td>
+  <td>From <code>requires-python</code> in <code>pyproject.toml</code></td>
+</tr>
+<tr>
+  <td><strong>pip</strong></td>
+  <td>Prefer upgrading: <code>python -m pip install -U pip</code></td>
+</tr>
+<tr>
+  <td><strong>Optional: Docker</strong></td>
+  <td>PostgreSQL via <code>docker-compose</code>, or the full CoreMS image</td>
+</tr>
+<tr>
+  <td><strong>Optional: .NET 8 runtime</strong></td>
+  <td>Host Thermo <code>.raw</code> via Python.NET (see <a href="#system-dependencies-thermo-raw">system dependencies</a>)</td>
+</tr>
+</tbody>
+</table>
+
+<p>Declared Python dependencies (including <strong>pythonnet</strong>) are installed with the package. You do <strong>not</strong> need a separate <code>pip install pythonnet</code>.</p>
+
+<h2 id="quick-install-pypi">Quick install (PyPI)</h2>
+
+<p>Use an isolated environment (venv or conda). Example with venv:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<span class="c1"># Windows: venv\Scripts\activate</span>
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
+
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pip
+pip<span class="w"> </span>install<span class="w"> </span>corems
+</code></pre>
+</div>
+
+<p>Verify:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import corems; print(corems.__version__)&quot;</span>
+</code></pre>
+</div>
+
+<p>By default the molecular formula database uses <strong>SQLite</strong> (local file; no extra services).</p>
+
+<h2 id="optional-extras">Optional extras</h2>
+
+<p>Install extras from <code>pyproject.toml</code> as needed:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;corems[dev]&quot;</span><span class="w">          </span><span class="c1"># tests, lint, docs tooling (incl. pdoc)</span>
+</code></pre>
+</div>
+
+<p>Check the installed package metadata or <code>pyproject.toml</code> for the current list of extras.</p>
+
+<h2 id="install-from-source">Install from source</h2>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/EMSL-Computing/CoreMS.git
+<span class="nb">cd</span><span class="w"> </span>CoreMS
+
+python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate<span class="w">   </span><span class="c1"># Windows: venv\Scripts\activate</span>
+
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pip
+pip<span class="w"> </span>install<span class="w"> </span>.
+<span class="c1"># editable install for development:</span>
+<span class="c1"># pip install -e &quot;.[dev]&quot;</span>
+</code></pre>
+</div>
+
+<p>Internal GitLab (same install after clone):</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>https://code.emsl.pnl.gov/mass-spectrometry/corems.git
+</code></pre>
+</div>
+
+<h2 id="molecular-formula-database">Molecular formula database</h2>
+
+<h3 id="sqlite-default">SQLite (default)</h3>
+
+<p>No extra services. Suitable for most users and light workloads.</p>
+
+<h3 id="postgresql-optional">PostgreSQL (optional)</h3>
+
+<p>For multi-user or higher-load molecular formula search:</p>
+
+<ol>
+<li>Install and start <a href="https://www.docker.com/">Docker</a>.</li>
+<li>From the CoreMS repository root:</li>
+</ol>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>docker-compose<span class="w"> </span>up<span class="w"> </span>-d
+</code></pre>
+</div>
+
+<ol start="3">
+<li>Point CoreMS at the database (either approach):</li>
+</ol>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">COREMS_DATABASE_URL</span><span class="o">=</span><span class="s2">&quot;postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp&quot;</span>
+</code></pre>
+</div>
+
+<p>Or set <code>MSParameters.molecular_search.url_database</code> to the same URL.</p>
+
+<p>Keep Docker running while you use this database.</p>
+
+<h2 id="system-dependencies-thermo-raw">System dependencies (Thermo <code>.raw</code>)</h2>
+
+<p>Reading Thermo <code>.raw</code> files uses <strong>Python.NET</strong> (a package dependency) plus a <strong>.NET runtime on the host</strong>. This is separate from <code>pip install</code>.</p>
+
+<h3 id="recommended-net-8-coreclr">Recommended: .NET 8 (CoreCLR)</h3>
+
+<p>Matches CoreMS CI and the project Dockerfile (<strong>.NET 8</strong>, not .NET 9).</p>
+
+<ol>
+<li>Install the <strong>.NET 8 runtime</strong> for your OS and CPU (x64 or arm64): <a href="https://dotnet.microsoft.com/download/dotnet/8.0">Download .NET 8</a>.</li>
+<li>Prefer CoreCLR:</li>
+</ol>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONNET_RUNTIME</span><span class="o">=</span>coreclr
+<span class="c1"># If the runtime is not on the default path:</span>
+<span class="c1"># export DOTNET_ROOT=/usr/local/dotnet</span>
+<span class="c1"># export PATH=&quot;$PATH:$DOTNET_ROOT&quot;</span>
+</code></pre>
+</div>
+
+<ol start="3">
+<li>Confirm:</li>
+</ol>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>dotnet<span class="w"> </span>--list-runtimes
+<span class="c1"># should list a Microsoft.NETCore.App 8.x runtime</span>
+</code></pre>
+</div>
+
+<p>On <strong>Apple Silicon</strong>, install the <strong>arm64</strong> .NET 8 runtime when running Python natively on arm64. The CoreMS <strong>Docker image</strong> already includes .NET 8, so host .NET is optional if you only run inside the image.</p>
+
+<h3 id="optional-mono">Optional: Mono</h3>
+
+<p>Some users still use <a href="https://www.mono-project.com/">Mono</a> with Python.NET. That path is <strong>not</strong> required for CoreMS 4.0+. If you use Mono:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONNET_RUNTIME</span><span class="o">=</span>mono
+</code></pre>
+</div>
+
+<p>You may also need Mono’s libraries discoverable on your system (distribution-specific). Prefer CoreCLR unless you already depend on Mono.</p>
+
+<h3 id="windows">Windows</h3>
+
+<ul>
+<li><code>pip install corems</code> installs pythonnet with the package.</li>
+<li>Install <strong>.NET 8</strong> if you need Thermo <code>.raw</code> support; use <code>PYTHONNET_RUNTIME=coreclr</code> when required.</li>
+</ul>
+
+<h2 id="docker-image-full-application">Docker image (full application)</h2>
+
+<p>To run CoreMS in a container that already includes <strong>.NET 8</strong> and dependencies, see <a href="../../README.md#docker-image">Building and Running the CoreMS Docker Image</a> in the README (<code>make build-image-local</code> / <code>make build-image-mac-local</code> on Apple Silicon).</p>
+
+<h2 id="example-notebooks">Example notebooks</h2>
+
+<p>Workflow examples live under <code>examples/notebooks/</code>. These are intended as demonstrations and starting points for your own analysis. </p>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Symptom</th>
+  <th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>import corems</code> fails / wrong Python</td>
+  <td>Active venv; <code>python --version</code> is 3.10+</td>
+</tr>
+<tr>
+  <td>Thermo <code>.raw</code> / pythonnet errors</td>
+  <td>.NET <strong>8</strong> installed; <code>PYTHONNET_RUNTIME=coreclr</code>; <code>dotnet --list-runtimes</code></td>
+</tr>
+<tr>
+  <td>Using Mono deliberately</td>
+  <td><code>PYTHONNET_RUNTIME=mono</code>; Mono installed</td>
+</tr>
+<tr>
+  <td>PostgreSQL connection errors</td>
+  <td><code>docker-compose up -d</code>; <code>COREMS_DATABASE_URL</code> / URL in parameters</td>
+</tr>
+<tr>
+  <td>Apple Silicon Docker builds</td>
+  <td>macOS image build targets in the README (<code>linux/amd64</code>)</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="building-the-documentation-site">Building the documentation site</h2>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>make<span class="w"> </span>docu
+</code></pre>
+</div>
+
+<p>Opens as <code>docs/corems.html</code>. The landing module page includes this install guide via <code>corems/__init__.py</code>.</p>
+
+<h2 id="see-also">See also</h2>
+
+<ul>
+<li><a href="../../README.md">README.md</a> — overview, short install, Docker image</li>
+<li><a href="../../CONTRIBUTING.md">CONTRIBUTING.md</a> — development workflow and local tests</li>
+<li><a href="../../RELEASE.md">RELEASE.md</a> — versioning and releases (maintainers)</li>
+<li><a href="https://emsl-computing.github.io/CoreMS/corems.html">Package / API docs</a> (generated)</li>
+</ul>
 </div>
 
                         <input id="mod-corems-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
@@ -598,78 +824,78 @@ reflect those of the United States Government or any agency thereof.</p>
 </span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="c1"># Get the path to the README file</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="n">readme_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;README.md&quot;</span><span class="p">)</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="c1"># Read the contents of the README file if it exists</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">readme_path</span><span class="p">):</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>    <span class="k">try</span><span class="p">:</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">readme_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">readme_file</span><span class="p">:</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>            <span class="vm">__doc__</span> <span class="o">=</span> <span class="n">readme_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>        <span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;CoreMS: A comprehensive mass spectrometry framework for software development and data analysis of small molecules analysis.&quot;</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Could not read README.md file. Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a><span class="k">else</span><span class="p">:</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>    <span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;CoreMS: A comprehensive mass spectrometry framework for software development and data analysis of small molecules analysis.&quot;</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a><span class="k">def</span><span class="w"> </span><span class="nf">timeit</span><span class="p">(</span><span class="n">print_time</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">decorator</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">timed</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>            <span class="c1"># Extract print_time from kwargs if provided</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>            <span class="n">local_print_time</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;print_time&#39;</span><span class="p">,</span> <span class="n">print_time</span><span class="p">)</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>            <span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>            <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>            <span class="n">te</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>            <span class="k">if</span> <span class="s2">&quot;log_time&quot;</span> <span class="ow">in</span> <span class="n">kw</span><span class="p">:</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>                <span class="n">name</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;log_name&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>                <span class="n">kw</span><span class="p">[</span><span class="s2">&quot;log_time&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>            <span class="k">elif</span> <span class="n">local_print_time</span><span class="p">:</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2">  </span><span class="si">%2.2f</span><span class="s2"> ms&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">(</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>            <span class="k">return</span> <span class="n">result</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>        <span class="k">return</span> <span class="n">timed</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>    <span class="k">return</span> <span class="n">decorator</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="k">class</span><span class="w"> </span><span class="nc">SuppressPrints</span><span class="p">:</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>
-</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a><span class="k">def</span><span class="w"> </span><span class="nf">chunks</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Yield successive n-sized chunks from lst.&quot;&quot;&quot;</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>        <span class="k">yield</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>
-</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>
-</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a><span class="k">def</span><span class="w"> </span><span class="nf">corems_md5</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>    <span class="n">bytes_io</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>
-</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>    <span class="n">md5_returned</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">bytes_io</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="c1"># Package documentation for pdoc: README plus the full install how-to so the</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="c1"># landing page uses the same styling as the rest of the API site.</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="n">_pkg_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="n">_repo_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_pkg_dir</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">)</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="n">_fallback_doc</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>    <span class="s2">&quot;CoreMS: A comprehensive mass spectrometry framework for software &quot;</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    <span class="s2">&quot;development and data analysis of small molecules analysis.&quot;</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a><span class="p">)</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="n">_doc_parts</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="k">for</span> <span class="n">_rel</span> <span class="ow">in</span> <span class="p">(</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>    <span class="s2">&quot;README.md&quot;</span><span class="p">,</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;docs&quot;</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;installation.md&quot;</span><span class="p">),</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="p">):</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>    <span class="n">_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_repo_root</span><span class="p">,</span> <span class="n">_rel</span><span class="p">)</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">_path</span><span class="p">):</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>        <span class="k">continue</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">_fh</span><span class="p">:</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>            <span class="n">_text</span> <span class="o">=</span> <span class="n">_fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>        <span class="k">if</span> <span class="n">_text</span><span class="p">:</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>            <span class="n">_doc_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_text</span><span class="p">)</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Could not read </span><span class="si">{</span><span class="n">_rel</span><span class="si">}</span><span class="s2"> for package docs. Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">---</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_doc_parts</span><span class="p">)</span> <span class="k">if</span> <span class="n">_doc_parts</span> <span class="k">else</span> <span class="n">_fallback_doc</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a><span class="k">def</span><span class="w"> </span><span class="nf">timeit</span><span class="p">(</span><span class="n">print_time</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">decorator</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">timed</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>            <span class="c1"># Extract print_time from kwargs if provided</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>            <span class="n">local_print_time</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;print_time&#39;</span><span class="p">,</span> <span class="n">print_time</span><span class="p">)</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>            <span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>            <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>            <span class="n">te</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>            <span class="k">if</span> <span class="s2">&quot;log_time&quot;</span> <span class="ow">in</span> <span class="n">kw</span><span class="p">:</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>                <span class="n">name</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;log_name&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>                <span class="n">kw</span><span class="p">[</span><span class="s2">&quot;log_time&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>            <span class="k">elif</span> <span class="n">local_print_time</span><span class="p">:</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2">  </span><span class="si">%2.2f</span><span class="s2"> ms&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">(</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>            <span class="k">return</span> <span class="n">result</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>        <span class="k">return</span> <span class="n">timed</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>    <span class="k">return</span> <span class="n">decorator</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a><span class="k">class</span><span class="w"> </span><span class="nc">SuppressPrints</span><span class="p">:</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>
+</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span>
 </span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a>
-</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="n">md5_returned</span><span class="p">)</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a>
+</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a><span class="k">def</span><span class="w"> </span><span class="nf">chunks</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Yield successive n-sized chunks from lst.&quot;&quot;&quot;</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a>        <span class="k">yield</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>
+</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a>
+</span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a><span class="k">def</span><span class="w"> </span><span class="nf">corems_md5</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a>    <span class="n">bytes_io</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a>
+</span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a>    <span class="n">md5_returned</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">bytes_io</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos">74</span></a>
+</span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="n">md5_returned</span><span class="p">)</span>
 </span></pre></div>
 
 
             </section>
-                <section id="readme_path">
-                    <div class="attr variable">
-            <span class="name">readme_path</span>        =
-<span class="default_value">&#39;/Users/heal742/LOCAL/corems_dev/corems/corems/../README.md&#39;</span>
-
-        
-    </div>
-    <a class="headerlink" href="#readme_path"></a>
-    
-    
-
-                </section>
                 <section id="timeit">
                             <input id="timeit-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -681,22 +907,22 @@ reflect those of the United States Government or any agency thereof.</p>
 
     </div>
     <a class="headerlink" href="#timeit"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="timeit-25"><a href="#timeit-25"><span class="linenos">25</span></a><span class="k">def</span><span class="w"> </span><span class="nf">timeit</span><span class="p">(</span><span class="n">print_time</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="timeit-26"><a href="#timeit-26"><span class="linenos">26</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">decorator</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
-</span><span id="timeit-27"><a href="#timeit-27"><span class="linenos">27</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">timed</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-</span><span id="timeit-28"><a href="#timeit-28"><span class="linenos">28</span></a>            <span class="c1"># Extract print_time from kwargs if provided</span>
-</span><span id="timeit-29"><a href="#timeit-29"><span class="linenos">29</span></a>            <span class="n">local_print_time</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;print_time&#39;</span><span class="p">,</span> <span class="n">print_time</span><span class="p">)</span>
-</span><span id="timeit-30"><a href="#timeit-30"><span class="linenos">30</span></a>            <span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-</span><span id="timeit-31"><a href="#timeit-31"><span class="linenos">31</span></a>            <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-</span><span id="timeit-32"><a href="#timeit-32"><span class="linenos">32</span></a>            <span class="n">te</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-</span><span id="timeit-33"><a href="#timeit-33"><span class="linenos">33</span></a>            <span class="k">if</span> <span class="s2">&quot;log_time&quot;</span> <span class="ow">in</span> <span class="n">kw</span><span class="p">:</span>
-</span><span id="timeit-34"><a href="#timeit-34"><span class="linenos">34</span></a>                <span class="n">name</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;log_name&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
-</span><span id="timeit-35"><a href="#timeit-35"><span class="linenos">35</span></a>                <span class="n">kw</span><span class="p">[</span><span class="s2">&quot;log_time&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
-</span><span id="timeit-36"><a href="#timeit-36"><span class="linenos">36</span></a>            <span class="k">elif</span> <span class="n">local_print_time</span><span class="p">:</span>
-</span><span id="timeit-37"><a href="#timeit-37"><span class="linenos">37</span></a>                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2">  </span><span class="si">%2.2f</span><span class="s2"> ms&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">(</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
-</span><span id="timeit-38"><a href="#timeit-38"><span class="linenos">38</span></a>            <span class="k">return</span> <span class="n">result</span>
-</span><span id="timeit-39"><a href="#timeit-39"><span class="linenos">39</span></a>        <span class="k">return</span> <span class="n">timed</span>
-</span><span id="timeit-40"><a href="#timeit-40"><span class="linenos">40</span></a>    <span class="k">return</span> <span class="n">decorator</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="timeit-37"><a href="#timeit-37"><span class="linenos">37</span></a><span class="k">def</span><span class="w"> </span><span class="nf">timeit</span><span class="p">(</span><span class="n">print_time</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="timeit-38"><a href="#timeit-38"><span class="linenos">38</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">decorator</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+</span><span id="timeit-39"><a href="#timeit-39"><span class="linenos">39</span></a>        <span class="k">def</span><span class="w"> </span><span class="nf">timed</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+</span><span id="timeit-40"><a href="#timeit-40"><span class="linenos">40</span></a>            <span class="c1"># Extract print_time from kwargs if provided</span>
+</span><span id="timeit-41"><a href="#timeit-41"><span class="linenos">41</span></a>            <span class="n">local_print_time</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;print_time&#39;</span><span class="p">,</span> <span class="n">print_time</span><span class="p">)</span>
+</span><span id="timeit-42"><a href="#timeit-42"><span class="linenos">42</span></a>            <span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="timeit-43"><a href="#timeit-43"><span class="linenos">43</span></a>            <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+</span><span id="timeit-44"><a href="#timeit-44"><span class="linenos">44</span></a>            <span class="n">te</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span id="timeit-45"><a href="#timeit-45"><span class="linenos">45</span></a>            <span class="k">if</span> <span class="s2">&quot;log_time&quot;</span> <span class="ow">in</span> <span class="n">kw</span><span class="p">:</span>
+</span><span id="timeit-46"><a href="#timeit-46"><span class="linenos">46</span></a>                <span class="n">name</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;log_name&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+</span><span id="timeit-47"><a href="#timeit-47"><span class="linenos">47</span></a>                <span class="n">kw</span><span class="p">[</span><span class="s2">&quot;log_time&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
+</span><span id="timeit-48"><a href="#timeit-48"><span class="linenos">48</span></a>            <span class="k">elif</span> <span class="n">local_print_time</span><span class="p">:</span>
+</span><span id="timeit-49"><a href="#timeit-49"><span class="linenos">49</span></a>                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2">  </span><span class="si">%2.2f</span><span class="s2"> ms&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">(</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
+</span><span id="timeit-50"><a href="#timeit-50"><span class="linenos">50</span></a>            <span class="k">return</span> <span class="n">result</span>
+</span><span id="timeit-51"><a href="#timeit-51"><span class="linenos">51</span></a>        <span class="k">return</span> <span class="n">timed</span>
+</span><span id="timeit-52"><a href="#timeit-52"><span class="linenos">52</span></a>    <span class="k">return</span> <span class="n">decorator</span>
 </span></pre></div>
 
 
@@ -714,14 +940,14 @@ reflect those of the United States Government or any agency thereof.</p>
 
     </div>
     <a class="headerlink" href="#SuppressPrints"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="SuppressPrints-43"><a href="#SuppressPrints-43"><span class="linenos">43</span></a><span class="k">class</span><span class="w"> </span><span class="nc">SuppressPrints</span><span class="p">:</span>
-</span><span id="SuppressPrints-44"><a href="#SuppressPrints-44"><span class="linenos">44</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="SuppressPrints-45"><a href="#SuppressPrints-45"><span class="linenos">45</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
-</span><span id="SuppressPrints-46"><a href="#SuppressPrints-46"><span class="linenos">46</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
-</span><span id="SuppressPrints-47"><a href="#SuppressPrints-47"><span class="linenos">47</span></a>
-</span><span id="SuppressPrints-48"><a href="#SuppressPrints-48"><span class="linenos">48</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
-</span><span id="SuppressPrints-49"><a href="#SuppressPrints-49"><span class="linenos">49</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-</span><span id="SuppressPrints-50"><a href="#SuppressPrints-50"><span class="linenos">50</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="SuppressPrints-55"><a href="#SuppressPrints-55"><span class="linenos">55</span></a><span class="k">class</span><span class="w"> </span><span class="nc">SuppressPrints</span><span class="p">:</span>
+</span><span id="SuppressPrints-56"><a href="#SuppressPrints-56"><span class="linenos">56</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="SuppressPrints-57"><a href="#SuppressPrints-57"><span class="linenos">57</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+</span><span id="SuppressPrints-58"><a href="#SuppressPrints-58"><span class="linenos">58</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+</span><span id="SuppressPrints-59"><a href="#SuppressPrints-59"><span class="linenos">59</span></a>
+</span><span id="SuppressPrints-60"><a href="#SuppressPrints-60"><span class="linenos">60</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+</span><span id="SuppressPrints-61"><a href="#SuppressPrints-61"><span class="linenos">61</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="SuppressPrints-62"><a href="#SuppressPrints-62"><span class="linenos">62</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_stdout</span>
 </span></pre></div>
 
 
@@ -739,10 +965,10 @@ reflect those of the United States Government or any agency thereof.</p>
 
     </div>
     <a class="headerlink" href="#chunks"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="chunks-53"><a href="#chunks-53"><span class="linenos">53</span></a><span class="k">def</span><span class="w"> </span><span class="nf">chunks</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-</span><span id="chunks-54"><a href="#chunks-54"><span class="linenos">54</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Yield successive n-sized chunks from lst.&quot;&quot;&quot;</span>
-</span><span id="chunks-55"><a href="#chunks-55"><span class="linenos">55</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
-</span><span id="chunks-56"><a href="#chunks-56"><span class="linenos">56</span></a>        <span class="k">yield</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="chunks-65"><a href="#chunks-65"><span class="linenos">65</span></a><span class="k">def</span><span class="w"> </span><span class="nf">chunks</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="chunks-66"><a href="#chunks-66"><span class="linenos">66</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Yield successive n-sized chunks from lst.&quot;&quot;&quot;</span>
+</span><span id="chunks-67"><a href="#chunks-67"><span class="linenos">67</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="chunks-68"><a href="#chunks-68"><span class="linenos">68</span></a>        <span class="k">yield</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span>
 </span></pre></div>
 
 
@@ -762,12 +988,12 @@ reflect those of the United States Government or any agency thereof.</p>
 
     </div>
     <a class="headerlink" href="#corems_md5"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="corems_md5-59"><a href="#corems_md5-59"><span class="linenos">59</span></a><span class="k">def</span><span class="w"> </span><span class="nf">corems_md5</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
-</span><span id="corems_md5-60"><a href="#corems_md5-60"><span class="linenos">60</span></a>    <span class="n">bytes_io</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-</span><span id="corems_md5-61"><a href="#corems_md5-61"><span class="linenos">61</span></a>
-</span><span id="corems_md5-62"><a href="#corems_md5-62"><span class="linenos">62</span></a>    <span class="n">md5_returned</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">bytes_io</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-</span><span id="corems_md5-63"><a href="#corems_md5-63"><span class="linenos">63</span></a>
-</span><span id="corems_md5-64"><a href="#corems_md5-64"><span class="linenos">64</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="n">md5_returned</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="corems_md5-71"><a href="#corems_md5-71"><span class="linenos">71</span></a><span class="k">def</span><span class="w"> </span><span class="nf">corems_md5</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+</span><span id="corems_md5-72"><a href="#corems_md5-72"><span class="linenos">72</span></a>    <span class="n">bytes_io</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</span><span id="corems_md5-73"><a href="#corems_md5-73"><span class="linenos">73</span></a>
+</span><span id="corems_md5-74"><a href="#corems_md5-74"><span class="linenos">74</span></a>    <span class="n">md5_returned</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">bytes_io</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+</span><span id="corems_md5-75"><a href="#corems_md5-75"><span class="linenos">75</span></a>
+</span><span id="corems_md5-76"><a href="#corems_md5-76"><span class="linenos">76</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="n">md5_returned</span><span class="p">)</span>
 </span></pre></div>
 
 

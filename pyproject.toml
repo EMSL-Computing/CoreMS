@@ -53,6 +53,7 @@ dependencies = [
 Homepage = "https://github.com/EMSL-Computing/CoreMS"
 Repository = "https://github.com/EMSL-Computing/CoreMS"
 Issues = "https://github.com/EMSL-Computing/CoreMS/issues"
+Documentation = "https://emsl-computing.github.io/CoreMS/corems.html"
 
 [project.optional-dependencies]
 dev = [
