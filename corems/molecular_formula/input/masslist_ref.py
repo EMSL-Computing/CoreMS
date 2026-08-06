@@ -5,15 +5,10 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List
-
-import pandas as pd
+from typing import List
 
 from corems.encapsulation.constant import Atoms, Labels
-from corems.molecular_formula.factory.MolecularFormulaFactory import (
-    LCMSLibRefMolecularFormula,
-    MolecularFormula,
-)
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 
 
 class MolecularFormulaLinkProxy:
@@ -21,8 +16,8 @@ class MolecularFormulaLinkProxy:
 
     Parameters
     ----------
-    molecular_formula : MolecularFormula | LCMSLibRefMolecularFormula
-        corems MolecularFormula or LCMSLibRefMolecularFormula object
+    molecular_formula : MolecularFormula
+        corems MolecularFormula object
     mz : float
         target m/z
 
@@ -81,7 +76,7 @@ class ImportMassListRef:  # Thread
     * molecular_formula_ref(mz, molecular_formula).
         Return MolecularFormulaLinkProxy object
     * from_lcms_lib_file(ion_charge, ion_types).
-        Return Dict[standard_name, Dict[m/z, List[MolecularFormula]]] from LCMS library reference file
+        Unsupported stub; raises NotImplementedError
     * from_bruker_ref_file().
         Return List[MolecularFormula] from Bruker reference file
     * from_corems_ref_file(delimiter).
@@ -108,8 +103,8 @@ class ImportMassListRef:  # Thread
         ----------
         mz : float
             target m/z
-        molecular_formula : MolecularFormula | LCMSLibRefMolecularFormula
-            corems MolecularFormula or LCMSLibRefMolecularFormula object
+        molecular_formula : MolecularFormula
+            corems MolecularFormula object
 
         Returns
         -------
@@ -118,67 +113,31 @@ class ImportMassListRef:  # Thread
         """
         return MolecularFormulaLinkProxy(molecular_formula, mz)
 
-    def from_lcms_lib_file(
-        self, ion_charge: float, ion_types: List[str]
-    ) -> Dict[str, Dict[float, List[LCMSLibRefMolecularFormula]]]:
-        """Create a dictionary of LCMSLibRefMolecularFormula objects from LCMS library reference file
+    def from_lcms_lib_file(self, ion_charge: float, ion_types: List[str]):
+        """Unsupported LC-MS library reference import.
+
+        Previously returned library-linked formula objects. That path is no
+        longer supported; use combinatorial / SQL molecular formula search and
+        :class:`~corems.molecular_formula.factory.MolecularFormulaFactory.MolecularFormula`
+        instead. This method will be removed in the next major release.
 
         Parameters
         ----------
         ion_charge : float
-            ion charge
+            ion charge (ignored)
         ion_types : List[str]
-            list of ion types
+            list of ion types (ignored)
 
-        Returns
-        -------
-        Dict
-            Dict[standard_name, Dict[m/z, List[MolecularFormula]]] from LCMS library reference file. m/z is the target m/z; standard_name is the name of the molecular standard mix; MolecularFormula is the corems molecular formula class
+        Raises
+        ------
+        NotImplementedError
+            Always; the LC-MS library formula import path is removed.
         """
-
-        data = {}
-
-        with open(self.ref_file_location) as ref_f:
-            df = pd.read_csv(ref_f, header=0, encoding="unicode_escape")
-
-            for index, row in df.iterrows():
-                formula_s = row["Neutral Formula"]
-                formula_dict = self.mformula_s_to_dict(formula_s, Labels.neutral)
-                name = row["Compound Name"]
-                kegg_id = row["KEGG ID"]
-                standard_name = row["NEW MIX"]
-                cas = row["KEGG ID"]
-                # print(row["Neutral Formula"], formula_dict)
-                molf_formula = LCMSLibRefMolecularFormula(
-                    formula_dict,
-                    ion_charge,
-                    Labels.neutral,
-                    name=name,
-                    kegg_id=kegg_id,
-                    cas=cas,
-                )
-                # if round(molf_formula.mz_calc, 4) != round(row['Mass Adduct -H'],4):
-                #    print(formula_s)
-                #    print(round(molf_formula.mz_calc, 4) , round(row['Mass Adduct -H'],4))
-
-                if standard_name in data.keys():
-                    # TODO change it to target ion types and add ion type in the data structure
-                    mz_calc = molf_formula.protonated_mz
-
-                    if mz_calc in data.get(standard_name).keys():
-                        data.get(standard_name).get(mz_calc).append(molf_formula)
-
-                    else:
-                        data[standard_name][mz_calc] = [molf_formula]
-                else:
-                    data[standard_name] = {molf_formula.mz_calc: [molf_formula]}
-                # print(formula_s, formula_dict)
-                # if molf_formula.ion_type != 'de-protonated':
-                #    print( 'ha', molf_formula.ion_type )
-                # print(formula_dict)
-                # print(row['c1'], row['c2'])
-
-        return data
+        raise NotImplementedError(
+            "ImportMassListRef.from_lcms_lib_file is no longer supported. "
+            "Use MolecularFormula with the combinatorial / SQL formula search path. "
+            "This stub will be removed in the next major release."
+        )
 
     def from_bruker_ref_file(self) -> List[MolecularFormula]:
         """Create a list of MolecularFormula objects from Bruker reference file

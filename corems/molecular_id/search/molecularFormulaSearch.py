@@ -9,10 +9,7 @@ import tqdm
 from corems import chunks, timeit
 from corems.encapsulation.constant import Labels
 from corems.encapsulation.factory.processingSetting import validate_used_atoms_keys
-from corems.molecular_formula.factory.MolecularFormulaFactory import (
-    LCMSLibRefMolecularFormula,
-    MolecularFormula,
-)
+from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.molecular_id.factory.MolecularLookupTable import MolecularCombinations
 from corems.molecular_id.factory.molecularSQL import MolForm_SQL
 from corems.ms_peak.factory.MSPeakClasses import _MSPeak
@@ -740,13 +737,6 @@ class SearchMolecularFormulaWorker:
                 # if ion type is unknow will return neutral mass
                 return possible_formula_obj.mz_calc
 
-        if formulas:
-            if isinstance(formulas[0], LCMSLibRefMolecularFormula):
-                possible_mf_class = True
-
-            else:
-                possible_mf_class = False
-
         for possible_formula in formulas:
             if possible_formula:
                 error = self.calc_error(
@@ -764,33 +754,15 @@ class SearchMolecularFormulaWorker:
 
                     # get molecular formula dict from sql obj
                     # formula_dict = pickle.loads(possible_formula.mol_formula)
-                    # if possible_mf_class:
-
-                    #    molecular_formula = deepcopy(possible_formula)
-
-                    # else:
 
                     formula_dict = possible_formula.to_dict()
                     # create the molecular formula obj to be stored
-                    if possible_mf_class:
-                        molecular_formula = LCMSLibRefMolecularFormula(
-                            formula_dict,
-                            ion_charge,
-                            ion_type=ion_type,
-                            adduct_atom=adduct_atom,
-                        )
-
-                        molecular_formula.name = possible_formula.name
-                        molecular_formula.kegg_id = possible_formula.kegg_id
-                        molecular_formula.cas = possible_formula.cas
-
-                    else:
-                        molecular_formula = MolecularFormula(
-                            formula_dict,
-                            ion_charge,
-                            ion_type=ion_type,
-                            adduct_atom=adduct_atom,
-                        )
+                    molecular_formula = MolecularFormula(
+                        formula_dict,
+                        ion_charge,
+                        ion_type=ion_type,
+                        adduct_atom=adduct_atom,
+                    )
                     # add the molecular formula obj to the mspeak obj
                     # add the mspeak obj and it's index for tracking next assignment step
 
