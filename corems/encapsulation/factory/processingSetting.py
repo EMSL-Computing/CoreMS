@@ -915,9 +915,15 @@ class MolecularFormulaSearchSettings:
     max_dbe : float, optional
         Maximum double bond equivalent to use for searching. Default is 40.
     mz_error_score_weight : float, optional
-        Weight for m/z error score to contribute to composite score. Default is 0.6.
+        Weight ``w_err`` for the formula-level mass-error term
+        (``MolecularFormula.average_mz_error_score``) in the composite
+        ``confidence_score``. Default is 0.6. See the
+        ``corems.molecular_formula`` package documentation.
     isotopologue_score_weight : float, optional
-        Weight for isotopologue score to contribute to composite score. Default is 0.4.
+        Weight ``w_iso`` for the isotopologue similarity term
+        (``MolecularFormula.isotopologue_similarity``) in the composite
+        ``confidence_score``. Default is 0.4. Some literature examples use
+        equal weights (0.5 / 0.5).
     adduct_atoms_neg : tuple, optional
         Tuple of atoms to use in negative polarity. Default is ('Cl', 'Br').
     adduct_atoms_pos : tuple, optional
