@@ -64,7 +64,13 @@ class ReadCoremsMasslist(MassListBaseClass):
 
         dataframe.rename(columns=self.parameters.header_translate, inplace=True)
 
-        polarity = dataframe["Ion Charge"].values[0]
+        # "Ion Charge" is dual-purpose in CoreMS tables: spectrum/peak polarity
+        # for unassigned rows (±1), formula assignment charge when assigned
+        # (may be |z|>1). Spectrum polarity is only the sign.
+        raw_charge = int(dataframe["Ion Charge"].values[0])
+        if raw_charge == 0:
+            raise ValueError("Ion Charge column must be non-zero to derive polarity")
+        polarity = 1 if raw_charge > 0 else -1
 
         output_parameters = self.get_output_parameters(polarity)
 
@@ -109,6 +115,7 @@ class ReadCoremsMasslist(MassListBaseClass):
             formula_df = formula_df.apply(pd.to_numeric, errors="coerce").fillna(0)
 
             ion_type_df = dataframe["Ion Type"]
+            # Formula assignment charge from export (not peak polarity)
             ion_charge_df = dataframe["Ion Charge"]
             is_isotopologue_df = dataframe["Is Isotopologue"]
             if "Adduct" in dataframe:

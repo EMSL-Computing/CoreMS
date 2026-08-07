@@ -684,7 +684,8 @@ class HighResMassSpecExport(Thread):
                 "Peak Area": ms_peak.area,
                 "Resolving Power": ms_peak.resolving_power,
                 "S/N": ms_peak.signal_to_noise,
-                "Ion Charge": ms_peak.ion_charge,
+                # Unassigned: polarity only (±1); no formula charge exists yet
+                "Ion Charge": ms_peak.polarity,
                 "Heteroatom Class": eval("Labels.unassigned{}".format(encode)),
             }
 
@@ -705,7 +706,7 @@ class HighResMassSpecExport(Thread):
                 "Peak Area": ms_peak.area,
                 "Resolving Power": ms_peak.resolving_power,
                 "S/N": ms_peak.signal_to_noise,
-                # Assignment charge (search charge), not peak polarity label
+                # Assigned: formula charge state (may be multi-charge); not peak polarity
                 "Ion Charge": mformula.ion_charge,
                 "m/z Error (ppm)": mformula.mz_error,
                 "Confidence Score": mformula.confidence_score,

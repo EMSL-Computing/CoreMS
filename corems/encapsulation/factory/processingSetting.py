@@ -906,8 +906,9 @@ class MolecularFormulaSearchSettings:
         at polarity-signed values (e.g. positive polarity and max 2 → z = +1, +2).
         No 13C-based charge determination is performed; every selected peak is
         searched at each charge and candidates are ranked by existing formula
-        scores (isotopologue similarity, confidence). Peak ``ion_charge`` remains
-        polarity-based; assignment charge lives on ``MolecularFormula.ion_charge``.
+        scores (isotopologue similarity, confidence). Peak ``polarity`` remains
+        ±1 (legacy alias ``peak.ion_charge``); assignment charge lives on
+        ``MolecularFormula.ion_charge``.
     max_ion_charge : int, optional
         Maximum **absolute** ion charge for molecular formula search. Default is 1
         (legacy single-charge behavior). Must be >= ``min_ion_charge``.

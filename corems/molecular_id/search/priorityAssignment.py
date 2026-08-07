@@ -375,7 +375,9 @@ class OxygenPriorityAssignment(Thread):
         """
         nominal_mzs = self.nominal_mzs
         mf_search_settings = self.mass_spectrum_obj.molecular_search_settings
-        ion_charge = self.mass_spectrum_obj.polarity
+        # Priority assignment still searches a single signed charge from
+        # spectrum polarity (not min_ion_charge/max_ion_charge multi-z).
+        search_charge = int(self.mass_spectrum_obj.polarity)
 
         sql_db = MolForm_SQL(url=mf_search_settings.url_database)
 
@@ -386,7 +388,7 @@ class OxygenPriorityAssignment(Thread):
                 classe_str_list,
                 Labels.protonated_de_ion,
                 nominal_mzs,
-                ion_charge,
+                search_charge,
                 mf_search_settings,
             )
 
@@ -395,21 +397,21 @@ class OxygenPriorityAssignment(Thread):
                 classe_str_list,
                 Labels.radical_ion,
                 nominal_mzs,
-                ion_charge,
+                search_charge,
                 mf_search_settings,
             )
 
         if mf_search_settings.isAdduct:
             adduct_list = (
                 mf_search_settings.adduct_atoms_neg
-                if ion_charge < 0
+                if search_charge < 0
                 else mf_search_settings.adduct_atoms_pos
             )
             dict_res[Labels.adduct_ion] = sql_db.get_dict_by_classes(
                 classe_str_list,
                 Labels.adduct_ion,
                 nominal_mzs,
-                ion_charge,
+                search_charge,
                 mf_search_settings,
                 adducts=adduct_list,
             )

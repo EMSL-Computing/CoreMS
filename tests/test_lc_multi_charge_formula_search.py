@@ -1,7 +1,8 @@
 """Tests for multi-charge molecular formula search (min/max ion charge).
 
 No 13C charge determination: search expands absolute charge range and
-assignment charge lives on MolecularFormula.ion_charge.
+assignment charge lives on MolecularFormula.ion_charge. Peak polarity
+(±1) is separate; peak.ion_charge is a deprecated alias for polarity.
 """
 
 import sys
@@ -67,11 +68,82 @@ class TestMolecularFormulaSearchSettingsChargeRange:
         assert s.max_ion_charge == 1
 
 
+class TestExportIonChargeSemantics:
+    """Export 'Ion Charge': polarity when unassigned, formula charge when assigned."""
+
+    def test_unassigned_export_uses_peak_polarity(self):
+        mz = [100.0]
+        abundance = [1.0]
+        rp, s2n = [[1000.0], [10.0]]
+        mass_spectrum_obj = ms_from_array_centroid(
+            mz, abundance, rp, s2n, "unassigned export", polarity=-1, auto_process=False
+        )
+        mass_spectrum_obj.settings.noise_threshold_method = "absolute_abundance"
+        mass_spectrum_obj.settings.noise_threshold_absolute_abundance = 0
+        mass_spectrum_obj.process_mass_spec()
+        peak = mass_spectrum_obj[0]
+        assert peak.polarity == -1
+        assert not peak.is_assigned
+        df = mass_spectrum_obj.to_dataframe()
+        assert list(df["Ion Charge"]) == [-1]
+
+    @pytest.mark.molecular_db
+    def test_assigned_export_uses_formula_ion_charge(self, postgres_database):
+        formula = MolecularFormula({"C": 6, "H": 6}, ion_charge=2, ion_type="RADICAL")
+        mz_z2 = formula.mz_calc
+        mz = [mz_z2]
+        abundance = [1.0]
+        rp, s2n = [[1000.0], [100.0]]
+        mass_spectrum_obj = ms_from_array_centroid(
+            mz,
+            abundance,
+            rp,
+            s2n,
+            "assigned export z2",
+            polarity=1,
+            auto_process=False,
+        )
+        mass_spectrum_obj.settings.noise_threshold_method = "absolute_abundance"
+        mass_spectrum_obj.settings.noise_threshold_absolute_abundance = 0
+
+        settings = mass_spectrum_obj.molecular_search_settings
+        settings.url_database = postgres_database
+        settings.error_method = "None"
+        settings.min_ppm_error = -10
+        settings.max_ppm_error = 10
+        settings.mz_error_range = 1
+        settings.isProtonated = False
+        settings.isRadical = True
+        settings.isAdduct = False
+        settings.use_min_peaks_filter = False
+        settings.min_ion_charge = 1
+        settings.max_ion_charge = 2
+        settings.usedAtoms = {
+            "C": (6, 6),
+            "H": (6, 6),
+            "O": (0, 0),
+            "N": (0, 0),
+        }
+
+        mass_spectrum_obj.process_mass_spec()
+        peak = mass_spectrum_obj[0]
+        SearchMolecularFormulas(
+            mass_spectrum_obj, find_isotopologues=False
+        ).run_worker_ms_peaks([peak])
+
+        assert peak.is_assigned
+        assert peak.polarity == 1
+        df = mass_spectrum_obj.to_dataframe()
+        # Assigned rows export formula charge (z=2), not peak polarity
+        assert 2 in set(df["Ion Charge"])
+        assert all(z in (1, 2) for z in df["Ion Charge"])
+
+
 @pytest.mark.molecular_db
 def test_di_multi_charge_search_assigns_formula_charge(postgres_database):
     """DI search at max_ion_charge=2 can assign a z=2 radical formula.
 
-    Peak ion_charge stays polarity (±1); formula ion_charge is the search charge.
+    Peak polarity stays ±1; formula ion_charge is the search charge.
     """
     # C6H6 radical at z=2: m/z = (neutral - 2*e) / 2
     formula = MolecularFormula({"C": 6, "H": 6}, ion_charge=2, ion_type="RADICAL")
@@ -107,15 +179,16 @@ def test_di_multi_charge_search_assigns_formula_charge(postgres_database):
 
     mass_spectrum_obj.process_mass_spec()
     peak = mass_spectrum_obj[0]
-    peak_z_before = peak.ion_charge
+    peak_polarity_before = peak.polarity
 
     SearchMolecularFormulas(
         mass_spectrum_obj, find_isotopologues=False
     ).run_worker_ms_peaks([peak])
 
-    # Peak charge is polarity-based only
-    assert peak.ion_charge == peak_z_before
-    assert peak.ion_charge == 1
+    # Peak carries polarity only; ion_charge is deprecated alias
+    assert peak.polarity == peak_polarity_before
+    assert peak.polarity == 1
+    assert peak.ion_charge == peak.polarity
 
     assert peak.is_assigned
     formula_charges = {mf.ion_charge for mf in peak}

@@ -111,9 +111,7 @@ class SearchMolecularFormulas:
         (inclusive) are multiplied by the polarity sign. No charge-state
         determination is performed; every selected peak is searched at each
         returned charge and candidates are ranked by formula scores.
-
-        Peak ``ion_charge`` is not updated by this helper or by multi-charge
-        search; assignment charge lives on ``MolecularFormula.ion_charge``.
+`.
 
         Parameters
         ----------
@@ -364,7 +362,7 @@ class SearchMolecularFormulas:
         settings = self.mass_spectrum_obj.molecular_search_settings
         polarity = int(self.mass_spectrum_obj.polarity) if self.mass_spectrum_obj.polarity else 1
         # Multi-charge formula search: expand absolute min..max (default 1..1).
-        # Does not rewrite MSPeak.ion_charge (remains polarity-based).
+        # Does not rewrite MSPeak.polarity (remains ±1).
         search_charges = self.ion_charges_for_search(
             polarity,
             min_ion_charge=settings.min_ion_charge,
@@ -1038,7 +1036,7 @@ class SearchMolecularFormulasLC:
         Uses ``min_ion_charge`` / ``max_ion_charge`` from molecular search settings
         to search each peak at every signed charge in that absolute range
         (defaults 1..1 = single-charge). Does not determine or rewrite peak
-        ``ion_charge``; assignment charge is on each ``MolecularFormula``.
+        ``polarity``; assignment charge is on each ``MolecularFormula``.
 
         Parameters
         ----------
@@ -1177,7 +1175,7 @@ class SearchMolecularFormulasLC:
 
         Calls bulk_run_molecular_formula_search() with specified mass spectra and mass peaks.
         Multi-charge range comes from molecular search ``min_ion_charge`` /
-        ``max_ion_charge``. Peak ``ion_charge`` is not rewritten.
+        ``max_ion_charge``. Peak ``polarity`` is not rewritten.
         """
         mass_features_df = self.lcms_obj.mass_features_to_df()
 
