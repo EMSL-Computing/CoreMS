@@ -371,8 +371,6 @@ Class diagrams for the main data-model stacks live in [`docs/uml`](docs/uml):
 - GC-MS (`GC_MS_Data_Model.svg`)
 - LC-MS (`LC_MS_Data_Model.svg`)
 
-Regenerate after class-structure changes with `make uml` (driver: [`docs/generate_uml.py`](docs/generate_uml.py); requires `pylint` / `pyreverse` from the `dev` extra and system Graphviz `dot`). Version bumps via `make patch` / `minor` / `major` run `make docu`, which regenerates these diagrams before pdoc.
-
 ***
 
 ## Citing CoreMS
