@@ -64,7 +64,7 @@ class ReadCoremsMasslist(MassListBaseClass):
 
         dataframe.rename(columns=self.parameters.header_translate, inplace=True)
 
-        polarity = dataframe["Ion Charge"].values[0]
+        polarity = dataframe["Ion Charge"].iloc[0]
 
         output_parameters = self.get_output_parameters(polarity)
 
@@ -138,26 +138,29 @@ class ReadCoremsMasslist(MassListBaseClass):
                 }
 
             if sum(counts) > 0:
-                ion_type = str(Labels.ion_type_translate.get(ion_type_df[df_index]))
+                # Prefer iloc for positional access (pandas 3 Series[] is label-based)
+                ion_type = str(
+                    Labels.ion_type_translate.get(ion_type_df.iloc[df_index])
+                )
                 if adduct_df is not None:
-                    adduct_atom = str(adduct_df[df_index])
+                    adduct_atom = str(adduct_df.iloc[df_index])
                     if adduct_atom == "None":
                         adduct_atom = None
                 else:
                     adduct_atom = None
 
                 # If not isotopologue, cast as MolecularFormula
-                if not bool(int(is_isotopologue_df[df_index])):
+                if not bool(int(is_isotopologue_df.iloc[df_index])):
                     mfobj = MolecularFormula(
                         formula_dict,
-                        int(ion_charge_df[df_index]),
+                        int(ion_charge_df.iloc[df_index]),
                         mspeak_parent=mass_spec_obj[ms_peak_index],
                         ion_type=ion_type,
                         adduct_atom=adduct_atom,
                     )
 
                 # if is isotopologue, recast as MolecularFormulaIsotopologue
-                if bool(int(is_isotopologue_df[df_index])):
+                if bool(int(is_isotopologue_df.iloc[df_index])):
                     # First make a MolecularFormula object for the parent so we can get probabilities etc
                     formula_list_parent = {}
                     for atom in formula_dict:
@@ -180,7 +183,7 @@ class ReadCoremsMasslist(MassListBaseClass):
                     mono_index = int(dataframe.iloc[df_index]["Mono Isotopic Index"])
                     mono_mfobj = MolecularFormula(
                         formula_list_parent,
-                        int(ion_charge_df[df_index]),
+                        int(ion_charge_df.iloc[df_index]),
                         mspeak_parent=mass_spec_obj[mono_index],
                         ion_type=ion_type,
                         adduct_atom=adduct_atom,
