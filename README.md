@@ -365,7 +365,13 @@ df = mass_spectrum_obj.to_dataframe()
 
 ## UML Diagrams
 
-UML (unified modeling language) diagrams for Direct Infusion FT-MS and GC-MS classes can be found [here](docs/uml).
+Class diagrams for the main data-model stacks live in [`docs/uml`](docs/uml):
+
+- Direct Infusion FT-MS (`Direct_Infusion_FTMS_Data_Model.svg`)
+- GC-MS (`GC_MS_Data_Model.svg`)
+- LC-MS (`LC_MS_Data_Model.svg`)
+
+Regenerate after class-structure changes with `make uml` (driver: [`docs/generate_uml.py`](docs/generate_uml.py); requires `pylint` / `pyreverse` from the `dev` extra and system Graphviz `dot`). Version bumps via `make patch` / `minor` / `major` run `make docu`, which regenerates these diagrams before pdoc.
 
 ***
 
