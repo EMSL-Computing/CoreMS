@@ -32,7 +32,7 @@ if legacy_isospec:
 class MolecularFormulaCalc:
     """Class of calculations related to molecular formula
 
-    This class is not intended to be used directly, but rather to be inherited by other classes in the molecular_formula/factory module like MolecularFormula, MolecularFormulaIsotopologue, and LCMSLibRefMolecularFormula
+    This class is not intended to be used directly, but rather to be inherited by other classes in the molecular_formula/factory module like MolecularFormula and MolecularFormulaIsotopologue
 
     Attributes
     ----------

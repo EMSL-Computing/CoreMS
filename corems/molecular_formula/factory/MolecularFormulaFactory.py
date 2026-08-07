@@ -872,88 +872,28 @@ class MolecularFormulaIsotopologue(MolecularFormulaBase):
         return self._calc_abundance_error()
 
 
-class LCMSLibRefMolecularFormula(MolecularFormulaBase):
-    """Class for representing a molecular formula associated with a molecule in a LCMS library reference.
+class LCMSLibRefMolecularFormula:
+    """Removed LC-MS library reference molecular formula type.
+
+    This class is no longer supported. Canonical LC-MS MS1 formula assignment
+    uses :class:`MolecularFormula` via combinatorial / SQL search. Construction
+    raises :class:`NotImplementedError`. The name is retained as a stub until
+    the next major release.
 
     Parameters
     ----------
-    molecular_formula : dict, list, str
-        The molecular formula.
-    ion_charge : int
-        The ion charge.
-    ion_type : str, optional
-        The ion type. Defaults to None.
-    adduct_atom : str, optional
-        The adduct atom. Defaults to None.
-    mspeak_parent : object, optional
-        The parent mass spectrum peak object instance. Defaults to None.
-    name : str, optional
-        The name of the reference molecule. Defaults to None.
-    kegg_id : str, optional
-        The KEGG ID of the reference molecule. Defaults to None.
-    cas : str, optional
-        The CAS number of the reference molecule. Defaults to None.
-
+    *args
+        Ignored; retained only for call-site compatibility.
+    **kwargs
+        Ignored; retained only for call-site compatibility.
     """
 
-    def __init__(
-        self,
-        molecular_formula,
-        ion_charge,
-        ion_type=None,
-        adduct_atom=None,
-        mspeak_parent=None,
-        name=None,
-        kegg_id=None,
-        cas=None,
-    ) -> None:
-        super().__init__(
-            molecular_formula,
-            ion_charge,
-            ion_type=ion_type,
-            adduct_atom=adduct_atom,
-            mspeak_parent=mspeak_parent,
+    def __init__(self, *args, **kwargs) -> None:
+        raise NotImplementedError(
+            "LCMSLibRefMolecularFormula is no longer supported. "
+            "Use MolecularFormula for formula objects. "
+            "This stub will be removed in the next major release."
         )
-
-        self._name = name
-        self._kegg_id = kegg_id
-        self._cas = cas
-
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, name):
-        if isinstance(name, str):
-            self._name = name
-        else:
-            raise TypeError("name: {} should be type string")
-
-    @property
-    def kegg_id(self):
-        return self._kegg_id
-
-    @kegg_id.setter
-    def kegg_id(self, kegg_id):
-        self._kegg_id = kegg_id
-        # if isinstance(kegg_id, str):
-        #    self._kegg_id = kegg_id
-        # else:
-        #    print(kegg_id)
-        #    raise TypeError('name: {} should be type string')
-
-    @property
-    def cas(self):
-        return self._cas
-
-    @cas.setter
-    def cas(self, cas):
-        self._cas = cas
-        # if isinstance(cas, str):
-        #    self._cas = cas
-        # else:
-        #    raise TypeError('name: {} should be type string')
 
 
 class MolecularFormula(MolecularFormulaBase):
