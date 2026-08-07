@@ -240,20 +240,23 @@ class MolecularFormulaCalc:
             )
 
     def _calc_mz_confidence(self, mean=0):
-        """Calculate the m/z confidence of the molecular formula, based on the experimental m/z and the calculated m/z.
+        """Calculate the monoisotopic peak Gaussian mass-accuracy score.
+
+        Implementation for the public :attr:`mz_error_score` property.
+        See that property and the ``corems.molecular_formula`` package
+        documentation for the equation, ``predicted_std`` / 1.66 ppm
+        fallback, and interpretation.
 
         Parameters
         ----------
-        mean : int, optional
-            The mean of the m/z error, by default 0
-
+        mean : float, optional
+            Mean mass error (ppm) for the Gaussian; default 0 (calibrated
+            spectrum with near-zero mean error).
         """
 
-        # predicted std not set, using 0.3
+        # predicted_std not set: fallback width (ppm) for the Gaussian score
         if not self._mspeak_parent.predicted_std:
             self._mspeak_parent.predicted_std = 1.66
-
-        # print( self._mspeak_parent.predicted_std)
 
         return exp(
             -1
@@ -264,12 +267,17 @@ class MolecularFormulaCalc:
         )
 
     def _calc_isotopologue_confidence(self):
-        """Calculate the isotopologue confidence of the molecular formula, based on the isotopologue similarity.
+        """Calculate isotopologue abundance pattern similarity.
+
+        Implementation for the public :attr:`isotopologue_similarity`
+        property. See that property and the ``corems.molecular_formula``
+        package documentation for interpretation.
 
         Returns
         -------
         float
-            The isotopologue confidence of the molecular formula.
+            Similarity in about [0, 1], or 0.0 when no isotopologues are
+            expected.
         """
 
         if self.is_isotopologue:
@@ -321,10 +329,7 @@ class MolecularFormulaCalc:
             # correlation = dwt_correlation(dict_mz_abund_exp, dict_mz_abund_ref)
             # correlation = cosine_correlation(dict_mz_abund_exp, dict_mz_abund_ref)
 
-            if correlation == 1:
-                print(dict_mz_abund_exp, dict_mz_abund_ref)
             if isnan(correlation):
-                # print(dict_mz_abund_exp, dict_mz_abund_ref)
                 correlation = 0.00001
 
         else:
@@ -390,7 +395,12 @@ class MolecularFormulaCalc:
         return formula_srt
 
     def _calc_average_mz_score(self):
-        """Calculate the average m/z error score of the molecular formula identification, including the isotopologues."""
+        """Average mass-accuracy score over mono and expected isotopologues.
+
+        Implementation for the public :attr:`average_mz_error_score`
+        property. See that property and the ``corems.molecular_formula``
+        package documentation for interpretation.
+        """
         if self.is_isotopologue:
             # confidence of isotopologue is pure mz error
             # TODO add more features here
@@ -426,31 +436,26 @@ class MolecularFormulaCalc:
         return average_mz_score
 
     def _calc_confidence_score(self):
-        """Calculate the confidence score of the molecular formula identification, including the isotopologues."""
+        """Composite confidence score from mass error and isotopologues.
 
-        ### Assumes random mass error, i.e, spectrum has to be calibrated and with zero mean
-        #### TODO: Add spectral similarity
+        Implementation for the public :attr:`confidence_score` property:
 
-        ## Parameters
-        # ----------
-        #### mz_exp:
-        ####    Experimental m/z
-        #### predicted_std:
-        ####    Standart deviation calculated from Resolving power optimization or constant set by User
+        ```
+        CS = (w_err * average_mz_error_score) + (w_iso * isotopologue_similarity)
+        ```
+
+        with weights from the parent spectrum's molecular search settings.
+        Assumes a calibrated spectrum with near-zero mean mass error.
+        See the public property and the ``corems.molecular_formula`` package
+        documentation for the full formulation and literature reference.
+        """
 
         isotopologue_correlation = self.isotopologue_similarity
         average_mz_score = self.average_mz_error_score
-        # add monoisotopic peak mz error score
-
-        # calculate score with higher weight for mass error
-        # score = power(((isotopologue_correlation) * (power(average_mz_score,3))),1/4)
         a = self._mspeak_parent._ms_parent.molecular_search_settings.mz_error_score_weight
         b = self._mspeak_parent._ms_parent.molecular_search_settings.isotopologue_score_weight
 
         score = (isotopologue_correlation * b) + (average_mz_score * a)
-
-        # if round(average_mz_score,2) == 0.00:
-        #    print(a,b, average_mz_score, isotopologue_correlation, score, isotopologue_correlation*b)
 
         return score
 
