@@ -912,6 +912,8 @@ class MolecularFormulaSearchSettings:
     max_ion_charge : int, optional
         Maximum **absolute** ion charge for molecular formula search. Default is 1
         (legacy single-charge behavior). Must be >= ``min_ion_charge``.
+        Incompatible with ``isAdduct=True`` when greater than 1 (adduct search is
+        single-charge only; multi-charge adducts are not modeled).
     min_hc_filter : float, optional
         Minimum hydrogen to carbon ratio. Default is 0.3.
     max_hc_filter : float, optional
@@ -951,6 +953,8 @@ class MolecularFormulaSearchSettings:
         If True, search for protonated ions. Default is True.
     isAdduct : bool, optional
         If True, search for adduct ions. Default is False.
+        Requires ``max_ion_charge == 1`` (and typically ``min_ion_charge == 1``);
+        multi-charge formula search does not include adduct ion types.
     usedAtoms : dict, optional
         Dictionary of atoms and ranges. Default is {'C': (1, 90), 'H': (4, 200), 'O': (0, 12), 'N': (0, 0), 'S': (0, 0), 'P': (0, 0), 'Cl': (0, 0)}.
     ion_types_excluded : list, optional
@@ -1120,6 +1124,34 @@ class MolecularFormulaSearchSettings:
                 else:
                     # will get the first number of all possible covalances, which should be the most commum
                     self.used_atom_valences[atom] = covalence[0]
+
+        self.validate_ion_charge_settings()
+
+    def validate_ion_charge_settings(self):
+        """Validate absolute charge range and adduct compatibility.
+
+        Raises
+        ------
+        ValueError
+            If ``min_ion_charge`` / ``max_ion_charge`` are invalid, or if
+            ``isAdduct`` is enabled with multi-charge search
+            (``max_ion_charge > 1``).
+        """
+        min_z = int(self.min_ion_charge)
+        max_z = int(self.max_ion_charge)
+        if min_z < 1:
+            raise ValueError("min_ion_charge must be >= 1")
+        if max_z < min_z:
+            raise ValueError("max_ion_charge must be >= min_ion_charge")
+        # Multi-charge adducts ([M+Na+H]2+, [M+2Na]2+, etc.) are not modeled;
+        # adduct search is single-charge only.
+        if self.isAdduct and max_z > 1:
+            raise ValueError(
+                "isAdduct=True is incompatible with multi-charge formula search "
+                f"(max_ion_charge={max_z}). Set max_ion_charge=1 for adduct "
+                "search, or disable isAdduct for multi-charge protonated/radical "
+                "search."
+            )
 @dataclasses.dataclass
 class LCMSCollectionSettings:
     """Settings for LCMS collection class

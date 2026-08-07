@@ -360,6 +360,8 @@ class SearchMolecularFormulas:
             and passed to the timeit decorator.
         """
         settings = self.mass_spectrum_obj.molecular_search_settings
+        # Re-check after possible post-construction mutation of settings fields
+        settings.validate_ion_charge_settings()
         polarity = int(self.mass_spectrum_obj.polarity) if self.mass_spectrum_obj.polarity else 1
         # Multi-charge formula search: expand absolute min..max (default 1..1).
         # Does not rewrite MSPeak.polarity (remains ±1).
@@ -449,7 +451,9 @@ class SearchMolecularFormulas:
                             )
                     # looks for adduct, used_atom_valences should be 0
                     # this code does not support H exchance by halogen atoms
-                    if settings.isAdduct:
+                    # Adduct search only at |z|==1; multi-charge adducts
+                    # ([M+Na+H]2+, [M+2Na]2+, etc.) are not modeled.
+                    if settings.isAdduct and abs(ion_charge) == 1:
                         if verbose:
                             pbar.set_description_str(
                                 desc="Started molecular formula search for class %s, adduct z=%s "
@@ -1058,6 +1062,8 @@ class SearchMolecularFormulasLC:
         mol_settings = self.lcms_obj.parameters.mass_spectrum[
             mass_spectrum_setting_key
         ].molecular_search
+        # Re-check after possible post-construction mutation of settings fields
+        mol_settings.validate_ion_charge_settings()
         search_charges = SearchMolecularFormulas.ion_charges_for_search(
             self.lcms_obj.polarity,
             min_ion_charge=mol_settings.min_ion_charge,
@@ -1146,7 +1152,9 @@ class SearchMolecularFormulasLC:
                         # Perform search for adduct ion type
                         # looks for adduct, used_atom_valences should be 0
                         # this code does not support H exchance by halogen atoms
-                        if mol_settings.isAdduct:
+                        # Adduct search only at |z|==1; multi-charge adducts
+                        # ([M+Na+H]2+, [M+2Na]2+, etc.) are not modeled.
+                        if mol_settings.isAdduct and abs(ion_charge) == 1:
                             pbar.set_description_str(
                                 desc="Started molecular formula search for class %s, adduct z=%s "
                                 % (classe_str, ion_charge),

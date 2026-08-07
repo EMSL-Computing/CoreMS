@@ -7,7 +7,7 @@ element masses as Atoms (C, H, N, Na, 13C, electron) with:
   neutral mass M = sum n_i * mass_i
   radical  [M].z+   : (M - z*e) / |z|
   protonated [M+zH]z+ : (M + z*H - z*e) / |z|
-  adduct   [M+Na]z+ : (M + Na - z*e) / |z|   (single adduct atom)
+  adduct   [M+Na]+  : (M + Na - e) / 1   (adduct search is single-charge only)
 """
 
 import sys
@@ -27,15 +27,12 @@ MZ_C6H6_RADICAL_Z2 = 39.0229265168
 # [M+H]+ / [M+H]+ 13C
 MZ_C56H73N1_MH_Z1 = 760.5815778095
 MZ_C55H73N1_13C_MH_Z1 = 761.5849326446
-# [M+Na]+ / [M+Na]+ 13C
+# [M+Na]+ / [M+Na]+ 13C (single-charge adduct only)
 MZ_C56H73N1_MNA_Z1 = 782.5635220593
 MZ_C55H73N1_13C_MNA_Z1 = 783.5668768944
 # [M+2H]2+ / [M+2H]2+ 13C
 MZ_C56H73N1_MH_Z2 = 380.7944271309
 MZ_C55H73N1_13C_MH_Z2 = 381.2961045485
-# [M+Na]2+ / [M+Na]2+ 13C
-MZ_C56H73N1_MNA_Z2 = 391.2814867397
-MZ_C55H73N1_13C_MNA_Z2 = 391.7831641572
 
 
 def test_ion_charges_for_search():
@@ -66,6 +63,17 @@ def test_min_max_ion_charge_defaults():
     s = MolecularFormulaSearchSettings()
     assert s.min_ion_charge == 1
     assert s.max_ion_charge == 1
+
+
+def test_isAdduct_incompatible_with_multi_charge():
+    """isAdduct=True with max_ion_charge > 1 is rejected at construction."""
+    with pytest.raises(ValueError, match="isAdduct=True is incompatible"):
+        MolecularFormulaSearchSettings(isAdduct=True, max_ion_charge=2)
+
+    s = MolecularFormulaSearchSettings(isAdduct=True, max_ion_charge=1)
+    s.max_ion_charge = 2
+    with pytest.raises(ValueError, match="isAdduct=True is incompatible"):
+        s.validate_ion_charge_settings()
 
 
 def test_export_unassigned_ion_charge_is_polarity():
@@ -210,29 +218,77 @@ def test_default_max_ion_charge_skips_z2_only_peak(postgres_database):
 
 
 @pytest.mark.molecular_db
-def test_multi_charge_mh_and_mna_with_c13(postgres_database):
-    """Recover M+H and M+Na at z=1 and z=2, each with a 13C partner, when adducts on.
+def test_multi_charge_protonated_with_c13(postgres_database):
+    """Recover [M+H]+ and [M+2H]2+ with 13C partners (adducts off).
 
     Peak layout (hard-coded m/z; mono then 13C for each species):
       0,1  [M+H]+ and 13C
-      2,3  [M+Na]+ and 13C
-      4,5  [M+2H]2+ and 13C
-      6,7  [M+Na]2+ and 13C  (single Na; electrons scale with z)
+      2,3  [M+2H]2+ and 13C
     """
     mz = [
         MZ_C56H73N1_MH_Z1,
         MZ_C55H73N1_13C_MH_Z1,
-        MZ_C56H73N1_MNA_Z1,
-        MZ_C55H73N1_13C_MNA_Z1,
         MZ_C56H73N1_MH_Z2,
         MZ_C55H73N1_13C_MH_Z2,
-        MZ_C56H73N1_MNA_Z2,
-        MZ_C55H73N1_13C_MNA_Z2,
     ]
-    abundance = [1.0, 0.4, 1.0, 0.4, 1.0, 0.4, 1.0, 0.4]
-    rp, s2n = [[10000.0] * 8, [100.0] * 8]
+    abundance = [1.0, 0.4, 1.0, 0.4]
+    rp, s2n = [[10000.0] * 4, [100.0] * 4]
     mass_spectrum_obj = ms_from_array_centroid(
-        mz, abundance, rp, s2n, "mh mna multi-charge c13", polarity=1, auto_process=False
+        mz, abundance, rp, s2n, "mh multi-charge c13", polarity=1, auto_process=False
+    )
+    mass_spectrum_obj.settings.noise_threshold_method = "absolute_abundance"
+    mass_spectrum_obj.settings.noise_threshold_absolute_abundance = 0
+
+    mass_spectrum_obj.molecular_search_settings.url_database = postgres_database
+    mass_spectrum_obj.molecular_search_settings.error_method = "None"
+    mass_spectrum_obj.molecular_search_settings.min_ppm_error = -5
+    mass_spectrum_obj.molecular_search_settings.max_ppm_error = 5
+    mass_spectrum_obj.molecular_search_settings.mz_error_range = 1
+    mass_spectrum_obj.molecular_search_settings.isProtonated = True
+    mass_spectrum_obj.molecular_search_settings.isRadical = False
+    mass_spectrum_obj.molecular_search_settings.isAdduct = False
+    mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
+    mass_spectrum_obj.molecular_search_settings.use_isotopologue_filter = False
+    mass_spectrum_obj.molecular_search_settings.min_ion_charge = 1
+    mass_spectrum_obj.molecular_search_settings.max_ion_charge = 2
+    mass_spectrum_obj.molecular_search_settings.usedAtoms = {
+        "C": (56, 56),
+        "H": (73, 73),
+        "N": (1, 1),
+        "O": (0, 0),
+    }
+
+    mass_spectrum_obj.process_mass_spec()
+    mono_peaks = [mass_spectrum_obj[0], mass_spectrum_obj[2]]
+    SearchMolecularFormulas(
+        mass_spectrum_obj, find_isotopologues=True
+    ).run_worker_ms_peaks(mono_peaks)
+
+    # [M+H]+
+    assert mass_spectrum_obj[0][0].string == "C56 H73 N1"
+    assert mass_spectrum_obj[0][0].ion_charge == 1
+    assert mass_spectrum_obj[0].polarity == 1
+    assert mass_spectrum_obj[1][0].string == "C55 H73 N1 13C1"
+    assert mass_spectrum_obj[1][0].ion_charge == 1
+    assert mass_spectrum_obj[1][0].is_isotopologue
+
+    # [M+2H]2+
+    assert mass_spectrum_obj[2][0].string == "C56 H73 N1"
+    assert mass_spectrum_obj[2][0].ion_charge == 2
+    assert mass_spectrum_obj[2].polarity == 1
+    assert mass_spectrum_obj[3][0].string == "C55 H73 N1 13C1"
+    assert mass_spectrum_obj[3][0].ion_charge == 2
+    assert mass_spectrum_obj[3][0].is_isotopologue
+
+
+@pytest.mark.molecular_db
+def test_single_charge_mna_with_c13(postgres_database):
+    """Recover [M+Na]+ with 13C partner when isAdduct on and max_ion_charge=1."""
+    mz = [MZ_C56H73N1_MNA_Z1, MZ_C55H73N1_13C_MNA_Z1]
+    abundance = [1.0, 0.4]
+    rp, s2n = [[10000.0, 10000.0], [100.0, 100.0]]
+    mass_spectrum_obj = ms_from_array_centroid(
+        mz, abundance, rp, s2n, "mna single-charge c13", polarity=1, auto_process=False
     )
     mass_spectrum_obj.settings.noise_threshold_method = "absolute_abundance"
     mass_spectrum_obj.settings.noise_threshold_absolute_abundance = 0
@@ -249,6 +305,43 @@ def test_multi_charge_mh_and_mna_with_c13(postgres_database):
     mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
     mass_spectrum_obj.molecular_search_settings.use_isotopologue_filter = False
     mass_spectrum_obj.molecular_search_settings.min_ion_charge = 1
+    mass_spectrum_obj.molecular_search_settings.max_ion_charge = 1
+    mass_spectrum_obj.molecular_search_settings.usedAtoms = {
+        "C": (56, 56),
+        "H": (73, 73),
+        "N": (1, 1),
+        "O": (0, 0),
+    }
+
+    mass_spectrum_obj.process_mass_spec()
+    SearchMolecularFormulas(
+        mass_spectrum_obj, find_isotopologues=True
+    ).run_worker_ms_peaks([mass_spectrum_obj[0]])
+
+    assert mass_spectrum_obj[0][0].string == "C56 H73 N1"
+    assert mass_spectrum_obj[0][0].ion_charge == 1
+    assert mass_spectrum_obj[0][0].adduct_atom == "Na"
+    assert mass_spectrum_obj[1][0].string == "C55 H73 N1 13C1"
+    assert mass_spectrum_obj[1][0].ion_charge == 1
+    assert mass_spectrum_obj[1][0].adduct_atom == "Na"
+    assert mass_spectrum_obj[1][0].is_isotopologue
+
+
+@pytest.mark.molecular_db
+def test_search_errors_if_adduct_and_multi_charge(postgres_database):
+    """Search fails loudly if settings mix isAdduct with max_ion_charge > 1."""
+    mz = [MZ_C56H73N1_MH_Z1]
+    abundance = [1.0]
+    rp, s2n = [[10000.0], [100.0]]
+    mass_spectrum_obj = ms_from_array_centroid(
+        mz, abundance, rp, s2n, "bad settings", polarity=1, auto_process=False
+    )
+    mass_spectrum_obj.settings.noise_threshold_method = "absolute_abundance"
+    mass_spectrum_obj.settings.noise_threshold_absolute_abundance = 0
+
+    mass_spectrum_obj.molecular_search_settings.url_database = postgres_database
+    mass_spectrum_obj.molecular_search_settings.isProtonated = True
+    mass_spectrum_obj.molecular_search_settings.isAdduct = True
     mass_spectrum_obj.molecular_search_settings.max_ion_charge = 2
     mass_spectrum_obj.molecular_search_settings.usedAtoms = {
         "C": (56, 56),
@@ -258,49 +351,7 @@ def test_multi_charge_mh_and_mna_with_c13(postgres_database):
     }
 
     mass_spectrum_obj.process_mass_spec()
-    # Search monoisotopic peaks only; find_isotopologues attaches 13C partners
-    mono_peaks = [
-        mass_spectrum_obj[0],
-        mass_spectrum_obj[2],
-        mass_spectrum_obj[4],
-        mass_spectrum_obj[6],
-    ]
-    SearchMolecularFormulas(
-        mass_spectrum_obj, find_isotopologues=True
-    ).run_worker_ms_peaks(mono_peaks)
-
-    # [M+H]+
-    assert mass_spectrum_obj[0][0].string == "C56 H73 N1"
-    assert mass_spectrum_obj[0][0].ion_charge == 1
-    assert mass_spectrum_obj[0][0].adduct_atom is None
-    assert mass_spectrum_obj[0].polarity == 1
-    assert mass_spectrum_obj[1][0].string == "C55 H73 N1 13C1"
-    assert mass_spectrum_obj[1][0].ion_charge == 1
-    assert mass_spectrum_obj[1][0].is_isotopologue
-
-    # [M+Na]+
-    assert mass_spectrum_obj[2][0].string == "C56 H73 N1"
-    assert mass_spectrum_obj[2][0].ion_charge == 1
-    assert mass_spectrum_obj[2][0].adduct_atom == "Na"
-    assert mass_spectrum_obj[3][0].string == "C55 H73 N1 13C1"
-    assert mass_spectrum_obj[3][0].ion_charge == 1
-    assert mass_spectrum_obj[3][0].adduct_atom == "Na"
-    assert mass_spectrum_obj[3][0].is_isotopologue
-
-    # [M+2H]2+
-    assert mass_spectrum_obj[4][0].string == "C56 H73 N1"
-    assert mass_spectrum_obj[4][0].ion_charge == 2
-    assert mass_spectrum_obj[4][0].adduct_atom is None
-    assert mass_spectrum_obj[4].polarity == 1
-    assert mass_spectrum_obj[5][0].string == "C55 H73 N1 13C1"
-    assert mass_spectrum_obj[5][0].ion_charge == 2
-    assert mass_spectrum_obj[5][0].is_isotopologue
-
-    # [M+Na]2+
-    assert mass_spectrum_obj[6][0].string == "C56 H73 N1"
-    assert mass_spectrum_obj[6][0].ion_charge == 2
-    assert mass_spectrum_obj[6][0].adduct_atom == "Na"
-    assert mass_spectrum_obj[7][0].string == "C55 H73 N1 13C1"
-    assert mass_spectrum_obj[7][0].ion_charge == 2
-    assert mass_spectrum_obj[7][0].adduct_atom == "Na"
-    assert mass_spectrum_obj[7][0].is_isotopologue
+    with pytest.raises(ValueError, match="isAdduct=True is incompatible"):
+        SearchMolecularFormulas(
+            mass_spectrum_obj, find_isotopologues=False
+        ).run_worker_ms_peaks([mass_spectrum_obj[0]])
