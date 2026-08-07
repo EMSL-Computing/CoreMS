@@ -8,6 +8,42 @@ from typing import List, Dict
 from corems.encapsulation.constant import Atoms, Labels
 
 
+def validate_used_atoms_keys(used_atoms):
+    """Validate that usedAtoms keys are element symbols, not rare isotopes.
+
+    Molecular formula search treats each usedAtoms key as a monoisotopic
+    (most-abundant) element. Heavy isotopologues (e.g. 13C, 54Fe, 37Cl) are
+    produced later by isotopologue expansion of mono formulas, not by listing
+    rare-isotope labels in usedAtoms.
+
+    Parameters
+    ----------
+    used_atoms : dict
+        Mapping of atom symbol to (min, max) count range.
+
+    Raises
+    ------
+    ValueError
+        If any key is not a mono element symbol (key of Atoms.isotopes).
+    TypeError
+        If used_atoms is not a mapping.
+    """
+    if used_atoms is None:
+        return
+    if not hasattr(used_atoms, "keys"):
+        raise TypeError(
+            "usedAtoms must be a dict of element symbols to (min, max) ranges"
+        )
+    invalid = [k for k in used_atoms.keys() if k not in Atoms.isotopes]
+    if invalid:
+        raise ValueError(
+            "usedAtoms keys must be element symbols (e.g. Fe, C, Cl), "
+            "not specific isotope labels (e.g. 54Fe, 13C, 37Cl). "
+            f"Invalid key(s): {invalid}. "
+            "Heavy isotopologues are generated from mono formulas during search."
+        )
+
+
 @dataclasses.dataclass
 class TransientSetting:
     """Transient processing settings class
@@ -787,7 +823,13 @@ class MolecularLookupDictSettings:
     Attributes
     ----------
     usedAtoms : dict, optional
-        Dictionary of atoms and ranges. Default is {'C': (1, 90), 'H': (4, 200), 'O': (0, 12), 'N': (0, 0), 'S': (0, 0), 'P': (0, 0), 'Cl': (0, 0)}.
+        Dictionary of **element symbols** (most-abundant mono codes) to
+        (min, max) count ranges. Keys must be element symbols present in
+        ``Atoms.isotopes`` (e.g. ``C``, ``Fe``, ``Cl``), **not** specific
+        isotope labels (e.g. ``13C``, ``54Fe``, ``37Cl``). Rare isotopes are
+        produced by isotopologue expansion of mono formulas after assignment.
+        Default is {'C': (1, 90), 'H': (4, 200), 'O': (0, 12), 'N': (0, 0),
+        'S': (0, 0), 'P': (0, 0), 'Cl': (0, 0)}.
     min_mz : float, optional
         Minimum m/z to use for searching. Default is 50.0.
     max_mz : float, optional
@@ -819,7 +861,8 @@ class MolecularLookupDictSettings:
 
     ### C, H, N, O, S and P atoms are ALWAYS needed at usedAtoms
     ### if you don't want to include one of those atoms set the max and min at 0
-    ### you can include any atom listed at Atoms class inside encapsulation.settings.constants module
+    ### Keys must be element symbols (Atoms.isotopes), not rare-isotope labels
+    ### you can include any mono element in Atoms.isotopes
     ### make sure to include the selected covalence at the used_atoms_valences when adding new atoms
     ### NOTE : Adducts atoms have zero covalence
     ### NOTE : Not using static variable because this class is distributed using multiprocessing
@@ -833,6 +876,7 @@ class MolecularLookupDictSettings:
             "P": (0, 0),
             "Cl": (0, 0),
         }
+        validate_used_atoms_keys(self.usedAtoms)
 
         self.min_mz = 50
 
@@ -931,9 +975,15 @@ class MolecularFormulaSearchSettings:
     max_dbe : float, optional
         Maximum double bond equivalent to use for searching. Default is 40.
     mz_error_score_weight : float, optional
-        Weight for m/z error score to contribute to composite score. Default is 0.6.
+        Weight ``w_err`` for the formula-level mass-error term
+        (``MolecularFormula.average_mz_error_score``) in the composite
+        ``confidence_score``. Default is 0.6. See the
+        ``corems.molecular_formula`` package documentation.
     isotopologue_score_weight : float, optional
-        Weight for isotopologue score to contribute to composite score. Default is 0.4.
+        Weight ``w_iso`` for the isotopologue similarity term
+        (``MolecularFormula.isotopologue_similarity``) in the composite
+        ``confidence_score``. Default is 0.4. Some literature examples use
+        equal weights (0.5 / 0.5).
     adduct_atoms_neg : tuple, optional
         Tuple of atoms to use in negative polarity. Default is ('Cl', 'Br').
     adduct_atoms_pos : tuple, optional
@@ -956,7 +1006,16 @@ class MolecularFormulaSearchSettings:
         Requires ``max_ion_charge == 1`` (and typically ``min_ion_charge == 1``);
         multi-charge formula search does not include adduct ion types.
     usedAtoms : dict, optional
-        Dictionary of atoms and ranges. Default is {'C': (1, 90), 'H': (4, 200), 'O': (0, 12), 'N': (0, 0), 'S': (0, 0), 'P': (0, 0), 'Cl': (0, 0)}.
+        Dictionary of **element symbols** (most-abundant mono codes) to
+        (min, max) count ranges for molecular formula search. Keys must be
+        element symbols present in ``Atoms.isotopes`` (e.g. ``C``, ``Fe``,
+        ``Cl``), **not** specific isotope labels (e.g. ``13C``, ``54Fe``,
+        ``37Cl``). Rare / heavy isotopes are generated by isotopologue
+        expansion of mono formulas after assignment (when
+        ``find_isotopologues`` is enabled), not by listing them here.
+        Invalid keys raise ``ValueError`` at settings construction, assignment,
+        or search entry. Default empty dict is filled with C and H ranges in
+        ``__post_init__``.
     ion_types_excluded : list, optional
         List of ion types to exclude from molecular id search, commonly ['[M+CH3COO]-]'] or ['[M+COOH]-'] depending on mobile phase content. Default is [].
     ionization_type : str, optional
@@ -1093,6 +1152,13 @@ class MolecularFormulaSearchSettings:
     # used_atom_valences: {'C': 4, 'H':1, etc} = dataclasses.field(default_factory=dict)
     used_atom_valences: dict = dataclasses.field(default_factory=dict)
 
+    def __setattr__(self, name, value):
+        # Catch full reassignment of usedAtoms after construction (common API).
+        # In-place mutation (usedAtoms[key] = ...) is validated at search entry.
+        if name == "usedAtoms" and value is not None:
+            validate_used_atoms_keys(value)
+        super().__setattr__(name, value)
+
     def __post_init__(self):
         if not self.url_database or self.url_database == "":
             self.url_database = os.getenv(
@@ -1110,6 +1176,8 @@ class MolecularFormulaSearchSettings:
             self.usedAtoms["C"] = (1, 100)
         if "H" not in self.usedAtoms.keys():
             self.usedAtoms["H"] = (1, 200)
+
+        validate_used_atoms_keys(self.usedAtoms)
 
         # add cummon values
         current_used_atoms = self.used_atom_valences.keys()
