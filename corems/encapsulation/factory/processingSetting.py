@@ -1248,54 +1248,46 @@ class LCMSCollectionSettings:
         Tuple of available metrics for determining the most representative sample.
         Default is ('intensity', 'intensity_prefer_ms2').
     feature_group_min_charge : int, optional
-        Minimum absolute ion charge (inclusive) used when scaling isotope mass
-        spacing as Δm / |z|. Default is 1. Grouping tries each integer charge from
-        ``feature_group_min_charge`` through ``feature_group_max_charge`` (e.g. 1–3).
-        RT and m/z windows for grouping reuse ``alignment_rt_tol`` and
-        ``alignment_mz_tol_ppm``.
+        Minimum absolute ion charge (inclusive) used when scaling **natural-abundance**
+        isotope mass spacing as Δm / |z|. Default is 1. Grouping tries each integer
+        charge from ``feature_group_min_charge`` through ``feature_group_max_charge``
+        (e.g. 1–3). RT and m/z windows for grouping reuse ``alignment_rt_tol`` and
+        ``alignment_mz_tol_ppm``. Stage 1 is natural-abundance isotopologues only
+        (not tracer/enriched labeling).
     feature_group_max_charge : int, optional
-        Maximum absolute ion charge (inclusive) for isotope spacing search.
-        Default is 1 (Stage 1 single-charge). Raise to 2 or 3 to also match
-        multi-charged isotope series.
-    isotope_atoms : tuple of str, optional
-        Mono element symbols whose heavy isotopes are considered for spacing via
-        ``Atoms`` (e.g. ``("C",)`` → ¹³C; ``("Se",)`` → all Se rare forms above the
-        abundance floor). Default is ``("C",)``.
+        Maximum absolute ion charge (inclusive) for natural-abundance isotope
+        spacing search. Default is 1 (Stage 1 single-charge). Raise to 2 or 3 to
+        also match multi-charged natural-abundance isotope series.
+    feature_group_isotope_atoms : tuple of str, optional
+        Mono element symbols whose **natural-abundance** rare isotopes are
+        considered when **feature grouping** builds isotope Δm edges via
+        ``Atoms`` (e.g. ``("C",)`` → natural ¹³C; ``("Se",)`` → all Se rare
+        forms above the natural-abundance floor). Used only by consensus
+        feature grouping (Stage 1); not molecular-formula ``usedAtoms`` or
+        other isotope settings. Default is ``("C",)``. Not for enriched/tracer
+        isotope systems.
     feature_group_min_isotope_abundance : float, optional
-        Minimum natural isotopic abundance (fraction 0–1 from
+        Minimum **natural** isotopic abundance (fraction 0–1 from
         ``Atoms.isotopic_abundance``) required for a rare isotope to be used in
-        spacing search. All listed rare isotopes of each ``isotope_atoms`` entry
-        that meet this floor are considered (important for multi-isotope elements
-        such as Se). Default is 0.01 (1%).
+        feature-grouping spacing search. All listed rare isotopes of each
+        ``feature_group_isotope_atoms`` entry that meet this floor are considered
+        (important for multi-isotope elements such as Se). Default is 0.01 (1%).
+        Filters natural-abundance forms only.
     feature_group_max_isotope_offset : int, optional
-        Maximum isotope offset *n* for M+n links of a single rare form
-        (e.g. ¹³C₁…¹³Cₙ). Default is 4.
+        Maximum natural-abundance isotope offset *n* for M+n links of a single
+        rare form (e.g. ¹³C₁…¹³Cₙ). Default is 4.
     feature_group_corr_threshold : float, optional
         Minimum Pearson correlation of cross-sample **peak height** (apex
         ``intensity``) vectors to accept a grouping edge. Only Pearson is used
         (no Spearman/cosine/etc. switch). Correlation is pairwise-complete:
         samples where either height is 0 are dropped. Default is 0.80, chosen
-        to stay on the ¹³C recall plateau while remaining conservative for
+        to stay on the natural ¹³C recall plateau while remaining conservative for
         later adduct linking (geometry + correlation only, no intensity ladder).
     feature_group_min_shared_sample_fraction : float, optional
         Minimum fraction of samples (0–1) in which both features must have height
         > 0 before the Pearson height-correlation gate is trusted. Required shared
         count is ``ceil(fraction * n_samples)``, at least 1 when fraction > 0.
         Default is 0.15 (15% of samples).
-    feature_group_mono_height_fraction : float, optional
-        Height prior for the monoisotopic (most-abundant isotope form) parent within
-        a candidate family, **not** “lowest m/z must be tall.” Uses max apex
-        height across samples (same height matrix as the Pearson gate; not area).
-
-        After coeluting features are linked by interpretable isotope Δm values from
-        ``Atoms`` (heavier or lighter than the mono form—e.g. ¹³C above ¹²C, or
-        ⁵⁴Fe below ⁵⁶Fe), the monoisotopic parent is the feature on the
-        most-abundant-isotope side of those links. It is accepted only if its
-        max height across samples is at least this fraction of the maximum height
-        in that family (component). If the chemical mono is too small relative to
-        other members, the whole family is left unlabeled (no invented parent).
-
-        Default is 0.3 (isotope Stage 1 only; not applied to adducts).
     feature_group_partition_size : int, optional
         Target number of clusters per RT partition when multi-core grouping is used.
         Default is 5000.
@@ -1331,17 +1323,17 @@ class LCMSCollectionSettings:
     consensus_representative_metric: str = 'intensity_prefer_ms2'
     consensus_representative_metrics_available: tuple = ('intensity', 'intensity_prefer_ms2')
 
-    # Consensus feature grouping (isotopes Stage 1; adducts/ISF later).
+    # Consensus feature grouping: natural-abundance isotopes Stage 1;
+    # adducts/ISF later. Not for tracer/enriched labeling.
     # RT / m/z windows: reuse alignment_rt_tol and alignment_mz_tol_ppm.
     # Quant gate is fixed: Pearson on apex intensity (no metric/area switch).
     feature_group_min_charge: int = 1
     feature_group_max_charge: int = 1
-    isotope_atoms: tuple = ("C",)
+    feature_group_isotope_atoms: tuple = ("C",)
     feature_group_min_isotope_abundance: float = 0.01
     feature_group_max_isotope_offset: int = 4
     feature_group_corr_threshold: float = 0.80
     feature_group_min_shared_sample_fraction: float = 0.15
-    feature_group_mono_height_fraction: float = 0.3
     feature_group_partition_size: int = 5000
 
     def __post_init__(self):

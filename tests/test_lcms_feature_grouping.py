@@ -1,4 +1,4 @@
-"""Unit tests for consensus feature grouping (isotopes Stage 1)."""
+"""Unit tests for consensus feature grouping (natural-abundance isotopes Stage 1)."""
 
 import numpy as np
 import pandas as pd
@@ -41,9 +41,9 @@ def test_validate_params_rejects_bad_values():
         validate_feature_group_params(FeatureGroupParams(min_charge=0, max_charge=1))
     with pytest.raises(ValueError, match="charge"):
         validate_feature_group_params(FeatureGroupParams(min_charge=1, max_charge=0))
-    with pytest.raises(ValueError, match="isotope_atoms"):
+    with pytest.raises(ValueError, match="feature_group_isotope_atoms"):
         validate_feature_group_params(FeatureGroupParams(isotope_atoms=()))
-    with pytest.raises(ValueError, match="Unknown mono"):
+    with pytest.raises(ValueError, match="feature_group_isotope_atoms|Unknown mono"):
         validate_feature_group_params(FeatureGroupParams(isotope_atoms=("NotAnElement",)))
 
 
@@ -71,7 +71,7 @@ def test_default_feature_group_settings_locked_in():
     s = LCMSCollectionSettings()
     assert s.feature_group_corr_threshold == pytest.approx(0.80)
     assert s.feature_group_min_shared_sample_fraction == pytest.approx(0.15)
-    assert s.feature_group_mono_height_fraction == pytest.approx(0.3)
+    assert not hasattr(s, "feature_group_mono_height_fraction")
     assert s.feature_group_max_isotope_offset == 4
     assert s.feature_group_min_isotope_abundance == pytest.approx(0.01)
     assert s.feature_group_min_charge == 1
@@ -80,7 +80,7 @@ def test_default_feature_group_settings_locked_in():
     params = FeatureGroupParams.from_lcms_collection_settings(s)
     assert params.corr_threshold == pytest.approx(0.80)
     assert params.min_shared_sample_fraction == pytest.approx(0.15)
-    assert params.mono_height_fraction == pytest.approx(0.3)
+    assert not hasattr(params, "mono_height_fraction")
 
     # FeatureGroupParams dataclass defaults match settings defaults
     bare = FeatureGroupParams()
@@ -106,7 +106,6 @@ def test_mono_plus_c13_high_corr_groups():
         mz_tol_ppm=20.0,
         corr_threshold=0.9,
         min_shared_sample_fraction=0.75,
-        mono_height_fraction=0.3,
     )
     labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
 
@@ -167,35 +166,36 @@ def test_correlation_uses_only_shared_nonzero_samples():
         mz_tol_ppm=20.0,
         corr_threshold=0.7,
         min_shared_sample_fraction=0.4,  # need 2 of 5
-        mono_height_fraction=0.2,
     )
     labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
     assert labels.loc[1, "ion_role"] == "mono"
     assert labels.loc[2, "ion_role"] == "isotope"
 
 
-def test_mono_height_prior_rejects_tiny_chemical_mono():
-    """Chemical mono (¹²C side) too small vs family max → no labels."""
+def test_chemical_mono_labeled_even_if_shorter_than_13c1():
+    """Large-envelope case: M+0 can be shorter than ¹³C₁ and still be mono."""
     dm = _delta_c13()
     cluster_ids = np.array([1, 2])
     mz = np.array([200.0, 200.0 + dm])
     rt = np.array([5.0, 5.01])
-    # mono (lighter) tiny; 13C tall — mono fails height prior
+    # mono (lighter) smaller; 13C taller — still label via geometry + corr
     heights = np.array(
         [
-            [1.0, 1.0, 1.0, 1.0],
-            [100.0, 100.0, 100.0, 100.0],
+            [40.0, 32.0, 24.0, 16.0],
+            [100.0, 80.0, 60.0, 40.0],
         ]
     )
     params = FeatureGroupParams(
         rt_tol=0.1,
         mz_tol_ppm=20.0,
-        corr_threshold=0.5,
+        corr_threshold=0.9,
         min_shared_sample_fraction=0.75,
-        mono_height_fraction=0.3,
     )
     labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
-    assert labels["feature_group_id"].isna().all()
+    assert labels.loc[1, "ion_role"] == "mono"
+    assert labels.loc[1, "isotope_state"] == "M+0"
+    assert labels.loc[2, "ion_role"] == "isotope"
+    assert labels.loc[2, "isotope_state"] == "13C1"
 
 
 def test_fe54_lighter_than_mono_groups():
@@ -217,7 +217,6 @@ def test_fe54_lighter_than_mono_groups():
         mz_tol_ppm=20.0,
         corr_threshold=0.9,
         min_shared_sample_fraction=0.75,
-        mono_height_fraction=0.3,
     )
     labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
     assert labels.loc[2, "ion_role"] == "mono"
@@ -245,7 +244,6 @@ def test_c13_chain_13c1_13c2():
         mz_tol_ppm=20.0,
         corr_threshold=0.9,
         min_shared_sample_fraction=0.75,
-        mono_height_fraction=0.2,
         max_isotope_offset=4,
     )
     labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
@@ -284,7 +282,6 @@ def test_no_13c2_without_13c1():
         mz_tol_ppm=20.0,
         corr_threshold=0.9,
         min_shared_sample_fraction=0.75,
-        mono_height_fraction=0.2,
         max_isotope_offset=4,
     )
     labels = group_features_arrays(cluster_ids, mz, rt, heights, params)

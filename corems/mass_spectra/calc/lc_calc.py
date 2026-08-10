@@ -3627,7 +3627,8 @@ class LCMSCollectionCalculations:
         # Set cluster as the index for easy lookup
         summary_df = summary_df.set_index('cluster')
 
-        # Merge consensus feature-group labels when present (isotopes Stage 1+)
+        # Merge consensus feature-group labels when present (natural-abundance
+        # isotopes Stage 1+)
         fg = getattr(self, "feature_group_dataframe", None)
         if fg is not None and len(fg) > 0:
             from corems.mass_spectra.calc.feature_grouping import GROUP_COLUMNS
@@ -3644,12 +3645,19 @@ class LCMSCollectionCalculations:
 
     def group_consensus_features(self):
         """
-        Group consensus features into isotope families (Stage 1).
+        Group consensus features into **natural-abundance** isotope families (Stage 1).
 
         After consensus clustering and gap-filling, labels consensus clusters that
-        share similar retention time, an interpretable isotope m/z spacing (from
-        ``Atoms``), and correlated cross-sample **apex peak heights**. Only assigns
-        isotope roles when a monoisotopic parent is identified in the same group.
+        share similar retention time, an interpretable **natural-abundance**
+        isotope m/z spacing (from ``Atoms``), and correlated cross-sample
+        **apex peak heights**. Only assigns isotope roles when a monoisotopic
+        parent is identified in the same group.
+
+        Scope (Stage 1)
+        ---------------
+        Natural-abundance isotopologues only (e.g. ¹²C/¹³C and other rare forms
+        above ``feature_group_min_isotope_abundance``). **Not** for tracer,
+        enriched, or isotopically labeled experiments.
 
         Quant gate is fixed (no settings switch):
 
@@ -3660,16 +3668,17 @@ class LCMSCollectionCalculations:
         Coelution and m/z delta windows reuse collection
         ``alignment_rt_tol`` and ``alignment_mz_tol_ppm``. Absolute charges
         ``feature_group_min_charge`` … ``feature_group_max_charge`` scale isotope
-        spacing. Rare isotopes may be heavier or lighter than the mono form
-        (e.g. ¹³C or ⁵⁴Fe). The mono height prior
-        (``feature_group_mono_height_fraction``) applies to the chemical
-        most-abundant parent, not the lowest-m/z peak. Other knobs
-        (``isotope_atoms``, shared-sample fraction, etc.) live on
-        ``parameters.lcms_collection``.
+        spacing. Natural rare isotopes may be heavier or lighter than the mono
+        form (e.g. ¹³C or ⁵⁴Fe). Chemical mono is the geometry roll-up root
+        (Atoms side of each unit step), not necessarily the tallest envelope
+        peak. Gates are geometry + Pearson only (no mono-vs-family height
+        prior). Other knobs (``feature_group_isotope_atoms``, shared-sample
+        fraction, etc.) live on ``parameters.lcms_collection``.
 
-        Preferred for collection-level isotope families. Optional per-file
-        ``LCMSBase.find_c13_mass_features`` remains available for single-file
-        workflows; do not treat both as authoritative in the same pipeline.
+        Preferred for collection-level natural-abundance isotope families.
+        Optional per-file ``LCMSBase.find_c13_mass_features`` remains available
+        for single-file workflows; do not treat both as authoritative in the
+        same pipeline.
 
         Must run after ``add_consensus_mass_features()``. Height matrix prefers
         gap-filled (induced) apex intensities when present; missing entries are 0.
@@ -5851,8 +5860,9 @@ class LCMSCollectionCalculations:
             This operation loads raw MS1 data which can be reused by subsequent operations.
         group_features : bool, optional
             If True, run ``group_consensus_features()`` after gap-fill (and before
-            molecular formula / MS2 search when those are also enabled). Collection-level
-            isotope family labeling (Stage 1). Default is False.
+            molecular formula / MS2 search when those are also enabled).
+            Collection-level **natural-abundance** isotope family labeling
+            (Stage 1; not tracer/enriched labeling). Default is False.
         add_ms1 : bool, optional
             If True and load_representatives=True, associates MS1 spectra with
             loaded features. Automatically uses raw data from gap-filling if available,
@@ -6082,7 +6092,7 @@ class LCMSCollectionCalculations:
                         eics_mz.append(None)
                 self.induced_mass_features_dataframe['_eic_mz'] = eics_mz
 
-        # Collection-level isotope (Stage 1) grouping
+        # Collection-level natural-abundance isotope (Stage 1) grouping
         if group_features:
             labels = self.group_consensus_features()
             results['group_features'] = {

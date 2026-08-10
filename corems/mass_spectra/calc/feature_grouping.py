@@ -1,10 +1,16 @@
 """
-Consensus feature grouping: isotopes (Stage 1), adducts/ISF later.
+Consensus feature grouping: natural-abundance isotopes (Stage 1), adducts/ISF later.
 
-Approach A': bulk KDTree + sparse pair matrix (RT ∩ unit isotope Δm, like
-``find_c13_mass_features``) → Pearson **apex height** gate → roll-up labeling
-from mono through successive unit steps (so ¹³C₂ only via ¹³C₁). Do not invent
-parents.
+Stage 1 links **natural-abundance** isotopologues only (e.g. ¹²C/¹³C, other
+rare forms in ``Atoms`` above a natural-abundance floor). It does **not**
+target tracer/enriched/labeled experiments (e.g. ¹³C metabolic labeling),
+where isotope envelopes and intensity ratios differ from terrestrial natural
+abundance.
+
+Approach A': bulk KDTree + sparse pair matrix (RT ∩ unit natural-abundance
+isotope Δm, like ``find_c13_mass_features``) → Pearson **apex height** gate →
+roll-up labeling from mono through successive unit steps (so ¹³C₂ only via
+¹³C₁). Do not invent parents.
 
 Quant gate is fixed for Stage 1 (no runtime method switch):
 
@@ -32,14 +38,20 @@ GROUP_COLUMNS = (
     "parent_cluster_id",
 )
 
-# Fixed quant-gate policy (Stage 1). Not user-selectable switches.
+# Fixed quant-gate policy (Stage 1 natural-abundance isotopes).
+# Not user-selectable switches.
 CORR_METHOD = "pearson"
 HEIGHT_COL = "intensity"  # apex peak height; not integrated area
 
 
 @dataclass(frozen=True)
 class FeatureGroupParams:
-    """Parameters for consensus feature grouping (Stage 1 isotopes).
+    """Parameters for consensus feature grouping (Stage 1 natural-abundance isotopes).
+
+    Stage 1 groups **natural-abundance** isotopologues only (rare forms listed
+    in ``Atoms`` with terrestrial natural abundance at or above
+    ``min_isotope_abundance``). Not intended for tracer / isotopically labeled
+    experiments.
 
     ``rt_tol`` and ``mz_tol_ppm`` are taken from collection
     ``alignment_rt_tol`` / ``alignment_mz_tol_ppm`` when built via
@@ -47,6 +59,11 @@ class FeatureGroupParams:
 
     Absolute charges from ``min_charge`` through ``max_charge`` (inclusive)
     are tried when matching isotope Δm (spacing = (m_heavy − m_mono) / |z|).
+
+    ``isotope_atoms`` is the list of mono elements considered for
+    **feature-grouping** natural-abundance isotope edges only (sourced from
+    ``LCMSCollectionSettings.feature_group_isotope_atoms``). It is not
+    molecular-formula ``usedAtoms``.
 
     Correlation is always Pearson on apex ``intensity`` heights
     (see module-level ``CORR_METHOD`` / ``HEIGHT_COL``). There is no setting
@@ -57,12 +74,13 @@ class FeatureGroupParams:
     mz_tol_ppm: float = 5.0
     min_charge: int = 1
     max_charge: int = 1
+    # Mono elements for natural-abundance isotope edge search in feature grouping
+    # (maps from LCMSCollectionSettings.feature_group_isotope_atoms).
     isotope_atoms: Tuple[str, ...] = ("C",)
     min_isotope_abundance: float = 0.01
     max_isotope_offset: int = 4
     corr_threshold: float = 0.80
     min_shared_sample_fraction: float = 0.15
-    mono_height_fraction: float = 0.3
     partition_size: int = 5000
     cores: int = 1
 
@@ -87,14 +105,15 @@ class FeatureGroupParams:
         RT and m/z tolerances reuse ``alignment_rt_tol`` and
         ``alignment_mz_tol_ppm`` (not separate feature-group settings).
         Charge range uses ``feature_group_min_charge`` /
-        ``feature_group_max_charge``.
+        ``feature_group_max_charge``. Mono elements for natural-abundance
+        isotope spacing use ``feature_group_isotope_atoms``.
         """
         return cls(
             rt_tol=float(settings.alignment_rt_tol),
             mz_tol_ppm=float(settings.alignment_mz_tol_ppm),
             min_charge=int(settings.feature_group_min_charge),
             max_charge=int(settings.feature_group_max_charge),
-            isotope_atoms=tuple(settings.isotope_atoms),
+            isotope_atoms=tuple(settings.feature_group_isotope_atoms),
             min_isotope_abundance=float(
                 settings.feature_group_min_isotope_abundance
             ),
@@ -103,7 +122,6 @@ class FeatureGroupParams:
             min_shared_sample_fraction=float(
                 settings.feature_group_min_shared_sample_fraction
             ),
-            mono_height_fraction=float(settings.feature_group_mono_height_fraction),
             partition_size=int(settings.feature_group_partition_size),
             cores=int(getattr(settings, "cores", 1)),
         )
@@ -124,15 +142,16 @@ def validate_feature_group_params(params: FeatureGroupParams) -> None:
             "feature_group_min/max_charge absolute values must be >= 1"
         )
     if not params.isotope_atoms:
-        raise ValueError("isotope_atoms must be non-empty")
+        raise ValueError(
+            "feature_group_isotope_atoms must be non-empty "
+            "(mono elements for natural-abundance feature-group isotope edges)"
+        )
     if not (0.0 <= params.min_isotope_abundance <= 1.0):
         raise ValueError(
             "feature_group_min_isotope_abundance must be in [0, 1]"
         )
     if params.max_isotope_offset < 1:
         raise ValueError("feature_group_max_isotope_offset must be >= 1")
-    if not (0.0 < params.mono_height_fraction <= 1.0):
-        raise ValueError("feature_group_mono_height_fraction must be in (0, 1]")
     if not (0.0 < params.min_shared_sample_fraction <= 1.0):
         raise ValueError(
             "feature_group_min_shared_sample_fraction must be in (0, 1]"
@@ -151,7 +170,7 @@ def _validate_mono_element(mono_symbol: str) -> None:
     """Raise ValueError if mono_symbol is not a usable Atoms mono element."""
     if mono_symbol not in Atoms.isotopes:
         raise ValueError(
-            f"Unknown mono element '{mono_symbol}' for isotope_atoms; "
+            f"Unknown mono element '{mono_symbol}' in feature_group_isotope_atoms; "
             "must be a key in Atoms.isotopes"
         )
     if mono_symbol not in Atoms.atomic_masses:
@@ -165,17 +184,19 @@ def rare_isotope_entries(
     min_abundance: float = 0.01,
 ) -> Tuple[Tuple[str, float, float], ...]:
     """
-    Rare isotopes for a mono element with signed mass deltas from Atoms.
+    Natural-abundance rare isotopes for a mono element with signed mass deltas.
 
     Includes **every** rare form listed for the element in ``Atoms.isotopes``
-    whose natural abundance is at least ``min_abundance`` (from
+    whose **natural** (terrestrial) abundance is at least ``min_abundance`` (from
     ``Atoms.isotopic_abundance``). Multi-isotope elements (e.g. Se) therefore
     contribute multiple Δm targets, not only the first listed rare form.
+
+    These are natural-abundance isotopologues only—not enriched/tracer labels.
 
     Parameters
     ----------
     mono_symbol : str
-        Most-abundant isotope symbol (e.g. ``"C"``, ``"Fe"``, ``"Se"``).
+        Most-abundant (natural) isotope symbol (e.g. ``"C"``, ``"Fe"``, ``"Se"``).
     min_abundance : float
         Minimum natural abundance fraction (0–1). Default 0.01. Isotopes missing
         from ``Atoms.isotopic_abundance`` are skipped.
@@ -185,7 +206,7 @@ def rare_isotope_entries(
     tuple of (rare_label, signed_delta, abundance)
         ``signed_delta = m(rare) - m(mono)``. Positive for heavier rare forms
         (¹³C), negative when the listed rare isotope is lighter (⁵⁴Fe).
-        Ordered by decreasing abundance (then by |signed_delta|).
+        Ordered by decreasing natural abundance (then by |signed_delta|).
     """
     _validate_mono_element(mono_symbol)
     heavies = Atoms.isotopes[mono_symbol][1]
@@ -219,7 +240,7 @@ def rare_isotope_entries(
 def _heavy_isotope_label(
     mono_symbol: str, min_abundance: float = 0.01
 ) -> str:
-    """Primary rare isotope label (highest abundance above the floor)."""
+    """Primary natural-abundance rare isotope label (highest abundance above the floor)."""
     return rare_isotope_entries(mono_symbol, min_abundance=min_abundance)[0][0]
 
 
@@ -227,10 +248,10 @@ def isotope_mass_delta(
     mono_symbol: str, charge: int = 1, min_abundance: float = 0.01
 ) -> float:
     """
-    Signed mass difference (primary rare − mono) / |charge| from Atoms.
+    Signed mass difference (primary natural-abundance rare − mono) / |charge|.
 
-    Primary rare = highest-abundance rare form meeting ``min_abundance``.
-    May be negative (e.g. ⁵⁴Fe − ⁵⁶Fe). Never hard-coded.
+    Primary rare = highest natural-abundance rare form meeting ``min_abundance``
+    in ``Atoms``. May be negative (e.g. ⁵⁴Fe − ⁵⁶Fe). Never hard-coded.
     """
     _rare, signed, _ab = rare_isotope_entries(
         mono_symbol, min_abundance=min_abundance
@@ -269,23 +290,25 @@ def find_isotope_edges(
     params: FeatureGroupParams,
 ) -> pd.DataFrame:
     """
-    Find unit-step mono→isotope edges via bulk KDTree + sparse pair matrices.
+    Find unit-step mono→natural-abundance isotope edges via KDTree pair matrices.
 
-    Pattern matches ``LCMSBase.find_c13_mass_features``:
+    Stage 1 only: natural-abundance rare isotopes from ``Atoms`` (not tracer
+    enrichment). Pattern matches ``LCMSBase.find_c13_mass_features``:
 
     1. Sort features by ascending m/z so ``triu`` means light → heavy.
     2. Sparse RT pairs within ``params.rt_tol``.
     3. Sparse m/z pairs within the largest unit isotope spacing (+ ppm tol).
     4. Keep the intersection; retain only pairs whose Δm matches a **unit**
-       Atoms spacing (one rare substitution, not 2×, 3×, …).
+       natural-abundance Atoms spacing (one rare substitution, not 2×, 3×, …).
 
-    Higher-order isotopologues (¹³C₂, …) are **not** linked as mono→M+n here.
-    They appear later by roll-up along successive unit edges
+    Higher-order natural isotopologues (¹³C₂, …) are **not** linked as mono→M+n
+    here. They appear later by roll-up along successive unit edges
     (mono→¹³C₁→¹³C₂), so you never get M+n without M+(n−1).
 
-    Parent is the chemical mono side of the unit step (lighter for ¹³C, heavier
-    for ⁵⁴Fe). Tries each charge in ``min_charge``…``max_charge`` and each rare
-    form above the abundance floor.
+    Parent is the chemical mono (most-abundant natural form) side of the unit
+    step (lighter for ¹³C, heavier for ⁵⁴Fe). Tries each charge in
+    ``min_charge``…``max_charge`` and each rare form above the natural-abundance
+    floor.
 
     Returns
     -------
@@ -480,25 +503,29 @@ def assign_isotope_labels(
     params: FeatureGroupParams,
 ) -> pd.DataFrame:
     """
-    Assign feature groups by roll-up along unit isotope edges.
+    Assign feature groups by roll-up along unit natural-abundance isotope edges.
 
-    Same idea as ``find_c13_mass_features``:
+    Same idea as ``find_c13_mass_features`` for natural-abundance envelopes:
 
     - Roots = features that appear as edge parents but never as children
       (chemical monoisotopes of a family).
-    - Wave 1: unit children of roots → rare¹ (e.g. ¹³C₁).
+    - Wave 1: unit children of roots → rare¹ (e.g. natural ¹³C₁).
     - Wave 2: unit children of wave 1 → rare² (e.g. ¹³C₂), etc.
 
     Higher-order labels only appear if intermediate steps exist, so there is
     no ¹³C₂ without ¹³C₁. Depth is capped by ``max_isotope_offset``.
 
-    Mono must pass the height prior vs the max height in its rolled-up family.
+    Chemical mono (``ion_role="mono"`` / ``M+0``) is the roll-up root from
+    geometry (Atoms side of each unit step), not necessarily the tallest peak
+    in the envelope. No mono-vs-family height prior is applied; geometry +
+    correlation are the gates. Not designed for labeled/enriched isotope series.
+
+    ``heights`` is accepted for API compatibility with the correlation stage but
+    is not used during roll-up labeling.
     """
     labels = empty_group_labels(cluster_ids)
     if edges.empty:
         return labels
-
-    height_scalar = heights.max(axis=1) if heights.ndim == 2 else heights
 
     # Adjacency: parent_idx -> list of (child_idx, rare_label, atom, z)
     children_of = {}
@@ -553,14 +580,6 @@ def assign_isotope_labels(
         if not family_children:
             continue
 
-        # Height prior on chemical mono vs family max
-        family_list = [mono_idx] + list(family_children.keys())
-        h_max = float(np.max(height_scalar[family_list]))
-        if h_max <= 0:
-            continue
-        if float(height_scalar[mono_idx]) < params.mono_height_fraction * h_max:
-            continue
-
         mono_cluster = int(cluster_ids[mono_idx])
         gid = next_group_id
         next_group_id += 1
@@ -590,13 +609,18 @@ def group_features_arrays(
     params: FeatureGroupParams,
 ) -> pd.DataFrame:
     """
-    Run full Stage 1 isotope grouping on array inputs.
+    Run full Stage 1 **natural-abundance** isotope grouping on array inputs.
+
+    Links monoisotopic features to natural-abundance rare isotopologues
+    (geometry + Pearson height gate + roll-up). Does not model tracer/labeled
+    enrichment.
 
     Parameters
     ----------
     cluster_ids : array-like, shape (N,)
     mz, rt : array-like, shape (N,)
     heights : array-like, shape (N, S)
+        Apex intensity matrix (not area).
     params : FeatureGroupParams
 
     Returns
