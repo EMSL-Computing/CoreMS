@@ -364,7 +364,25 @@ class SearchMolecularFormulas:
         settings = self.mass_spectrum_obj.molecular_search_settings
         # Re-check after possible post-construction mutation of settings fields
         settings.validate_ion_charge_settings()
-        polarity = int(self.mass_spectrum_obj.polarity) if self.mass_spectrum_obj.polarity else 1
+        # Polarity must come from the mass spectrum (DI often -1 from data).
+        # Do not default to +1; LC already requires polarity on the LCMS object.
+        polarity_raw = self.mass_spectrum_obj.polarity
+        if polarity_raw is None:
+            raise ValueError(
+                "Mass spectrum polarity must be set from the data before "
+                "formula search (e.g. +1 or -1). There is no default polarity."
+            )
+        try:
+            polarity = int(polarity_raw)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "Mass spectrum polarity must be an integer +1 or -1 "
+                f"(got {polarity_raw!r})."
+            ) from exc
+        if polarity == 0:
+            raise ValueError(
+                "Mass spectrum polarity must be non-zero (+1 or -1)."
+            )
         # Multi-charge formula search: expand absolute min..max (default 1..1).
         # Does not rewrite MSPeak.polarity (remains ±1).
         search_charges = self.ion_charges_for_search(

@@ -112,6 +112,36 @@ def test_isAdduct_incompatible_with_multi_charge():
         s.validate_ion_charge_settings()
 
 
+def test_di_search_requires_spectrum_polarity():
+    """DI formula search fails if spectrum polarity is missing or zero.
+
+    Polarity must come from the data (often -1 for DI); no silent +1 default.
+    """
+    mz = [100.0]
+    abundance = [1.0]
+    rp, s2n = [[1000.0], [10.0]]
+    mass_spectrum_obj = ms_from_array_centroid(
+        mz, abundance, rp, s2n, "no polarity", polarity=1, auto_process=False
+    )
+    mass_spectrum_obj.settings.noise_threshold_method = "absolute_abundance"
+    mass_spectrum_obj.settings.noise_threshold_absolute_abundance = 0
+    mass_spectrum_obj.molecular_search_settings.url_database = ""
+    mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
+    mass_spectrum_obj.process_mass_spec()
+
+    mass_spectrum_obj.polarity = None
+    with pytest.raises(ValueError, match="polarity must be set"):
+        SearchMolecularFormulas(
+            mass_spectrum_obj, find_isotopologues=False
+        ).run_worker_ms_peaks([mass_spectrum_obj[0]])
+
+    mass_spectrum_obj.polarity = 0
+    with pytest.raises(ValueError, match="non-zero"):
+        SearchMolecularFormulas(
+            mass_spectrum_obj, find_isotopologues=False
+        ).run_worker_ms_peaks([mass_spectrum_obj[0]])
+
+
 def test_export_unassigned_ion_charge_is_polarity():
     """Unassigned export 'Ion Charge' is peak polarity (±1)."""
     mz = [100.0]
