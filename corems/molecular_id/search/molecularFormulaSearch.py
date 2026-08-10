@@ -114,13 +114,12 @@ class SearchMolecularFormulas:
         (inclusive) are multiplied by the polarity sign. No charge-state
         determination is performed; every selected peak is searched at each
         returned charge and candidates are ranked by formula scores.
-`.
 
         Parameters
         ----------
         polarity : int or str
             Mass-spectrum polarity as ``+1`` / ``-1``, or LCMS polarity string
-            ``\"positive\"`` / ``\"negative\"``.
+            ``"positive"`` / ``"negative"``.
         min_ion_charge : int, optional
             Minimum absolute charge (default 1).
         max_ion_charge : int, optional
