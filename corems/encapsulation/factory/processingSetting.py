@@ -941,9 +941,12 @@ class MolecularFormulaSearchSettings:
     db_chunk_size : int, optional
         Chunk size to use for database queries. Default is 300.
     ion_charge : int, optional
-        Legacy single ion-charge field. Default is -1.
-        Formula search charge **range** uses ``min_ion_charge`` / ``max_ion_charge``
-        (polarity supplies the sign). Prefer those settings for multi-charge search.
+        **Legacy / unused for formula search.** Kept so older YAML/JSON/TOML
+        and ``MolecularFormulaSearchSettings(ion_charge=...)`` keep loading
+        without error. Default is -1. Search polarity comes from the mass
+        spectrum or LCMS object (DI often -1 from data; LC has no default).
+        Absolute multi-charge range uses ``min_ion_charge`` / ``max_ion_charge``
+        only. Do not use this field for new workflows.
     min_ion_charge : int, optional
         Minimum **absolute** ion charge for molecular formula search. Default is 1.
         With ``max_ion_charge``, defines the inclusive absolute charge range searched
@@ -1063,6 +1066,8 @@ class MolecularFormulaSearchSettings:
     db_chunk_size: int = 300
 
     # query setting========
+    # Legacy BC only (parameter files / constructor). Not used for search.
+    # Polarity: spectrum/LCMS data. Multi-z absolute range: min/max_ion_charge.
     ion_charge: int = -1
 
     # Absolute charge range for formula search (polarity supplies sign).

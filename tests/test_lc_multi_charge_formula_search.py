@@ -65,6 +65,42 @@ def test_min_max_ion_charge_defaults():
     assert s.max_ion_charge == 1
 
 
+def test_legacy_mfss_ion_charge_accepted_but_unused():
+    """Legacy MFSS.ion_charge must not break construct/load or control search.
+
+    Older parameter files and constructors still pass ion_charge (often -1).
+    Search polarity comes from spectrum/LC data; multi-z from min/max only.
+    """
+    # Constructor BC (YAML/TOML-style kwargs)
+    s = MolecularFormulaSearchSettings(ion_charge=-1)
+    assert s.ion_charge == -1
+    assert s.min_ion_charge == 1
+    assert s.max_ion_charge == 1
+    s.validate_ion_charge_settings()
+
+    # Positive legacy value must not be treated as multi-z or polarity
+    s_pos = MolecularFormulaSearchSettings(
+        ion_charge=1, min_ion_charge=1, max_ion_charge=2, isAdduct=False
+    )
+    assert s_pos.ion_charge == 1
+    assert s_pos.max_ion_charge == 2
+    s_pos.validate_ion_charge_settings()
+
+    # setattr as parameter loaders do
+    s_loaded = MolecularFormulaSearchSettings()
+    setattr(s_loaded, "ion_charge", -1)
+    s_loaded.validate_ion_charge_settings()
+    assert s_loaded.ion_charge == -1
+
+    # Charge list ignores settings.ion_charge; uses polarity + min/max only
+    assert SearchMolecularFormulas.ion_charges_for_search(
+        1, s_pos.min_ion_charge, s_pos.max_ion_charge
+    ) == (1, 2)
+    assert SearchMolecularFormulas.ion_charges_for_search(
+        -1, s_pos.min_ion_charge, s_pos.max_ion_charge
+    ) == (-1, -2)
+
+
 def test_isAdduct_incompatible_with_multi_charge():
     """isAdduct=True with max_ion_charge > 1 is rejected at construction."""
     with pytest.raises(ValueError, match="isAdduct=True is incompatible"):
@@ -156,6 +192,8 @@ def test_multi_charge_radical_assigns_formula_charge(postgres_database):
     mass_spectrum_obj.molecular_search_settings.use_min_peaks_filter = False
     mass_spectrum_obj.molecular_search_settings.min_ion_charge = 1
     mass_spectrum_obj.molecular_search_settings.max_ion_charge = 2
+    # Legacy parameter-file field must not break search or flip polarity
+    mass_spectrum_obj.molecular_search_settings.ion_charge = -1
     mass_spectrum_obj.molecular_search_settings.usedAtoms = {
         "C": (6, 6),
         "H": (6, 6),
@@ -174,6 +212,8 @@ def test_multi_charge_radical_assigns_formula_charge(postgres_database):
     assert peak.is_assigned
     assert peak[0].string == "C6 H6"
     assert peak[0].ion_charge == 2
+    # settings.ion_charge=-1 did not force negative search (would miss z=+2 radical)
+    assert mass_spectrum_obj.molecular_search_settings.ion_charge == -1
 
 
 @pytest.mark.molecular_db
