@@ -4,10 +4,8 @@ sys.path.append(".")
 
 import pytest
 
-from corems.molecular_id.factory.classification import HeteroatomsClassification
 from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
-from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 
 
 @pytest.mark.molecular_db
@@ -152,28 +150,3 @@ def test_molecular_formula_search_db(mass_spectrum_ftms, postgres_database):
             pass
     fraction_assigned = i / (i + j)
     assert fraction_assigned > 0.7
-
-
-@pytest.mark.molecular_db
-def test_priorityAssignment(mass_spectrum_ftms, postgres_database):
-    mass_spectrum_ftms.molecular_search_settings.url_database = postgres_database
-    mass_spectrum_ftms.molecular_search_settings.error_method = "None"
-    mass_spectrum_ftms.molecular_search_settings.min_ppm_error = -3
-    mass_spectrum_ftms.molecular_search_settings.max_ppm_error = 5
-    mass_spectrum_ftms.molecular_search_settings.mz_error_range = 1
-    mass_spectrum_ftms.molecular_search_settings.isProtonated = True
-    mass_spectrum_ftms.molecular_search_settings.isRadical = True
-    mass_spectrum_ftms.molecular_search_settings.isAdduct = False
-    usedatoms = {"C": (1, 100), "H": (4, 200), "O": (1, 10)}
-    mass_spectrum_ftms.molecular_search_settings.usedAtoms = usedatoms
-    mass_spectrum_ftms.process_mass_spec()
-
-    # Run the molecular formula search on the mass spectrum object and check the percentage of assigned peaks
-    assignOx = OxygenPriorityAssignment(mass_spectrum_ftms)
-    assignOx.run()
-    assert mass_spectrum_ftms.percentage_assigned()[0] > 15
-
-    # Test the HeteroatomsClassification class
-    mass_spectrum_by_classes = HeteroatomsClassification(mass_spectrum_ftms)
-    mass_spectrum_by_classes.plot_ms_assigned_unassigned()
-    assert mass_spectrum_by_classes.atoms_ratio_all("H", "C")[0] > 0.5

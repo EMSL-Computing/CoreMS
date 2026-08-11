@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 
 from corems.mass_spectra.input import rawFileReader
 from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
-from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.encapsulation.factory.parameters import MSParameters
 

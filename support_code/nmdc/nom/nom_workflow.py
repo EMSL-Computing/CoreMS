@@ -20,7 +20,6 @@ from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
 
 from corems.mass_spectrum.input.massList import ReadMassList
 from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
-from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems import SuppressPrints
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
