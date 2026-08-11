@@ -33,6 +33,21 @@ All release steps should be done on the `dev` branch and then merged into `maste
    - Gitlab CI green on `dev`.
    - Changelog or release notes drafted (these will be copied into the MR description and later into the release on GitHub).
    - No open blockers for the intended version.
+   - **Lint the package** (advisory maintainer review; not a hard CI gate):
+     1. Activate the same environment you use for CoreMS development and install/update dev extras so `pylint` is available, e.g.:
+        ```bash
+        pip install -e ".[dev]"
+        ```
+     2. From the repo root run:
+        ```bash
+        make lint
+        ```
+        This runs `pylint` on `corems` with project config from `pyproject.toml` (high-volume legacy style noise disabled so the report is usable). Use the venv’s Python (activate the venv first, or `make lint PYTHON=.venv/bin/python`) so import resolution matches a real install.
+     3. Optional broader pass (tests and support scripts):
+        ```bash
+        make lint-all
+        ```
+     4. Review the report: fix release-blocking issues you care about; residual warnings are OK for this step. Proceed when you are satisfied—the step does not require a perfect score or exit code 0.
 
 2. **Bump version on `dev` (or a short-lived release branch from `dev`)**
    ```bash
