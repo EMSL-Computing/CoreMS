@@ -1288,6 +1288,13 @@ class LCMSCollectionSettings:
         > 0 before the Pearson height-correlation gate is trusted. Required shared
         count is ``ceil(fraction * n_samples)``, at least 1 when fraction > 0.
         Default is 0.15 (15% of samples).
+    feature_group_ion_types : tuple of str, optional
+        Ion forms considered for feature-group adduct linking, as keys in
+        ``ion_type_dict`` (``corems.mass_spectra.output.export``). Edges use
+        **pairwise** mass offsets among these types (no designated base form;
+        no assumption about which form is most intense). One type or empty
+        disables adduct linking (isotopes only). Default is
+        ``("[M+H]+", "[M+NH4]+")``.
     feature_group_partition_size : int, optional
         Target number of clusters per RT partition when multi-core grouping is used.
         Default is 5000.
@@ -1334,6 +1341,7 @@ class LCMSCollectionSettings:
     feature_group_max_isotope_offset: int = 4
     feature_group_corr_threshold: float = 0.80
     feature_group_min_shared_sample_fraction: float = 0.15
+    feature_group_ion_types: tuple = ("[M+H]+", "[M+NH4]+")
     feature_group_partition_size: int = 5000
 
     def __post_init__(self):

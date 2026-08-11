@@ -1,18 +1,19 @@
 """
-Consensus feature grouping: natural-abundance isotopes (Stage 1), adducts/ISF later.
+Consensus feature grouping: natural-abundance isotopes + adducts.
 
-Stage 1 links **natural-abundance** isotopologues only (e.g. ¹²C/¹³C, other
-rare forms in ``Atoms`` above a natural-abundance floor). It does **not**
-target tracer/enriched/labeled experiments (e.g. ¹³C metabolic labeling),
-where isotope envelopes and intensity ratios differ from terrestrial natural
-abundance.
+**Isotopes:** natural-abundance isotopologues only (e.g. ¹²C/¹³C; rare forms in
+``Atoms`` above a natural-abundance floor). Not for tracer/enriched labeling.
 
-Approach A': bulk KDTree + sparse pair matrix (RT ∩ unit natural-abundance
-isotope Δm, like ``find_c13_mass_features``) → Pearson **apex height** gate →
-roll-up labeling from mono through successive unit steps (so ¹³C₂ only via
-¹³C₁). Do not invent parents.
+**Adducts:** alternate ion forms linked by **pairwise** mass offsets from
+``ion_type_dict`` (``corems.mass_spectra.output.export``) among
+``feature_group_ion_types`` (e.g. ``[M+H]+`` and ``[M+NH4]+``). No designated
+“base” form — any pair with matching Δm can link. Same-analyte forms share one
+``feature_group_id`` with isotopes of each form.
 
-Quant gate is fixed for Stage 1 (no runtime method switch):
+Approach: RT ∩ Δm edges (isotope unit steps and/or adduct shifts) → Pearson
+**apex height** gate → isotope roll-up → merge across adduct edges.
+
+Quant gate is fixed (no runtime method switch):
 
 - Correlation: Pearson only (pairwise-complete on samples with both heights > 0)
 - Abundance: mass-feature apex ``intensity`` only (not integrated area)
@@ -21,7 +22,7 @@ Quant gate is fixed for Stage 1 (no runtime method switch):
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, Sequence, Tuple
+from typing import Dict, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
@@ -34,40 +35,36 @@ from corems.encapsulation.constant import Atoms
 GROUP_COLUMNS = (
     "feature_group_id",
     "ion_role",
+    "ion_type",
     "isotope_state",
     "parent_cluster_id",
 )
 
-# Fixed quant-gate policy (Stage 1 natural-abundance isotopes).
-# Not user-selectable switches.
+# Fixed quant-gate policy. Not user-selectable switches.
 CORR_METHOD = "pearson"
 HEIGHT_COL = "intensity"  # apex peak height; not integrated area
+
+# Default ion forms to consider for adduct linking (keys in ion_type_dict).
+# No preferred “base” — pairwise Δm among all listed types.
+DEFAULT_ION_TYPES: Tuple[str, ...] = ("[M+H]+", "[M+NH4]+")
 
 
 @dataclass(frozen=True)
 class FeatureGroupParams:
-    """Parameters for consensus feature grouping (Stage 1 natural-abundance isotopes).
+    """Parameters for consensus feature grouping (isotopes + adducts).
 
-    Stage 1 groups **natural-abundance** isotopologues only (rare forms listed
-    in ``Atoms`` with terrestrial natural abundance at or above
-    ``min_isotope_abundance``). Not intended for tracer / isotopically labeled
-    experiments.
+    **Isotopes:** natural-abundance rare forms in ``Atoms`` at or above
+    ``min_isotope_abundance``. Not for tracer / labeled experiments.
 
-    ``rt_tol`` and ``mz_tol_ppm`` are taken from collection
-    ``alignment_rt_tol`` / ``alignment_mz_tol_ppm`` when built via
-    :meth:`from_lcms_collection_settings`.
+    **Adducts:** ``ion_types`` is a set of ``ion_type_dict`` keys. Edges are
+    sought for **every pair** using
+    ``|offset(type_a) − offset(type_b)| / |z|`` (atoms-to-add/subtract in
+    ``ion_type_dict``). There is no designated base form and no assumption
+    about which form is most intense.
 
-    Absolute charges from ``min_charge`` through ``max_charge`` (inclusive)
-    are tried when matching isotope Δm (spacing = (m_heavy − m_mono) / |z|).
-
-    ``isotope_atoms`` is the list of mono elements considered for
-    **feature-grouping** natural-abundance isotope edges only (sourced from
-    ``LCMSCollectionSettings.feature_group_isotope_atoms``). It is not
-    molecular-formula ``usedAtoms``.
-
-    Correlation is always Pearson on apex ``intensity`` heights
-    (see module-level ``CORR_METHOD`` / ``HEIGHT_COL``). There is no setting
-    for alternate metrics or for using integrated area.
+    ``rt_tol`` / ``mz_tol_ppm`` come from collection alignment settings via
+    :meth:`from_lcms_collection_settings`. Correlation is always Pearson on
+    apex ``intensity``.
     """
 
     rt_tol: float = 0.4
@@ -81,6 +78,8 @@ class FeatureGroupParams:
     max_isotope_offset: int = 4
     corr_threshold: float = 0.80
     min_shared_sample_fraction: float = 0.15
+    # ion_type_dict keys to link by pairwise mass difference (order irrelevant)
+    ion_types: Tuple[str, ...] = DEFAULT_ION_TYPES
     partition_size: int = 5000
     cores: int = 1
 
@@ -108,6 +107,9 @@ class FeatureGroupParams:
         ``feature_group_max_charge``. Mono elements for natural-abundance
         isotope spacing use ``feature_group_isotope_atoms``.
         """
+        ion_types = getattr(
+            settings, "feature_group_ion_types", DEFAULT_ION_TYPES
+        )
         return cls(
             rt_tol=float(settings.alignment_rt_tol),
             mz_tol_ppm=float(settings.alignment_mz_tol_ppm),
@@ -122,6 +124,7 @@ class FeatureGroupParams:
             min_shared_sample_fraction=float(
                 settings.feature_group_min_shared_sample_fraction
             ),
+            ion_types=tuple(ion_types),
             partition_size=int(settings.feature_group_partition_size),
             cores=int(getattr(settings, "cores", 1)),
         )
@@ -160,6 +163,15 @@ def validate_feature_group_params(params: FeatureGroupParams) -> None:
         raise ValueError("feature_group_corr_threshold must be in [-1, 1]")
     if params.partition_size < 1:
         raise ValueError("feature_group_partition_size must be >= 1")
+    # Validate ion types resolve in ion_type_dict (empty = isotopes only)
+    seen_it = set()
+    for it in params.ion_types:
+        if it in seen_it:
+            raise ValueError(
+                f"Duplicate ion_type {it!r} in feature_group_ion_types"
+            )
+        seen_it.add(it)
+        _ion_type_mass_offset(it)
     for atom in params.isotope_atoms:
         rare_isotope_entries(
             atom, min_abundance=params.min_isotope_abundance
@@ -273,6 +285,7 @@ def empty_group_labels(cluster_ids: Sequence) -> pd.DataFrame:
         {
             "feature_group_id": pd.Series(pd.NA, index=idx, dtype="Int64"),
             "ion_role": pd.Series(None, index=idx, dtype=object),
+            "ion_type": pd.Series(None, index=idx, dtype=object),
             "isotope_state": pd.Series(None, index=idx, dtype=object),
             "parent_cluster_id": pd.Series(pd.NA, index=idx, dtype="Int64"),
         }
@@ -281,6 +294,68 @@ def empty_group_labels(cluster_ids: Sequence) -> pd.DataFrame:
 
 def _mz_tol_abs(mz_a: float, mz_b: float, mz_tol_ppm: float) -> float:
     return max(mz_a, mz_b) * mz_tol_ppm * 1e-6
+
+
+def _get_ion_type_dict() -> Dict:
+    """Lazy import to avoid heavy export module at package import time."""
+    from corems.mass_spectra.output.export import ion_type_dict
+
+    return ion_type_dict
+
+
+def _atom_count_mass(atom_counts: Dict[str, int]) -> float:
+    """Exact mass for an atom-count dict using ``Atoms.atomic_masses``."""
+    total = 0.0
+    for symbol, n in atom_counts.items():
+        if n == 0:
+            continue
+        if symbol not in Atoms.atomic_masses:
+            raise ValueError(
+                f"Unknown atom {symbol!r} in ion_type_dict entry; "
+                "must be a key in Atoms.atomic_masses"
+            )
+        total += float(Atoms.atomic_masses[symbol]) * int(n)
+    return total
+
+
+def _ion_type_mass_offset(ion_type: str) -> float:
+    """
+    Neutral-formula mass offset for an ion_type_dict key.
+
+    offset = mass(atoms to add) − mass(atoms to subtract).
+    Same convention as ``LCMSMetabolomicsExport.get_ion_formula``.
+    """
+    ion_type_dict = _get_ion_type_dict()
+    if ion_type not in ion_type_dict:
+        raise ValueError(
+            f"Unknown ion_type {ion_type!r} for feature grouping; "
+            f"must be a key in ion_type_dict "
+            f"(e.g. '[M+H]+', '[M+NH4]+'). "
+            f"Known: {sorted(ion_type_dict.keys())}"
+        )
+    add_dict, sub_dict = ion_type_dict[ion_type]
+    return _atom_count_mass(add_dict) - _atom_count_mass(sub_dict)
+
+
+def ion_type_mass_delta(
+    ion_type_a: str,
+    ion_type_b: str,
+    charge: int = 1,
+) -> float:
+    """
+    m/z spacing: ion_type_b minus ion_type_a, for absolute charge ``charge``.
+
+    Example: ``[M+NH4]+`` − ``[M+H]+`` = m(N) + 3·m(H) at |z|=1.
+    Sign indicates which form is heavier; no preferred “base” form.
+    """
+    signed = _ion_type_mass_offset(ion_type_b) - _ion_type_mass_offset(
+        ion_type_a
+    )
+    return float(signed) / abs(int(charge))
+
+
+# Backward-compatible alias
+adduct_mass_delta = ion_type_mass_delta
 
 
 def find_isotope_edges(
@@ -445,6 +520,128 @@ def find_isotope_edges(
     return pd.DataFrame(rows)
 
 
+def find_adduct_edges(
+    cluster_ids: np.ndarray,
+    mz: np.ndarray,
+    rt: np.ndarray,
+    params: FeatureGroupParams,
+) -> pd.DataFrame:
+    """
+    Find ion-type edges using pairwise ``ion_type_dict`` mass offsets.
+
+    For every unordered pair ``(type_a, type_b)`` in ``params.ion_types``,
+    spacing is ``|offset(a) − offset(b)| / |z|``. The **lighter** peak is
+    assigned the lower-offset ion type; the heavier peak the higher-offset
+    type. No form is treated as a privileged base, and intensity is not used
+    here (Pearson is applied separately).
+
+    Returns
+    -------
+    DataFrame
+        Columns: parent_idx, child_idx, parent_cluster, child_cluster,
+        parent_ion_type, child_ion_type, charge, abs_dm.
+        parent = lighter m/z of the pair; child = heavier.
+    """
+    edge_columns = [
+        "parent_idx",
+        "child_idx",
+        "parent_cluster",
+        "child_cluster",
+        "parent_ion_type",
+        "child_ion_type",
+        "charge",
+        "abs_dm",
+    ]
+    n_feat = len(cluster_ids)
+    ion_types = tuple(params.ion_types)
+    if n_feat < 2 or len(ion_types) < 2:
+        return pd.DataFrame(columns=edge_columns)
+
+    # Pairwise spacings: store (type_light, type_heavy, z, abs_unit)
+    # where type_light has smaller mass offset than type_heavy.
+    spacings = []
+    for i, t_a in enumerate(ion_types):
+        for t_b in ion_types[i + 1 :]:
+            for z in params.charge_values():
+                signed = ion_type_mass_delta(t_a, t_b, charge=z)
+                if signed == 0:
+                    continue
+                if signed > 0:
+                    # t_b heavier than t_a
+                    t_light, t_heavy = t_a, t_b
+                else:
+                    t_light, t_heavy = t_b, t_a
+                spacings.append((t_light, t_heavy, int(z), abs(float(signed))))
+
+    if not spacings:
+        return pd.DataFrame(columns=edge_columns)
+
+    max_unit = max(s[3] for s in spacings)
+    order = np.argsort(mz, kind="mergesort")
+    mz_s = np.asarray(mz, dtype=float)[order]
+    rt_s = np.asarray(rt, dtype=float)[order]
+    mz_tol_pad = float(np.max(mz_s)) * params.mz_tol_ppm * 1e-6
+    max_mz_gap = max_unit + mz_tol_pad
+
+    tree_rt = KDTree(rt_s.reshape(-1, 1))
+    sdm_rt = tree_rt.sparse_distance_matrix(
+        tree_rt, params.rt_tol, output_type="coo_matrix"
+    )
+    sdm_rt = sparse.triu(sdm_rt, k=1)
+    sdm_rt.data = np.ones_like(sdm_rt.data)
+
+    tree_mz = KDTree(mz_s.reshape(-1, 1))
+    sdm_mz = tree_mz.sparse_distance_matrix(
+        tree_mz, max_mz_gap, output_type="coo_matrix"
+    )
+    sdm_mz = sparse.triu(sdm_mz, k=1)
+
+    cand = sdm_mz.multiply(sdm_rt).tocoo()
+    if cand.nnz == 0:
+        return pd.DataFrame(columns=edge_columns)
+
+    rows = []
+    seen = set()
+    for r, c, dm in zip(cand.row, cand.col, cand.data):
+        i_light = int(order[r])
+        i_heavy = int(order[c])
+        dm = float(dm)
+        tol = _mz_tol_abs(mz_s[r], mz_s[c], params.mz_tol_ppm)
+
+        best = None  # residual, t_light, t_heavy, z
+        for t_light, t_heavy, z, unit in spacings:
+            residual = abs(dm - unit)
+            if residual > tol:
+                continue
+            cand_t = (residual, t_light, t_heavy, z)
+            if best is None or residual < best[0]:
+                best = cand_t
+
+        if best is None:
+            continue
+        residual, t_light, t_heavy, z = best
+        key = (i_light, i_heavy, t_light, t_heavy)
+        if key in seen:
+            continue
+        seen.add(key)
+        rows.append(
+            {
+                "parent_idx": i_light,
+                "child_idx": i_heavy,
+                "parent_cluster": cluster_ids[i_light],
+                "child_cluster": cluster_ids[i_heavy],
+                "parent_ion_type": t_light,
+                "child_ion_type": t_heavy,
+                "charge": z,
+                "abs_dm": dm,
+            }
+        )
+
+    if not rows:
+        return pd.DataFrame(columns=edge_columns)
+    return pd.DataFrame(rows)
+
+
 def filter_edges_by_height_correlation(
     edges: pd.DataFrame,
     heights: np.ndarray,
@@ -584,8 +781,13 @@ def assign_isotope_labels(
         gid = next_group_id
         next_group_id += 1
 
+        # ion_type filled later from pairwise adduct edges (or single configured type)
+        single_ion_type = (
+            params.ion_types[0] if len(params.ion_types) == 1 else None
+        )
         labels.loc[cluster_ids[mono_idx], "feature_group_id"] = gid
         labels.loc[cluster_ids[mono_idx], "ion_role"] = "mono"
+        labels.loc[cluster_ids[mono_idx], "ion_type"] = single_ion_type
         labels.loc[cluster_ids[mono_idx], "isotope_state"] = "M+0"
         labels.loc[cluster_ids[mono_idx], "parent_cluster_id"] = mono_cluster
         assigned.add(mono_idx)
@@ -594,9 +796,139 @@ def assign_isotope_labels(
             cid = cluster_ids[c]
             labels.loc[cid, "feature_group_id"] = gid
             labels.loc[cid, "ion_role"] = "isotope"
+            labels.loc[cid, "ion_type"] = single_ion_type
             labels.loc[cid, "isotope_state"] = isotope_state_label(rare_label, depth)
             labels.loc[cid, "parent_cluster_id"] = mono_cluster
             assigned.add(c)
+
+    return labels
+
+
+def _remap_group_id(labels: pd.DataFrame, old_gid, new_gid) -> None:
+    """In-place remap feature_group_id old → new."""
+    if pd.isna(old_gid) or pd.isna(new_gid) or old_gid == new_gid:
+        return
+    mask = labels["feature_group_id"] == old_gid
+    labels.loc[mask, "feature_group_id"] = new_gid
+
+
+def merge_adduct_edges_into_labels(
+    labels: pd.DataFrame,
+    cluster_ids: np.ndarray,
+    adduct_edges: pd.DataFrame,
+    params: FeatureGroupParams,
+) -> pd.DataFrame:
+    """
+    Merge isotope families (or singletons) across ion-type (adduct) edges.
+
+    Each edge links a **lighter** form (``parent_ion_type``) to a **heavier**
+    form (``child_ion_type``) by ``ion_type_dict`` mass difference — neither is
+    a privileged base. Intensity is not used.
+
+    - Union ``feature_group_id`` of both sides (members snapshotted before merge).
+    - Assign ``ion_type`` per side from the edge (not by peak height).
+    - ``ion_role`` stays ``mono`` / ``isotope`` (chemical); M+0 of the heavier
+      form remains ``mono`` of that form, not reclassified as ``adduct``.
+    - ``parent_cluster_id`` = chemical mono of that feature's own ion form.
+    """
+    if adduct_edges is None or adduct_edges.empty:
+        return labels
+
+    labels = labels.copy()
+    next_gid = 0
+    if labels["feature_group_id"].notna().any():
+        next_gid = int(labels["feature_group_id"].max()) + 1
+
+    def _members(cluster_id: int):
+        gid = labels.loc[cluster_id, "feature_group_id"]
+        if pd.isna(gid):
+            return [cluster_id]
+        return list(labels.index[labels["feature_group_id"] == gid])
+
+    def _form_mono(member_ids):
+        monos = [c for c in member_ids if labels.loc[c, "ion_role"] == "mono"]
+        return int(monos[0]) if monos else int(member_ids[0])
+
+    for row in adduct_edges.itertuples(index=False):
+        parent_c = int(row.parent_cluster)  # lighter m/z
+        child_c = int(row.child_cluster)  # heavier m/z
+        type_light = row.parent_ion_type
+        type_heavy = row.child_ion_type
+
+        if parent_c not in labels.index or child_c not in labels.index:
+            continue
+
+        g_p = labels.loc[parent_c, "feature_group_id"]
+        g_c = labels.loc[child_c, "feature_group_id"]
+        light_members = list(_members(parent_c))
+        heavy_members = list(_members(child_c))
+
+        # Already same group: only set ion_type on each side via endpoint families
+        if (
+            not pd.isna(g_p)
+            and not pd.isna(g_c)
+            and int(g_p) == int(g_c)
+        ):
+            # Endpoints only if ion_type still empty; do not reassign whole group
+            if labels.loc[parent_c, "ion_type"] is None or pd.isna(
+                labels.loc[parent_c, "ion_type"]
+            ):
+                labels.loc[parent_c, "ion_type"] = type_light
+            if labels.loc[child_c, "ion_type"] is None or pd.isna(
+                labels.loc[child_c, "ion_type"]
+            ):
+                labels.loc[child_c, "ion_type"] = type_heavy
+            continue
+
+        if pd.isna(g_p) and pd.isna(g_c):
+            keep_gid = next_gid
+            next_gid += 1
+        elif pd.isna(g_p):
+            keep_gid = int(g_c)
+        elif pd.isna(g_c):
+            keep_gid = int(g_p)
+        else:
+            keep_gid = int(g_p)
+            if int(g_c) != keep_gid:
+                _remap_group_id(labels, int(g_c), keep_gid)
+
+        # Seed unlabeled endpoints as chemical mono of their form
+        for cid, default_role in ((parent_c, "mono"), (child_c, "mono")):
+            if labels.loc[cid, "ion_role"] is None or pd.isna(
+                labels.loc[cid, "ion_role"]
+            ):
+                labels.loc[cid, "ion_role"] = default_role
+                labels.loc[cid, "isotope_state"] = "M+0"
+
+        light_mono = _form_mono(light_members)
+        heavy_mono = _form_mono(heavy_members)
+        if light_mono not in light_members:
+            light_mono = parent_c
+        if heavy_mono not in heavy_members:
+            heavy_mono = child_c
+        # Ensure form monos are labeled mono
+        if labels.loc[light_mono, "ion_role"] != "isotope":
+            labels.loc[light_mono, "ion_role"] = "mono"
+            if labels.loc[light_mono, "isotope_state"] is None or pd.isna(
+                labels.loc[light_mono, "isotope_state"]
+            ):
+                labels.loc[light_mono, "isotope_state"] = "M+0"
+        if labels.loc[heavy_mono, "ion_role"] != "isotope":
+            labels.loc[heavy_mono, "ion_role"] = "mono"
+            if labels.loc[heavy_mono, "isotope_state"] is None or pd.isna(
+                labels.loc[heavy_mono, "isotope_state"]
+            ):
+                labels.loc[heavy_mono, "isotope_state"] = "M+0"
+
+        for cid in light_members:
+            labels.loc[cid, "feature_group_id"] = keep_gid
+            labels.loc[cid, "ion_type"] = type_light
+            labels.loc[cid, "parent_cluster_id"] = light_mono
+
+        for cid in heavy_members:
+            labels.loc[cid, "feature_group_id"] = keep_gid
+            labels.loc[cid, "ion_type"] = type_heavy
+            labels.loc[cid, "parent_cluster_id"] = heavy_mono
 
     return labels
 
@@ -609,11 +941,13 @@ def group_features_arrays(
     params: FeatureGroupParams,
 ) -> pd.DataFrame:
     """
-    Run full Stage 1 **natural-abundance** isotope grouping on array inputs.
+    Run natural-abundance isotope + adduct feature grouping on array inputs.
 
-    Links monoisotopic features to natural-abundance rare isotopologues
-    (geometry + Pearson height gate + roll-up). Does not model tracer/labeled
-    enrichment.
+    1. Unit isotope edges (``Atoms``) + Pearson gate + roll-up.
+    2. Base↔adduct edges (``ion_type_dict`` mass offsets) + Pearson gate.
+    3. Merge groups across adduct edges; set ``ion_type`` / roles.
+
+    Does not model tracer/labeled enrichment. No mono-vs-family height prior.
 
     Parameters
     ----------
@@ -645,10 +979,21 @@ def group_features_arrays(
     if len(cluster_ids) < 2:
         return empty_group_labels(cluster_ids)
 
-    # Single-process path (partition/multicore can be added without API change)
-    edges = find_isotope_edges(cluster_ids, mz, rt, params)
-    edges = filter_edges_by_height_correlation(edges, heights, params)
-    labels = assign_isotope_labels(cluster_ids, mz, rt, heights, edges, params)
+    # Isotope stage
+    iso_edges = find_isotope_edges(cluster_ids, mz, rt, params)
+    iso_edges = filter_edges_by_height_correlation(iso_edges, heights, params)
+    labels = assign_isotope_labels(
+        cluster_ids, mz, rt, heights, iso_edges, params
+    )
+
+    # Adduct / multi ion-type stage (pairwise Δm among params.ion_types)
+    if len(params.ion_types) >= 2:
+        add_edges = find_adduct_edges(cluster_ids, mz, rt, params)
+        add_edges = filter_edges_by_height_correlation(add_edges, heights, params)
+        labels = merge_adduct_edges_into_labels(
+            labels, cluster_ids, add_edges, params
+        )
+
     return labels
 
 

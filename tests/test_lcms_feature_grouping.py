@@ -7,8 +7,10 @@ import pytest
 from corems.encapsulation.constant import Atoms
 from corems.mass_spectra.calc.feature_grouping import (
     FeatureGroupParams,
+    adduct_mass_delta,
     empty_group_labels,
     filter_edges_by_height_correlation,
+    find_adduct_edges,
     find_isotope_edges,
     group_features_arrays,
     isotope_mass_delta,
@@ -19,6 +21,11 @@ from corems.mass_spectra.calc.feature_grouping import (
 
 def _delta_c13(charge=1):
     return (Atoms.atomic_masses["13C"] - Atoms.atomic_masses["C"]) / abs(charge)
+
+
+def _delta_nh4_vs_h(charge=1):
+    """[M+NH4]+ − [M+H]+ spacing from ion_type_dict / Atoms."""
+    return adduct_mass_delta("[M+H]+", "[M+NH4]+", charge=charge)
 
 
 def test_isotope_mass_delta_uses_atoms_not_hardcoded():
@@ -76,6 +83,7 @@ def test_default_feature_group_settings_locked_in():
     assert s.feature_group_min_isotope_abundance == pytest.approx(0.01)
     assert s.feature_group_min_charge == 1
     assert s.feature_group_max_charge == 1
+    assert s.feature_group_ion_types == ("[M+H]+", "[M+NH4]+")
 
     params = FeatureGroupParams.from_lcms_collection_settings(s)
     assert params.corr_threshold == pytest.approx(0.80)
@@ -89,16 +97,29 @@ def test_default_feature_group_settings_locked_in():
 
 
 def test_mono_plus_c13_high_corr_groups():
-    dm = _delta_c13()
-    cluster_ids = np.array([10, 11, 12])
-    mz = np.array([200.0, 200.0 + dm, 350.0])
-    rt = np.array([5.0, 5.02, 5.0])
-    # correlated heights for 10 and 11; 12 different
+    """Mono, ¹³C, NH₄ adduct, and ¹³C–NH₄ all share one feature_group_id."""
+    dm_c = _delta_c13()
+    dm_nh4 = _delta_nh4_vs_h()
+    # 10: [M+H]+ mono, 11: [M+H]+ 13C1, 13: [M+NH4]+, 14: [M+NH4]+ 13C1, 12: noise
+    cluster_ids = np.array([10, 11, 12, 13, 14])
+    mz = np.array(
+        [
+            200.0,
+            200.0 + dm_c,
+            350.0,
+            200.0 + dm_nh4,
+            200.0 + dm_nh4 + dm_c,
+        ]
+    )
+    rt = np.array([5.0, 5.02, 5.0, 5.01, 5.03])
+    # Shared correlation pattern for true family; noise uncorrelated
     heights = np.array(
         [
             [10.0, 20.0, 30.0, 40.0],
             [5.0, 10.0, 15.0, 20.0],
             [1.0, 50.0, 1.0, 50.0],
+            [8.0, 16.0, 24.0, 32.0],
+            [4.0, 8.0, 12.0, 16.0],
         ]
     )
     params = FeatureGroupParams(
@@ -106,16 +127,35 @@ def test_mono_plus_c13_high_corr_groups():
         mz_tol_ppm=20.0,
         corr_threshold=0.9,
         min_shared_sample_fraction=0.75,
+        ion_types=("[M+H]+", "[M+NH4]+"),
     )
     labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
 
+    # [M+H]+ form (lighter offset)
     assert labels.loc[10, "ion_role"] == "mono"
+    assert labels.loc[10, "ion_type"] == "[M+H]+"
     assert labels.loc[10, "isotope_state"] == "M+0"
     assert labels.loc[10, "parent_cluster_id"] == 10
     assert labels.loc[11, "ion_role"] == "isotope"
+    assert labels.loc[11, "ion_type"] == "[M+H]+"
     assert labels.loc[11, "isotope_state"] == "13C1"
     assert labels.loc[11, "parent_cluster_id"] == 10
-    assert labels.loc[10, "feature_group_id"] == labels.loc[11, "feature_group_id"]
+
+    # [M+NH4]+ form (heavier offset): still chemical mono/isotope, not demoted
+    assert labels.loc[13, "ion_role"] == "mono"
+    assert labels.loc[13, "ion_type"] == "[M+NH4]+"
+    assert labels.loc[13, "isotope_state"] == "M+0"
+    assert labels.loc[13, "parent_cluster_id"] == 13
+    assert labels.loc[14, "ion_role"] == "isotope"
+    assert labels.loc[14, "ion_type"] == "[M+NH4]+"
+    assert labels.loc[14, "isotope_state"] == "13C1"
+    assert labels.loc[14, "parent_cluster_id"] == 13
+
+    gid = labels.loc[10, "feature_group_id"]
+    assert pd.notna(gid)
+    assert labels.loc[11, "feature_group_id"] == gid
+    assert labels.loc[13, "feature_group_id"] == gid
+    assert labels.loc[14, "feature_group_id"] == gid
     assert pd.isna(labels.loc[12, "feature_group_id"])
 
 
