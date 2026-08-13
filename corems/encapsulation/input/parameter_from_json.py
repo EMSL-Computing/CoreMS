@@ -1,4 +1,5 @@
 from pathlib import Path
+import dataclasses
 import json
 import toml
 
@@ -6,6 +7,7 @@ from corems.encapsulation.factory.parameters import MSParameters, LCMSParameters
 from corems.encapsulation.factory.processingSetting import (
     MolecularFormulaSearchSettings,
     TransientSetting,
+    SpectralSimilaritySearchSettings,
 )
 from corems.encapsulation.factory.processingSetting import (
     MassSpectrumSetting,
@@ -269,14 +271,37 @@ def _set_dict_data_lcms(data_loaded, lcms_obj):
     # Load the lcms parameters
     default_params = LCMSParameters(use_defaults=True)
     lcms_params = data_loaded.get("LiquidChromatograph")
-    for item, value in lcms_params.items():
-        # If the original value is a tuple but the new one is a list we need to convert the list to a tuple
-        if isinstance(value, list) and isinstance(
-            getattr(default_params.lc_ms, item), tuple
-        ):
-            setattr(lcms_obj.parameters.lc_ms, item, tuple(value))
-        else:
-            setattr(lcms_obj.parameters.lc_ms, item, value)
+    if lcms_params is not None:
+        for item, value in lcms_params.items():
+            # If the original value is a tuple but the new one is a list we need to convert the list to a tuple
+            if isinstance(value, list) and isinstance(
+                getattr(default_params.lc_ms, item), tuple
+            ):
+                setattr(lcms_obj.parameters.lc_ms, item, tuple(value))
+            else:
+                setattr(lcms_obj.parameters.lc_ms, item, value)
+
+    def _apply_settings_dict(param_instance, class_data):
+        if class_data is None:
+            return param_instance
+        writable = {f.name for f in dataclasses.fields(param_instance)}
+        for item, value in class_data.items():
+            if item not in writable:
+                continue
+            if item == "usedAtoms":
+                for atom, atom_value in value.items():
+                    value[atom] = tuple(atom_value)
+            if item == "additional_similarities" and isinstance(value, list):
+                setattr(param_instance, item, list(value))
+            elif item == "similarity_thresholds" and isinstance(value, dict):
+                setattr(param_instance, item, dict(value))
+            elif isinstance(value, list) and isinstance(
+                getattr(param_instance, item), tuple
+            ):
+                setattr(param_instance, item, tuple(value))
+            else:
+                setattr(param_instance, item, value)
+        return param_instance
 
     def set_ms_params_by_key(ms_key):
         classes = [
@@ -285,6 +310,7 @@ def _set_dict_data_lcms(data_loaded, lcms_obj):
             MolecularFormulaSearchSettings,
             DataInputSetting,
             TransientSetting,
+            SpectralSimilaritySearchSettings,
         ]
 
         labels = [
@@ -293,33 +319,32 @@ def _set_dict_data_lcms(data_loaded, lcms_obj):
             "molecular_search",
             "data_input",
             "transient",
+            "spectral_similarity_search",
         ]
 
+        profile = data_loaded.get("mass_spectrum", {}).get(ms_key) or {}
         label_class = zip(labels, classes)
 
         for label, classe in label_class:
-            class_data = data_loaded.get("mass_spectrum").get(ms_key).get(label)
+            class_data = profile.get(label)
             param_instance = classe()
-            if class_data is not None:
-                # Set the attributes of the nested class
-                for item, value in class_data.items():
-                    if item == "usedAtoms":
-                        # Convert the lists to tuples
-                        for atom, atom_value in value.items():
-                            value[atom] = tuple(atom_value)
-                    if isinstance(value, list) and isinstance(
-                        getattr(param_instance, item), tuple
-                    ):
-                        setattr(param_instance, item, tuple(value))
-                    else:
-                        setattr(param_instance, item, value)
+            param_instance = _apply_settings_dict(param_instance, class_data)
             setattr(lcms_obj.parameters.mass_spectrum[ms_key], label, param_instance)
 
     # Load the mass spectrum parameters
-    ms_keys = data_loaded["mass_spectrum"].keys()
-    for ms_key in ms_keys:
+    mass_spectrum_data = data_loaded.get("mass_spectrum") or {}
+    for ms_key in mass_spectrum_data.keys():
         lcms_obj.parameters.mass_spectrum[ms_key] = MSParameters()
         set_ms_params_by_key(ms_key)
+
+    # Legacy LiquidChromatograph annotation → default ms2 profile.
+    # Only when the nested spectral_similarity_search section is absent; nested is
+    # the source of truth and must not push back onto lc_ms (keeps export/import
+    # round-trips equal for objects that only set nested fields).
+    if lcms_params is not None and "ms2" in lcms_obj.parameters.mass_spectrum:
+        profile_data = mass_spectrum_data.get("ms2") or {}
+        if "spectral_similarity_search" not in profile_data:
+            lcms_obj.parameters.sync_ms2_annotation_from_lc_ms(profile="ms2")
 
 
 def _set_dict_data_ms(data_loaded, mass_spec_obj):

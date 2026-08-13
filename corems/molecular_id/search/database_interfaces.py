@@ -20,6 +20,14 @@ from corems.molecular_id.factory.lipid_molecular_metadata import LipidMetadata
 from corems.mass_spectra.calc.lc_calc import find_closest
 
 
+def _resolve_fe_kwargs(settings=None, fe_kwargs=None) -> dict:
+    """Merge SpectralSimilaritySearchSettings.as_fe_kwargs() with optional fe_kwargs overrides."""
+    base = settings.as_fe_kwargs() if settings is not None else {}
+    if fe_kwargs:
+        base = {**base, **dict(fe_kwargs)}
+    return base
+
+
 class SpectralDatabaseInterface(ABC):
     """
     Base class that facilitates connection to spectral reference databases,
@@ -1009,12 +1017,19 @@ class LCLipidLibraryInterface(SpectralDatabaseInterface):
         mz_tol_da_api=None,
         format="json",
         normalize=True,
-        fe_kwargs={},
+        fe_kwargs=None,
+        settings=None,
         api_delay=5,
         api_attempts=10,
     ):
         """
         Retrieve lipid spectra and metadata from a local sqlite library.
+
+        FlashEntropy build knobs should come from
+        :class:`~corems.encapsulation.factory.processingSetting.SpectralSimilaritySearchSettings`
+        so library generation matches later
+        :meth:`~corems.molecular_id.search.lcms_spectral_search.LCMSSpectralSearch.fe_search`
+        / molecular networking on the same LC-MS sample or collection.
 
         Parameters
         ----------
@@ -1029,9 +1044,41 @@ class LCLipidLibraryInterface(SpectralDatabaseInterface):
         format : str, optional
             Format of requested library, e.g. "json" or "flashentropy".
         normalize : bool, optional
-            Normalize spectrum intensities.
+            Normalize spectrum intensities (default True; always recommended).
         fe_kwargs : dict, optional
-            Keyword arguments for FlashEntropy search.
+            Keyword arguments for FlashEntropy search. Override keys from
+            *settings* when both are provided. Prefer *settings* for new code.
+        settings : SpectralSimilaritySearchSettings, optional
+            Encapsulated FE build settings. For an :class:`~corems.mass_spectra.factory.lc_class.LCMSBase`
+            object, pass the profile bag used for MS2 association/search, typically::
+
+                from corems.encapsulation.factory.parameters import settings_from_lcms
+                settings=settings_from_lcms(lcms_obj)  # mass_spectrum["ms2"]
+
+            or explicitly
+            ``lcms_obj.parameters.mass_spectrum["ms2"].spectral_similarity_search``.
+            For an :class:`~corems.mass_spectra.factory.lc_class.LCMSCollection`,
+            configure settings once, broadcast to every sample, then pass
+            collection settings into the library build::
+
+                from corems.encapsulation.factory.parameters import (
+                    apply_spectral_similarity_search_to_collection,
+                    settings_from_lcms_collection,
+                )
+                from corems.encapsulation.factory.processingSetting import (
+                    SpectralSimilaritySearchSettings,
+                )
+
+                ss = SpectralSimilaritySearchSettings()
+                ss.max_ms2_tolerance_in_da = 0.01
+                ss.ms2_min_fe_score = 0.3
+                apply_spectral_similarity_search_to_collection(
+                    lcms_collection, ss, profile="ms2"
+                )
+                settings=settings_from_lcms_collection(lcms_collection)
+
+            Mutating ``settings_from_lcms_collection(...)`` in place only changes
+            the first sample. Multi-MS2 profiles use ``profile="ms2_cid"`` (etc.).
         api_delay : int, optional
             Unused, kept for backward compatibility.
         api_attempts : int, optional
@@ -1041,7 +1088,52 @@ class LCLipidLibraryInterface(SpectralDatabaseInterface):
         -------
         tuple
             Library in requested format and lipid metadata dictionary.
+
+        Notes
+        -----
+        *settings* only drives FlashEntropy index construction. Annotation
+        thresholds such as ``ms2_min_fe_score`` are applied later by
+        ``fe_search`` on the LCMS object (from the same
+        ``spectral_similarity_search`` instance when configured consistently).
+
+        Examples
+        --------
+        Build a FlashEntropy library from an LCMSBase object's MS2 profile, then search::
+
+            from corems.encapsulation.factory.parameters import settings_from_lcms
+
+            settings = settings_from_lcms(lcms_obj, profile="ms2")
+            fe_lib, lipid_meta = lipid_interface.get_lipid_library(
+                mz_list=precursor_mzs,
+                polarity=lcms_obj.polarity,
+                mz_tol_ppm=5,
+                format="flashentropy",
+                settings=settings,
+            )
+            lcms_obj.fe_search(scan_list=ms2_scans, fe_lib=fe_lib)
+
+        Collection — configure, broadcast to all samples, then build library::
+
+            from corems.encapsulation.factory.parameters import (
+                apply_spectral_similarity_search_to_collection,
+                settings_from_lcms_collection,
+            )
+            from corems.encapsulation.factory.processingSetting import (
+                SpectralSimilaritySearchSettings,
+            )
+
+            ss = SpectralSimilaritySearchSettings()
+            ss.max_ms2_tolerance_in_da = 0.01
+            apply_spectral_similarity_search_to_collection(lcms_collection, ss)
+            fe_lib, lipid_meta = lipid_interface.get_lipid_library(
+                mz_list=precursor_mzs,
+                polarity="positive",
+                mz_tol_ppm=5,
+                format="flashentropy",
+                settings=settings_from_lcms_collection(lcms_collection),
+            )
         """
+        fe_kwargs = _resolve_fe_kwargs(settings=settings, fe_kwargs=fe_kwargs)
 
         if not isinstance(mz_list, (list, np.ndarray)):
             raise ValueError("mz_list must be a list or numpy array")
@@ -1397,11 +1489,18 @@ class MSPInterface(SpectralDatabaseInterface):
         metabolite_metadata_mapping={},
         format="fe",
         normalize=True,
-        fe_kwargs={},
+        fe_kwargs=None,
+        settings=None,
         molecular_id_field="inchikey",
     ):
         """
-        Prepare metabolomics spectra library and associated metabolite metadata
+        Prepare metabolomics spectra library and associated metabolite metadata.
+
+        FlashEntropy build knobs should come from
+        :class:`~corems.encapsulation.factory.processingSetting.SpectralSimilaritySearchSettings`
+        so library generation matches later
+        :meth:`~corems.molecular_id.search.lcms_spectral_search.LCMSSpectralSearch.fe_search`
+        / molecular networking on the same LC-MS sample or collection.
 
         Parameters
         ----------
@@ -1414,9 +1513,44 @@ class MSPInterface(SpectralDatabaseInterface):
             Output format for the spectral library. Options: 'fe', 'flashentropy', 'msp', 'df'.
             Default is 'fe' (FlashEntropy).
         normalize : bool, optional
-            Whether to normalize spectra. Default is True.
+            Whether to normalize spectra. Default is True (always recommended).
         fe_kwargs : dict, optional
             Additional keyword arguments for FlashEntropy library creation.
+            Override keys from *settings* when both are provided. Prefer *settings*
+            for new code.
+        settings : SpectralSimilaritySearchSettings, optional
+            Encapsulated FE build settings. For an
+            :class:`~corems.mass_spectra.factory.lc_class.LCMSBase` object, pass
+            the MS2 parameter profile used for association/search, typically::
+
+                from corems.encapsulation.factory.parameters import settings_from_lcms
+                settings=settings_from_lcms(lcms_obj)  # mass_spectrum["ms2"]
+
+            or explicitly
+            ``lcms_obj.parameters.mass_spectrum["ms2"].spectral_similarity_search``.
+            For an :class:`~corems.mass_spectra.factory.lc_class.LCMSCollection`,
+            configure settings once, broadcast to every sample, then pass the
+            collection's (first-sample) settings into the library build::
+
+                from corems.encapsulation.factory.parameters import (
+                    apply_spectral_similarity_search_to_collection,
+                    settings_from_lcms_collection,
+                )
+                from corems.encapsulation.factory.processingSetting import (
+                    SpectralSimilaritySearchSettings,
+                )
+
+                ss = SpectralSimilaritySearchSettings()
+                ss.max_ms2_tolerance_in_da = 0.01
+                apply_spectral_similarity_search_to_collection(
+                    lcms_collection, ss, profile="ms2"
+                )
+                settings=settings_from_lcms_collection(lcms_collection)
+
+            Mutating ``settings_from_lcms_collection(...)`` in place only changes
+            the first sample — use :func:`apply_spectral_similarity_search_to_collection`
+            to keep all members equal. Multi-MS2 profiles use ``profile="ms2_cid"``
+            (or the matching ``mass_spectrum`` key).
         molecular_id_field : str, optional
             Field name to use as the unique molecular identifier for linking spectra to metadata.
             Default is 'inchikey'. The specified field must exist in the MSP file and contain
@@ -1431,10 +1565,48 @@ class MSPInterface(SpectralDatabaseInterface):
         Notes
         -----
         The molecular_id_field parameter allows flexibility for different MSP file formats:
+
         - Use 'inchikey' for standard metabolite databases (default)
         - Use 'name' or 'spectra_id' for custom or isotope-labeled standards
         - The specified field must exist and contain non-null values for all entries
 
+        *settings* only drives FlashEntropy index construction. Annotation
+        thresholds such as ``ms2_min_fe_score`` are applied later by
+        ``fe_search`` on the LCMS object when it reads the same
+        ``spectral_similarity_search`` instance.
+
+        Examples
+        --------
+        Single LCMSBase file::
+
+            from corems.encapsulation.factory.parameters import settings_from_lcms
+
+            settings = settings_from_lcms(lcms_obj, profile="ms2")
+            fe_lib, mol_meta = msp_interface.get_metabolomics_spectra_library(
+                polarity="positive",
+                format="flashentropy",
+                settings=settings,
+            )
+            lcms_obj.fe_search(scan_list=ms2_scans, fe_lib=fe_lib)
+
+        Collection — configure, broadcast to all samples, then build library::
+
+            from corems.encapsulation.factory.parameters import (
+                apply_spectral_similarity_search_to_collection,
+                settings_from_lcms_collection,
+            )
+            from corems.encapsulation.factory.processingSetting import (
+                SpectralSimilaritySearchSettings,
+            )
+
+            ss = SpectralSimilaritySearchSettings()
+            ss.max_ms2_tolerance_in_da = 0.01
+            apply_spectral_similarity_search_to_collection(lcms_collection, ss)
+            fe_lib, mol_meta = msp_interface.get_metabolomics_spectra_library(
+                polarity="negative",
+                format="flashentropy",
+                settings=settings_from_lcms_collection(lcms_collection),
+            )
         """
         # Check if the MSP file is compatible with the get_metabolomics_spectra_library method
         self._check_msp_compatibility()
@@ -1470,6 +1642,8 @@ class MSPInterface(SpectralDatabaseInterface):
                 f"Available columns: {', '.join(db_df.columns)}"
             )
         
+        fe_kwargs = _resolve_fe_kwargs(settings=settings, fe_kwargs=fe_kwargs)
+
         if not db_df[molecular_id_field].notnull().all():
             raise ValueError(
                 f"Specified molecular_id_field '{molecular_id_field}' contains null values. "

@@ -7,12 +7,14 @@ from corems.encapsulation.factory.processingSetting import (
     MassSpecPeakSetting,
     MassSpectrumSetting,
     LCMSCollectionSettings,
+    SpectralSimilaritySearchSettings,
 )
 from corems.encapsulation.factory.processingSetting import (
     CompoundSearchSettings,
     GasChromatographSetting,
 )
 from corems.encapsulation.factory.processingSetting import DataInputSetting
+
 
 def hush_output():
     """Toggle all the verbose_processing flags to False on the MSParameters, GCMSParameters and LCMSParameters classes"""
@@ -21,6 +23,7 @@ def hush_output():
     GCMSParameters.gc_ms.verbose_processing = False
     LCMSParameters.lc_ms.verbose_processing = False
 
+
 def reset_ms_parameters():
     """Reset the MSParameter class to the default values"""
     MSParameters.molecular_search = MolecularFormulaSearchSettings()
@@ -28,6 +31,7 @@ def reset_ms_parameters():
     MSParameters.mass_spectrum = MassSpectrumSetting()
     MSParameters.ms_peak = MassSpecPeakSetting()
     MSParameters.data_input = DataInputSetting()
+    MSParameters.spectral_similarity_search = SpectralSimilaritySearchSettings()
 
 
 def reset_gcms_parameters():
@@ -40,6 +44,84 @@ def reset_lcms_parameters():
     """Reset the LCMSParameters class to the default values"""
     reset_ms_parameters()
     LCMSParameters.lc_ms = LiquidChromatographSetting()
+    LCMSParameters.mass_spectrum = {
+        "ms1": MSParameters(use_defaults=True),
+        "ms2": MSParameters(use_defaults=True),
+    }
+
+
+def settings_from_lcms(lcms_obj, profile: str = "ms2") -> SpectralSimilaritySearchSettings:
+    """Return spectral similarity search settings for an LCMS object profile key.
+
+    Parameters
+    ----------
+    lcms_obj
+        Object with ``parameters.mass_spectrum`` (e.g. LCMSBase).
+    profile : str, optional
+        Key in ``parameters.mass_spectrum`` (default ``"ms2"``).
+
+    Returns
+    -------
+    SpectralSimilaritySearchSettings
+        Live reference on that LCMS object (mutations affect only this sample).
+    """
+    return lcms_obj.parameters.mass_spectrum[profile].spectral_similarity_search
+
+
+def settings_from_lcms_collection(lcms_collection, profile: str = "ms2") -> SpectralSimilaritySearchSettings:
+    """Return spectral similarity settings from the **first** sample in a collection.
+
+    This is a read convenience for library build when all samples already share
+    the same settings.  Mutating the returned object updates **only the first
+    sample**.  To change settings for every sample (and keep them equal for a
+    later re-instantiation of the collection), configure a settings instance
+    then call :func:`apply_spectral_similarity_search_to_collection`.
+
+    Parameters
+    ----------
+    lcms_collection
+        Sequence of LCMS objects (e.g. LCMSCollection).
+    profile : str, optional
+        Key in ``parameters.mass_spectrum`` (default ``"ms2"``).
+
+    Returns
+    -------
+    SpectralSimilaritySearchSettings
+    """
+    first = lcms_collection[0]
+    return settings_from_lcms(first, profile=profile)
+
+
+def apply_spectral_similarity_search_to_collection(
+    lcms_collection,
+    settings: SpectralSimilaritySearchSettings,
+    profile: str = "ms2",
+) -> None:
+    """Copy *settings* onto every LCMS sample's ``mass_spectrum[profile]`` bag.
+
+    Use this after configuring spectral similarity / networking knobs so all
+    members of a collection stay aligned (collection workflows assume shared
+    processing parameters).
+
+    Parameters
+    ----------
+    lcms_collection
+        Sequence of LCMS objects (e.g. LCMSCollection).
+    settings : SpectralSimilaritySearchSettings
+        Settings to broadcast.  Each sample receives ``settings.copy()`` so
+        later per-sample mutations do not cross-link.
+    profile : str, optional
+        Key in ``parameters.mass_spectrum`` (default ``"ms2"``).
+    """
+    for sample in lcms_collection:
+        if profile not in sample.parameters.mass_spectrum:
+            raise KeyError(
+                f"profile={profile!r} not in sample parameters.mass_spectrum "
+                f"(keys={list(sample.parameters.mass_spectrum)})"
+            )
+        sample.parameters.mass_spectrum[
+            profile
+        ].spectral_similarity_search = settings.copy()
 
 
 class MSParameters:
@@ -64,6 +146,10 @@ class MSParameters:
         MassSpecPeakSetting object
     data_input: DataInputSetting
         DataInputSetting object
+    spectral_similarity_search: SpectralSimilaritySearchSettings
+        Spectral similarity library search and molecular networking settings
+        (not molecular formula search). Used for LCMS MS2 profiles; present
+        but typically unused on MS1 mass spectrum parameters.
 
     Notes
     -----
@@ -76,6 +162,7 @@ class MSParameters:
     mass_spectrum = MassSpectrumSetting()
     ms_peak = MassSpecPeakSetting()
     data_input = DataInputSetting()
+    spectral_similarity_search = SpectralSimilaritySearchSettings()
 
     def __init__(self, use_defaults=False) -> None:
         if not use_defaults:
@@ -84,12 +171,14 @@ class MSParameters:
             self.mass_spectrum = dataclasses.replace(MSParameters.mass_spectrum)
             self.ms_peak = dataclasses.replace(MSParameters.ms_peak)
             self.data_input = dataclasses.replace(MSParameters.data_input)
+            self.spectral_similarity_search = MSParameters.spectral_similarity_search.copy()
         else:
             self.molecular_search = MolecularFormulaSearchSettings()
             self.transient = TransientSetting()
             self.mass_spectrum = MassSpectrumSetting()
             self.ms_peak = MassSpecPeakSetting()
             self.data_input = DataInputSetting()
+            self.spectral_similarity_search = SpectralSimilaritySearchSettings()
 
     def copy(self):
         """Create a copy of the MSParameters object"""
@@ -99,6 +188,7 @@ class MSParameters:
         new_ms_parameters.mass_spectrum = dataclasses.replace(self.mass_spectrum)
         new_ms_parameters.ms_peak = dataclasses.replace(self.ms_peak)
         new_ms_parameters.data_input = dataclasses.replace(self.data_input)
+        new_ms_parameters.spectral_similarity_search = self.spectral_similarity_search.copy()
 
         return new_ms_parameters
 
@@ -120,6 +210,7 @@ class MSParameters:
         equality_check.append(self.mass_spectrum == value.mass_spectrum)
         equality_check.append(self.ms_peak == value.ms_peak)
         equality_check.append(self.data_input == value.data_input)
+        equality_check.append(self.spectral_similarity_search == value.spectral_similarity_search)
 
         return all(equality_check)
 
@@ -203,11 +294,16 @@ class LCMSParameters:
         LiquidChromatographSetting object
     mass_spectrum: dict
         dictionary with the mass spectrum parameters for ms1 and ms2, each value is a MSParameters object
+        (includes ``spectral_similarity_search`` on each bag; use ``mass_spectrum["ms2"].spectral_similarity_search`` by default)
 
     Notes
     -----
     One can use the use_defaults parameter to reset the parameters to the default values.
     Alternatively, to use the current values - modify the class's contents before instantiating the class.
+
+    Annotation fields on ``lc_ms`` (``ms2_min_fe_score``, etc.) are legacy aliases;
+    prefer ``mass_spectrum["ms2"].spectral_similarity_search``. Use
+    :meth:`sync_ms2_annotation_from_lc_ms` / :meth:`sync_ms2_annotation_to_lc_ms`.
     """
 
     lc_ms = LiquidChromatographSetting()
@@ -226,6 +322,25 @@ class LCMSParameters:
                 "ms1": MSParameters(use_defaults=True),
                 "ms2": MSParameters(use_defaults=True),
             }
+        self.sync_ms2_annotation_from_lc_ms()
+
+    def sync_ms2_annotation_from_lc_ms(self, profile: str = "ms2") -> None:
+        """Copy legacy ``lc_ms`` annotation fields into ``mass_spectrum[profile].spectral_similarity_search``."""
+        if profile not in self.mass_spectrum:
+            return
+        dest = self.mass_spectrum[profile].spectral_similarity_search
+        dest.ms2_min_fe_score = self.lc_ms.ms2_min_fe_score
+        dest.search_as_lipids = self.lc_ms.search_as_lipids
+        dest.include_fragment_types = self.lc_ms.include_fragment_types
+
+    def sync_ms2_annotation_to_lc_ms(self, profile: str = "ms2") -> None:
+        """Copy ``mass_spectrum[profile].spectral_similarity_search`` annotation fields into legacy ``lc_ms``."""
+        if profile not in self.mass_spectrum:
+            return
+        src = self.mass_spectrum[profile].spectral_similarity_search
+        self.lc_ms.ms2_min_fe_score = src.ms2_min_fe_score
+        self.lc_ms.search_as_lipids = src.search_as_lipids
+        self.lc_ms.include_fragment_types = src.include_fragment_types
 
     def copy(self):
         """Create a copy of the LCMSParameters object"""
@@ -265,6 +380,10 @@ class LCMSParameters:
             equality_check.append(
                 self.mass_spectrum[key].data_input
                 == value.mass_spectrum[key].data_input
+            )
+            equality_check.append(
+                self.mass_spectrum[key].spectral_similarity_search
+                == value.mass_spectrum[key].spectral_similarity_search
             )
 
         return all(equality_check)
