@@ -21,8 +21,8 @@ Quant gate is fixed (no runtime method switch):
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Dict, Optional, Sequence, Tuple
+from dataclasses import dataclass, replace
+from typing import Dict, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -46,7 +46,101 @@ HEIGHT_COL = "intensity"  # apex peak height; not integrated area
 
 # Default ion forms to consider for adduct linking (keys in ion_type_dict).
 # No preferred “base” — pairwise Δm among all listed types.
+# Defaults are positive-mode; negative forms must be listed by the user and
+# are dropped automatically when collection polarity is positive (and vice versa).
 DEFAULT_ION_TYPES: Tuple[str, ...] = ("[M+H]+", "[M+NH4]+")
+
+PolarityLike = Union[str, int, None]
+
+
+def normalize_ms_polarity(polarity: PolarityLike) -> Optional[str]:
+    """Normalize sample polarity to ``'positive'``, ``'negative'``, or ``None``.
+
+    Accepts common LCMS encodings: ``'positive'`` / ``'negative'``,
+    ``1`` / ``-1``, ``'+'`` / ``'-'``, and short forms ``'pos'`` / ``'neg'``.
+    Empty or unrecognized values return ``None``.
+    """
+    if polarity is None:
+        return None
+    if isinstance(polarity, (int, np.integer)):
+        if int(polarity) > 0:
+            return "positive"
+        if int(polarity) < 0:
+            return "negative"
+        return None
+    s = str(polarity).strip().lower()
+    if not s:
+        return None
+    if s in ("positive", "pos", "+", "1"):
+        return "positive"
+    if s in ("negative", "neg", "-", "-1"):
+        return "negative"
+    return None
+
+
+def ion_type_polarity(ion_type: str) -> Optional[str]:
+    """Infer polarity of an ``ion_type_dict`` key from its trailing charge sign.
+
+    Keys ending in ``+`` are positive (e.g. ``[M+H]+``); ending in ``-`` are
+    negative (e.g. ``[M+HCOO]-``). Returns ``None`` if no trailing sign is
+    present (e.g. bare ``protonated``).
+    """
+    if ion_type is None:
+        return None
+    s = str(ion_type).strip()
+    if not s:
+        return None
+    if s.endswith("+"):
+        return "positive"
+    if s.endswith("-"):
+        return "negative"
+    return None
+
+
+def filter_ion_types_for_polarity(
+    ion_types: Sequence[str],
+    polarity: PolarityLike,
+) -> Tuple[str, ...]:
+    """Keep only ion types whose charge sign matches sample polarity.
+
+    Prevents negative adducts such as ``[M+HCOO]-`` / ``[M+CH3COO]-`` from
+    being considered on positive-mode data (and the reverse).
+
+    Parameters
+    ----------
+    ion_types :
+        Candidate ``ion_type_dict`` keys (order preserved).
+    polarity :
+        Sample/collection polarity. If unknown (``None`` / unrecognized),
+        ``ion_types`` is returned unchanged so unit tests and offline array
+        callers are not forced to set polarity.
+
+    Returns
+    -------
+    tuple of str
+        Filtered ion types. When polarity is known, types without a trailing
+        ``+``/``-`` charge marker are dropped (cannot be assigned safely).
+    """
+    pol = normalize_ms_polarity(polarity)
+    if pol is None:
+        return tuple(ion_types)
+    kept: list[str] = []
+    for it in ion_types:
+        sign = ion_type_polarity(it)
+        if sign == pol:
+            kept.append(it)
+    return tuple(kept)
+
+
+def params_with_polarity_filtered_ion_types(
+    params: "FeatureGroupParams",
+    polarity: PolarityLike,
+) -> "FeatureGroupParams":
+    """Return params with ``ion_types`` filtered to ``polarity`` (no-op if unknown)."""
+    filtered = filter_ion_types_for_polarity(params.ion_types, polarity)
+    if filtered == params.ion_types:
+        return params
+    return replace(params, ion_types=filtered)
 
 
 @dataclass(frozen=True)
@@ -98,7 +192,11 @@ class FeatureGroupParams:
         return max(1, int(np.ceil(self.min_shared_sample_fraction * n_samples)))
 
     @classmethod
-    def from_lcms_collection_settings(cls, settings) -> "FeatureGroupParams":
+    def from_lcms_collection_settings(
+        cls,
+        settings,
+        polarity: PolarityLike = None,
+    ) -> "FeatureGroupParams":
         """Build params from LCMSCollectionSettings (or duck-typed object).
 
         RT and m/z tolerances reuse ``alignment_rt_tol`` and
@@ -106,10 +204,21 @@ class FeatureGroupParams:
         Charge range uses ``feature_group_min_charge`` /
         ``feature_group_max_charge``. Mono elements for natural-abundance
         isotope spacing use ``feature_group_isotope_atoms``.
+
+        Parameters
+        ----------
+        settings :
+            ``LCMSCollectionSettings`` (or duck-typed equivalent).
+        polarity :
+            Optional sample/collection polarity. When provided, ``ion_types``
+            are filtered with :func:`filter_ion_types_for_polarity` so that
+            e.g. formate/acetate negative adducts are not used on positive
+            data. ``group_consensus_features()`` supplies collection polarity.
         """
         ion_types = getattr(
             settings, "feature_group_ion_types", DEFAULT_ION_TYPES
         )
+        ion_types = filter_ion_types_for_polarity(tuple(ion_types), polarity)
         return cls(
             rt_tol=float(settings.alignment_rt_tol),
             mz_tol_ppm=float(settings.alignment_mz_tol_ppm),

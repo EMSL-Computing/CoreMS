@@ -1294,7 +1294,14 @@ class LCMSCollectionSettings:
         **pairwise** mass offsets among these types (no designated base form;
         no assumption about which form is most intense). One type or empty
         disables adduct linking (isotopes only). Default is
-        ``("[M+H]+", "[M+NH4]+")``.
+        ``("[M+H]+", "[M+NH4]+")`` (positive mode).
+
+        At ``group_consensus_features()`` time, entries are **filtered by
+        collection polarity** (from sample ``polarity`` attributes): only keys
+        ending in ``+`` are kept for positive mode and only keys ending in
+        ``-`` for negative mode. A mixed pos/neg list is therefore safe to
+        configure; wrong-polarity adducts such as ``[M+HCOO]-`` on a positive
+        panel are dropped before edge search. Mixed-polarity collections raise.
     feature_group_partition_size : int, optional
         Target number of clusters per RT partition when multi-core grouping is used.
         Default is 5000.

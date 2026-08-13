@@ -3675,6 +3675,12 @@ class LCMSCollectionCalculations:
         prior). Other knobs (``feature_group_isotope_atoms``, shared-sample
         fraction, etc.) live on ``parameters.lcms_collection``.
 
+        ``feature_group_ion_types`` is filtered to the collection polarity
+        (sample ``polarity`` attributes) before adduct edge search: only keys
+        ending in ``+`` on positive data and only keys ending in ``-`` on
+        negative data. Wrong-sign adducts (e.g. ``[M+HCOO]-`` on a positive
+        panel) are never considered. Mixed polarities in one collection raise.
+
         Preferred for collection-level natural-abundance isotope families.
         Optional per-file ``LCMSBase.find_c13_mass_features`` remains available
         for single-file workflows; do not treat both as authoritative in the
@@ -3702,6 +3708,7 @@ class LCMSCollectionCalculations:
             FeatureGroupParams,
             build_height_matrix_from_features,
             group_features_arrays,
+            normalize_ms_polarity,
         )
 
         if (
@@ -3738,8 +3745,25 @@ class LCMSCollectionCalculations:
                 "cluster summary is empty. Run add_consensus_mass_features() first."
             )
 
+        # Collection polarity: filter feature_group_ion_types so negative adducts
+        # (e.g. [M+HCOO]-, [M+CH3COO]-) are not used on positive data and vice versa.
+        polarities = set()
+        for sample_id in range(len(self)):
+            p = normalize_ms_polarity(getattr(self[sample_id], "polarity", None))
+            if p is not None:
+                polarities.add(p)
+        if len(polarities) > 1:
+            raise ValueError(
+                "Mixed polarities in LCMSCollection; cannot select "
+                "feature_group_ion_types for adduct linking. "
+                f"Found: {sorted(polarities)}. Split the collection by polarity "
+                "or set feature_group_ion_types to a single-polarity list."
+            )
+        collection_polarity = next(iter(polarities)) if polarities else None
+
         params = FeatureGroupParams.from_lcms_collection_settings(
-            self.parameters.lcms_collection
+            self.parameters.lcms_collection,
+            polarity=collection_polarity,
         )
 
         cluster_ids = summary.index.to_numpy()

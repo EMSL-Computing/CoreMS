@@ -10,11 +10,15 @@ from corems.mass_spectra.calc.feature_grouping import (
     adduct_mass_delta,
     empty_group_labels,
     filter_edges_by_height_correlation,
+    filter_ion_types_for_polarity,
     find_adduct_edges,
     find_isotope_edges,
     group_features_arrays,
+    ion_type_polarity,
     isotope_mass_delta,
     isotope_state_label,
+    normalize_ms_polarity,
+    params_with_polarity_filtered_ion_types,
     validate_feature_group_params,
 )
 
@@ -94,6 +98,74 @@ def test_default_feature_group_settings_locked_in():
     bare = FeatureGroupParams()
     assert bare.corr_threshold == pytest.approx(0.80)
     assert bare.min_shared_sample_fraction == pytest.approx(0.15)
+
+
+def test_filter_ion_types_for_polarity_drops_wrong_sign():
+    """Negative adducts must not be candidates on positive data (and vice versa)."""
+    mixed = (
+        "[M+H]+",
+        "[M+NH4]+",
+        "[M+Na]+",
+        "[M-H]-",
+        "[M+Cl]-",
+        "[M+HCOO]-",
+        "[M+CH3COO]-",
+    )
+    assert filter_ion_types_for_polarity(mixed, "positive") == (
+        "[M+H]+",
+        "[M+NH4]+",
+        "[M+Na]+",
+    )
+    assert filter_ion_types_for_polarity(mixed, "negative") == (
+        "[M-H]-",
+        "[M+Cl]-",
+        "[M+HCOO]-",
+        "[M+CH3COO]-",
+    )
+    assert filter_ion_types_for_polarity(mixed, 1) == (
+        "[M+H]+",
+        "[M+NH4]+",
+        "[M+Na]+",
+    )
+    assert filter_ion_types_for_polarity(mixed, -1) == (
+        "[M-H]-",
+        "[M+Cl]-",
+        "[M+HCOO]-",
+        "[M+CH3COO]-",
+    )
+    # Unknown polarity: leave list unchanged (array/unit-test path)
+    assert filter_ion_types_for_polarity(mixed, None) == mixed
+    assert filter_ion_types_for_polarity(mixed, "") == mixed
+
+    assert ion_type_polarity("[M+HCOO]-") == "negative"
+    assert ion_type_polarity("[M+H]+") == "positive"
+    assert ion_type_polarity("protonated") is None
+    assert normalize_ms_polarity("pos") == "positive"
+    assert normalize_ms_polarity("neg") == "negative"
+
+
+def test_from_settings_filters_ion_types_by_polarity():
+    from corems.encapsulation.factory.processingSetting import LCMSCollectionSettings
+
+    s = LCMSCollectionSettings()
+    s.feature_group_ion_types = (
+        "[M+H]+",
+        "[M+NH4]+",
+        "[M+HCOO]-",
+        "[M+CH3COO]-",
+    )
+    pos = FeatureGroupParams.from_lcms_collection_settings(s, polarity="positive")
+    assert pos.ion_types == ("[M+H]+", "[M+NH4]+")
+    neg = FeatureGroupParams.from_lcms_collection_settings(s, polarity="negative")
+    assert neg.ion_types == ("[M+HCOO]-", "[M+CH3COO]-")
+    # Without polarity, configured list is kept (caller responsibility)
+    raw = FeatureGroupParams.from_lcms_collection_settings(s)
+    assert raw.ion_types == s.feature_group_ion_types
+
+    params = FeatureGroupParams(ion_types=s.feature_group_ion_types)
+    filtered = params_with_polarity_filtered_ion_types(params, "positive")
+    assert filtered.ion_types == ("[M+H]+", "[M+NH4]+")
+    assert params.ion_types == s.feature_group_ion_types  # original frozen params intact
 
 
 def test_mono_plus_c13_high_corr_groups():
