@@ -18,6 +18,7 @@ from corems.molecular_id.factory.EI_SQL import (
 )
 from corems.molecular_id.factory.lipid_molecular_metadata import LipidMetadata
 from corems.mass_spectra.calc.lc_calc import find_closest
+from corems.molecular_id.search import spectral_library_cache
 
 
 class SpectralDatabaseInterface(ABC):
@@ -1095,7 +1096,7 @@ class MSPInterface(SpectralDatabaseInterface):
     Interface to parse NIST MSP files
     """
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, cache=True, cache_path=None, rebuild_cache=False):
         """
         Initialize instance.
 
@@ -1103,13 +1104,22 @@ class MSPInterface(SpectralDatabaseInterface):
         ----------
         file_path : str
             Path to a local MSP file.
+        cache : bool or str, optional
+            If True, use a parquet sidecar when valid, otherwise parse and write
+            it. If False, always parse. If ``"read"``, require a valid cache.
+            Default is True. Sidecar path defaults to
+            ``<file_path>.corems-lib.parquet``.
+        cache_path : str or Path, optional
+            Override the default cache path.
+        rebuild_cache : bool, optional
+            Force re-parse and rewrite the cache. Default is False.
 
         Attributes
         ----------
         file_path : str
             Path to the MSP file.
         _file_content : str
-            Content of the MSP file.
+            Content of the MSP file (only set when parsing text).
         _data_frame : :obj:`~pandas.DataFrame`
             DataFrame of spectra from the MSP file with unaltered content.
         """
@@ -1120,11 +1130,45 @@ class MSPInterface(SpectralDatabaseInterface):
             raise FileNotFoundError(
                 f"File {self.file_path} does not exist. Please check the file path."
             )
+        self._file_content = None
+        self._cache_path = (
+            Path(cache_path)
+            if cache_path is not None
+            else spectral_library_cache.default_cache_path(self.file_path)
+        )
+        self._data_frame = self._load_msp_dataframe(
+            cache=cache, rebuild_cache=rebuild_cache
+        )
+        self.__init_format_map__()
+
+    def _load_msp_dataframe(self, cache=True, rebuild_cache=False):
+        """Load from parquet cache or parse the MSP file."""
+        use_cache = cache not in (False, None)
+        require_cache = cache == "read"
+        extra = {"source_kind": "msp"}
+
+        if (
+            use_cache
+            and not rebuild_cache
+            and spectral_library_cache.is_valid(
+                self._cache_path, self.file_path, extra_meta=extra
+            )
+        ):
+            return spectral_library_cache.read(self._cache_path)
+
+        if require_cache:
+            raise FileNotFoundError(
+                f"Valid library cache required at {self._cache_path}"
+            )
+
         with open(self.file_path, "r") as f:
             self._file_content = f.read()
-
-        self._data_frame = self._read_msp_file()
-        self.__init_format_map__()
+        df = self._read_msp_file()
+        if use_cache:
+            spectral_library_cache.write(
+                self._cache_path, df, self.file_path, extra_meta=extra
+            )
+        return df
 
     def __init_format_map__(self):
         """
@@ -1527,6 +1571,361 @@ class MSPInterface(SpectralDatabaseInterface):
                     db_df.drop(columns=key, inplace=True)
 
         # Format the spectral library
+        format_func = self._get_format_func(format)
+        lib = format_func(db_df, normalize=normalize, fe_kwargs=fe_kwargs)
+        return (lib, metabolite_metadata_dict)
+
+
+class SpectraverseMS2Interface(SpectralDatabaseInterface):
+    """Interface to Spectraverse MS/MS (MS2) libraries (MGF).
+
+    Loads MS2 spectra only for metabolomics spectral search (Flash Entropy or
+    DataFrame). Precursor m/z used for search is calculated from formula + adduct
+    via CoreMS ion-type machinery, not the library experimental PRECURSOR_MZ.
+
+    Download the release MGF from Zenodo, e.g.
+    https://zenodo.org/records/19927403 (``spectraverse-1.0.2.mgf``).
+
+    References
+    ----------
+    Gupta, V., Qiang, H., Chung, H.-H., Herbst, E., & Skinnider, M. (2026).
+    Comprehensive curation and harmonization of small molecule MS/MS libraries
+    in Spectraverse [Data set]. Zenodo.
+    https://doi.org/10.5281/zenodo.17252772
+
+    See also: https://github.com/skinniderlab/spectraverse-analysis
+    """
+
+    def __init__(self, file_path, cache=True, cache_path=None, rebuild_cache=False):
+        """
+        Parameters
+        ----------
+        file_path : str or Path
+            Path to a Spectraverse MGF file.
+        cache : bool or str, optional
+            If True, use a parquet sidecar when valid, otherwise parse and write
+            it. If False, always parse. If ``"read"``, require a valid cache.
+            Default is True.
+        cache_path : str or Path, optional
+            Override default ``<file_path>.corems-lib.parquet``.
+        rebuild_cache : bool, optional
+            Force re-parse and rewrite the cache. Default is False.
+        """
+        super().__init__(key=None)
+        self.file_path = str(file_path)
+        if not os.path.exists(self.file_path):
+            raise FileNotFoundError(
+                f"File {self.file_path} does not exist. Please check the file path."
+            )
+        self._cache_path = (
+            Path(cache_path)
+            if cache_path is not None
+            else spectral_library_cache.default_cache_path(self.file_path)
+        )
+        self._precursor_cache = {}
+        self._data_frame = self._load_dataframe(
+            cache=cache, rebuild_cache=rebuild_cache
+        )
+        self.__init_format_map__()
+
+    def __init_format_map__(self):
+        self.format_map = {
+            "flashentropy": lambda x, normalize, fe_kwargs: self._to_flashentropy(
+                x, normalize, fe_kwargs
+            ),
+            "df": lambda x, normalize, fe_kwargs: self._to_df(x, normalize),
+        }
+        self.format_map["fe"] = self.format_map["flashentropy"]
+        self.format_map["flash-entropy"] = self.format_map["flashentropy"]
+        self.format_map["dataframe"] = self.format_map["df"]
+        self.format_map["data-frame"] = self.format_map["df"]
+
+    def _load_dataframe(self, cache=True, rebuild_cache=False):
+        use_cache = cache not in (False, None)
+        require_cache = cache == "read"
+        extra = {
+            "source_kind": "spectraverse_mgf",
+            "precursor_policy": "formula+adduct",
+        }
+
+        if (
+            use_cache
+            and not rebuild_cache
+            and spectral_library_cache.is_valid(
+                self._cache_path, self.file_path, extra_meta=extra
+            )
+        ):
+            return spectral_library_cache.read(self._cache_path)
+
+        if require_cache:
+            raise FileNotFoundError(
+                f"Valid library cache required at {self._cache_path}"
+            )
+
+        df = self._read_mgf_file()
+        if use_cache:
+            spectral_library_cache.write(
+                self._cache_path, df, self.file_path, extra_meta=extra
+            )
+        return df
+
+    def _precursor_mz_from_formula(self, formula: str, adduct: str) -> float:
+        """Calculate precursor m/z from neutral formula and adduct."""
+        from corems.molecular_formula.calc.MolecularFormulaCalc import (
+            MolecularFormulaCalc,
+        )
+
+        key = (formula, adduct)
+        if key in self._precursor_cache:
+            return self._precursor_cache[key]
+        mz = MolecularFormulaCalc.precursor_mz_from_formula(formula, adduct)
+        self._precursor_cache[key] = mz
+        return mz
+
+    def _read_mgf_file(self) -> pd.DataFrame:
+        """Stream-parse Spectraverse MGF; keep MS2 spectra only."""
+        spectra = []
+        headers = {}
+        peaks = []
+        in_block = False
+        n_skipped = 0
+
+        with open(self.file_path, "r", encoding="utf-8", errors="replace") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                if line == "BEGIN IONS":
+                    in_block = True
+                    headers = {}
+                    peaks = []
+                    continue
+                if line == "END IONS":
+                    if in_block:
+                        row = self._finalize_mgf_block(headers, peaks)
+                        if row is None:
+                            n_skipped += 1
+                        else:
+                            spectra.append(row)
+                    in_block = False
+                    headers = {}
+                    peaks = []
+                    continue
+                if not in_block:
+                    continue
+                if "=" in line and not line[0].isdigit():
+                    key, value = line.split("=", 1)
+                    headers[key.strip().upper()] = value.strip()
+                elif line[0].isdigit() or (line[0] == "-" and len(line) > 1 and line[1].isdigit()):
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        peaks.append([float(parts[0]), float(parts[1])])
+
+        if not spectra:
+            raise ValueError(
+                f"No MS2 spectra loaded from {self.file_path}"
+                + (f" ({n_skipped} blocks skipped)" if n_skipped else "")
+            )
+        if n_skipped:
+            warnings.warn(
+                f"Skipped {n_skipped} Spectraverse MGF blocks (non-MS2, empty, or "
+                f"unsupported formula/adduct).",
+                UserWarning,
+            )
+        return pd.DataFrame(spectra)
+
+    def _finalize_mgf_block(self, headers: dict, peaks: list):
+        ms_level = str(headers.get("MS_LEVEL", "")).strip().upper()
+        if ms_level not in ("MS2", "2"):
+            return None
+        if not peaks:
+            return None
+
+        formula = headers.get("FORMULA", "").strip()
+        adduct = headers.get("ADDUCT", "").strip()
+        if not formula or not adduct:
+            return None
+
+        try:
+            precursor_mz = self._precursor_mz_from_formula(formula, adduct)
+        except Exception:
+            return None
+
+        ionmode = headers.get("IONMODE", "").strip().lower()
+        title = headers.get("TITLE", "").strip()
+        compound_name = headers.get("COMPOUND_NAME", "").strip() or "Unknown"
+        peaks_arr = np.asarray(peaks, dtype=np.float64)
+
+        lib_precursor = headers.get("PRECURSOR_MZ", "").strip()
+        try:
+            precursor_mz_library = float(lib_precursor) if lib_precursor else None
+        except ValueError:
+            precursor_mz_library = None
+
+        return {
+            "id": title or None,
+            "spectra_id": title or None,
+            "name": compound_name,
+            "compound_name": compound_name,
+            "formula": formula,
+            "inchikey": headers.get("INCHIKEY", "").strip() or None,
+            "inchi": headers.get("INCHI", "").strip() or None,
+            "smiles": headers.get("SMILES", "").strip() or None,
+            "ionmode": ionmode,
+            "polarity": ionmode,
+            "ion_type": adduct,
+            "adduct": adduct,
+            "precursor_mz": precursor_mz,
+            "precursor_mz_library": precursor_mz_library,
+            "charge": headers.get("CHARGE", "").strip() or None,
+            "source": headers.get("SOURCE", "").strip() or None,
+            "instrument_type": headers.get("INSTRUMENT_TYPE", "").strip() or None,
+            "ms_level": ms_level,
+            "peaks": peaks_arr,
+            "num peaks": len(peaks_arr),
+        }
+
+    def _to_df(self, input_dataframe, normalize=True):
+        if not normalize:
+            return input_dataframe
+        db_dict = input_dataframe.to_dict(orient="records")
+        lib = []
+        for spectrum in db_dict:
+            if "peaks" not in spectrum:
+                raise KeyError("peaks key not found in spectrum")
+            if not isinstance(spectrum["peaks"], np.ndarray):
+                spectrum["peaks"] = np.array(spectrum["peaks"])
+            spectrum["peaks"] = self.normalize_peaks(spectrum["peaks"])
+            spectrum["num peaks"] = len(spectrum["peaks"])
+            lib.append(spectrum)
+        return pd.DataFrame(lib)
+
+    def _to_flashentropy(self, input_dataframe, normalize=True, fe_kwargs={}):
+        self._check_flash_entropy_kwargs(fe_kwargs)
+        fe_lib = []
+        for source in input_dataframe.to_dict(orient="records"):
+            spectrum = source
+            if "precursor_mz" not in spectrum:
+                raise KeyError("precursor_mz required for FlashEntropy format")
+            if "peaks" not in spectrum:
+                raise KeyError("peaks key not found in spectrum")
+            if not isinstance(spectrum["peaks"], np.ndarray):
+                spectrum["peaks"] = np.array(spectrum["peaks"])
+            if normalize:
+                spectrum["peaks"] = self.normalize_peaks(spectrum["peaks"])
+            fe_lib.append(spectrum)
+        return self._build_flash_entropy_index(fe_lib, fe_kwargs=fe_kwargs)
+
+    def _check_spectraverse_compatibility(self):
+        if "polarity" not in self._data_frame.columns and "ionmode" not in self._data_frame.columns:
+            raise ValueError(
+                "Neither 'polarity' nor 'ionmode' columns found in Spectraverse data."
+            )
+        polarity_column = (
+            "polarity" if "polarity" in self._data_frame.columns else "ionmode"
+        )
+        if not all(self._data_frame[polarity_column].isin(["positive", "negative"])):
+            raise ValueError(
+                f"'{polarity_column}' must contain only 'positive' or 'negative' values."
+            )
+        if "formula" not in self._data_frame.columns:
+            raise ValueError("Spectraverse data must contain a 'formula' column.")
+        if not all(self._data_frame["formula"].notnull()):
+            raise ValueError("'formula' must contain only non-null values.")
+
+    def get_metabolomics_spectra_library(
+        self,
+        polarity,
+        metabolite_metadata_mapping=None,
+        format="fe",
+        normalize=True,
+        fe_kwargs=None,
+        molecular_id_field="inchikey",
+    ):
+        """
+        Prepare metabolomics MS2 spectra library and metabolite metadata.
+
+        Parameters
+        ----------
+        polarity : str
+            ``'positive'`` or ``'negative'``.
+        metabolite_metadata_mapping : dict, optional
+            Optional column renames into MetaboliteMetadata fields.
+        format : str, optional
+            ``'fe'`` / ``'flashentropy'`` or ``'df'`` / ``'dataframe'``.
+        normalize : bool, optional
+            Normalize peak intensities. Default True.
+        fe_kwargs : dict, optional
+            FlashEntropy build options.
+        molecular_id_field : str, optional
+            Field used as molecular metadata key. Default ``'inchikey'``.
+
+        Returns
+        -------
+        tuple
+            ``(spectral_library, metabolite_metadata_dict)``.
+        """
+        if metabolite_metadata_mapping is None:
+            metabolite_metadata_mapping = {}
+        if fe_kwargs is None:
+            fe_kwargs = {}
+
+        self._check_spectraverse_compatibility()
+
+        if polarity not in ["positive", "negative"]:
+            raise ValueError("Polarity must be 'positive' or 'negative'")
+        polarity_column = (
+            "polarity" if "polarity" in self._data_frame.columns else "ionmode"
+        )
+        db_df = self._data_frame[self._data_frame[polarity_column] == polarity].copy()
+        if db_df.empty:
+            raise ValueError(f"No Spectraverse spectra for polarity={polarity!r}")
+
+        if metabolite_metadata_mapping:
+            db_df.rename(columns=metabolite_metadata_mapping, inplace=True)
+
+        if molecular_id_field not in db_df.columns:
+            raise ValueError(
+                f"Specified molecular_id_field '{molecular_id_field}' not found. "
+                f"Available columns: {', '.join(map(str, db_df.columns))}"
+            )
+        if not db_df[molecular_id_field].notnull().all():
+            raise ValueError(
+                f"Specified molecular_id_field '{molecular_id_field}' contains null values."
+            )
+
+        db_df["molecular_data_id"] = db_df[molecular_id_field].astype(str)
+        if "id" not in db_df.columns or db_df["id"].isnull().any():
+            if "spectra_id" in db_df.columns:
+                db_df["id"] = db_df["spectra_id"].astype(str)
+            else:
+                db_df["id"] = [f"spectrum_{i:06d}" for i in range(len(db_df))]
+
+        required_columns = ["molecular_data_id", "precursor_mz", "ion_type", "id"]
+        for col in required_columns:
+            if col not in db_df.columns:
+                raise ValueError(
+                    f"Spectraverse data must contain '{col}' for FlashEntropy search."
+                )
+
+        metabolite_metadata_keys = list(MetaboliteMetadata.__annotations__.keys())
+        metabolite_metadata_keys = [
+            "molecular_data_id" if x == "id" else x for x in metabolite_metadata_keys
+        ]
+        metabolite_metadata_df = db_df[
+            db_df.columns[db_df.columns.isin(metabolite_metadata_keys)]
+        ].copy()
+        metabolite_metadata_df.drop_duplicates(subset=["molecular_data_id"], inplace=True)
+        metabolite_metadata_df["id"] = metabolite_metadata_df["molecular_data_id"]
+        metabolite_metadata_dict = {
+            v["id"]: self._dict_to_dataclass(v, MetaboliteMetadata)
+            for v in metabolite_metadata_df.to_dict(orient="records")
+        }
+
+        for key in metabolite_metadata_keys:
+            if key != "molecular_data_id" and key in db_df.columns:
+                db_df.drop(columns=key, inplace=True)
+
         format_func = self._get_format_func(format)
         lib = format_func(db_df, normalize=normalize, fe_kwargs=fe_kwargs)
         return (lib, metabolite_metadata_dict)
