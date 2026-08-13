@@ -150,6 +150,37 @@ def max_charge_from_ion_types(ion_types: Sequence[str]) -> int:
     return max(1, max(ion_type_charge(t) for t in ion_types))
 
 
+# Allowed mono↔multi (or related multi-charge) ion-type pairs for Pass 2.
+# Undirected: frozenset of two ion_type_dict keys. Same-|z| pairs are Pass 1.
+SERIES_PAIRS: frozenset = frozenset(
+    {
+        frozenset(("[M+H]+", "[M+2H]2+")),
+        frozenset(("[M+H]+", "[M+3H]3+")),
+        frozenset(("[M+Na]+", "[M+2Na]2+")),
+        frozenset(("[M+Na]+", "[M+H+Na]2+")),
+        frozenset(("[M+K]+", "[M+H+K]2+")),
+        frozenset(("[M-H]-", "[M-2H]2-")),
+    }
+)
+
+
+def is_allowed_series_pair(type_a: str, type_b: str) -> bool:
+    """True if (type_a, type_b) is an allowed mono↔multi series pair."""
+    if type_a == type_b:
+        return False
+    return frozenset((type_a, type_b)) in SERIES_PAIRS
+
+
+def is_allowed_adduct_type_pair(type_a: str, type_b: str) -> bool:
+    """Pass 1 (same |z|) or Pass 2 (series map) type-pair filter."""
+    if type_a == type_b:
+        return False
+    za, zb = ion_type_charge(type_a), ion_type_charge(type_b)
+    if za == zb:
+        return True
+    return is_allowed_series_pair(type_a, type_b)
+
+
 def filter_ion_types_for_polarity(
     ion_types: Sequence[str],
     polarity: PolarityLike,
@@ -703,6 +734,20 @@ def find_isotope_edges(
     return pd.DataFrame(rows)
 
 
+_ADDUCT_EDGE_COLUMNS = [
+    "parent_idx",
+    "child_idx",
+    "parent_cluster",
+    "child_cluster",
+    "parent_ion_type",
+    "child_ion_type",
+    "charge",
+    "abs_dm",
+    "residual",
+    "rank_sum",
+]
+
+
 def find_adduct_edges(
     cluster_ids: np.ndarray,
     mz: np.ndarray,
@@ -710,52 +755,34 @@ def find_adduct_edges(
     params: FeatureGroupParams,
 ) -> pd.DataFrame:
     """
-    Find ion-type edges using pairwise ``ion_type_dict`` mass offsets.
+    Find ion-type edges using pairwise neutral-mass consistency.
 
-    Each ion type carries its own charge from the key (e.g. ``[M+2H]2+`` →
-    |z|=2). Two coeluting peaks match when they imply the same neutral mass:
+    ``M = |z| · m/z − offset(ion_type)`` must agree within ppm for the two
+    assigned types on a coeluting peak pair.
 
-    ``M = |z| · m/z − offset(ion_type)``
+    **Pass 1:** only type pairs with the same absolute charge (same-|z|).
+    **Pass 2:** type pairs in ``SERIES_PAIRS`` (mono↔multi of the same series,
+    e.g. ``[M+H]+``↔``[M+2H]2+``, ``[M+Na]+``↔``[M+2Na]2+`` / ``[M+H+Na]2+``).
 
-    within the collection ppm window. Same-charge pairs recover the classic
-    constant Δm = (offset_b − offset_a) / |z|. Different-charge pairs
-    (e.g. ``[M+H]+`` vs ``[M+2H]2+``) are linked by that neutral-mass test;
-    their m/z can differ by a large factor of M, so candidate pairs are
-    gated on RT only.
+    Arbitrary cross-charge pairs (e.g. light peak as ``[M+2H-NH3]2+`` of a
+    heavy ``[M+H]+`` stranger) are **not** considered.
 
-    No form is a privileged “base”; intensity is not used here (Pearson is
-    applied separately). When multiple type assignments have the same
-    residual, prefer types earlier in ``params.ion_types`` (lower sum of
-    ranks = more common). Edge endpoints store the ion type assigned to each
-    peak (``parent`` = lower m/z feature of the pair).
+    When multiple type assignments fit, prefer lower residual then lower
+    rank-sum (earlier = more common in ``params.ion_types``).
 
     Returns
     -------
     DataFrame
-        Columns: parent_idx, child_idx, parent_cluster, child_cluster,
-        parent_ion_type, child_ion_type, charge, abs_dm.
-        ``charge`` is max(|z|) of the two assigned types; ``abs_dm`` is
-        |Δm/z| of the two peaks.
+        Columns include parent/child indices and ion types, ``residual``,
+        ``rank_sum``, ``abs_dm``. Parent = lower m/z of the pair.
     """
-    edge_columns = [
-        "parent_idx",
-        "child_idx",
-        "parent_cluster",
-        "child_cluster",
-        "parent_ion_type",
-        "child_ion_type",
-        "charge",
-        "abs_dm",
-    ]
+    edge_columns = list(_ADDUCT_EDGE_COLUMNS)
     n_feat = len(cluster_ids)
     ion_types = tuple(params.ion_types)
     if n_feat < 2 or len(ion_types) < 2:
         return pd.DataFrame(columns=edge_columns)
 
-    # Rank in params.ion_types: lower = more common (for tie-break)
     type_rank = {t: i for i, t in enumerate(ion_types)}
-
-    # Precompute (type, |z|, offset) for each configured ion type
     typed: list[Tuple[str, int, float]] = []
     for t in ion_types:
         typed.append((t, ion_type_charge(t), float(_ion_type_mass_offset(t))))
@@ -763,10 +790,8 @@ def find_adduct_edges(
     mz = np.asarray(mz, dtype=float)
     rt = np.asarray(rt, dtype=float)
     order = np.argsort(mz, kind="mergesort")
-    mz_s = mz[order]
     rt_s = rt[order]
 
-    # RT coelution only — multi-charge partners can be far apart in m/z
     tree_rt = KDTree(rt_s.reshape(-1, 1))
     sdm_rt = tree_rt.sparse_distance_matrix(
         tree_rt, params.rt_tol, output_type="coo_matrix"
@@ -780,13 +805,12 @@ def find_adduct_edges(
     ppm = float(params.mz_tol_ppm)
 
     for r, c in zip(sdm_rt.row, sdm_rt.col):
-        i_lo = int(order[r])  # lower m/z (sorted)
+        i_lo = int(order[r])
         i_hi = int(order[c])
         mz_lo = float(mz[i_lo])
         mz_hi = float(mz[i_hi])
         dm = abs(mz_hi - mz_lo)
 
-        # best key: (residual, rank_sum, rank_lo, rank_hi, t_lo, t_hi, z_lo, z_hi)
         best = None
         for t_lo, z_lo, off_lo in typed:
             M_lo = z_lo * mz_lo - off_lo
@@ -794,18 +818,16 @@ def find_adduct_edges(
                 continue
             rank_lo = type_rank[t_lo]
             for t_hi, z_hi, off_hi in typed:
-                if t_lo == t_hi:
+                if not is_allowed_adduct_type_pair(t_lo, t_hi):
                     continue
                 M_hi = z_hi * mz_hi - off_hi
                 if M_hi <= 0:
                     continue
                 residual = abs(M_lo - M_hi)
-                # Neutral-mass tolerance: ppm of the larger implied M
                 tol = max(M_lo, M_hi) * ppm * 1e-6
                 if residual > tol:
                     continue
                 rank_hi = type_rank[t_hi]
-                # Prefer better geometry, then more common ion types
                 cand_key = (
                     residual,
                     rank_lo + rank_hi,
@@ -821,7 +843,7 @@ def find_adduct_edges(
 
         if best is None:
             continue
-        residual, _rs, _rlo, _rhi, t_lo, t_hi, z_lo, z_hi = best
+        residual, rank_sum, _rlo, _rhi, t_lo, t_hi, z_lo, z_hi = best
         key = (i_lo, i_hi, t_lo, t_hi)
         if key in seen:
             continue
@@ -836,12 +858,29 @@ def find_adduct_edges(
                 "child_ion_type": t_hi,
                 "charge": int(max(z_lo, z_hi)),
                 "abs_dm": dm,
+                "residual": float(residual),
+                "rank_sum": int(rank_sum),
             }
         )
 
     if not rows:
         return pd.DataFrame(columns=edge_columns)
     return pd.DataFrame(rows)
+
+
+def sort_adduct_edges(edges: pd.DataFrame) -> pd.DataFrame:
+    """Order edges for merge: residual ↑, rank_sum ↑, then cluster ids."""
+    if edges is None or edges.empty:
+        return edges if edges is not None else pd.DataFrame(columns=_ADDUCT_EDGE_COLUMNS)
+    out = edges.copy()
+    if "residual" not in out.columns:
+        out["residual"] = 0.0
+    if "rank_sum" not in out.columns:
+        out["rank_sum"] = 0
+    return out.sort_values(
+        by=["residual", "rank_sum", "parent_cluster", "child_cluster"],
+        kind="mergesort",
+    ).reset_index(drop=True)
 
 
 def filter_edges_by_height_correlation(
@@ -1014,24 +1053,77 @@ def _remap_group_id(labels: pd.DataFrame, old_gid, new_gid) -> None:
     labels.loc[mask, "feature_group_id"] = new_gid
 
 
+def _is_null_ion_type(val) -> bool:
+    return val is None or (isinstance(val, float) and np.isnan(val)) or pd.isna(val)
+
+
+def _form_members_for_endpoint(
+    labels: pd.DataFrame,
+    endpoint: int,
+    target_ion_type: str,
+) -> list:
+    """
+    Isotope form subtree for an adduct-edge endpoint.
+
+    Members share the endpoint's chemical ``mono_cluster_id`` (or the endpoint
+    itself) and have ``ion_type`` null or equal to ``target_ion_type``.
+    Does **not** include other ion forms already in the same feature_group_id.
+    """
+    if endpoint not in labels.index:
+        return [endpoint]
+
+    mono_id = labels.loc[endpoint, "mono_cluster_id"]
+    if pd.isna(mono_id):
+        mono_id = endpoint
+    else:
+        mono_id = int(mono_id)
+
+    members = []
+    for cid in labels.index:
+        cid_i = int(cid)
+        mid = labels.loc[cid, "mono_cluster_id"]
+        if pd.isna(mid):
+            same_mono = cid_i == endpoint or cid_i == mono_id
+        else:
+            same_mono = int(mid) == mono_id or cid_i == mono_id
+        if not same_mono:
+            continue
+        it = labels.loc[cid, "ion_type"]
+        if _is_null_ion_type(it) or it == target_ion_type:
+            members.append(cid_i)
+    if endpoint not in members:
+        members.append(int(endpoint))
+    return members
+
+
+def _form_mono_id(labels: pd.DataFrame, form_members: Sequence[int], endpoint: int) -> int:
+    monos = [
+        c
+        for c in form_members
+        if c in labels.index and labels.loc[c, "ion_role"] == "mono"
+    ]
+    if monos:
+        return int(monos[0])
+    if endpoint in form_members:
+        return int(endpoint)
+    return int(form_members[0])
+
+
 def merge_adduct_edges_into_labels(
     labels: pd.DataFrame,
     cluster_ids: np.ndarray,
     adduct_edges: pd.DataFrame,
     params: FeatureGroupParams,
+    mz_by_cluster: Optional[Dict[int, float]] = None,
 ) -> pd.DataFrame:
     """
-    Merge isotope families (or singletons) across ion-type (adduct) edges.
+    Merge forms across ion-type edges under correctness constraints.
 
-    Each edge links a **lighter** form (``parent_ion_type``) to a **heavier**
-    form (``child_ion_type``) by ``ion_type_dict`` mass difference — neither is
-    a privileged base. Intensity is not used.
-
-    - Union ``feature_group_id`` of both sides (members snapshotted before merge).
-    - Assign ``ion_type`` per side from the edge (not by peak height).
-    - ``ion_role`` stays ``mono`` / ``isotope`` (chemical); M+0 of the heavier
-      form remains ``mono`` of that form, not reclassified as ``adduct``.
-    - ``mono_cluster_id`` = chemical mono of that feature's own ion form.
+    - Paint **form subtrees only** (mono + isotopes of that form), never
+      re-type other ion forms already in a multi-form group.
+    - Require shared neutral mass between form monos (if ``mz_by_cluster``).
+    - Reject if an endpoint already has a conflicting non-null ``ion_type``.
+    - Edges should be pre-sorted (see :func:`sort_adduct_edges`).
     """
     if adduct_edges is None or adduct_edges.empty:
         return labels
@@ -1041,46 +1133,59 @@ def merge_adduct_edges_into_labels(
     if labels["feature_group_id"].notna().any():
         next_gid = int(labels["feature_group_id"].max()) + 1
 
-    def _members(cluster_id: int):
-        gid = labels.loc[cluster_id, "feature_group_id"]
-        if pd.isna(gid):
-            return [cluster_id]
-        return list(labels.index[labels["feature_group_id"] == gid])
+    ppm = float(params.mz_tol_ppm)
+    if mz_by_cluster is None:
+        mz_by_cluster = {}
 
-    def _form_mono(member_ids):
-        monos = [c for c in member_ids if labels.loc[c, "ion_role"] == "mono"]
-        return int(monos[0]) if monos else int(member_ids[0])
+    def _M(cid: int, ion_type: str) -> Optional[float]:
+        if cid not in mz_by_cluster:
+            return None
+        try:
+            return neutral_mass_from_mz(mz_by_cluster[cid], ion_type)
+        except Exception:
+            return None
 
     for row in adduct_edges.itertuples(index=False):
-        parent_c = int(row.parent_cluster)  # lighter m/z
-        child_c = int(row.child_cluster)  # heavier m/z
+        parent_c = int(row.parent_cluster)
+        child_c = int(row.child_cluster)
         type_light = row.parent_ion_type
         type_heavy = row.child_ion_type
 
         if parent_c not in labels.index or child_c not in labels.index:
             continue
 
+        # One interpretation per cluster: reject conflicting types
+        it_p = labels.loc[parent_c, "ion_type"]
+        it_c = labels.loc[child_c, "ion_type"]
+        if not _is_null_ion_type(it_p) and it_p != type_light:
+            continue
+        if not _is_null_ion_type(it_c) and it_c != type_heavy:
+            continue
+
+        light_form = _form_members_for_endpoint(labels, parent_c, type_light)
+        heavy_form = _form_members_for_endpoint(labels, child_c, type_heavy)
+
+        # Seed unlabeled endpoints as mono of their form
+        for cid in (parent_c, child_c):
+            if _is_null_ion_type(labels.loc[cid, "ion_role"]):
+                labels.loc[cid, "ion_role"] = "mono"
+                labels.loc[cid, "isotope_state"] = "M+0"
+
+        light_mono = _form_mono_id(labels, light_form, parent_c)
+        heavy_mono = _form_mono_id(labels, heavy_form, child_c)
+
+        # Shared-M check between form monos
+        M_l = _M(light_mono, type_light)
+        M_h = _M(heavy_mono, type_heavy)
+        if M_l is not None and M_h is not None:
+            if M_l <= 0 or M_h <= 0:
+                continue
+            tol = max(M_l, M_h) * ppm * 1e-6
+            if abs(M_l - M_h) > tol:
+                continue
+
         g_p = labels.loc[parent_c, "feature_group_id"]
         g_c = labels.loc[child_c, "feature_group_id"]
-        light_members = list(_members(parent_c))
-        heavy_members = list(_members(child_c))
-
-        # Already same group: only set ion_type on each side via endpoint families
-        if (
-            not pd.isna(g_p)
-            and not pd.isna(g_c)
-            and int(g_p) == int(g_c)
-        ):
-            # Endpoints only if ion_type still empty; do not reassign whole group
-            if labels.loc[parent_c, "ion_type"] is None or pd.isna(
-                labels.loc[parent_c, "ion_type"]
-            ):
-                labels.loc[parent_c, "ion_type"] = type_light
-            if labels.loc[child_c, "ion_type"] is None or pd.isna(
-                labels.loc[child_c, "ion_type"]
-            ):
-                labels.loc[child_c, "ion_type"] = type_heavy
-            continue
 
         if pd.isna(g_p) and pd.isna(g_c):
             keep_gid = next_gid
@@ -1094,43 +1199,130 @@ def merge_adduct_edges_into_labels(
             if int(g_c) != keep_gid:
                 _remap_group_id(labels, int(g_c), keep_gid)
 
-        # Seed unlabeled endpoints as chemical mono of their form
-        for cid, default_role in ((parent_c, "mono"), (child_c, "mono")):
-            if labels.loc[cid, "ion_role"] is None or pd.isna(
-                labels.loc[cid, "ion_role"]
-            ):
-                labels.loc[cid, "ion_role"] = default_role
-                labels.loc[cid, "isotope_state"] = "M+0"
+        # Ensure form monos are mono
+        for mid in (light_mono, heavy_mono):
+            if mid in labels.index and labels.loc[mid, "ion_role"] != "isotope":
+                labels.loc[mid, "ion_role"] = "mono"
+                if _is_null_ion_type(labels.loc[mid, "isotope_state"]):
+                    labels.loc[mid, "isotope_state"] = "M+0"
 
-        light_mono = _form_mono(light_members)
-        heavy_mono = _form_mono(heavy_members)
-        if light_mono not in light_members:
-            light_mono = parent_c
-        if heavy_mono not in heavy_members:
-            heavy_mono = child_c
-        # Ensure form monos are labeled mono
-        if labels.loc[light_mono, "ion_role"] != "isotope":
-            labels.loc[light_mono, "ion_role"] = "mono"
-            if labels.loc[light_mono, "isotope_state"] is None or pd.isna(
-                labels.loc[light_mono, "isotope_state"]
-            ):
-                labels.loc[light_mono, "isotope_state"] = "M+0"
-        if labels.loc[heavy_mono, "ion_role"] != "isotope":
-            labels.loc[heavy_mono, "ion_role"] = "mono"
-            if labels.loc[heavy_mono, "isotope_state"] is None or pd.isna(
-                labels.loc[heavy_mono, "isotope_state"]
-            ):
-                labels.loc[heavy_mono, "isotope_state"] = "M+0"
-
-        for cid in light_members:
+        for cid in light_form:
+            if cid not in labels.index:
+                continue
+            it = labels.loc[cid, "ion_type"]
+            if not _is_null_ion_type(it) and it != type_light:
+                continue
             labels.loc[cid, "feature_group_id"] = keep_gid
             labels.loc[cid, "ion_type"] = type_light
             labels.loc[cid, "mono_cluster_id"] = light_mono
 
-        for cid in heavy_members:
+        for cid in heavy_form:
+            if cid not in labels.index:
+                continue
+            it = labels.loc[cid, "ion_type"]
+            if not _is_null_ion_type(it) and it != type_heavy:
+                continue
             labels.loc[cid, "feature_group_id"] = keep_gid
             labels.loc[cid, "ion_type"] = type_heavy
             labels.loc[cid, "mono_cluster_id"] = heavy_mono
+
+    return labels
+
+
+def validate_feature_group_labels(
+    labels: pd.DataFrame,
+    mz_by_cluster: Dict[int, float],
+    params: FeatureGroupParams,
+) -> pd.DataFrame:
+    """
+    Enforce group invariants; unlabel violator clusters.
+
+    - At most one mono per ion_type within a group.
+    - Form monos share neutral mass within ppm.
+    - Unique (ion_type, isotope_state) pairs within a group.
+    """
+    if labels is None or labels.empty:
+        return labels
+    labels = labels.copy()
+    ppm = float(params.mz_tol_ppm)
+
+    grouped = labels.dropna(subset=["feature_group_id"])
+    if grouped.empty:
+        return labels
+
+    for gid, sub in grouped.groupby("feature_group_id"):
+        to_clear = set()
+
+        # Unique (ion_type, isotope_state)
+        if sub["ion_type"].notna().any():
+            key = sub.apply(
+                lambda r: (r["ion_type"], r["isotope_state"]), axis=1
+            )
+            for k, cnt in key.value_counts().items():
+                if cnt > 1 and k[0] is not None and not (isinstance(k[0], float) and np.isnan(k[0])):
+                    dups = sub.index[key == k].tolist()
+                    # keep lowest cluster id
+                    for cid in sorted(dups)[1:]:
+                        to_clear.add(int(cid))
+
+        # One mono per ion_type
+        for ion_type, form_sub in sub.groupby(sub["ion_type"], dropna=True):
+            monos = form_sub.index[form_sub["ion_role"] == "mono"].tolist()
+            if len(monos) > 1:
+                # keep mono with highest intensity proxy: lowest m/z as mono of form
+                # deterministic: keep smallest cluster id
+                keep = min(int(c) for c in monos)
+                for cid in monos:
+                    if int(cid) != keep:
+                        to_clear.add(int(cid))
+                monos = [keep]
+
+            if len(monos) != 1:
+                continue
+            mono_c = int(monos[0])
+            # isotopes must point at this mono
+            for cid, row in form_sub.iterrows():
+                if row["ion_role"] == "isotope":
+                    mid = row["mono_cluster_id"]
+                    if pd.isna(mid) or int(mid) != mono_c:
+                        to_clear.add(int(cid))
+
+        # Shared M among form monos still in group
+        form_Ms = []
+        for ion_type, form_sub in sub.groupby(sub["ion_type"], dropna=True):
+            monos = [
+                int(c)
+                for c in form_sub.index[form_sub["ion_role"] == "mono"].tolist()
+                if int(c) not in to_clear
+            ]
+            if not monos:
+                continue
+            mono_c = monos[0]
+            if mono_c not in mz_by_cluster:
+                continue
+            try:
+                M = neutral_mass_from_mz(mz_by_cluster[mono_c], str(ion_type))
+            except Exception:
+                continue
+            form_Ms.append((str(ion_type), mono_c, M))
+
+        if len(form_Ms) >= 2:
+            ref_M = form_Ms[0][2]
+            for ion_type, mono_c, M in form_Ms[1:]:
+                tol = max(abs(ref_M), abs(M), 1.0) * ppm * 1e-6
+                if abs(M - ref_M) > tol:
+                    form_mask = sub["ion_type"] == ion_type
+                    for cid in sub.index[form_mask]:
+                        to_clear.add(int(cid))
+
+        for cid in to_clear:
+            if cid not in labels.index:
+                continue
+            labels.loc[cid, "feature_group_id"] = pd.NA
+            labels.loc[cid, "ion_role"] = None
+            labels.loc[cid, "ion_type"] = None
+            labels.loc[cid, "isotope_state"] = None
+            labels.loc[cid, "mono_cluster_id"] = pd.NA
 
     return labels
 
@@ -1216,7 +1408,10 @@ def group_features_arrays(
     if timings_out is not None:
         timings_out["isotope_labels"] = time.perf_counter() - t0
 
-    # Adduct / multi ion-type stage (pairwise Δm among params.ion_types)
+    mz_by_cluster = {
+        int(cid): float(m) for cid, m in zip(cluster_ids, mz)
+    }
+    # Adduct stage: Pass1 same-|z| + Pass2 series multi (inside find_adduct_edges)
     if len(params.ion_types) >= 2:
         t0 = time.perf_counter()
         add_edges = find_adduct_edges(cluster_ids, mz, rt, params)
@@ -1231,18 +1426,31 @@ def group_features_arrays(
             timings_out["n_adduct_edges"] = float(len(add_edges))
 
         t0 = time.perf_counter()
+        add_edges = sort_adduct_edges(add_edges)
+        if timings_out is not None:
+            timings_out["adduct_sort"] = time.perf_counter() - t0
+
+        t0 = time.perf_counter()
         labels = merge_adduct_edges_into_labels(
-            labels, cluster_ids, add_edges, params
+            labels,
+            cluster_ids,
+            add_edges,
+            params,
+            mz_by_cluster=mz_by_cluster,
         )
         if timings_out is not None:
             timings_out["adduct_merge"] = time.perf_counter() - t0
     elif timings_out is not None:
         timings_out["adduct_edges"] = 0.0
         timings_out["adduct_corr"] = 0.0
+        timings_out["adduct_sort"] = 0.0
         timings_out["adduct_merge"] = 0.0
         timings_out["n_adduct_edges"] = 0.0
 
+    t0 = time.perf_counter()
+    labels = validate_feature_group_labels(labels, mz_by_cluster, params)
     if timings_out is not None:
+        timings_out["validate"] = time.perf_counter() - t0
         timings_out["total"] = time.perf_counter() - t_all
 
     return labels

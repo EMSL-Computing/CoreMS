@@ -1,7 +1,7 @@
 # Feature-Group Adduct Correctness Pass — Design
 
 **Date:** 2026-08-13  
-**Status:** Draft for review (approved direction; not yet implemented)  
+**Status:** Implemented on branch (v1) — regression tests green; re-run panel eval recommended  
 **Branch:** `272_lcms_consensus_feature_grouping`  
 **Parent design:** `2026-08-06-lcms-consensus-feature-grouping-design.md` (§12 known challenges)  
 **Related:** MR !248 / issue #272, Stage 2 adducts  

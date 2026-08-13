@@ -17,6 +17,8 @@ from corems.mass_spectra.calc.feature_grouping import (
     group_features_arrays,
     ion_type_charge,
     ion_type_polarity,
+    is_allowed_adduct_type_pair,
+    is_allowed_series_pair,
     isotope_mass_delta,
     isotope_state_label,
     max_charge_from_ion_types,
@@ -266,6 +268,102 @@ def test_multicharge_mh_and_m2h_group():
         zip(edges["parent_ion_type"], edges["child_ion_type"])
     ) | set(zip(edges["child_ion_type"], edges["parent_ion_type"]))
     assert ("[M+2H]2+", "[M+H]+") in pairs or ("[M+H]+", "[M+2H]2+") in pairs
+
+
+def test_series_pairs_allow_na_multi_but_not_false_2h_nh3_bridge():
+    assert is_allowed_series_pair("[M+Na]+", "[M+2Na]2+")
+    assert is_allowed_series_pair("[M+Na]+", "[M+H+Na]2+")
+    assert is_allowed_series_pair("[M+H]+", "[M+2H]2+")
+    # Arbitrary multi-charge cross-type not allowed
+    assert not is_allowed_series_pair("[M+2H-NH3]2+", "[M+H]+")
+    assert not is_allowed_adduct_type_pair("[M+2H-NH3]2+", "[M+H]+")
+    # Same |z| still allowed
+    assert is_allowed_adduct_type_pair("[M+H]+", "[M+Na]+")
+
+
+def test_g7_like_false_multicharge_bridge_rejected():
+    """Low-m/z H/Na family must not glue to high-m/z peak via false 2+ link."""
+    M = 390.2766
+    h = Atoms.atomic_masses["H"]
+    na = Atoms.atomic_masses["Na"]
+    dm_c = _delta_c13()
+    # 0: [M+H]+, 1: 13C1, 2: [M+Na]+, 3: high-m/z stranger that would match
+    # if 0 were mis-read as [M+2H-NH3]2+ of M'≈797
+    mz_mh = M + h
+    mz_na = M + na
+    M_hi = 797.5808
+    mz_hi = M_hi + h
+    cluster_ids = np.array([0, 1, 2, 3])
+    mz = np.array([mz_mh, mz_mh + dm_c, mz_na, mz_hi])
+    rt = np.array([29.31, 29.31, 29.39, 29.33])
+    pat = np.array([10.0, 20.0, 30.0, 40.0])
+    heights = np.vstack([pat, pat * 0.5, pat * 0.7, pat * 0.3])
+    params = FeatureGroupParams(
+        rt_tol=0.5,
+        mz_tol_ppm=5.0,
+        corr_threshold=0.9,
+        min_shared_sample_fraction=0.75,
+        min_charge=1,
+        max_charge=3,
+        ion_types=DEFAULT_ION_TYPES,
+    )
+    # Geometry must not emit false 2H-NH3 ↔ MH edge
+    edges = find_adduct_edges(cluster_ids, mz, rt, params)
+    for _, e in edges.iterrows():
+        types = {e["parent_ion_type"], e["child_ion_type"]}
+        assert "[M+2H-NH3]2+" not in types or 3 not in (
+            int(e["parent_cluster"]),
+            int(e["child_cluster"]),
+        )
+        # no edge pairing cluster 0 as multi-charge with cluster 3
+        ends = {int(e["parent_cluster"]), int(e["child_cluster"])}
+        if ends == {0, 3} or ends == {1, 3} or ends == {2, 3}:
+            # only same-z or series pairs allowed; 0-3 as H/Na family vs MH stranger
+            # residual may match some pair — assert 3 not in final group
+            pass
+
+    labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
+    # Core family grouped
+    gid = labels.loc[0, "feature_group_id"]
+    assert pd.notna(gid)
+    assert labels.loc[1, "feature_group_id"] == gid
+    assert labels.loc[2, "feature_group_id"] == gid
+    assert labels.loc[0, "ion_type"] == "[M+H]+"
+    assert labels.loc[2, "ion_type"] == "[M+Na]+"
+    # Stranger not in group
+    assert pd.isna(labels.loc[3, "feature_group_id"]) or labels.loc[
+        3, "feature_group_id"
+    ] != gid
+
+
+def test_form_paint_does_not_retype_other_forms():
+    """Second adduct edge must not overwrite first form's ion_type on isotopes."""
+    dm_c = _delta_c13()
+    dm_nh4 = _delta_nh4_vs_h()
+    dm_na = Atoms.atomic_masses["Na"] - Atoms.atomic_masses["H"]
+    # 0 MH, 1 MH-13C, 2 NH4, 3 Na — all same M base 200
+    base = 200.0
+    cluster_ids = np.array([0, 1, 2, 3])
+    mz = np.array(
+        [base, base + dm_c, base + dm_nh4, base + dm_na]
+    )
+    rt = np.array([5.0, 5.01, 5.02, 5.01])
+    pat = np.array([10.0, 20.0, 30.0, 40.0])
+    heights = np.vstack([pat, pat * 0.5, pat * 0.8, pat * 0.6])
+    params = FeatureGroupParams(
+        rt_tol=0.1,
+        mz_tol_ppm=20.0,
+        corr_threshold=0.9,
+        min_shared_sample_fraction=0.75,
+        ion_types=("[M+H]+", "[M+NH4]+", "[M+Na]+"),
+    )
+    labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
+    assert labels.loc[0, "ion_type"] == "[M+H]+"
+    assert labels.loc[1, "ion_type"] == "[M+H]+"
+    assert labels.loc[1, "ion_role"] == "isotope"
+    # NH4 and Na may each group with H; isotopes of H stay [M+H]+
+    assert labels.loc[1, "ion_type"] != "[M+Na]+"
+    assert labels.loc[1, "ion_type"] != "[M+NH4]+"
 
 
 def test_from_settings_filters_ion_types_by_polarity():
