@@ -22,7 +22,9 @@ Quant gate is fixed (no runtime method switch):
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Dict, Optional, Sequence, Tuple, Union
+import re
+import time
+from typing import Dict, MutableMapping, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -44,11 +46,36 @@ GROUP_COLUMNS = (
 CORR_METHOD = "pearson"
 HEIGHT_COL = "intensity"  # apex peak height; not integrated area
 
-# Default ion forms to consider for adduct linking (keys in ion_type_dict).
-# No preferred “base” — pairwise Δm among all listed types.
-# Defaults are positive-mode; negative forms must be listed by the user and
-# are dropped automatically when collection polarity is positive (and vice versa).
-DEFAULT_ION_TYPES: Tuple[str, ...] = ("[M+H]+", "[M+NH4]+")
+# Default ion forms for adduct linking (keys in ion_type_dict).
+# Ordered most → least common (literature frequency). Order is preserved
+# after polarity filtering and is used to break exact Δm / neutral-mass ties
+# (prefer lower index / more common forms; e.g. [M+H-H2O]+ over [M+H+H2O]+
+# when both fit the same spacing to [M+H]+). Mixed pos/neg is OK: opposite
+# polarity keys are dropped at group_consensus_features time.
+DEFAULT_ION_TYPES: Tuple[str, ...] = (
+    "[M+H]+",
+    "[M+2H]2+",
+    "[M+H-H2O]+",
+    "[M-H]-",
+    "[M+Na]+",
+    "[M+H-NH3]+",
+    "[M+NH4]+",
+    "[M-H-H2O]-",
+    "[M-H+2Na]+",
+    "[M-H+H2O]-",
+    "[M+NH4-H2O]+",
+    "[M+H+H2O]+",
+    "[M+H+Na]2+",
+    "[M+H+K]2+",
+    "[M-2H]2-",
+    "[M+2Na]2+",
+    "[M+2H-NH3]2+",
+    "[M+K]+",
+    "[M+H-2H2O]+",
+    "[M+3H]3+",
+    "[M+2H-H2O]2+",
+    "[M]+",
+)
 
 PolarityLike = Union[str, int, None]
 
@@ -78,23 +105,49 @@ def normalize_ms_polarity(polarity: PolarityLike) -> Optional[str]:
     return None
 
 
+_ION_TYPE_CHARGE_RE = re.compile(r"(\d*)([+-])\s*$")
+
+
 def ion_type_polarity(ion_type: str) -> Optional[str]:
     """Infer polarity of an ``ion_type_dict`` key from its trailing charge sign.
 
-    Keys ending in ``+`` are positive (e.g. ``[M+H]+``); ending in ``-`` are
-    negative (e.g. ``[M+HCOO]-``). Returns ``None`` if no trailing sign is
-    present (e.g. bare ``protonated``).
+    Keys ending in ``+`` / ``2+`` / ``3+`` are positive (e.g. ``[M+H]+``,
+    ``[M+2H]2+``); ending in ``-`` / ``2-`` are negative (e.g. ``[M+HCOO]-``,
+    ``[M-2H]2-``). Returns ``None`` if no trailing sign is present
+    (e.g. bare ``protonated``).
     """
     if ion_type is None:
         return None
     s = str(ion_type).strip()
     if not s:
         return None
-    if s.endswith("+"):
-        return "positive"
-    if s.endswith("-"):
-        return "negative"
-    return None
+    m = _ION_TYPE_CHARGE_RE.search(s)
+    if m is None:
+        return None
+    return "positive" if m.group(2) == "+" else "negative"
+
+
+def ion_type_charge(ion_type: str) -> int:
+    """Absolute charge state encoded in an ion-type key.
+
+    Examples: ``[M+H]+`` → 1, ``[M+2H]2+`` → 2, ``[M-2H]2-`` → 2,
+    ``[M+3H]3+`` → 3. Keys without a trailing charge marker default to 1.
+    """
+    if ion_type is None:
+        return 1
+    s = str(ion_type).strip()
+    m = _ION_TYPE_CHARGE_RE.search(s)
+    if m is None:
+        return 1
+    digits = m.group(1)
+    return int(digits) if digits else 1
+
+
+def max_charge_from_ion_types(ion_types: Sequence[str]) -> int:
+    """Largest absolute charge among ion-type keys (at least 1)."""
+    if not ion_types:
+        return 1
+    return max(1, max(ion_type_charge(t) for t in ion_types))
 
 
 def filter_ion_types_for_polarity(
@@ -150,11 +203,11 @@ class FeatureGroupParams:
     **Isotopes:** natural-abundance rare forms in ``Atoms`` at or above
     ``min_isotope_abundance``. Not for tracer / labeled experiments.
 
-    **Adducts:** ``ion_types`` is a set of ``ion_type_dict`` keys. Edges are
-    sought for **every pair** using
-    ``|offset(type_a) − offset(type_b)| / |z|`` (atoms-to-add/subtract in
-    ``ion_type_dict``). There is no designated base form and no assumption
-    about which form is most intense.
+    **Adducts:** ``ion_types`` is an ordered sequence of ``ion_type_dict`` keys
+    (most → least common by default). Edges are sought for every pair via
+    neutral-mass consistency (per-type ``|z|`` from the key). There is no
+    designated base form and no intensity prior. When two type assignments
+    fit equally well, the earlier (more common) types in this sequence win.
 
     ``rt_tol`` / ``mz_tol_ppm`` come from collection alignment settings via
     :meth:`from_lcms_collection_settings`. Correlation is always Pearson on
@@ -172,7 +225,7 @@ class FeatureGroupParams:
     max_isotope_offset: int = 4
     corr_threshold: float = 0.80
     min_shared_sample_fraction: float = 0.15
-    # ion_type_dict keys to link by pairwise mass difference (order irrelevant)
+    # ion_type_dict keys to link; order = most → least common (tie-break)
     ion_types: Tuple[str, ...] = DEFAULT_ION_TYPES
     partition_size: int = 5000
     cores: int = 1
@@ -219,11 +272,16 @@ class FeatureGroupParams:
             settings, "feature_group_ion_types", DEFAULT_ION_TYPES
         )
         ion_types = filter_ion_types_for_polarity(tuple(ion_types), polarity)
+        # Multi-charge ion types (e.g. [M+2H]2+) expand the isotope charge
+        # search so ¹³C spacing is tried at the encoded |z| as well.
+        z_from_types = max_charge_from_ion_types(ion_types)
+        min_charge = abs(int(settings.feature_group_min_charge))
+        max_charge = max(abs(int(settings.feature_group_max_charge)), z_from_types)
         return cls(
             rt_tol=float(settings.alignment_rt_tol),
             mz_tol_ppm=float(settings.alignment_mz_tol_ppm),
-            min_charge=int(settings.feature_group_min_charge),
-            max_charge=int(settings.feature_group_max_charge),
+            min_charge=min_charge,
+            max_charge=max_charge,
             isotope_atoms=tuple(settings.feature_group_isotope_atoms),
             min_isotope_abundance=float(
                 settings.feature_group_min_isotope_abundance
@@ -452,10 +510,14 @@ def ion_type_mass_delta(
     charge: int = 1,
 ) -> float:
     """
-    m/z spacing: ion_type_b minus ion_type_a, for absolute charge ``charge``.
+    m/z spacing for **same** absolute charge: ion_type_b − ion_type_a.
 
     Example: ``[M+NH4]+`` − ``[M+H]+`` = m(N) + 3·m(H) at |z|=1.
-    Sign indicates which form is heavier; no preferred “base” form.
+    Sign indicates which form is heavier at that charge; no preferred “base”.
+
+    For pairs with **different** charges (e.g. ``[M+H]+`` vs ``[M+2H]2+``),
+    m/z spacing depends on neutral mass ``M`` and is **not** a constant;
+    use :func:`neutral_mass_from_mz` / adduct edge search instead.
     """
     signed = _ion_type_mass_offset(ion_type_b) - _ion_type_mass_offset(
         ion_type_a
@@ -465,6 +527,18 @@ def ion_type_mass_delta(
 
 # Backward-compatible alias
 adduct_mass_delta = ion_type_mass_delta
+
+
+def neutral_mass_from_mz(mz: float, ion_type: str) -> float:
+    """Neutral mass implied by observed m/z and an ion-type assignment.
+
+    ``M = |z| * m/z − offset(ion_type)`` with ``offset`` from
+    ``ion_type_dict`` atom add/subtract and ``|z|`` from the key suffix
+    (e.g. ``2+`` → 2).
+    """
+    z = ion_type_charge(ion_type)
+    offset = _ion_type_mass_offset(ion_type)
+    return float(z) * float(mz) - float(offset)
 
 
 def find_isotope_edges(
@@ -638,18 +712,30 @@ def find_adduct_edges(
     """
     Find ion-type edges using pairwise ``ion_type_dict`` mass offsets.
 
-    For every unordered pair ``(type_a, type_b)`` in ``params.ion_types``,
-    spacing is ``|offset(a) − offset(b)| / |z|``. The **lighter** peak is
-    assigned the lower-offset ion type; the heavier peak the higher-offset
-    type. No form is treated as a privileged base, and intensity is not used
-    here (Pearson is applied separately).
+    Each ion type carries its own charge from the key (e.g. ``[M+2H]2+`` →
+    |z|=2). Two coeluting peaks match when they imply the same neutral mass:
+
+    ``M = |z| · m/z − offset(ion_type)``
+
+    within the collection ppm window. Same-charge pairs recover the classic
+    constant Δm = (offset_b − offset_a) / |z|. Different-charge pairs
+    (e.g. ``[M+H]+`` vs ``[M+2H]2+``) are linked by that neutral-mass test;
+    their m/z can differ by a large factor of M, so candidate pairs are
+    gated on RT only.
+
+    No form is a privileged “base”; intensity is not used here (Pearson is
+    applied separately). When multiple type assignments have the same
+    residual, prefer types earlier in ``params.ion_types`` (lower sum of
+    ranks = more common). Edge endpoints store the ion type assigned to each
+    peak (``parent`` = lower m/z feature of the pair).
 
     Returns
     -------
     DataFrame
         Columns: parent_idx, child_idx, parent_cluster, child_cluster,
         parent_ion_type, child_ion_type, charge, abs_dm.
-        parent = lighter m/z of the pair; child = heavier.
+        ``charge`` is max(|z|) of the two assigned types; ``abs_dm`` is
+        |Δm/z| of the two peaks.
     """
     edge_columns = [
         "parent_idx",
@@ -666,82 +752,89 @@ def find_adduct_edges(
     if n_feat < 2 or len(ion_types) < 2:
         return pd.DataFrame(columns=edge_columns)
 
-    # Pairwise spacings: store (type_light, type_heavy, z, abs_unit)
-    # where type_light has smaller mass offset than type_heavy.
-    spacings = []
-    for i, t_a in enumerate(ion_types):
-        for t_b in ion_types[i + 1 :]:
-            for z in params.charge_values():
-                signed = ion_type_mass_delta(t_a, t_b, charge=z)
-                if signed == 0:
-                    continue
-                if signed > 0:
-                    # t_b heavier than t_a
-                    t_light, t_heavy = t_a, t_b
-                else:
-                    t_light, t_heavy = t_b, t_a
-                spacings.append((t_light, t_heavy, int(z), abs(float(signed))))
+    # Rank in params.ion_types: lower = more common (for tie-break)
+    type_rank = {t: i for i, t in enumerate(ion_types)}
 
-    if not spacings:
-        return pd.DataFrame(columns=edge_columns)
+    # Precompute (type, |z|, offset) for each configured ion type
+    typed: list[Tuple[str, int, float]] = []
+    for t in ion_types:
+        typed.append((t, ion_type_charge(t), float(_ion_type_mass_offset(t))))
 
-    max_unit = max(s[3] for s in spacings)
+    mz = np.asarray(mz, dtype=float)
+    rt = np.asarray(rt, dtype=float)
     order = np.argsort(mz, kind="mergesort")
-    mz_s = np.asarray(mz, dtype=float)[order]
-    rt_s = np.asarray(rt, dtype=float)[order]
-    mz_tol_pad = float(np.max(mz_s)) * params.mz_tol_ppm * 1e-6
-    max_mz_gap = max_unit + mz_tol_pad
+    mz_s = mz[order]
+    rt_s = rt[order]
 
+    # RT coelution only — multi-charge partners can be far apart in m/z
     tree_rt = KDTree(rt_s.reshape(-1, 1))
     sdm_rt = tree_rt.sparse_distance_matrix(
         tree_rt, params.rt_tol, output_type="coo_matrix"
     )
     sdm_rt = sparse.triu(sdm_rt, k=1)
-    sdm_rt.data = np.ones_like(sdm_rt.data)
-
-    tree_mz = KDTree(mz_s.reshape(-1, 1))
-    sdm_mz = tree_mz.sparse_distance_matrix(
-        tree_mz, max_mz_gap, output_type="coo_matrix"
-    )
-    sdm_mz = sparse.triu(sdm_mz, k=1)
-
-    cand = sdm_mz.multiply(sdm_rt).tocoo()
-    if cand.nnz == 0:
+    if sdm_rt.nnz == 0:
         return pd.DataFrame(columns=edge_columns)
 
     rows = []
     seen = set()
-    for r, c, dm in zip(cand.row, cand.col, cand.data):
-        i_light = int(order[r])
-        i_heavy = int(order[c])
-        dm = float(dm)
-        tol = _mz_tol_abs(mz_s[r], mz_s[c], params.mz_tol_ppm)
+    ppm = float(params.mz_tol_ppm)
 
-        best = None  # residual, t_light, t_heavy, z
-        for t_light, t_heavy, z, unit in spacings:
-            residual = abs(dm - unit)
-            if residual > tol:
+    for r, c in zip(sdm_rt.row, sdm_rt.col):
+        i_lo = int(order[r])  # lower m/z (sorted)
+        i_hi = int(order[c])
+        mz_lo = float(mz[i_lo])
+        mz_hi = float(mz[i_hi])
+        dm = abs(mz_hi - mz_lo)
+
+        # best key: (residual, rank_sum, rank_lo, rank_hi, t_lo, t_hi, z_lo, z_hi)
+        best = None
+        for t_lo, z_lo, off_lo in typed:
+            M_lo = z_lo * mz_lo - off_lo
+            if M_lo <= 0:
                 continue
-            cand_t = (residual, t_light, t_heavy, z)
-            if best is None or residual < best[0]:
-                best = cand_t
+            rank_lo = type_rank[t_lo]
+            for t_hi, z_hi, off_hi in typed:
+                if t_lo == t_hi:
+                    continue
+                M_hi = z_hi * mz_hi - off_hi
+                if M_hi <= 0:
+                    continue
+                residual = abs(M_lo - M_hi)
+                # Neutral-mass tolerance: ppm of the larger implied M
+                tol = max(M_lo, M_hi) * ppm * 1e-6
+                if residual > tol:
+                    continue
+                rank_hi = type_rank[t_hi]
+                # Prefer better geometry, then more common ion types
+                cand_key = (
+                    residual,
+                    rank_lo + rank_hi,
+                    rank_lo,
+                    rank_hi,
+                    t_lo,
+                    t_hi,
+                    z_lo,
+                    z_hi,
+                )
+                if best is None or cand_key < best:
+                    best = cand_key
 
         if best is None:
             continue
-        residual, t_light, t_heavy, z = best
-        key = (i_light, i_heavy, t_light, t_heavy)
+        residual, _rs, _rlo, _rhi, t_lo, t_hi, z_lo, z_hi = best
+        key = (i_lo, i_hi, t_lo, t_hi)
         if key in seen:
             continue
         seen.add(key)
         rows.append(
             {
-                "parent_idx": i_light,
-                "child_idx": i_heavy,
-                "parent_cluster": cluster_ids[i_light],
-                "child_cluster": cluster_ids[i_heavy],
-                "parent_ion_type": t_light,
-                "child_ion_type": t_heavy,
-                "charge": z,
+                "parent_idx": i_lo,
+                "child_idx": i_hi,
+                "parent_cluster": cluster_ids[i_lo],
+                "child_cluster": cluster_ids[i_hi],
+                "parent_ion_type": t_lo,
+                "child_ion_type": t_hi,
+                "charge": int(max(z_lo, z_hi)),
                 "abs_dm": dm,
             }
         )
@@ -1048,6 +1141,7 @@ def group_features_arrays(
     rt: np.ndarray,
     heights: np.ndarray,
     params: FeatureGroupParams,
+    timings_out: Optional[MutableMapping[str, float]] = None,
 ) -> pd.DataFrame:
     """
     Run natural-abundance isotope + adduct feature grouping on array inputs.
@@ -1065,12 +1159,18 @@ def group_features_arrays(
     heights : array-like, shape (N, S)
         Apex intensity matrix (not area).
     params : FeatureGroupParams
+    timings_out : mutable mapping, optional
+        If provided, filled with stage wall times in seconds
+        (``isotope_edges``, ``isotope_corr``, ``isotope_labels``,
+        ``adduct_edges``, ``adduct_corr``, ``adduct_merge``, ``total``,
+        plus edge/type counts).
 
     Returns
     -------
     DataFrame
         Index = cluster_ids; columns GROUP_COLUMNS.
     """
+    t_all = time.perf_counter()
     validate_feature_group_params(params)
 
     cluster_ids = np.asarray(cluster_ids)
@@ -1085,23 +1185,65 @@ def group_features_arrays(
     if heights.shape[0] != len(cluster_ids):
         raise ValueError("heights must have shape (N, S) matching cluster_ids")
 
+    if timings_out is not None:
+        timings_out.clear()
+        timings_out["n_clusters"] = float(len(cluster_ids))
+        timings_out["n_ion_types"] = float(len(params.ion_types))
+        timings_out["n_samples"] = float(heights.shape[1])
+
     if len(cluster_ids) < 2:
+        if timings_out is not None:
+            timings_out["total"] = time.perf_counter() - t_all
         return empty_group_labels(cluster_ids)
 
     # Isotope stage
+    t0 = time.perf_counter()
     iso_edges = find_isotope_edges(cluster_ids, mz, rt, params)
+    if timings_out is not None:
+        timings_out["isotope_edges"] = time.perf_counter() - t0
+        timings_out["n_isotope_edges_geom"] = float(len(iso_edges))
+
+    t0 = time.perf_counter()
     iso_edges = filter_edges_by_height_correlation(iso_edges, heights, params)
+    if timings_out is not None:
+        timings_out["isotope_corr"] = time.perf_counter() - t0
+        timings_out["n_isotope_edges"] = float(len(iso_edges))
+
+    t0 = time.perf_counter()
     labels = assign_isotope_labels(
         cluster_ids, mz, rt, heights, iso_edges, params
     )
+    if timings_out is not None:
+        timings_out["isotope_labels"] = time.perf_counter() - t0
 
     # Adduct / multi ion-type stage (pairwise Δm among params.ion_types)
     if len(params.ion_types) >= 2:
+        t0 = time.perf_counter()
         add_edges = find_adduct_edges(cluster_ids, mz, rt, params)
+        if timings_out is not None:
+            timings_out["adduct_edges"] = time.perf_counter() - t0
+            timings_out["n_adduct_edges_geom"] = float(len(add_edges))
+
+        t0 = time.perf_counter()
         add_edges = filter_edges_by_height_correlation(add_edges, heights, params)
+        if timings_out is not None:
+            timings_out["adduct_corr"] = time.perf_counter() - t0
+            timings_out["n_adduct_edges"] = float(len(add_edges))
+
+        t0 = time.perf_counter()
         labels = merge_adduct_edges_into_labels(
             labels, cluster_ids, add_edges, params
         )
+        if timings_out is not None:
+            timings_out["adduct_merge"] = time.perf_counter() - t0
+    elif timings_out is not None:
+        timings_out["adduct_edges"] = 0.0
+        timings_out["adduct_corr"] = 0.0
+        timings_out["adduct_merge"] = 0.0
+        timings_out["n_adduct_edges"] = 0.0
+
+    if timings_out is not None:
+        timings_out["total"] = time.perf_counter() - t_all
 
     return labels
 

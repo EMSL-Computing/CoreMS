@@ -6,6 +6,7 @@ import pytest
 
 from corems.encapsulation.constant import Atoms
 from corems.mass_spectra.calc.feature_grouping import (
+    DEFAULT_ION_TYPES,
     FeatureGroupParams,
     adduct_mass_delta,
     empty_group_labels,
@@ -14,13 +15,19 @@ from corems.mass_spectra.calc.feature_grouping import (
     find_adduct_edges,
     find_isotope_edges,
     group_features_arrays,
+    ion_type_charge,
     ion_type_polarity,
     isotope_mass_delta,
     isotope_state_label,
+    max_charge_from_ion_types,
+    neutral_mass_from_mz,
     normalize_ms_polarity,
     params_with_polarity_filtered_ion_types,
     validate_feature_group_params,
 )
+
+# Default ordered set (most → least common) — must resolve in ion_type_dict.
+COMMON_FEATURE_GROUP_ION_TYPES = DEFAULT_ION_TYPES
 
 
 def _delta_c13(charge=1):
@@ -87,17 +94,24 @@ def test_default_feature_group_settings_locked_in():
     assert s.feature_group_min_isotope_abundance == pytest.approx(0.01)
     assert s.feature_group_min_charge == 1
     assert s.feature_group_max_charge == 1
-    assert s.feature_group_ion_types == ("[M+H]+", "[M+NH4]+")
+    assert s.feature_group_ion_types == DEFAULT_ION_TYPES
+    # Most common first; water loss before water adduct
+    assert s.feature_group_ion_types.index("[M+H-H2O]+") < s.feature_group_ion_types.index(
+        "[M+H+H2O]+"
+    )
+    assert s.feature_group_ion_types[0] == "[M+H]+"
 
     params = FeatureGroupParams.from_lcms_collection_settings(s)
     assert params.corr_threshold == pytest.approx(0.80)
     assert params.min_shared_sample_fraction == pytest.approx(0.15)
     assert not hasattr(params, "mono_height_fraction")
+    assert params.ion_types == DEFAULT_ION_TYPES
 
     # FeatureGroupParams dataclass defaults match settings defaults
     bare = FeatureGroupParams()
     assert bare.corr_threshold == pytest.approx(0.80)
     assert bare.min_shared_sample_fraction == pytest.approx(0.15)
+    assert bare.ion_types == DEFAULT_ION_TYPES
 
 
 def test_filter_ion_types_for_polarity_drops_wrong_sign():
@@ -139,9 +153,119 @@ def test_filter_ion_types_for_polarity_drops_wrong_sign():
 
     assert ion_type_polarity("[M+HCOO]-") == "negative"
     assert ion_type_polarity("[M+H]+") == "positive"
+    assert ion_type_polarity("[M+2H]2+") == "positive"
+    assert ion_type_polarity("[M-2H]2-") == "negative"
     assert ion_type_polarity("protonated") is None
     assert normalize_ms_polarity("pos") == "positive"
     assert normalize_ms_polarity("neg") == "negative"
+
+
+def test_common_ion_types_in_dict_and_charge_parse():
+    """All common adduct keys exist; multi-charge suffixes parse correctly."""
+    from corems.mass_spectra.output.export import ion_type_dict
+
+    for it in COMMON_FEATURE_GROUP_ION_TYPES:
+        assert it in ion_type_dict, f"missing ion_type_dict key: {it}"
+        validate_feature_group_params(
+            FeatureGroupParams(ion_types=(it, "[M+H]+") if it != "[M+H]+" else (it, "[M+Na]+"))
+        )
+
+    assert ion_type_charge("[M+H]+") == 1
+    assert ion_type_charge("[M+2H]2+") == 2
+    assert ion_type_charge("[M+3H]3+") == 3
+    assert ion_type_charge("[M-2H]2-") == 2
+    assert ion_type_charge("[M]+") == 1
+    assert max_charge_from_ion_types(COMMON_FEATURE_GROUP_ION_TYPES) == 3
+
+    # Neutral-mass consistency for multi-charge vs mono
+    M = 400.0
+    mz_mh = M + Atoms.atomic_masses["H"]
+    mz_m2h = (M + 2 * Atoms.atomic_masses["H"]) / 2
+    assert neutral_mass_from_mz(mz_mh, "[M+H]+") == pytest.approx(M)
+    assert neutral_mass_from_mz(mz_m2h, "[M+2H]2+") == pytest.approx(M)
+
+
+def test_water_loss_preferred_over_water_adduct_on_delta_tie():
+    """Exact 18.01 Da spacing: prefer [M+H-H2O]+/[M+H]+ over [M+H]+/[M+H+H2O]+.
+
+    Both assignments are geometrically perfect; ordered ion_types (most common
+    first) must break the tie toward water loss, which ranks earlier than water
+    adduct in DEFAULT_ION_TYPES.
+    """
+    M = 400.0
+    from corems.mass_spectra.calc.feature_grouping import _ion_type_mass_offset
+
+    mz_loss = M + _ion_type_mass_offset("[M+H-H2O]+")
+    mz_mh = M + _ion_type_mass_offset("[M+H]+")
+    cluster_ids = np.array([0, 1])
+    mz = np.array([mz_loss, mz_mh])
+    rt = np.array([5.0, 5.01])
+    params = FeatureGroupParams(
+        rt_tol=0.1,
+        mz_tol_ppm=5.0,
+        ion_types=DEFAULT_ION_TYPES,
+    )
+    edges = find_adduct_edges(cluster_ids, mz, rt, params)
+    assert len(edges) >= 1
+    # Lower m/z is parent
+    row = edges.iloc[0]
+    assert row["parent_ion_type"] == "[M+H-H2O]+"
+    assert row["child_ion_type"] == "[M+H]+"
+
+
+def test_multicharge_mh_and_m2h_group():
+    """[M+H]+ and [M+2H]2+ of the same analyte share one feature_group_id."""
+    M = 400.0
+    h = Atoms.atomic_masses["H"]
+    dm_c = _delta_c13(charge=1)
+    # 0: [M+H]+ mono, 1: [M+H]+ 13C1, 2: [M+2H]2+ mono, 3: noise
+    cluster_ids = np.array([0, 1, 2, 3])
+    mz = np.array(
+        [
+            M + h,
+            M + h + dm_c,
+            (M + 2 * h) / 2,
+            250.0,
+        ]
+    )
+    rt = np.array([5.0, 5.01, 5.02, 5.0])
+    heights = np.array(
+        [
+            [10.0, 20.0, 30.0, 40.0],
+            [5.0, 10.0, 15.0, 20.0],
+            [8.0, 16.0, 24.0, 32.0],
+            [1.0, 50.0, 1.0, 50.0],
+        ]
+    )
+    params = FeatureGroupParams(
+        rt_tol=0.1,
+        mz_tol_ppm=20.0,
+        corr_threshold=0.9,
+        min_shared_sample_fraction=0.75,
+        min_charge=1,
+        max_charge=2,
+        ion_types=("[M+H]+", "[M+2H]2+", "[M+Na]+"),
+    )
+    labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
+
+    assert labels.loc[0, "ion_type"] == "[M+H]+"
+    assert labels.loc[0, "ion_role"] == "mono"
+    assert labels.loc[1, "ion_type"] == "[M+H]+"
+    assert labels.loc[1, "ion_role"] == "isotope"
+    assert labels.loc[2, "ion_type"] == "[M+2H]2+"
+    assert labels.loc[2, "ion_role"] == "mono"
+    gid = labels.loc[0, "feature_group_id"]
+    assert pd.notna(gid)
+    assert labels.loc[1, "feature_group_id"] == gid
+    assert labels.loc[2, "feature_group_id"] == gid
+    assert pd.isna(labels.loc[3, "feature_group_id"])
+
+    # Direct edge search finds the multi-charge pair
+    edges = find_adduct_edges(cluster_ids, mz, rt, params)
+    pairs = set(
+        zip(edges["parent_ion_type"], edges["child_ion_type"])
+    ) | set(zip(edges["child_ion_type"], edges["parent_ion_type"]))
+    assert ("[M+2H]2+", "[M+H]+") in pairs or ("[M+H]+", "[M+2H]2+") in pairs
 
 
 def test_from_settings_filters_ion_types_by_polarity():

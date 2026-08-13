@@ -1290,18 +1290,27 @@ class LCMSCollectionSettings:
         Default is 0.15 (15% of samples).
     feature_group_ion_types : tuple of str, optional
         Ion forms considered for feature-group adduct linking, as keys in
-        ``ion_type_dict`` (``corems.mass_spectra.output.export``). Edges use
-        **pairwise** mass offsets among these types (no designated base form;
-        no assumption about which form is most intense). One type or empty
-        disables adduct linking (isotopes only). Default is
-        ``("[M+H]+", "[M+NH4]+")`` (positive mode).
+        ``ion_type_dict`` (``corems.mass_spectra.output.export``). **Order
+        matters:** most → least common. On exact Δm / neutral-mass ties
+        (e.g. ``[M+H]+``↔``[M+H-H2O]+`` vs ``[M+H]+``↔``[M+H+H2O]+``), earlier
+        types are preferred. One type or empty disables adduct linking
+        (isotopes only).
+
+        Default is the literature-ordered common set starting
+        ``[M+H]+``, ``[M+2H]2+``, ``[M+H-H2O]+``, ``[M-H]-``, … through
+        ``[M]+`` (see ``DEFAULT_ION_TYPES`` in feature_grouping).
 
         At ``group_consensus_features()`` time, entries are **filtered by
         collection polarity** (from sample ``polarity`` attributes): only keys
-        ending in ``+`` are kept for positive mode and only keys ending in
-        ``-`` for negative mode. A mixed pos/neg list is therefore safe to
-        configure; wrong-polarity adducts such as ``[M+HCOO]-`` on a positive
-        panel are dropped before edge search. Mixed-polarity collections raise.
+        ending in ``+`` / ``2+`` / … are kept for positive mode and only keys
+        ending in ``-`` / ``2-`` / … for negative mode. Order among kept keys
+        is preserved. Mixed-polarity collections raise.
+
+        Multi-charge keys (e.g. ``[M+2H]2+``, ``[M+3H]3+``) encode ``|z|`` in
+        the suffix. Adduct linking uses neutral-mass consistency
+        ``M = |z|·m/z − offset``. The largest ``|z|`` among configured types
+        expands the isotope charge search if it exceeds
+        ``feature_group_max_charge``.
     feature_group_partition_size : int, optional
         Target number of clusters per RT partition when multi-core grouping is used.
         Default is 5000.
@@ -1348,7 +1357,31 @@ class LCMSCollectionSettings:
     feature_group_max_isotope_offset: int = 4
     feature_group_corr_threshold: float = 0.80
     feature_group_min_shared_sample_fraction: float = 0.15
-    feature_group_ion_types: tuple = ("[M+H]+", "[M+NH4]+")
+    # Most → least common; keep in sync with feature_grouping.DEFAULT_ION_TYPES
+    feature_group_ion_types: tuple = (
+        "[M+H]+",
+        "[M+2H]2+",
+        "[M+H-H2O]+",
+        "[M-H]-",
+        "[M+Na]+",
+        "[M+H-NH3]+",
+        "[M+NH4]+",
+        "[M-H-H2O]-",
+        "[M-H+2Na]+",
+        "[M-H+H2O]-",
+        "[M+NH4-H2O]+",
+        "[M+H+H2O]+",
+        "[M+H+Na]2+",
+        "[M+H+K]2+",
+        "[M-2H]2-",
+        "[M+2Na]2+",
+        "[M+2H-NH3]2+",
+        "[M+K]+",
+        "[M+H-2H2O]+",
+        "[M+3H]3+",
+        "[M+2H-H2O]2+",
+        "[M]+",
+    )
     feature_group_partition_size: int = 5000
 
     def __post_init__(self):

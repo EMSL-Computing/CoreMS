@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import pandas as pd
 import warnings, scipy, multiprocessing
@@ -3790,6 +3792,7 @@ class LCMSCollectionCalculations:
                 )
             )
 
+        t_height = time.perf_counter()
         heights = build_height_matrix_from_features(
             self.mass_features_dataframe,
             cluster_ids=cluster_ids,
@@ -3797,8 +3800,20 @@ class LCMSCollectionCalculations:
             induced_df=self.induced_mass_features_dataframe,
             intensity_col=HEIGHT_COL,  # apex intensity only; not area
         )
+        stage_timings = {
+            "height_matrix": time.perf_counter() - t_height,
+            "n_ion_types_configured": float(len(params.ion_types)),
+            "collection_polarity": (
+                str(collection_polarity) if collection_polarity else "unknown"
+            ),
+        }
 
-        labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
+        algo_timings: dict = {}
+        labels = group_features_arrays(
+            cluster_ids, mz, rt, heights, params, timings_out=algo_timings
+        )
+        stage_timings.update(algo_timings)
+        self._last_feature_group_timings = stage_timings
         self.feature_group_dataframe = labels
 
         # Propagate onto mass feature tables by cluster; keep coll_mf_id index
@@ -6118,11 +6133,17 @@ class LCMSCollectionCalculations:
 
         # Collection-level natural-abundance isotope (Stage 1) grouping
         if group_features:
+            t_group = time.perf_counter()
             labels = self.group_consensus_features()
+            group_wall = time.perf_counter() - t_group
             results['group_features'] = {
                 'n_clusters': len(labels),
                 'n_grouped': int(labels['feature_group_id'].notna().sum()),
                 'n_groups': int(labels['feature_group_id'].nunique(dropna=True)),
+                'wall_seconds': group_wall,
+                'stage_timings': getattr(
+                    self, '_last_feature_group_timings', None
+                ),
             }
 
         # Phase 2: annotation / optional EICs after grouping

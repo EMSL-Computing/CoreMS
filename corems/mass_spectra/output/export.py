@@ -29,22 +29,42 @@ from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFo
 from corems.molecular_id.calc.SpectralSimilarity import methods_name
 
 ion_type_dict = {
-    # adduct : [atoms to add, atoms to subtract when calculating formula of ion
+    # adduct : [atoms to add, atoms to subtract when calculating formula of ion]
+    # Charge state is encoded in the key suffix (e.g. ``2+``, ``2-``); mass
+    # offsets are neutral-atom counts only. Multi-charge m/z uses
+    # ``m/z = (M + offset) / |z|`` with |z| from the key (see feature_grouping).
     "M+": [{}, {}],
     "[M]+": [{}, {}],
     "protonated": [{"H": 1}, {}],
     "[M+H]+": [{"H": 1}, {}],
+    "[M+2H]2+": [{"H": 2}, {}],
+    "[M+3H]3+": [{"H": 3}, {}],
     "[M+NH4]+": [{"N": 1, "H": 4}, {}],  # ammonium
     "[M+Na]+": [{"Na": 1}, {}],
     "[M+K]+": [{"K": 1}, {}],
+    "[M+2Na]2+": [{"Na": 2}, {}],
+    "[M+H+Na]2+": [{"H": 1, "Na": 1}, {}],
+    "[M+H+K]2+": [{"H": 1, "K": 1}, {}],
     "[M+2Na+Cl]+": [{"Na": 2, "Cl": 1}, {}],
     "[M+2Na-H]+": [{"Na": 2}, {"H": 1}],
+    "[M-H+2Na]+": [{"Na": 2}, {"H": 1}],  # synonym of [M+2Na-H]+
     "[M+C2H3Na2O2]+": [{"C": 2, "H": 3, "Na": 2, "O": 2}, {}],
     "[M+C4H10N3]+": [{"C": 4, "H": 10, "N": 3}, {}],
     "[M+NH4+ACN]+": [{"C": 2, "H": 7, "N": 2}, {}],
+    # Neutral losses / solvent adducts (positive)
     "[M+H-H2O]+": [{}, {"H": 1, "O": 1}],
+    "[M+H-2H2O]+": [{}, {"H": 3, "O": 2}],  # +H − 2 H2O
+    "[M+H-NH3]+": [{}, {"N": 1, "H": 2}],  # +H − NH3
+    "[M+2H-NH3]2+": [{}, {"N": 1, "H": 1}],  # +2H − NH3
+    "[M+2H-H2O]2+": [{}, {"O": 1}],  # +2H − H2O
+    "[M+NH4-H2O]+": [{"N": 1, "H": 2}, {}],  # NH4 − H2O
+    "[M+H+H2O]+": [{"H": 3, "O": 1}, {}],  # H + H2O
+    # Negative
     "de-protonated": [{}, {"H": 1}],
     "[M-H]-": [{}, {"H": 1}],
+    "[M-2H]2-": [{}, {"H": 2}],
+    "[M-H-H2O]-": [{}, {"H": 3, "O": 1}],
+    "[M-H+H2O]-": [{"H": 1, "O": 1}, {}],  # −H + H2O
     "[M+Cl]-": [{"Cl": 1}, {}],
     "[M+HCOO]-": [{"C": 1, "H": 1, "O": 2}, {}],  # formate
     "[M+CH3COO]-": [{"C": 2, "H": 3, "O": 2}, {}],  # acetate
