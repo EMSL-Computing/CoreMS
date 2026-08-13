@@ -37,7 +37,7 @@ GROUP_COLUMNS = (
     "ion_role",
     "ion_type",
     "isotope_state",
-    "parent_cluster_id",
+    "mono_cluster_id",
 )
 
 # Fixed quant-gate policy. Not user-selectable switches.
@@ -287,7 +287,7 @@ def empty_group_labels(cluster_ids: Sequence) -> pd.DataFrame:
             "ion_role": pd.Series(None, index=idx, dtype=object),
             "ion_type": pd.Series(None, index=idx, dtype=object),
             "isotope_state": pd.Series(None, index=idx, dtype=object),
-            "parent_cluster_id": pd.Series(pd.NA, index=idx, dtype="Int64"),
+            "mono_cluster_id": pd.Series(pd.NA, index=idx, dtype="Int64"),
         }
     )
 
@@ -789,7 +789,7 @@ def assign_isotope_labels(
         labels.loc[cluster_ids[mono_idx], "ion_role"] = "mono"
         labels.loc[cluster_ids[mono_idx], "ion_type"] = single_ion_type
         labels.loc[cluster_ids[mono_idx], "isotope_state"] = "M+0"
-        labels.loc[cluster_ids[mono_idx], "parent_cluster_id"] = mono_cluster
+        labels.loc[cluster_ids[mono_idx], "mono_cluster_id"] = mono_cluster
         assigned.add(mono_idx)
 
         for c, (depth, rare_label, _atom, _z) in family_children.items():
@@ -798,7 +798,7 @@ def assign_isotope_labels(
             labels.loc[cid, "ion_role"] = "isotope"
             labels.loc[cid, "ion_type"] = single_ion_type
             labels.loc[cid, "isotope_state"] = isotope_state_label(rare_label, depth)
-            labels.loc[cid, "parent_cluster_id"] = mono_cluster
+            labels.loc[cid, "mono_cluster_id"] = mono_cluster
             assigned.add(c)
 
     return labels
@@ -829,7 +829,7 @@ def merge_adduct_edges_into_labels(
     - Assign ``ion_type`` per side from the edge (not by peak height).
     - ``ion_role`` stays ``mono`` / ``isotope`` (chemical); M+0 of the heavier
       form remains ``mono`` of that form, not reclassified as ``adduct``.
-    - ``parent_cluster_id`` = chemical mono of that feature's own ion form.
+    - ``mono_cluster_id`` = chemical mono of that feature's own ion form.
     """
     if adduct_edges is None or adduct_edges.empty:
         return labels
@@ -923,12 +923,12 @@ def merge_adduct_edges_into_labels(
         for cid in light_members:
             labels.loc[cid, "feature_group_id"] = keep_gid
             labels.loc[cid, "ion_type"] = type_light
-            labels.loc[cid, "parent_cluster_id"] = light_mono
+            labels.loc[cid, "mono_cluster_id"] = light_mono
 
         for cid in heavy_members:
             labels.loc[cid, "feature_group_id"] = keep_gid
             labels.loc[cid, "ion_type"] = type_heavy
-            labels.loc[cid, "parent_cluster_id"] = heavy_mono
+            labels.loc[cid, "mono_cluster_id"] = heavy_mono
 
     return labels
 

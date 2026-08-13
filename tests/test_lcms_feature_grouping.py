@@ -135,21 +135,21 @@ def test_mono_plus_c13_high_corr_groups():
     assert labels.loc[10, "ion_role"] == "mono"
     assert labels.loc[10, "ion_type"] == "[M+H]+"
     assert labels.loc[10, "isotope_state"] == "M+0"
-    assert labels.loc[10, "parent_cluster_id"] == 10
+    assert labels.loc[10, "mono_cluster_id"] == 10
     assert labels.loc[11, "ion_role"] == "isotope"
     assert labels.loc[11, "ion_type"] == "[M+H]+"
     assert labels.loc[11, "isotope_state"] == "13C1"
-    assert labels.loc[11, "parent_cluster_id"] == 10
+    assert labels.loc[11, "mono_cluster_id"] == 10
 
     # [M+NH4]+ form (heavier offset): still chemical mono/isotope, not demoted
     assert labels.loc[13, "ion_role"] == "mono"
     assert labels.loc[13, "ion_type"] == "[M+NH4]+"
     assert labels.loc[13, "isotope_state"] == "M+0"
-    assert labels.loc[13, "parent_cluster_id"] == 13
+    assert labels.loc[13, "mono_cluster_id"] == 13
     assert labels.loc[14, "ion_role"] == "isotope"
     assert labels.loc[14, "ion_type"] == "[M+NH4]+"
     assert labels.loc[14, "isotope_state"] == "13C1"
-    assert labels.loc[14, "parent_cluster_id"] == 13
+    assert labels.loc[14, "mono_cluster_id"] == 13
 
     gid = labels.loc[10, "feature_group_id"]
     assert pd.notna(gid)
@@ -263,7 +263,7 @@ def test_fe54_lighter_than_mono_groups():
     assert labels.loc[2, "isotope_state"] == "M+0"
     assert labels.loc[1, "ion_role"] == "isotope"
     assert labels.loc[1, "isotope_state"] == "54Fe1"
-    assert labels.loc[1, "parent_cluster_id"] == 2
+    assert labels.loc[1, "mono_cluster_id"] == 2
 
 
 def test_c13_chain_13c1_13c2():
@@ -290,8 +290,8 @@ def test_c13_chain_13c1_13c2():
     assert labels.loc[1, "ion_role"] == "mono"
     assert labels.loc[2, "isotope_state"] == "13C1"
     assert labels.loc[3, "isotope_state"] == "13C2"
-    assert labels.loc[2, "parent_cluster_id"] == 1
-    assert labels.loc[3, "parent_cluster_id"] == 1
+    assert labels.loc[2, "mono_cluster_id"] == 1
+    assert labels.loc[3, "mono_cluster_id"] == 1
     assert labels.loc[1, "feature_group_id"] == labels.loc[3, "feature_group_id"]
 
     # Unit edges only: mono–M+1 and M+1–M+2, no mono–M+2

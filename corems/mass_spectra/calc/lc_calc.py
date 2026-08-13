@@ -3687,7 +3687,7 @@ class LCMSCollectionCalculations:
         -------
         pandas.DataFrame
             Cluster-indexed labels with columns ``feature_group_id``, ``ion_role``,
-            ``isotope_state``, ``parent_cluster_id``. Also stored on
+            ``isotope_state``, ``mono_cluster_id``. Also stored on
             ``self.feature_group_dataframe`` and merged into
             ``mass_features_dataframe`` / ``induced_mass_features_dataframe``.
 
