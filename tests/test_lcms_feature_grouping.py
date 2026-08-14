@@ -192,7 +192,7 @@ def test_water_loss_preferred_over_water_adduct_on_delta_tie():
 
     Both assignments are geometrically perfect; ordered ion_types (most common
     first) must break the tie toward water loss, which ranks earlier than water
-    adduct in DEFAULT_ION_TYPES.
+    adduct in DEFAULT_ION_TYPES. Alternates are retained in possible_ion_types.
     """
     M = 400.0
     from corems.mass_spectra.calc.feature_grouping import _ion_type_mass_offset
@@ -213,6 +213,75 @@ def test_water_loss_preferred_over_water_adduct_on_delta_tie():
     row = edges.iloc[0]
     assert row["parent_ion_type"] == "[M+H-H2O]+"
     assert row["child_ion_type"] == "[M+H]+"
+    # Water-adduct interpretation also fits residual → kept as alternate
+    parent_poss = str(row["parent_possible_ion_types"])
+    child_poss = str(row["child_possible_ion_types"])
+    assert "[M+H-H2O]+" in parent_poss
+    assert "[M+H]+" in parent_poss  # alternate light type for adduct interp
+    assert "[M+H]+" in child_poss
+    assert "[M+H+H2O]+" in child_poss
+    assert int(row["n_interpretations"]) >= 2
+
+
+def test_validate_clears_orphan_mono_without_feature_group():
+    """ion_role=mono with no feature_group_id must not survive validation."""
+    from corems.mass_spectra.calc.feature_grouping import (
+        empty_group_labels,
+        validate_feature_group_labels,
+    )
+
+    labels = empty_group_labels([518, 3352])
+    labels.loc[518, "ion_role"] = "mono"
+    labels.loc[518, "isotope_state"] = "M+0"
+    labels.loc[3352, "ion_role"] = "mono"
+    labels.loc[3352, "isotope_state"] = "M+0"
+    out = validate_feature_group_labels(
+        labels,
+        {518: 416.2, 3352: 957.8},
+        FeatureGroupParams(),
+    )
+    assert out.loc[518, "ion_role"] is None or pd.isna(out.loc[518, "ion_role"])
+    assert out.loc[3352, "ion_role"] is None or pd.isna(out.loc[3352, "ion_role"])
+    assert pd.isna(out.loc[518, "feature_group_id"])
+
+
+def test_nh3_vs_nh4_keeps_ambiguous_possible_ion_types():
+    """Δm = m(NH3): both NH3-loss/MH and MH/NH4 fit; keep both as possibles."""
+    from corems.mass_spectra.calc.feature_grouping import _ion_type_mass_offset
+
+    M = 583.5896
+    mz_nh3 = M + _ion_type_mass_offset("[M+H-NH3]+")
+    mz_mh = M + _ion_type_mass_offset("[M+H]+")
+    cluster_ids = np.array([144, 179])
+    mz = np.array([mz_nh3, mz_mh])
+    rt = np.array([48.71, 48.72])
+    pat = np.array([10.0, 20.0, 30.0, 40.0])
+    heights = np.vstack([pat, pat * 0.5])
+    params = FeatureGroupParams(
+        rt_tol=0.1,
+        mz_tol_ppm=5.0,
+        corr_threshold=0.9,
+        min_shared_sample_fraction=0.75,
+        ion_types=DEFAULT_ION_TYPES,
+    )
+    edges = find_adduct_edges(cluster_ids, mz, rt, params)
+    assert len(edges) == 1
+    row = edges.iloc[0]
+    # Preferred by rank-sum: NH3-loss + MH (not MH + NH4)
+    assert row["parent_ion_type"] == "[M+H-NH3]+"
+    assert row["child_ion_type"] == "[M+H]+"
+    assert "[M+H]+" in str(row["parent_possible_ion_types"])
+    assert "[M+H-NH3]+" in str(row["parent_possible_ion_types"])
+    assert "[M+NH4]+" in str(row["child_possible_ion_types"])
+    assert "[M+H]+" in str(row["child_possible_ion_types"])
+    assert int(row["n_interpretations"]) >= 2
+
+    labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
+    assert labels.loc[144, "ion_type"] == "[M+H-NH3]+"
+    assert labels.loc[179, "ion_type"] == "[M+H]+"
+    assert "[M+H]+" in str(labels.loc[144, "possible_ion_types"])
+    assert "[M+NH4]+" in str(labels.loc[179, "possible_ion_types"])
+    assert labels.loc[144, "feature_group_id"] == labels.loc[179, "feature_group_id"]
 
 
 def test_multicharge_mh_and_m2h_group():
@@ -268,6 +337,73 @@ def test_multicharge_mh_and_m2h_group():
         zip(edges["parent_ion_type"], edges["child_ion_type"])
     ) | set(zip(edges["child_ion_type"], edges["parent_ion_type"]))
     assert ("[M+2H]2+", "[M+H]+") in pairs or ("[M+H]+", "[M+2H]2+") in pairs
+
+
+def test_mh_m2h_mna_group_without_isotopes():
+    """[M+H]+, [M+2H]2+, and [M+Na]+ only (no 13C) share one feature_group_id.
+
+    Exercises same-|z| adduct link (H↔Na) and series mono↔multi (H↔2H)
+    without an isotope stage. All three are form monos of the same neutral M.
+    """
+    from corems.mass_spectra.calc.feature_grouping import _ion_type_mass_offset
+
+    M = 400.0
+    h = Atoms.atomic_masses["H"]
+    # Exact m/z from ion_type_dict offsets (neutral mass recovery)
+    mz_mh = M + _ion_type_mass_offset("[M+H]+")
+    mz_m2h = (M + _ion_type_mass_offset("[M+2H]2+")) / 2.0
+    mz_na = M + _ion_type_mass_offset("[M+Na]+")
+    # Sanity: doubly charged is ~half the mono-charge m/z region
+    assert mz_m2h < mz_mh < mz_na
+
+    # cluster 0: [M+2H]2+, 1: [M+H]+, 2: [M+Na]+ — no isotopologues
+    cluster_ids = np.array([0, 1, 2])
+    mz = np.array([mz_m2h, mz_mh, mz_na])
+    rt = np.array([10.0, 10.02, 10.01])
+    # Shared cross-sample height pattern so Pearson passes
+    pat = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
+    heights = np.vstack(
+        [
+            pat * 0.4,  # 2+
+            pat,  # MH
+            pat * 0.6,  # Na
+        ]
+    )
+    params = FeatureGroupParams(
+        rt_tol=0.1,
+        mz_tol_ppm=5.0,
+        corr_threshold=0.9,
+        min_shared_sample_fraction=0.6,
+        min_charge=1,
+        max_charge=2,
+        ion_types=("[M+H]+", "[M+2H]2+", "[M+Na]+"),
+    )
+
+    # Edges: H↔2H (series) and H↔Na (same z); optional Na alone does not need 2+
+    edges = find_adduct_edges(cluster_ids, mz, rt, params)
+    type_pairs = {
+        frozenset((r["parent_ion_type"], r["child_ion_type"]))
+        for _, r in edges.iterrows()
+    }
+    assert frozenset(("[M+H]+", "[M+2H]2+")) in type_pairs
+    assert frozenset(("[M+H]+", "[M+Na]+")) in type_pairs
+
+    labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
+
+    assert labels.loc[0, "ion_type"] == "[M+2H]2+"
+    assert labels.loc[1, "ion_type"] == "[M+H]+"
+    assert labels.loc[2, "ion_type"] == "[M+Na]+"
+    for cid in (0, 1, 2):
+        assert labels.loc[cid, "ion_role"] == "mono"
+        assert labels.loc[cid, "isotope_state"] == "M+0"
+        assert labels.loc[cid, "mono_cluster_id"] == cid
+
+    gid = labels.loc[1, "feature_group_id"]
+    assert pd.notna(gid)
+    assert labels.loc[0, "feature_group_id"] == gid
+    assert labels.loc[2, "feature_group_id"] == gid
+    # No isotope members in this group
+    assert (labels["ion_role"] == "isotope").sum() == 0
 
 
 def test_series_pairs_allow_na_multi_but_not_false_2h_nh3_bridge():

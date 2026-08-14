@@ -3630,18 +3630,38 @@ class LCMSCollectionCalculations:
         summary_df = summary_df.set_index('cluster')
 
         # Merge consensus feature-group labels when present (natural-abundance
-        # isotopes Stage 1+)
+        # isotopes Stage 1+). Cluster summary exposes possible_ion_types (all
+        # residual-tied candidates) and drops ion_type so a single type column
+        # is not mistaken for unique assignment.
         fg = getattr(self, "feature_group_dataframe", None)
         if fg is not None and len(fg) > 0:
-            from corems.mass_spectra.calc.feature_grouping import GROUP_COLUMNS
+            from corems.mass_spectra.calc.feature_grouping import (
+                GROUP_COLUMNS,
+                merge_possible_ion_types,
+            )
 
             cols = [c for c in GROUP_COLUMNS if c in fg.columns]
             if cols:
-                # Drop any prior join columns then re-merge
                 drop_cols = [c for c in cols if c in summary_df.columns]
                 if drop_cols:
                     summary_df = summary_df.drop(columns=drop_cols)
+                # Also drop stale ion_type from a prior join shape
+                if "ion_type" in summary_df.columns:
+                    summary_df = summary_df.drop(columns=["ion_type"])
                 summary_df = summary_df.join(fg[cols], how="left")
+
+            if (
+                "possible_ion_types" in summary_df.columns
+                and "ion_type" in summary_df.columns
+            ):
+                for cid in summary_df.index:
+                    it = summary_df.loc[cid, "ion_type"]
+                    poss = summary_df.loc[cid, "possible_ion_types"]
+                    filled = merge_possible_ion_types(it, poss)
+                    if filled is not None:
+                        summary_df.loc[cid, "possible_ion_types"] = filled
+            if "ion_type" in summary_df.columns:
+                summary_df = summary_df.drop(columns=["ion_type"])
 
         return summary_df
 
