@@ -18,10 +18,8 @@ from corems.mass_spectra.calc.feature_grouping import (
     ion_type_charge,
     ion_type_polarity,
     is_allowed_adduct_type_pair,
-    is_allowed_series_pair,
     isotope_mass_delta,
     isotope_state_label,
-    max_charge_from_ion_types,
     neutral_mass_from_mz,
     normalize_ms_polarity,
     params_with_polarity_filtered_ion_types,
@@ -57,14 +55,110 @@ def test_validate_params_rejects_bad_values():
         validate_feature_group_params(FeatureGroupParams(rt_tol=0))
     with pytest.raises(ValueError, match="alignment_mz_tol_ppm"):
         validate_feature_group_params(FeatureGroupParams(mz_tol_ppm=0))
-    with pytest.raises(ValueError, match="charge"):
-        validate_feature_group_params(FeatureGroupParams(min_charge=0, max_charge=1))
-    with pytest.raises(ValueError, match="charge"):
-        validate_feature_group_params(FeatureGroupParams(min_charge=1, max_charge=0))
     with pytest.raises(ValueError, match="feature_group_isotope_atoms"):
         validate_feature_group_params(FeatureGroupParams(isotope_atoms=()))
     with pytest.raises(ValueError, match="feature_group_isotope_atoms|Unknown mono"):
         validate_feature_group_params(FeatureGroupParams(isotope_atoms=("NotAnElement",)))
+
+
+def test_defaults_are_singly_charged_only():
+    from corems.encapsulation.factory.processingSetting import LCMSCollectionSettings
+
+    assert not hasattr(LCMSCollectionSettings(), "feature_group_min_charge")
+    assert not hasattr(LCMSCollectionSettings(), "feature_group_max_charge")
+    assert not hasattr(FeatureGroupParams(), "min_charge")
+    assert not hasattr(FeatureGroupParams(), "max_charge")
+    for it in DEFAULT_ION_TYPES:
+        assert ion_type_charge(it) == 1, it
+    params = FeatureGroupParams.from_lcms_collection_settings(LCMSCollectionSettings())
+    assert params.ion_types == DEFAULT_ION_TYPES
+    assert not hasattr(params, "charge_values")
+
+
+def test_validate_rejects_multicharge_ion_type():
+    with pytest.raises(ValueError, match=r"singly-charged|charge"):
+        validate_feature_group_params(
+            FeatureGroupParams(ion_types=("[M+H]+", "[M+2H]2+"))
+        )
+
+
+def test_c13_chain_13c1_13c2_13c3():
+    dm = _delta_c13()
+    cluster_ids = np.array([1, 2, 3, 4])
+    mz = np.array([200.0, 200.0 + dm, 200.0 + 2 * dm, 200.0 + 3 * dm])
+    rt = np.array([5.0, 5.01, 5.02, 5.03])
+    pat = np.array([100.0, 80.0, 60.0, 40.0])
+    heights = np.vstack([pat, pat * 0.5, pat * 0.2, pat * 0.08])
+    params = FeatureGroupParams(
+        rt_tol=0.1,
+        mz_tol_ppm=20.0,
+        corr_threshold=0.9,
+        min_shared_sample_fraction=0.75,
+        max_isotope_offset=4,
+        ion_types=("[M+H]+",),
+    )
+    labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
+    assert labels.loc[1, "ion_role"] == "mono"
+    assert labels.loc[2, "isotope_state"] == "13C1"
+    assert labels.loc[3, "isotope_state"] == "13C2"
+    assert labels.loc[4, "isotope_state"] == "13C3"
+    gid = labels.loc[1, "feature_group_id"]
+    assert pd.notna(gid)
+    assert (labels.loc[[2, 3, 4], "feature_group_id"] == gid).all()
+    assert (labels.loc[[2, 3, 4], "mono_cluster_id"] == 1).all()
+
+    edges = find_isotope_edges(cluster_ids, mz, rt, params)
+    assert (edges["n"] == 1).all()
+    assert (edges["charge"] == 1).all()
+    pairs = set(zip(edges["parent_cluster"], edges["child_cluster"]))
+    assert (1, 2) in pairs and (2, 3) in pairs and (3, 4) in pairs
+    assert (1, 3) not in pairs and (1, 4) not in pairs
+
+
+def test_z2_c13_spacing_does_not_group():
+    """Δm = ¹³C/2 must not be treated as a unit isotope edge."""
+    dm = _delta_c13(charge=2)
+    cluster_ids = np.array([1, 2])
+    mz = np.array([400.0, 400.0 + dm])
+    rt = np.array([5.0, 5.01])
+    heights = np.array([[10.0, 20.0, 30.0], [5.0, 10.0, 15.0]])
+    params = FeatureGroupParams(
+        rt_tol=0.1,
+        mz_tol_ppm=20.0,
+        min_shared_sample_fraction=0.5,
+        corr_threshold=0.9,
+        ion_types=("[M+H]+",),
+    )
+    labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
+    assert labels["feature_group_id"].isna().all()
+    edges = find_isotope_edges(cluster_ids, mz, rt, params)
+    assert edges.empty
+
+
+def test_mh_mna_group_without_isotopes():
+    """[M+H]+ and [M+Na]+ (z=1 only) share one feature_group_id."""
+    from corems.mass_spectra.calc.feature_grouping import _ion_type_mass_offset
+
+    M = 400.0
+    mz_mh = M + _ion_type_mass_offset("[M+H]+")
+    mz_na = M + _ion_type_mass_offset("[M+Na]+")
+    cluster_ids = np.array([0, 1])
+    mz = np.array([mz_mh, mz_na])
+    rt = np.array([10.0, 10.01])
+    pat = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
+    heights = np.vstack([pat, pat * 0.6])
+    params = FeatureGroupParams(
+        rt_tol=0.1,
+        mz_tol_ppm=5.0,
+        corr_threshold=0.9,
+        min_shared_sample_fraction=0.6,
+        ion_types=("[M+H]+", "[M+Na]+"),
+    )
+    labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
+    assert labels.loc[0, "ion_type"] == "[M+H]+"
+    assert labels.loc[1, "ion_type"] == "[M+Na]+"
+    assert labels.loc[0, "feature_group_id"] == labels.loc[1, "feature_group_id"]
+    assert pd.notna(labels.loc[0, "feature_group_id"])
 
 
 def test_from_lcms_collection_settings_uses_alignment_tols():
