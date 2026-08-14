@@ -194,6 +194,45 @@ def params_with_polarity_filtered_ion_types(
     return replace(params, ion_types=filtered)
 
 
+def resolve_grouping_polarity(
+    sample_polarities: Sequence[PolarityLike],
+    ion_types: Sequence[str],
+) -> Optional[str]:
+    """Choose polarity for filtering ion types, or ``None`` (no filter).
+
+    If samples share one known polarity, return it. If no sample polarity is
+    known, return ``None`` so configured ``ion_types`` are left unchanged.
+
+    If samples mix polarities:
+
+    * empty or single ``ion_types`` → ``None`` (adduct linking off / unambiguous)
+    * all configured types share one polarity → that polarity
+    * otherwise raise ``ValueError`` (split the collection, or set
+      ``feature_group_ion_types`` to a single-polarity list)
+    """
+    known = set()
+    for p in sample_polarities:
+        n = normalize_ms_polarity(p)
+        if n is not None:
+            known.add(n)
+    if len(known) <= 1:
+        return next(iter(known)) if known else None
+
+    type_signs = {ion_type_polarity(it) for it in ion_types}
+    type_signs.discard(None)
+    if len(ion_types) < 2:
+        return None
+    if len(type_signs) == 1:
+        return next(iter(type_signs))
+    raise ValueError(
+        "Mixed polarities in LCMSCollection; cannot select "
+        "feature_group_ion_types for adduct linking. "
+        f"Found sample polarities: {sorted(known)}. "
+        "Split the collection by polarity "
+        "or set feature_group_ion_types to a single-polarity list."
+    )
+
+
 @dataclass(frozen=True)
 class FeatureGroupParams:
     """Parameters for consensus feature grouping (isotopes + adducts).

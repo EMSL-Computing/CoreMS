@@ -3629,8 +3629,8 @@ class LCMSCollectionCalculations:
         # Set cluster as the index for easy lookup
         summary_df = summary_df.set_index('cluster')
 
-        # Merge consensus feature-group labels when present (natural-abundance
-        # isotopes Stage 1+). Cluster summary exposes possible_ion_types (all
+        # Merge consensus feature-group labels when present (isotopes + adducts).
+        # Cluster summary exposes possible_ion_types (all
         # residual-tied candidates) and drops ion_type so a single type column
         # is not mistaken for unique assignment.
         fg = getattr(self, "feature_group_dataframe", None)
@@ -3667,19 +3667,23 @@ class LCMSCollectionCalculations:
 
     def group_consensus_features(self):
         """
-        Group consensus features into **natural-abundance** isotope families (Stage 1).
+        Group consensus features into natural-abundance isotope and adduct families.
 
-        After consensus clustering and gap-filling, labels consensus clusters that
-        share similar retention time, an interpretable **natural-abundance**
-        isotope m/z spacing (from ``Atoms``), and correlated cross-sample
-        **apex peak heights**. Only assigns isotope roles when a monoisotopic
-        parent is identified in the same group.
+        After consensus clustering and gap-filling, labels clusters that share
+        similar retention time, an interpretable **singly-charged** mass offset,
+        and correlated cross-sample **apex peak heights**.
 
-        Scope (Stage 1)
-        ---------------
-        Natural-abundance isotopologues only (e.g. ¹²C/¹³C and other rare forms
-        above ``feature_group_min_isotope_abundance``). **Not** for tracer,
-        enriched, or isotopically labeled experiments.
+        Two stages
+        ----------
+        1. **Isotopes.** Unit ``Atoms`` edges (e.g. ¹²C/¹³C) plus roll-up to
+           ¹³C₂, ¹³C₃, … when intermediates exist. Spacing is the raw Atoms
+           Δm (``|z| = 1``). Multi-charge envelopes are out of scope.
+           Chemical mono is the geometry root, not the tallest peak.
+        2. **Adducts.** Pairwise ``ion_type_dict`` forms in
+           ``feature_group_ion_types`` (must be ``|z| = 1``). Empty or a
+           single configured type skips adduct linking (isotopes only).
+
+        **Not** for tracer, enriched, or isotopically labeled experiments.
 
         Quant gate is fixed (no settings switch):
 
@@ -3688,25 +3692,20 @@ class LCMSCollectionCalculations:
         - Abundance: mass-feature apex ``intensity`` only (not integrated area)
 
         Coelution and m/z delta windows reuse collection
-        ``alignment_rt_tol`` and ``alignment_mz_tol_ppm``. Isotope spacing is
-        the singly-charged Atoms mass difference (multi-charge envelopes are
-        out of scope). Natural rare isotopes may be heavier or lighter than the mono
-        form (e.g. ¹³C or ⁵⁴Fe). Chemical mono is the geometry roll-up root
-        (Atoms side of each unit step), not necessarily the tallest envelope
-        peak. Gates are geometry + Pearson only (no mono-vs-family height
-        prior). Other knobs (``feature_group_isotope_atoms``, shared-sample
-        fraction, etc.) live on ``parameters.lcms_collection``.
+        ``alignment_rt_tol`` and ``alignment_mz_tol_ppm``. Other knobs
+        (``feature_group_isotope_atoms``, shared-sample fraction,
+        ``feature_group_ion_types``, …) live on ``parameters.lcms_collection``.
 
         ``feature_group_ion_types`` is filtered to the collection polarity
-        (sample ``polarity`` attributes) before adduct edge search: only keys
+        (sample ``polarity`` attributes) before adduct search: only keys
         ending in ``+`` on positive data and only keys ending in ``-`` on
-        negative data. Wrong-sign adducts (e.g. ``[M+HCOO]-`` on a positive
-        panel) are never considered. Mixed polarities in one collection raise.
+        negative data. If samples mix polarities, grouping still runs when
+        ``feature_group_ion_types`` is already a single-polarity list (or
+        empty / one type). Mixed samples **and** mixed ion types raise.
 
-        Preferred for collection-level natural-abundance isotope families.
-        Optional per-file ``LCMSBase.find_c13_mass_features`` remains available
-        for single-file workflows; do not treat both as authoritative in the
-        same pipeline.
+        Preferred for collection-level families. Optional per-file
+        ``LCMSBase.find_c13_mass_features`` remains available for single-file
+        workflows; do not treat both as authoritative in the same pipeline.
 
         Must run after ``add_consensus_mass_features()``. Height matrix prefers
         gap-filled (induced) apex intensities when present; missing entries are 0.
@@ -3714,7 +3713,8 @@ class LCMSCollectionCalculations:
         Returns
         -------
         pandas.DataFrame
-            Cluster-indexed labels with columns ``feature_group_id``, ``ion_role``,
+            Cluster-indexed labels with columns ``feature_group_id``,
+            ``ion_role``, ``ion_type``, ``possible_ion_types``,
             ``isotope_state``, ``mono_cluster_id``. Also stored on
             ``self.feature_group_dataframe`` and merged into
             ``mass_features_dataframe`` / ``induced_mass_features_dataframe``.
@@ -3722,7 +3722,9 @@ class LCMSCollectionCalculations:
         Raises
         ------
         ValueError
-            If consensus features are missing or settings are invalid.
+            If consensus features are missing, settings are invalid, or the
+            collection mixes polarities while ``feature_group_ion_types``
+            still contains both ``+`` and ``-`` keys.
         """
         from corems.mass_spectra.calc.feature_grouping import (
             GROUP_COLUMNS,
@@ -3730,7 +3732,7 @@ class LCMSCollectionCalculations:
             FeatureGroupParams,
             build_height_matrix_from_features,
             group_features_arrays,
-            normalize_ms_polarity,
+            resolve_grouping_polarity,
         )
 
         if (
@@ -3769,19 +3771,19 @@ class LCMSCollectionCalculations:
 
         # Collection polarity: filter feature_group_ion_types so negative adducts
         # (e.g. [M+HCOO]-, [M+CH3COO]-) are not used on positive data and vice versa.
-        polarities = set()
-        for sample_id in range(len(self)):
-            p = normalize_ms_polarity(getattr(self[sample_id], "polarity", None))
-            if p is not None:
-                polarities.add(p)
-        if len(polarities) > 1:
-            raise ValueError(
-                "Mixed polarities in LCMSCollection; cannot select "
-                "feature_group_ion_types for adduct linking. "
-                f"Found: {sorted(polarities)}. Split the collection by polarity "
-                "or set feature_group_ion_types to a single-polarity list."
-            )
-        collection_polarity = next(iter(polarities)) if polarities else None
+        # Mixed-sample collections are allowed when ion_types are already one sign.
+        sample_pols = [
+            getattr(self[sample_id], "polarity", None)
+            for sample_id in range(len(self))
+        ]
+        configured_types = getattr(
+            self.parameters.lcms_collection,
+            "feature_group_ion_types",
+            (),
+        )
+        collection_polarity = resolve_grouping_polarity(
+            sample_pols, configured_types
+        )
 
         params = FeatureGroupParams.from_lcms_collection_settings(
             self.parameters.lcms_collection,
@@ -5920,8 +5922,8 @@ class LCMSCollectionCalculations:
         group_features : bool, optional
             If True, run ``group_consensus_features()`` after gap-fill (and before
             molecular formula / MS2 search when those are also enabled).
-            Collection-level **natural-abundance** isotope family labeling
-            (Stage 1; not tracer/enriched labeling). Default is False.
+            Collection-level natural-abundance **isotope and adduct** family
+            labeling (singly charged only; not tracer/enriched). Default is False.
         add_ms1 : bool, optional
             If True and load_representatives=True, associates MS1 spectra with
             loaded features. Automatically uses raw data from gap-filling if available,
@@ -6151,7 +6153,7 @@ class LCMSCollectionCalculations:
                         eics_mz.append(None)
                 self.induced_mass_features_dataframe['_eic_mz'] = eics_mz
 
-        # Collection-level natural-abundance isotope (Stage 1) grouping
+        # Collection-level isotope + adduct grouping
         if group_features:
             t_group = time.perf_counter()
             labels = self.group_consensus_features()

@@ -1355,7 +1355,7 @@ class LCMSCollectionSettings:
         considered when **feature grouping** builds isotope Δm edges via
         ``Atoms`` (e.g. ``("C",)`` → natural ¹³C; ``("Se",)`` → all Se rare
         forms above the natural-abundance floor). Used only by consensus
-        feature grouping (Stage 1); not molecular-formula ``usedAtoms`` or
+        feature grouping; not molecular-formula ``usedAtoms`` or
         other isotope settings. Default is ``("C",)``. Not for enriched/tracer
         isotope systems.
     feature_group_min_isotope_abundance : float, optional

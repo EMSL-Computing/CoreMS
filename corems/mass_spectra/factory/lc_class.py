@@ -1799,7 +1799,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         self._parameters = LCMSCollectionParameters()
         self.isotopes_dropped = False
         self._mass_features_locked = False  # Prevents rebuilding mass_features_dataframe from samples
-        # Consensus feature grouping labels (natural-abundance isotopes Stage 1);
+        # Consensus feature grouping labels (isotopes + z=1 adducts);
         # index = cluster. Not tracer/enriched labeling.
         self.feature_group_dataframe = None
 
