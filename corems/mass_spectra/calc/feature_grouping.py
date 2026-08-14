@@ -58,7 +58,6 @@ HEIGHT_COL = "intensity"  # apex peak height; not integrated area
 # polarity keys are dropped at group_consensus_features time.
 DEFAULT_ION_TYPES: Tuple[str, ...] = (
     "[M+H]+",
-    "[M+2H]2+",
     "[M+H-H2O]+",
     "[M-H]-",
     "[M+Na]+",
@@ -69,15 +68,8 @@ DEFAULT_ION_TYPES: Tuple[str, ...] = (
     "[M-H+H2O]-",
     "[M+NH4-H2O]+",
     "[M+H+H2O]+",
-    "[M+H+Na]2+",
-    "[M+H+K]2+",
-    "[M-2H]2-",
-    "[M+2Na]2+",
-    "[M+2H-NH3]2+",
     "[M+K]+",
     "[M+H-2H2O]+",
-    "[M+3H]3+",
-    "[M+2H-H2O]2+",
     "[M]+",
 )
 
@@ -145,13 +137,6 @@ def ion_type_charge(ion_type: str) -> int:
         return 1
     digits = m.group(1)
     return int(digits) if digits else 1
-
-
-def max_charge_from_ion_types(ion_types: Sequence[str]) -> int:
-    """Largest absolute charge among ion-type keys (at least 1)."""
-    if not ion_types:
-        return 1
-    return max(1, max(ion_type_charge(t) for t in ion_types))
 
 
 # Allowed mono↔multi (or related multi-charge) ion-type pairs for Pass 2.
@@ -239,8 +224,8 @@ class FeatureGroupParams:
     ``min_isotope_abundance``. Not for tracer / labeled experiments.
 
     **Adducts:** ``ion_types`` is an ordered sequence of ``ion_type_dict`` keys
-    (most → least common by default). Edges are sought for every pair via
-    neutral-mass consistency (per-type ``|z|`` from the key). There is no
+    (most → least common by default). Keys must be singly charged (``|z| = 1``).
+    Edges are sought for every pair via neutral-mass consistency. There is no
     designated base form and no intensity prior. When two type assignments
     fit equally well, the earlier (more common) types in this sequence win.
 
@@ -251,8 +236,6 @@ class FeatureGroupParams:
 
     rt_tol: float = 0.4
     mz_tol_ppm: float = 5.0
-    min_charge: int = 1
-    max_charge: int = 1
     # Mono elements for natural-abundance isotope edge search in feature grouping
     # (maps from LCMSCollectionSettings.feature_group_isotope_atoms).
     isotope_atoms: Tuple[str, ...] = ("C",)
@@ -264,14 +247,6 @@ class FeatureGroupParams:
     ion_types: Tuple[str, ...] = DEFAULT_ION_TYPES
     partition_size: int = 5000
     cores: int = 1
-
-    def charge_values(self) -> Tuple[int, ...]:
-        """Inclusive absolute charges to search, low to high."""
-        lo = abs(int(self.min_charge))
-        hi = abs(int(self.max_charge))
-        if lo > hi:
-            lo, hi = hi, lo
-        return tuple(range(lo, hi + 1))
 
     def min_shared_count(self, n_samples: int) -> int:
         """Minimum shared non-zero sample count for the correlation gate."""
@@ -289,9 +264,9 @@ class FeatureGroupParams:
 
         RT and m/z tolerances reuse ``alignment_rt_tol`` and
         ``alignment_mz_tol_ppm`` (not separate feature-group settings).
-        Charge range uses ``feature_group_min_charge`` /
-        ``feature_group_max_charge``. Mono elements for natural-abundance
-        isotope spacing use ``feature_group_isotope_atoms``.
+        Isotope spacing is the singly-charged Atoms mass difference.
+        Mono elements for natural-abundance isotope spacing use
+        ``feature_group_isotope_atoms``.
 
         Parameters
         ----------
@@ -307,16 +282,9 @@ class FeatureGroupParams:
             settings, "feature_group_ion_types", DEFAULT_ION_TYPES
         )
         ion_types = filter_ion_types_for_polarity(tuple(ion_types), polarity)
-        # Multi-charge ion types (e.g. [M+2H]2+) expand the isotope charge
-        # search so ¹³C spacing is tried at the encoded |z| as well.
-        z_from_types = max_charge_from_ion_types(ion_types)
-        min_charge = abs(int(settings.feature_group_min_charge))
-        max_charge = max(abs(int(settings.feature_group_max_charge)), z_from_types)
         return cls(
             rt_tol=float(settings.alignment_rt_tol),
             mz_tol_ppm=float(settings.alignment_mz_tol_ppm),
-            min_charge=min_charge,
-            max_charge=max_charge,
             isotope_atoms=tuple(settings.feature_group_isotope_atoms),
             min_isotope_abundance=float(
                 settings.feature_group_min_isotope_abundance
@@ -338,14 +306,6 @@ def validate_feature_group_params(params: FeatureGroupParams) -> None:
         raise ValueError("alignment_rt_tol (feature grouping RT window) must be > 0")
     if params.mz_tol_ppm <= 0:
         raise ValueError("alignment_mz_tol_ppm (feature grouping m/z tol) must be > 0")
-    if params.min_charge == 0 or params.max_charge == 0:
-        raise ValueError(
-            "feature_group_min_charge and feature_group_max_charge must be non-zero"
-        )
-    if abs(params.min_charge) < 1 or abs(params.max_charge) < 1:
-        raise ValueError(
-            "feature_group_min/max_charge absolute values must be >= 1"
-        )
     if not params.isotope_atoms:
         raise ValueError(
             "feature_group_isotope_atoms must be non-empty "
@@ -374,6 +334,11 @@ def validate_feature_group_params(params: FeatureGroupParams) -> None:
             )
         seen_it.add(it)
         _ion_type_mass_offset(it)
+        if ion_type_charge(it) != 1:
+            raise ValueError(
+                f"feature_group_ion_types entry {it!r} is not singly charged; "
+                "feature grouping currently supports |z| = 1 only"
+            )
     for atom in params.isotope_atoms:
         rare_isotope_entries(
             atom, min_abundance=params.min_isotope_abundance
@@ -635,9 +600,8 @@ def find_isotope_edges(
     (mono→¹³C₁→¹³C₂), so you never get M+n without M+(n−1).
 
     Parent is the chemical mono (most-abundant natural form) side of the unit
-    step (lighter for ¹³C, heavier for ⁵⁴Fe). Tries each charge in
-    ``min_charge``…``max_charge`` and each rare form above the natural-abundance
-    floor.
+    step (lighter for ¹³C, heavier for ⁵⁴Fe). Unit spacing is the raw Atoms
+    mass difference (singly charged). Multi-charge envelopes are out of scope.
 
     Returns
     -------
@@ -662,18 +626,17 @@ def find_isotope_edges(
 
     # ------------------------------------------------------------------
     # 1) Unit isotope spacings only (signed). Higher n comes from roll-up.
-    #    signed_unit = (m_rare - m_mono) / |z|
+    #    signed_unit = m_rare - m_mono  (|z| = 1 only)
     # ------------------------------------------------------------------
     spacings = []
     for atom in params.isotope_atoms:
         for rare_label, signed_delta, _abun in rare_isotope_entries(
             atom, min_abundance=params.min_isotope_abundance
         ):
-            for z in params.charge_values():
-                signed_unit = signed_delta / abs(int(z))
-                if signed_unit == 0:
-                    continue
-                spacings.append((atom, rare_label, int(z), float(signed_unit)))
+            signed_unit = float(signed_delta)
+            if signed_unit == 0:
+                continue
+            spacings.append((atom, rare_label, 1, signed_unit))
 
     if not spacings:
         return pd.DataFrame(columns=edge_columns)
@@ -1033,7 +996,7 @@ def assign_isotope_labels(
     for row in edges.itertuples(index=False):
         p, c = int(row.parent_idx), int(row.child_idx)
         rare = getattr(row, "rare_label", None) or row.atom
-        z = int(getattr(row, "charge", params.charge_values()[0]))
+        z = int(getattr(row, "charge", 1))
         children_of.setdefault(p, []).append((c, rare, row.atom, z))
         all_parents.add(p)
         all_children.add(c)
