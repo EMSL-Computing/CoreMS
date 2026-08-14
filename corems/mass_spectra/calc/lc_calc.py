@@ -3688,9 +3688,9 @@ class LCMSCollectionCalculations:
         - Abundance: mass-feature apex ``intensity`` only (not integrated area)
 
         Coelution and m/z delta windows reuse collection
-        ``alignment_rt_tol`` and ``alignment_mz_tol_ppm``. Absolute charges
-        ``feature_group_min_charge`` … ``feature_group_max_charge`` scale isotope
-        spacing. Natural rare isotopes may be heavier or lighter than the mono
+        ``alignment_rt_tol`` and ``alignment_mz_tol_ppm``. Isotope spacing is
+        the singly-charged Atoms mass difference (multi-charge envelopes are
+        out of scope). Natural rare isotopes may be heavier or lighter than the mono
         form (e.g. ¹³C or ⁵⁴Fe). Chemical mono is the geometry roll-up root
         (Atoms side of each unit step), not necessarily the tallest envelope
         peak. Gates are geometry + Pearson only (no mono-vs-family height

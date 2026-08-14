@@ -1,14 +1,16 @@
 """
-Consensus feature grouping: natural-abundance isotopes + adducts.
+Consensus feature grouping: natural-abundance isotopes + singly-charged adducts.
 
 **Isotopes:** natural-abundance isotopologues only (e.g. ¹²C/¹³C; rare forms in
-``Atoms`` above a natural-abundance floor). Not for tracer/enriched labeling.
+``Atoms`` above a natural-abundance floor). Unit spacing is the raw Atoms
+mass difference (``|z| = 1``). Not for tracer/enriched labeling or
+multi-charge envelopes.
 
-**Adducts:** alternate ion forms linked by **pairwise** mass offsets from
-``ion_type_dict`` (``corems.mass_spectra.output.export``) among
-``feature_group_ion_types`` (e.g. ``[M+H]+`` and ``[M+NH4]+``). No designated
-“base” form — any pair with matching Δm can link. Same-analyte forms share one
-``feature_group_id`` with isotopes of each form.
+**Adducts:** alternate **singly-charged** ion forms linked by **pairwise**
+mass offsets from ``ion_type_dict`` (``corems.mass_spectra.output.export``)
+among ``feature_group_ion_types`` (e.g. ``[M+H]+`` and ``[M+NH4]+``). No
+designated “base” form — any pair with matching Δm can link. Same-analyte
+forms share one ``feature_group_id`` with isotopes of each form.
 
 Approach: RT ∩ Δm edges (isotope unit steps and/or adduct shifts) → Pearson
 **apex height** gate → isotope roll-up → merge across adduct edges.
@@ -139,35 +141,11 @@ def ion_type_charge(ion_type: str) -> int:
     return int(digits) if digits else 1
 
 
-# Allowed mono↔multi (or related multi-charge) ion-type pairs for Pass 2.
-# Undirected: frozenset of two ion_type_dict keys. Same-|z| pairs are Pass 1.
-SERIES_PAIRS: frozenset = frozenset(
-    {
-        frozenset(("[M+H]+", "[M+2H]2+")),
-        frozenset(("[M+H]+", "[M+3H]3+")),
-        frozenset(("[M+Na]+", "[M+2Na]2+")),
-        frozenset(("[M+Na]+", "[M+H+Na]2+")),
-        frozenset(("[M+K]+", "[M+H+K]2+")),
-        frozenset(("[M-H]-", "[M-2H]2-")),
-    }
-)
-
-
-def is_allowed_series_pair(type_a: str, type_b: str) -> bool:
-    """True if (type_a, type_b) is an allowed mono↔multi series pair."""
-    if type_a == type_b:
-        return False
-    return frozenset((type_a, type_b)) in SERIES_PAIRS
-
-
 def is_allowed_adduct_type_pair(type_a: str, type_b: str) -> bool:
-    """Pass 1 (same |z|) or Pass 2 (series map) type-pair filter."""
+    """True if both keys are distinct singly-charged ion types."""
     if type_a == type_b:
         return False
-    za, zb = ion_type_charge(type_a), ion_type_charge(type_b)
-    if za == zb:
-        return True
-    return is_allowed_series_pair(type_a, type_b)
+    return ion_type_charge(type_a) == 1 and ion_type_charge(type_b) == 1
 
 
 def filter_ion_types_for_polarity(
@@ -767,10 +745,8 @@ def find_adduct_edges(
     Find ion-type edges using pairwise neutral-mass consistency.
 
     ``M = |z| · m/z − offset(ion_type)`` must agree within ppm for the two
-    assigned types on a coeluting peak pair.
-
-    **Pass 1:** only type pairs with the same absolute charge (same-|z|).
-    **Pass 2:** type pairs in ``SERIES_PAIRS`` (mono↔multi of the same series).
+    assigned types on a coeluting peak pair. Configured types must be
+    singly charged (``|z| = 1``).
 
     When several type assignments fit with the same residual (within
     ``_RESIDUAL_TIE_EPS``), all are kept as ``parent_possible_ion_types`` /
@@ -1484,7 +1460,7 @@ def group_features_arrays(
     mz_by_cluster = {
         int(cid): float(m) for cid, m in zip(cluster_ids, mz)
     }
-    # Adduct stage: Pass1 same-|z| + Pass2 series multi (inside find_adduct_edges)
+    # Adduct stage: singly-charged ion-type pairs (inside find_adduct_edges)
     if len(params.ion_types) >= 2:
         t0 = time.perf_counter()
         add_edges = find_adduct_edges(cluster_ids, mz, rt, params)

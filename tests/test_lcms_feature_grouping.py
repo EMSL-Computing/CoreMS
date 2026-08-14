@@ -188,8 +188,7 @@ def test_default_feature_group_settings_locked_in():
     assert not hasattr(s, "feature_group_mono_height_fraction")
     assert s.feature_group_max_isotope_offset == 4
     assert s.feature_group_min_isotope_abundance == pytest.approx(0.01)
-    assert s.feature_group_min_charge == 1
-    assert s.feature_group_max_charge == 1
+    assert "[M+2H]2+" not in s.feature_group_ion_types
     assert s.feature_group_ion_types == DEFAULT_ION_TYPES
     # Most common first; water loss before water adduct
     assert s.feature_group_ion_types.index("[M+H-H2O]+") < s.feature_group_ion_types.index(
@@ -257,28 +256,22 @@ def test_filter_ion_types_for_polarity_drops_wrong_sign():
 
 
 def test_common_ion_types_in_dict_and_charge_parse():
-    """All common adduct keys exist; multi-charge suffixes parse correctly."""
+    """All default adduct keys exist and are singly charged."""
     from corems.mass_spectra.output.export import ion_type_dict
 
-    for it in COMMON_FEATURE_GROUP_ION_TYPES:
+    for it in DEFAULT_ION_TYPES:
         assert it in ion_type_dict, f"missing ion_type_dict key: {it}"
+        assert ion_type_charge(it) == 1
         validate_feature_group_params(
             FeatureGroupParams(ion_types=(it, "[M+H]+") if it != "[M+H]+" else (it, "[M+Na]+"))
         )
 
+    # Parser still understands multi-charge suffixes (formula/export keys)
     assert ion_type_charge("[M+H]+") == 1
     assert ion_type_charge("[M+2H]2+") == 2
     assert ion_type_charge("[M+3H]3+") == 3
     assert ion_type_charge("[M-2H]2-") == 2
     assert ion_type_charge("[M]+") == 1
-    assert max_charge_from_ion_types(COMMON_FEATURE_GROUP_ION_TYPES) == 3
-
-    # Neutral-mass consistency for multi-charge vs mono
-    M = 400.0
-    mz_mh = M + Atoms.atomic_masses["H"]
-    mz_m2h = (M + 2 * Atoms.atomic_masses["H"]) / 2
-    assert neutral_mass_from_mz(mz_mh, "[M+H]+") == pytest.approx(M)
-    assert neutral_mass_from_mz(mz_m2h, "[M+2H]2+") == pytest.approx(M)
 
 
 def test_water_loss_preferred_over_water_adduct_on_delta_tie():
@@ -378,151 +371,15 @@ def test_nh3_vs_nh4_keeps_ambiguous_possible_ion_types():
     assert labels.loc[144, "feature_group_id"] == labels.loc[179, "feature_group_id"]
 
 
-def test_multicharge_mh_and_m2h_group():
-    """[M+H]+ and [M+2H]2+ of the same analyte share one feature_group_id."""
-    M = 400.0
-    h = Atoms.atomic_masses["H"]
-    dm_c = _delta_c13(charge=1)
-    # 0: [M+H]+ mono, 1: [M+H]+ 13C1, 2: [M+2H]2+ mono, 3: noise
-    cluster_ids = np.array([0, 1, 2, 3])
-    mz = np.array(
-        [
-            M + h,
-            M + h + dm_c,
-            (M + 2 * h) / 2,
-            250.0,
-        ]
-    )
-    rt = np.array([5.0, 5.01, 5.02, 5.0])
-    heights = np.array(
-        [
-            [10.0, 20.0, 30.0, 40.0],
-            [5.0, 10.0, 15.0, 20.0],
-            [8.0, 16.0, 24.0, 32.0],
-            [1.0, 50.0, 1.0, 50.0],
-        ]
-    )
-    params = FeatureGroupParams(
-        rt_tol=0.1,
-        mz_tol_ppm=20.0,
-        corr_threshold=0.9,
-        min_shared_sample_fraction=0.75,
-        min_charge=1,
-        max_charge=2,
-        ion_types=("[M+H]+", "[M+2H]2+", "[M+Na]+"),
-    )
-    labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
-
-    assert labels.loc[0, "ion_type"] == "[M+H]+"
-    assert labels.loc[0, "ion_role"] == "mono"
-    assert labels.loc[1, "ion_type"] == "[M+H]+"
-    assert labels.loc[1, "ion_role"] == "isotope"
-    assert labels.loc[2, "ion_type"] == "[M+2H]2+"
-    assert labels.loc[2, "ion_role"] == "mono"
-    gid = labels.loc[0, "feature_group_id"]
-    assert pd.notna(gid)
-    assert labels.loc[1, "feature_group_id"] == gid
-    assert labels.loc[2, "feature_group_id"] == gid
-    assert pd.isna(labels.loc[3, "feature_group_id"])
-
-    # Direct edge search finds the multi-charge pair
-    edges = find_adduct_edges(cluster_ids, mz, rt, params)
-    pairs = set(
-        zip(edges["parent_ion_type"], edges["child_ion_type"])
-    ) | set(zip(edges["child_ion_type"], edges["parent_ion_type"]))
-    assert ("[M+2H]2+", "[M+H]+") in pairs or ("[M+H]+", "[M+2H]2+") in pairs
-
-
-def test_mh_m2h_mna_group_without_isotopes():
-    """[M+H]+, [M+2H]2+, and [M+Na]+ only (no 13C) share one feature_group_id.
-
-    Exercises same-|z| adduct link (H↔Na) and series mono↔multi (H↔2H)
-    without an isotope stage. All three are form monos of the same neutral M.
-    """
-    from corems.mass_spectra.calc.feature_grouping import _ion_type_mass_offset
-
-    M = 400.0
-    h = Atoms.atomic_masses["H"]
-    # Exact m/z from ion_type_dict offsets (neutral mass recovery)
-    mz_mh = M + _ion_type_mass_offset("[M+H]+")
-    mz_m2h = (M + _ion_type_mass_offset("[M+2H]2+")) / 2.0
-    mz_na = M + _ion_type_mass_offset("[M+Na]+")
-    # Sanity: doubly charged is ~half the mono-charge m/z region
-    assert mz_m2h < mz_mh < mz_na
-
-    # cluster 0: [M+2H]2+, 1: [M+H]+, 2: [M+Na]+ — no isotopologues
-    cluster_ids = np.array([0, 1, 2])
-    mz = np.array([mz_m2h, mz_mh, mz_na])
-    rt = np.array([10.0, 10.02, 10.01])
-    # Shared cross-sample height pattern so Pearson passes
-    pat = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
-    heights = np.vstack(
-        [
-            pat * 0.4,  # 2+
-            pat,  # MH
-            pat * 0.6,  # Na
-        ]
-    )
-    params = FeatureGroupParams(
-        rt_tol=0.1,
-        mz_tol_ppm=5.0,
-        corr_threshold=0.9,
-        min_shared_sample_fraction=0.6,
-        min_charge=1,
-        max_charge=2,
-        ion_types=("[M+H]+", "[M+2H]2+", "[M+Na]+"),
-    )
-
-    # Edges: H↔2H (series) and H↔Na (same z); optional Na alone does not need 2+
-    edges = find_adduct_edges(cluster_ids, mz, rt, params)
-    type_pairs = {
-        frozenset((r["parent_ion_type"], r["child_ion_type"]))
-        for _, r in edges.iterrows()
-    }
-    assert frozenset(("[M+H]+", "[M+2H]2+")) in type_pairs
-    assert frozenset(("[M+H]+", "[M+Na]+")) in type_pairs
-
-    labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
-
-    assert labels.loc[0, "ion_type"] == "[M+2H]2+"
-    assert labels.loc[1, "ion_type"] == "[M+H]+"
-    assert labels.loc[2, "ion_type"] == "[M+Na]+"
-    for cid in (0, 1, 2):
-        assert labels.loc[cid, "ion_role"] == "mono"
-        assert labels.loc[cid, "isotope_state"] == "M+0"
-        assert labels.loc[cid, "mono_cluster_id"] == cid
-
-    gid = labels.loc[1, "feature_group_id"]
-    assert pd.notna(gid)
-    assert labels.loc[0, "feature_group_id"] == gid
-    assert labels.loc[2, "feature_group_id"] == gid
-    # No isotope members in this group
-    assert (labels["ion_role"] == "isotope").sum() == 0
-
-
-def test_series_pairs_allow_na_multi_but_not_false_2h_nh3_bridge():
-    assert is_allowed_series_pair("[M+Na]+", "[M+2Na]2+")
-    assert is_allowed_series_pair("[M+Na]+", "[M+H+Na]2+")
-    assert is_allowed_series_pair("[M+H]+", "[M+2H]2+")
-    # Arbitrary multi-charge cross-type not allowed
-    assert not is_allowed_series_pair("[M+2H-NH3]2+", "[M+H]+")
-    assert not is_allowed_adduct_type_pair("[M+2H-NH3]2+", "[M+H]+")
-    # Same |z| still allowed
-    assert is_allowed_adduct_type_pair("[M+H]+", "[M+Na]+")
-
-
-def test_g7_like_false_multicharge_bridge_rejected():
-    """Low-m/z H/Na family must not glue to high-m/z peak via false 2+ link."""
+def test_unrelated_high_mz_not_grouped():
+    """H/Na family must not glue to an uncorrelated high-m/z stranger."""
     M = 390.2766
     h = Atoms.atomic_masses["H"]
     na = Atoms.atomic_masses["Na"]
     dm_c = _delta_c13()
-    # 0: [M+H]+, 1: 13C1, 2: [M+Na]+, 3: high-m/z stranger that would match
-    # if 0 were mis-read as [M+2H-NH3]2+ of M'≈797
     mz_mh = M + h
     mz_na = M + na
-    M_hi = 797.5808
-    mz_hi = M_hi + h
+    mz_hi = 797.5808 + h
     cluster_ids = np.array([0, 1, 2, 3])
     mz = np.array([mz_mh, mz_mh + dm_c, mz_na, mz_hi])
     rt = np.array([29.31, 29.31, 29.39, 29.33])
@@ -533,34 +390,15 @@ def test_g7_like_false_multicharge_bridge_rejected():
         mz_tol_ppm=5.0,
         corr_threshold=0.9,
         min_shared_sample_fraction=0.75,
-        min_charge=1,
-        max_charge=3,
         ion_types=DEFAULT_ION_TYPES,
     )
-    # Geometry must not emit false 2H-NH3 ↔ MH edge
-    edges = find_adduct_edges(cluster_ids, mz, rt, params)
-    for _, e in edges.iterrows():
-        types = {e["parent_ion_type"], e["child_ion_type"]}
-        assert "[M+2H-NH3]2+" not in types or 3 not in (
-            int(e["parent_cluster"]),
-            int(e["child_cluster"]),
-        )
-        # no edge pairing cluster 0 as multi-charge with cluster 3
-        ends = {int(e["parent_cluster"]), int(e["child_cluster"])}
-        if ends == {0, 3} or ends == {1, 3} or ends == {2, 3}:
-            # only same-z or series pairs allowed; 0-3 as H/Na family vs MH stranger
-            # residual may match some pair — assert 3 not in final group
-            pass
-
     labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
-    # Core family grouped
     gid = labels.loc[0, "feature_group_id"]
     assert pd.notna(gid)
     assert labels.loc[1, "feature_group_id"] == gid
     assert labels.loc[2, "feature_group_id"] == gid
     assert labels.loc[0, "ion_type"] == "[M+H]+"
     assert labels.loc[2, "ion_type"] == "[M+Na]+"
-    # Stranger not in group
     assert pd.isna(labels.loc[3, "feature_group_id"]) or labels.loc[
         3, "feature_group_id"
     ] != gid
@@ -862,57 +700,6 @@ def test_singleton_unlabeled():
     )
     assert pd.isna(labels.loc[7, "feature_group_id"])
     assert labels.loc[7, "ion_role"] is None or pd.isna(labels.loc[7, "ion_role"])
-
-
-def test_charge_two_spacing():
-    dm = _delta_c13(charge=2)
-    cluster_ids = np.array([1, 2])
-    mz = np.array([400.0, 400.0 + dm])
-    rt = np.array([5.0, 5.01])
-    heights = np.array([[10.0, 20.0, 30.0], [5.0, 10.0, 15.0]])
-    params = FeatureGroupParams(
-        min_charge=2,
-        max_charge=2,
-        rt_tol=0.1,
-        mz_tol_ppm=20.0,
-        min_shared_sample_fraction=0.5,
-        corr_threshold=0.9,
-    )
-    labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
-    assert labels.loc[1, "ion_role"] == "mono"
-    assert labels.loc[2, "ion_role"] == "isotope"
-
-
-def test_min_max_charge_range_matches_z2_when_enabled():
-    """With min=1 max=3, a pure |z|=2 spacing still groups."""
-    dm = _delta_c13(charge=2)
-    cluster_ids = np.array([1, 2])
-    mz = np.array([400.0, 400.0 + dm])
-    rt = np.array([5.0, 5.01])
-    heights = np.array([[10.0, 20.0, 30.0], [5.0, 10.0, 15.0]])
-    params = FeatureGroupParams(
-        min_charge=1,
-        max_charge=3,
-        rt_tol=0.1,
-        mz_tol_ppm=20.0,
-        min_shared_sample_fraction=0.5,
-        corr_threshold=0.9,
-    )
-    labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
-    assert labels.loc[1, "ion_role"] == "mono"
-    assert labels.loc[2, "ion_role"] == "isotope"
-
-
-def test_from_settings_min_max_charge():
-    from corems.encapsulation.factory.processingSetting import LCMSCollectionSettings
-
-    s = LCMSCollectionSettings()
-    s.feature_group_min_charge = 1
-    s.feature_group_max_charge = 3
-    params = FeatureGroupParams.from_lcms_collection_settings(s)
-    assert params.min_charge == 1
-    assert params.max_charge == 3
-    assert params.charge_values() == (1, 2, 3)
 
 
 def test_rerun_clears_via_empty_then_assign():
