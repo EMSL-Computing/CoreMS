@@ -25,7 +25,7 @@ def test_lcms_metabolomics(tmp_path, postgres_database, lcms_obj, msp_file_locat
     lcms_obj.parameters.lc_ms.ph_inten_min_rel = 0.0005
     lcms_obj.parameters.lc_ms.ph_persis_min_rel = 0.05
     lcms_obj.parameters.lc_ms.ph_smooth_it = 0
-    lcms_obj.parameters.lc_ms.ms2_min_fe_score = 0.3
+    lcms_obj.parameters.mass_spectrum["ms2"].spectral_similarity_search.ms2_min_fe_score = 0.3
     lcms_obj.parameters.lc_ms.ms1_scans_to_average = 5
 
     ## MSParameters for ms1 mass spectra

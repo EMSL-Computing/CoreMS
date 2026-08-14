@@ -89,6 +89,17 @@ class MolecularNetwork(NetworkVisualizeMixin):
         Minimum entropy similarity score required to trigger additional metric
         computation (e.g. cosine).  If None (default), set to half the lowest
         non-entropy similarity threshold, or 0.25 when no thresholds are given.
+    settings : SpectralSimilaritySearchSettings, optional
+        Encapsulated spectral-similarity / networking defaults (for example
+        ``lcms.parameters.mass_spectrum["ms2"].spectral_similarity_search`` or
+        :func:`~corems.encapsulation.factory.parameters.settings_from_lcms`).
+        When provided, fills any constructor fields left as ``None`` from this
+        object.  Explicit keyword arguments always override *settings*.  Stage-1
+        temporary FE index build uses ``settings.as_fe_kwargs()`` when
+        *fe_kwargs* is not passed to :meth:`query_vs_library` /
+        :meth:`run_query_vs_query_only`.  Stage-3 defaults
+        (``hydrate_library_similarities``, ``library_similarity_threshold``)
+        are also taken from *settings* when those method arguments are omitted.
 
     Attributes
     ----------
@@ -108,9 +119,16 @@ class MolecularNetwork(NetworkVisualizeMixin):
     **Tolerance resolution order** (highest priority first):
 
     1. Explicit *ms2_tolerance_da* kwarg passed to this constructor.
-    2. Value extracted from ``fe_lib.entropy_search.max_ms2_tolerance_in_da``.
-    3. Hard-coded fallback of 0.01 Da (used when *fe_lib* is ``None`` and no
+    2. *settings.ms2_tolerance_da* when *settings* is provided and the kwarg is
+       omitted.
+    3. Value extracted from ``fe_lib.entropy_search.max_ms2_tolerance_in_da``.
+    4. Hard-coded fallback of 0.01 Da (used when *fe_lib* is ``None`` and no
        explicit value is given).
+
+    Prefer building *fe_lib* with the same
+    :class:`~corems.encapsulation.factory.processingSetting.SpectralSimilaritySearchSettings`
+    instance used here (via library ``settings=`` / ``settings_from_lcms``) so
+    FlashEntropy index tolerances match networking.
 
     **Precursor filter behaviour by search type:**
 
@@ -128,18 +146,38 @@ class MolecularNetwork(NetworkVisualizeMixin):
     def __init__(
         self,
         fe_lib=None,
-        search_type: str = "open",
+        search_type: str | None = None,
         additional_similarities: list[str] | None = None,
         similarity_thresholds: dict[str, float] | None = None,
         ms1_tolerance_da: float | None = None,
         ms2_tolerance_da: float | None = None,
         entropy_threshold_low: float | None = None,
+        settings=None,
     ):
+        if settings is not None:
+            if search_type is None:
+                search_type = settings.search_type
+            if additional_similarities is None:
+                additional_similarities = list(settings.additional_similarities)
+            if similarity_thresholds is None:
+                similarity_thresholds = dict(settings.similarity_thresholds)
+            if ms1_tolerance_da is None:
+                ms1_tolerance_da = settings.ms1_tolerance_da
+            if ms2_tolerance_da is None:
+                ms2_tolerance_da = settings.ms2_tolerance_da
+            if entropy_threshold_low is None:
+                entropy_threshold_low = settings.entropy_threshold_low
+            self._settings = settings
+        else:
+            self._settings = None
+
+        if search_type is None:
+            search_type = "open"
         if additional_similarities is None:
             additional_similarities = ["cosine"]
         if similarity_thresholds is None:
             similarity_thresholds = {}
-        
+
         if entropy_threshold_low is None:
             non_entropy_thresholds = [
                 v for k, v in similarity_thresholds.items() if k != "entropy_similarity"
@@ -165,6 +203,7 @@ class MolecularNetwork(NetworkVisualizeMixin):
             ms1_tolerance_da=ms1_tolerance_da,
             ms2_tolerance_da=ms2_tolerance_da,
             entropy_threshold_low=entropy_threshold_low,
+            settings=settings,
         )
 
         # One SimilarityMatrix per metric – empty until query_vs_library() is called
@@ -491,6 +530,9 @@ class MolecularNetwork(NetworkVisualizeMixin):
         if not self._all_query_spectra:
             raise RuntimeError("No queries prepared. Call run_query_vs_query_only() or query_vs_library() first.")
 
+        if fe_kwargs is None and self._settings is not None:
+            fe_kwargs = self._settings.as_fe_kwargs()
+
         query_fe_lib = self._engine.build_fe_index_from_spectra(
             spectra=self._all_query_spectra,
             precursor_mzs=self._all_query_precursor_mzs,
@@ -767,8 +809,8 @@ class MolecularNetwork(NetworkVisualizeMixin):
         query_precursor_mzs: list[float | None] | None = None,
         fe_kwargs: dict | None = None,
         *,
-        hydrate_library_similarities: bool = False,
-        library_similarity_threshold: float = 0.3,
+        hydrate_library_similarities: bool | None = None,
+        library_similarity_threshold: float | None = None,
     ) -> None:
         """Run all three stages in one call (convenience wrapper).
 
@@ -797,12 +839,14 @@ class MolecularNetwork(NetworkVisualizeMixin):
         fe_kwargs : dict, optional
             Extra keyword arguments forwarded to
             :class:`ms_entropy.FlashEntropySearch` when building the
-            temporary query index (stage 1).
+            temporary query index (stage 1). When None and *settings* was
+            provided at construction, uses ``settings.as_fe_kwargs()``.
         hydrate_library_similarities : bool, optional
-            When ``True``, run stage 3 (library-vs-library).  Default ``False``.
+            When ``True``, run stage 3 (library-vs-library). Default from
+            *settings* or ``False``.
         library_similarity_threshold : float, optional
             Minimum entropy similarity score (stage 2) required for a library
-            spectrum to be included in stage 3.  Default 0.3.
+            spectrum to be included in stage 3. Default from *settings* or 0.3.
 
         Raises
         ------
@@ -816,6 +860,19 @@ class MolecularNetwork(NetworkVisualizeMixin):
         if self._has_queries_run:
             raise RuntimeError(
                 "query_vs_library has already been run — call drop_queries() to clear queries and results before running again."
+            )
+
+        if hydrate_library_similarities is None:
+            hydrate_library_similarities = (
+                self._settings.hydrate_library_similarities
+                if self._settings is not None
+                else False
+            )
+        if library_similarity_threshold is None:
+            library_similarity_threshold = (
+                self._settings.library_similarity_threshold
+                if self._settings is not None
+                else 0.3
             )
 
         self._prepare_queries(

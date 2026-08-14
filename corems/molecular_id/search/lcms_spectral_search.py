@@ -125,19 +125,32 @@ class LCMSSpectralSearch:
         fe_lib,
         precursor_mz_list=[],
         use_mass_features=True,
-        peak_sep_da=0.01,
+        peak_sep_da=None,
         get_additional_metrics=True,
         accumulate_results=False,
+        ms_params_key: str = "ms2",
     ):
         """
-        Search LCMS spectra using a FlashEntropy approach.
+        Search LC-MS MS2 spectra with FlashEntropy against a pre-built library.
+
+        Annotation thresholds and default peak-separation for cleaning come from
+        :class:`~corems.encapsulation.factory.processingSetting.SpectralSimilaritySearchSettings`
+        on this object's parameter tree
+        (``parameters.mass_spectrum[ms_params_key].spectral_similarity_search``).
+        Build ``fe_lib`` with the **same** settings so library index tolerances
+        match search cleaning (see
+        :meth:`~corems.molecular_id.search.database_interfaces.MSPInterface.get_metabolomics_spectra_library`
+        and
+        :meth:`~corems.molecular_id.search.database_interfaces.LCLipidLibraryInterface.get_lipid_library`).
 
         Parameters
         ----------
         scan_list : list
-            List of scan numbers to search.
+            List of scan numbers to search (must already be loaded in ``self._ms``).
         fe_lib : :obj:`~ms_entropy.FlashEntropySearch`
-            FlashEntropy Search instance.
+            FlashEntropy search instance. Prefer constructing it with
+            ``settings=settings_from_lcms(self)`` (or the same profile key as
+            *ms_params_key*) so FE build knobs match this search.
         precursor_mz_list : list, optional
             List of precursor m/z values to search, by default [], which implies
             matched with mass features; to enable this use_mass_features must be True.
@@ -147,24 +160,79 @@ class LCMSSpectralSearch:
         peak_sep_da : float, optional
             Minimum separation between m/z peaks spectra in Da. This needs match the
             approximate resolution of the search spectra and the FlashEntropySearch
-            instance, by default 0.01.
+            instance. If None (default), uses
+            ``parameters.mass_spectrum[ms_params_key].spectral_similarity_search.resolved_peak_sep_da``
+            (typically ``2 * max_ms2_tolerance_in_da`` from that settings object).
         get_additional_metrics : bool, optional
             If True, get additional metrics from FlashEntropy search, by default True.
         accumulate_results : bool, optional
             If True, accumulate results with existing spectral_search_results instead of
             replacing them. This allows searching the same scans with multiple libraries
             without overwriting previous results, by default False.
+        ms_params_key : str, optional
+            Key in ``parameters.mass_spectrum`` whose ``spectral_similarity_search``
+            settings are used (default ``"ms2"``). Use another key (e.g.
+            ``"ms2_cid"``) when multiple MS2 parameter profiles are configured
+            for different scan classes.
 
         Returns
         -------
-        None, but adds results to self.spectral_search_results and associates these
-        spectral_search_results with mass_features within the self.mass_features dictionary.
+        None
+            Adds results to ``self.spectral_search_results`` and associates them
+            with mass features in ``self.mass_features`` when applicable.
 
+        Notes
+        -----
+        From the settings profile this method reads:
+
+        - ``ms2_min_fe_score`` — minimum entropy score to keep a hit
+        - ``include_fragment_types`` — lipid-style fragment-type metrics
+        - default peak separation when *peak_sep_da* is None
+
+        FlashEntropy **library** build fields (``max_ms2_tolerance_in_da``, etc.)
+        should already have been applied when constructing *fe_lib*. Configure
+        them on the same ``spectral_similarity_search`` instance before library
+        generation.
+
+        For an :class:`~corems.mass_spectra.factory.lc_class.LCMSCollection`,
+        sample parameters are equal at construction; build one shared library
+        with ``settings_from_lcms_collection(collection)``, then call
+        ``fe_search`` on each sample (or via collection pipeline operations).
+
+        Examples
+        --------
+        Single LCMSBase object (library + search share profile ``"ms2"``)::
+
+            from corems.encapsulation.factory.parameters import settings_from_lcms
+
+            settings = settings_from_lcms(lcms_obj, profile="ms2")
+            fe_lib, _meta = msp.get_metabolomics_spectra_library(
+                polarity="positive",
+                format="flashentropy",
+                settings=settings,
+            )
+            lcms_obj.fe_search(scan_list=ms2_scans, fe_lib=fe_lib)
+            # peak_sep / score gate from mass_spectrum["ms2"].spectral_similarity_search
+
+        Alternate MS2 profile (e.g. CID bag)::
+
+            lcms_obj.fe_search(
+                scan_list=cid_scans,
+                fe_lib=fe_lib_cid,
+                ms_params_key="ms2_cid",
+            )
         """
-        # Retrieve parameters from self
-        # include_fragment_types should used for lipids queries only, not general metabolomics
-        include_fragment_types = self.parameters.lc_ms.include_fragment_types
-        min_match_score = self.parameters.lc_ms.ms2_min_fe_score
+        # Annotation knobs from nested SpectralSimilaritySearchSettings (default profile "ms2")
+        if ms_params_key not in self.parameters.mass_spectrum:
+            raise KeyError(
+                f"ms_params_key={ms_params_key!r} not in parameters.mass_spectrum "
+                f"(keys={list(self.parameters.mass_spectrum)})"
+            )
+        ms2_p = self.parameters.mass_spectrum[ms_params_key].spectral_similarity_search
+        include_fragment_types = ms2_p.include_fragment_types
+        min_match_score = ms2_p.ms2_min_fe_score
+        if peak_sep_da is None:
+            peak_sep_da = ms2_p.resolved_peak_sep_da
 
         # If precursor_mz_list is empty and use_mass_features is True, get precursor m/z values from mass features for each scan in scan_list
         if use_mass_features and len(precursor_mz_list) == 0:

@@ -626,7 +626,7 @@ def test_lcms_collection_feature_annotations_table(lcms_collection, msp_file_loc
     
     # Set MS2 score threshold to match test_lcms_metabolomics
     for lcms_obj in lcms_collection:
-        lcms_obj.parameters.lc_ms.ms2_min_fe_score = 0.3
+        lcms_obj.parameters.mass_spectrum["ms2"].spectral_similarity_search.ms2_min_fe_score = 0.3
     
     # Process consensus features with MS1, MS2, and spectral search
     # This should add molecular annotations before creating the annotations table
@@ -707,7 +707,7 @@ def test_lcms_collection_plot_cluster_with_ms2_mirror(lcms_collection, msp_file_
     
     # Set MS2 score threshold
     for lcms_obj in lcms_collection:
-        lcms_obj.parameters.lc_ms.ms2_min_fe_score = 0.3
+        lcms_obj.parameters.mass_spectrum["ms2"].spectral_similarity_search.ms2_min_fe_score = 0.3
     
     # Process consensus features with MS2 spectral search and gather EICs
     pipeline_results = lcms_collection.process_consensus_features(

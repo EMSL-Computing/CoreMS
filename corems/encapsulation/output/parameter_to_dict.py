@@ -3,6 +3,7 @@ from corems.encapsulation.factory.parameters import (
     GCMSParameters,
     LCMSParameters
     )
+from corems.encapsulation.factory.processingSetting import settings_to_export_dict
 
 
 def get_dict_all_default_data():
@@ -11,13 +12,14 @@ def get_dict_all_default_data():
     gcms_params = GCMSParameters(use_defaults=True)
 
     return {
-        "MolecularFormulaSearch": ms_params.molecular_search.__dict__,
-        "Transient": ms_params.transient.__dict__,
-        "MassSpectrum": ms_params.mass_spectrum.__dict__,
-        "MassSpecPeak": ms_params.ms_peak.__dict__,
-        "DataInput": ms_params.data_input.__dict__,
-        "MolecularSearch": gcms_params.molecular_search.__dict__,
-        "GasChromatograph": gcms_params.gc_ms.__dict__,
+        "MolecularFormulaSearch": settings_to_export_dict(ms_params.molecular_search),
+        "Transient": settings_to_export_dict(ms_params.transient),
+        "MassSpectrum": settings_to_export_dict(ms_params.mass_spectrum),
+        "MassSpecPeak": settings_to_export_dict(ms_params.ms_peak),
+        "DataInput": settings_to_export_dict(ms_params.data_input),
+        "SpectralSimilaritySearch": settings_to_export_dict(ms_params.spectral_similarity_search),
+        "MolecularSearch": settings_to_export_dict(gcms_params.molecular_search),
+        "GasChromatograph": settings_to_export_dict(gcms_params.gc_ms),
     }
 
 
@@ -32,15 +34,19 @@ def get_dict_data_lcms(lcms_obj):
     Returns
     -------
     dict
-        dictionary with all parameters for LCMSBase object
+        dictionary with all parameters for LCMSBase object.
+        Legacy annotation fields on LiquidChromatograph are omitted;
+        MS2 spectral search lives under each mass_spectrum profile's spectral_similarity_search.
     """
     output_dict = {}
-    output_dict["LiquidChromatograph"] = lcms_obj.parameters.lc_ms.__dict__
+    output_dict["LiquidChromatograph"] = settings_to_export_dict(
+        lcms_obj.parameters.lc_ms
+    )
     output_dict["mass_spectrum"] = {}
     for key, value in lcms_obj.parameters.mass_spectrum.items():
         output_dict["mass_spectrum"][key] = {}
         for k, v in value.__dict__.items():
-            output_dict["mass_spectrum"][key][k] = v.__dict__
+            output_dict["mass_spectrum"][key][k] = settings_to_export_dict(v)
     return output_dict
 
 
@@ -49,12 +55,12 @@ def get_dict_lcms_default_data():
     default_params = LCMSParameters(use_defaults=True)
 
     output_dict = {}
-    output_dict["LiquidChromatograph"] = default_params.lc_ms.__dict__
+    output_dict["LiquidChromatograph"] = settings_to_export_dict(default_params.lc_ms)
     output_dict["mass_spectrum"] = {}
     for key, value in default_params.mass_spectrum.items():
         output_dict["mass_spectrum"][key] = {}
         for k, v in value.__dict__.items():
-            output_dict["mass_spectrum"][key][k] = v.__dict__
+            output_dict["mass_spectrum"][key][k] = settings_to_export_dict(v)
     return output_dict
 
 
@@ -73,11 +79,12 @@ def get_dict_data_ms(mass_spec):
     """
     ms_params = mass_spec.parameters
     return {
-        "MolecularFormulaSearch": ms_params.molecular_search.__dict__,
-        "Transient": ms_params.transient.__dict__,
-        "MassSpectrum": ms_params.mass_spectrum.__dict__,
-        "MassSpecPeak": ms_params.ms_peak.__dict__,
-        "DataInput": ms_params.data_input.__dict__,
+        "MolecularFormulaSearch": settings_to_export_dict(ms_params.molecular_search),
+        "Transient": settings_to_export_dict(ms_params.transient),
+        "MassSpectrum": settings_to_export_dict(ms_params.mass_spectrum),
+        "MassSpecPeak": settings_to_export_dict(ms_params.ms_peak),
+        "DataInput": settings_to_export_dict(ms_params.data_input),
+        "SpectralSimilaritySearch": settings_to_export_dict(ms_params.spectral_similarity_search),
     }
 
 
@@ -86,11 +93,12 @@ def get_dict_ms_default_data():
     ms_params = MSParameters(use_defaults=True)
 
     return {
-        "MolecularFormulaSearch": ms_params.molecular_search.__dict__,
-        "Transient": ms_params.transient.__dict__,
-        "MassSpectrum": ms_params.mass_spectrum.__dict__,
-        "MassSpecPeak": ms_params.ms_peak.__dict__,
-        "DataInput": ms_params.data_input.__dict__,
+        "MolecularFormulaSearch": settings_to_export_dict(ms_params.molecular_search),
+        "Transient": settings_to_export_dict(ms_params.transient),
+        "MassSpectrum": settings_to_export_dict(ms_params.mass_spectrum),
+        "MassSpecPeak": settings_to_export_dict(ms_params.ms_peak),
+        "DataInput": settings_to_export_dict(ms_params.data_input),
+        "SpectralSimilaritySearch": settings_to_export_dict(ms_params.spectral_similarity_search),
     }
 
 
@@ -99,8 +107,10 @@ def get_dict_gcms_default_data():
     default_gcms_params = GCMSParameters(use_defaults=True)
 
     return {
-        "MolecularSearch": default_gcms_params.molecular_search.__dict__,
-        "GasChromatograph": default_gcms_params.gc_ms.__dict__,
+        "MolecularSearch": settings_to_export_dict(
+            default_gcms_params.molecular_search
+        ),
+        "GasChromatograph": settings_to_export_dict(default_gcms_params.gc_ms),
     }
 
 
@@ -108,8 +118,8 @@ def get_dict_data_gcms(gcms):
     """Return a dictionary with all parameters for GCMS"""
 
     return {
-        "MolecularSearch": gcms.molecular_search_settings.__dict__,
-        "GasChromatograph": gcms.chromatogram_settings.__dict__,
+        "MolecularSearch": settings_to_export_dict(gcms.molecular_search_settings),
+        "GasChromatograph": settings_to_export_dict(gcms.chromatogram_settings),
     }
 
 
@@ -127,7 +137,9 @@ def get_dict_data_lcms_collection(lcms_collection):
         dictionary with all parameters for LCMSCollection object
     """
     output_dict = {}
-    output_dict["LCMSCollection"] = lcms_collection.parameters.lcms_collection.__dict__
+    output_dict["LCMSCollection"] = settings_to_export_dict(
+        lcms_collection.parameters.lcms_collection
+    )
     return output_dict
 
 
@@ -138,5 +150,5 @@ def get_dict_lcms_collection_default_data():
     default_params = LCMSCollectionSettings()
 
     output_dict = {}
-    output_dict["LCMSCollection"] = default_params.__dict__
+    output_dict["LCMSCollection"] = settings_to_export_dict(default_params)
     return output_dict
