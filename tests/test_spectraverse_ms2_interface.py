@@ -92,6 +92,36 @@ def test_get_metabolomics_spectra_library_df_and_fe(spectraverse_mgf_path, tmp_p
     assert len(meta_fe) == 1
 
 
+def test_spectraverse_library_settings_not_constructor(spectraverse_mgf_path, tmp_path):
+    """FE knobs belong on get_metabolomics_spectra_library, not __init__."""
+    from corems.encapsulation.factory.processingSetting import (
+        SpectralSimilaritySearchSettings,
+    )
+
+    ss = SpectralSimilaritySearchSettings()
+    ss.max_ms2_tolerance_in_da = 0.01
+
+    with pytest.raises(TypeError):
+        SpectraverseMS2Interface(
+            spectraverse_mgf_path,
+            settings=ss,
+            cache=False,
+            cache_path=tmp_path / "sv_bad.parquet",
+        )
+
+    iface = SpectraverseMS2Interface(
+        spectraverse_mgf_path, cache=False, cache_path=tmp_path / "sv_ok.parquet"
+    )
+    fe_lib, meta = iface.get_metabolomics_spectra_library(
+        polarity="negative",
+        format="flashentropy",
+        normalize=True,
+        settings=ss,
+    )
+    assert isinstance(fe_lib, FlashEntropySearch)
+    assert len(meta) == 1
+
+
 def test_spectraverse_msp_flashentropy_search_parity(
     spectraverse_mgf_path, msp_file_location, tmp_path
 ):
