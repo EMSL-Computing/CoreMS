@@ -3697,11 +3697,9 @@ class LCMSCollectionCalculations:
         ``feature_group_ion_types``, …) live on ``parameters.lcms_collection``.
 
         ``feature_group_ion_types`` is filtered to the collection polarity
-        (sample ``polarity`` attributes) before adduct search: only keys
-        ending in ``+`` on positive data and only keys ending in ``-`` on
-        negative data. If samples mix polarities, grouping still runs when
-        ``feature_group_ion_types`` is already a single-polarity list (or
-        empty / one type). Mixed samples **and** mixed ion types raise.
+        (all samples share one polarity; mixed collections cannot be
+        instantiated). Only keys ending in ``+`` are kept on positive data
+        and only keys ending in ``-`` on negative data.
 
         Preferred for collection-level families. Optional per-file
         ``LCMSBase.find_c13_mass_features`` remains available for single-file
@@ -3722,9 +3720,7 @@ class LCMSCollectionCalculations:
         Raises
         ------
         ValueError
-            If consensus features are missing, settings are invalid, or the
-            collection mixes polarities while ``feature_group_ion_types``
-            still contains both ``+`` and ``-`` keys.
+            If consensus features are missing or settings are invalid.
         """
         from corems.mass_spectra.calc.feature_grouping import (
             GROUP_COLUMNS,
@@ -3732,7 +3728,7 @@ class LCMSCollectionCalculations:
             FeatureGroupParams,
             build_height_matrix_from_features,
             group_features_arrays,
-            resolve_grouping_polarity,
+            normalize_ms_polarity,
         )
 
         if (
@@ -3769,21 +3765,13 @@ class LCMSCollectionCalculations:
                 "cluster summary is empty. Run add_consensus_mass_features() first."
             )
 
-        # Collection polarity: filter feature_group_ion_types so negative adducts
-        # (e.g. [M+HCOO]-, [M+CH3COO]-) are not used on positive data and vice versa.
-        # Mixed-sample collections are allowed when ion_types are already one sign.
-        sample_pols = [
-            getattr(self[sample_id], "polarity", None)
-            for sample_id in range(len(self))
-        ]
-        configured_types = getattr(
-            self.parameters.lcms_collection,
-            "feature_group_ion_types",
-            (),
-        )
-        collection_polarity = resolve_grouping_polarity(
-            sample_pols, configured_types
-        )
+        # Collection polarity: all samples share one polarity (enforced when
+        # LCMSCollection is loaded). Filter opposite-sign adducts.
+        collection_polarity = None
+        if len(self):
+            collection_polarity = normalize_ms_polarity(
+                getattr(self[0], "polarity", None)
+            )
 
         params = FeatureGroupParams.from_lcms_collection_settings(
             self.parameters.lcms_collection,

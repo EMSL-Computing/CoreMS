@@ -1394,10 +1394,9 @@ class LCMSCollectionSettings:
         ``|z| = 1``; multi-charge forms are out of scope.
 
         At ``group_consensus_features()`` time, entries are **filtered by
-        collection polarity** (from sample ``polarity`` attributes): only keys
+        collection polarity** (all samples share one polarity): only keys
         ending in ``+`` are kept for positive mode and only keys ending in
         ``-`` for negative mode. Order among kept keys is preserved.
-        Mixed-polarity collections raise.
     feature_group_partition_size : int, optional
         Target number of clusters per RT partition when multi-core grouping is used.
         Default is 5000.

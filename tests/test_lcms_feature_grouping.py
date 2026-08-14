@@ -23,7 +23,6 @@ from corems.mass_spectra.calc.feature_grouping import (
     neutral_mass_from_mz,
     normalize_ms_polarity,
     params_with_polarity_filtered_ion_types,
-    resolve_grouping_polarity,
     validate_feature_group_params,
 )
 
@@ -433,24 +432,6 @@ def test_form_paint_does_not_retype_other_forms():
     # NH4 and Na may each group with H; isotopes of H stay [M+H]+
     assert labels.loc[1, "ion_type"] != "[M+Na]+"
     assert labels.loc[1, "ion_type"] != "[M+NH4]+"
-
-
-def test_resolve_grouping_polarity_honors_single_polarity_ion_types():
-    """Mixed sample polarities are OK when ion_types are already one sign."""
-    assert resolve_grouping_polarity(["positive", "positive"], DEFAULT_ION_TYPES) == (
-        "positive"
-    )
-    assert resolve_grouping_polarity([None, None], DEFAULT_ION_TYPES) is None
-    assert resolve_grouping_polarity(["positive", "negative"], ()) is None
-    assert resolve_grouping_polarity(["positive", "negative"], ("[M+H]+",)) is None
-    assert resolve_grouping_polarity(
-        ["positive", "negative"], ("[M+H]+", "[M+Na]+")
-    ) == "positive"
-    assert resolve_grouping_polarity(
-        [1, -1], ("[M-H]-", "[M+HCOO]-")
-    ) == "negative"
-    with pytest.raises(ValueError, match="single-polarity list"):
-        resolve_grouping_polarity(["positive", "negative"], DEFAULT_ION_TYPES)
 
 
 def test_from_settings_filters_ion_types_by_polarity():
