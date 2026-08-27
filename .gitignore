@@ -123,3 +123,8 @@ skills-lock.json
 
 # Local Grok/agent workspace (skills cache, reviews, plans)
 .grok/
+
+# Local Superpowers planning artifacts — do not commit unless explicitly requested
+# (prefer .grok/plans/; these paths are legacy / optional working copies)
+docs/superpowers/plans/
+docs/superpowers/specs/
