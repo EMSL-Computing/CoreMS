@@ -790,3 +790,81 @@ def test_se_multiple_isotopes_create_multiple_edges():
     rares_from_mono = set(from_mono["rare_label"].tolist())
     assert expected.issubset(rares_from_mono)
     assert len(from_mono) >= len(expected)
+
+
+def test_annotation_eligibility_helpers():
+    from corems.mass_spectra.calc.feature_grouping import (
+        allowed_ion_types_for_row,
+        constrain_annotation_active,
+        empty_group_labels,
+        ion_type_allowed,
+        is_adduct_endpoint_eligible,
+        should_skip_isotope_for_annotation,
+    )
+
+    assert is_adduct_endpoint_eligible(None)
+    assert is_adduct_endpoint_eligible("mono")
+    assert not is_adduct_endpoint_eligible("isotope")
+
+    assert not constrain_annotation_active(None, True)
+    assert not constrain_annotation_active(empty_group_labels([]), True)
+    labs = empty_group_labels([1])
+    assert constrain_annotation_active(labs, True)
+    assert not constrain_annotation_active(labs, False)
+
+    assert should_skip_isotope_for_annotation("isotope", True)
+    assert not should_skip_isotope_for_annotation("mono", True)
+    assert not should_skip_isotope_for_annotation("isotope", False)
+
+    assert allowed_ion_types_for_row(None, None) is None
+    assert allowed_ion_types_for_row("[M+H]+", None) == {"[M+H]+"}
+    assert allowed_ion_types_for_row("[M+H]+", "[M+H]+;[M+Na]+") == {
+        "[M+H]+",
+        "[M+Na]+",
+    }
+    assert ion_type_allowed("[M+Na]+", {"[M+H]+", "[M+Na]+"})
+    assert not ion_type_allowed("[M+K]+", {"[M+H]+"})
+    assert ion_type_allowed("[M+K]+", None)
+    assert not ion_type_allowed(None, {"[M+H]+"})
+
+
+def test_isotope_not_used_as_adduct_endpoint():
+    """After isotope labeling, adduct edges must not use ion_role=isotope endpoints."""
+    from corems.mass_spectra.calc.feature_grouping import _ion_type_mass_offset
+
+    M = 400.0
+    dm_c = _delta_c13(charge=1)
+    # 0: MH mono, 1: MH 13C1, 2: MNa mono — isotope must not pair as adduct alone
+    cluster_ids = np.array([0, 1, 2])
+    mz = np.array(
+        [
+            M + _ion_type_mass_offset("[M+H]+"),
+            M + _ion_type_mass_offset("[M+H]+") + dm_c,
+            M + _ion_type_mass_offset("[M+Na]+"),
+        ]
+    )
+    rt = np.array([5.0, 5.01, 5.02])
+    pat = np.array([10.0, 20.0, 30.0, 40.0])
+    heights = np.vstack([pat, pat * 0.5, pat * 0.7])
+    params = FeatureGroupParams(
+        rt_tol=0.1,
+        mz_tol_ppm=5.0,
+        corr_threshold=0.9,
+        min_shared_sample_fraction=0.6,
+        ion_types=("[M+H]+", "[M+Na]+"),
+    )
+    labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
+    assert labels.loc[0, "ion_role"] == "mono"
+    assert labels.loc[1, "ion_role"] == "isotope"
+    assert labels.loc[2, "ion_type"] == "[M+Na]+"
+    assert labels.loc[0, "feature_group_id"] == labels.loc[2, "feature_group_id"]
+    assert labels.loc[1, "feature_group_id"] == labels.loc[0, "feature_group_id"]
+    # Isotope should not be typed as a separate adduct form
+    assert labels.loc[1, "ion_type"] == "[M+H]+"
+
+
+def test_feature_group_constrain_annotation_setting_default():
+    from corems.encapsulation.factory.processingSetting import LCMSCollectionSettings
+
+    s = LCMSCollectionSettings()
+    assert s.feature_group_constrain_annotation is True

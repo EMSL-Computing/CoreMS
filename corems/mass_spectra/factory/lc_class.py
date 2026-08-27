@@ -2541,6 +2541,61 @@ class LCMSCollection(LCMSCollectionCalculations):
             raise ValueError("No samples with loaded mass features found in collection")
         
         collection_report = pd.concat(all_sample_reports, ignore_index=True)
+
+        # Feature-group constrain: drop consensus isotopes; filter library ion types
+        from corems.mass_spectra.calc.feature_grouping import (
+            allowed_ion_types_for_row,
+            constrain_annotation_active,
+            ion_type_allowed,
+            should_skip_isotope_for_annotation,
+        )
+
+        labels = getattr(self, "feature_group_dataframe", None)
+        constrain = constrain_annotation_active(
+            labels,
+            bool(
+                getattr(
+                    self.parameters.lcms_collection,
+                    "feature_group_constrain_annotation",
+                    True,
+                )
+            ),
+        )
+        if constrain and labels is not None and "cluster" in collection_report.columns:
+            keep_rows = []
+            for _, row in collection_report.iterrows():
+                cid = row.get("cluster")
+                if cid is None or (isinstance(cid, float) and pd.isna(cid)):
+                    keep_rows.append(True)
+                    continue
+                try:
+                    cid_i = int(cid)
+                except (TypeError, ValueError):
+                    keep_rows.append(True)
+                    continue
+                if cid_i not in labels.index:
+                    keep_rows.append(True)
+                    continue
+                lab = labels.loc[cid_i]
+                if should_skip_isotope_for_annotation(lab.get("ion_role"), True):
+                    keep_rows.append(False)
+                    continue
+                allowed = allowed_ion_types_for_row(
+                    lab.get("ion_type"), lab.get("possible_ion_types")
+                )
+                if allowed is None:
+                    keep_rows.append(True)
+                    continue
+                # Drop row if Library Ion Type present and conflicts
+                lib_it = row.get("Library Ion Type")
+                if lib_it is not None and not (
+                    isinstance(lib_it, float) and pd.isna(lib_it)
+                ):
+                    if not ion_type_allowed(lib_it, allowed):
+                        keep_rows.append(False)
+                        continue
+                keep_rows.append(True)
+            collection_report = collection_report.loc[keep_rows].reset_index(drop=True)
         
         # Warn only if NO samples in the collection have MS2 annotations
         if not has_any_ms2_annotations:

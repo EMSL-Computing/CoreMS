@@ -473,6 +473,181 @@ def merge_possible_ion_types(*vals) -> Optional[str]:
     return format_possible_ion_types(ordered)
 
 
+def _is_null_label_value(val) -> bool:
+    if val is None:
+        return True
+    if isinstance(val, float) and np.isnan(val):
+        return True
+    try:
+        if pd.isna(val):
+            return True
+    except (TypeError, ValueError):
+        pass
+    return False
+
+
+def is_adduct_endpoint_eligible(ion_role) -> bool:
+    """True if a cluster may be an adduct-edge endpoint.
+
+    Eligible: chemical mono, or no isotope annotation (``ion_role`` null).
+    Ineligible: ``ion_role == "isotope"``.
+    """
+    if _is_null_label_value(ion_role):
+        return True
+    return str(ion_role) != "isotope"
+
+
+def constrain_annotation_active(labels, constrain_flag: bool) -> bool:
+    """True when annotation constraints should run (flag on and labels present)."""
+    if not constrain_flag:
+        return False
+    if labels is None:
+        return False
+    try:
+        return len(labels) > 0
+    except TypeError:
+        return False
+
+
+def should_skip_isotope_for_annotation(ion_role, constrain_active: bool) -> bool:
+    """True when a consensus isotope should be omitted from search/export."""
+    if not constrain_active:
+        return False
+    if _is_null_label_value(ion_role):
+        return False
+    return str(ion_role) == "isotope"
+
+
+def allowed_ion_types_for_row(ion_type, possible_ion_types):
+    """Allow-list for ID ion types, or None when no adduct filter applies.
+
+    Uses ``possible_ion_types`` when present; falls back to ``{ion_type}``.
+    Returns None when both are empty (no filter for that row).
+    """
+    parsed = parse_possible_ion_types(possible_ion_types)
+    if parsed:
+        return set(parsed)
+    if not _is_null_label_value(ion_type) and str(ion_type) not in ("", "None"):
+        return {str(ion_type)}
+    return None
+
+
+def ion_type_allowed(id_ion_type, allowed) -> bool:
+    """True if ``id_ion_type`` may be kept given an allow-list (or no filter).
+
+    Parameters
+    ----------
+    id_ion_type :
+        Ion type string on an MS1/MS2 identification.
+    allowed : set of str or None
+        From :func:`allowed_ion_types_for_row`. None means do not filter.
+    """
+    if allowed is None:
+        return True
+    if _is_null_label_value(id_ion_type) or str(id_ion_type) in ("", "None"):
+        return False
+    return str(id_ion_type) in allowed
+
+
+def merge_feature_group_labels_into_frame(
+    labels: pd.DataFrame,
+    df: Optional[pd.DataFrame],
+) -> Optional[pd.DataFrame]:
+    """Join GROUP_COLUMNS from cluster-indexed ``labels`` onto one feature table.
+
+    Used by ``group_consensus_features`` and HDF5 reload so merge logic stays DRY.
+    """
+    if df is None or len(df) == 0:
+        return df
+    if labels is None or len(labels) == 0:
+        return df
+    if "cluster" not in df.columns:
+        return df
+    out = df.copy()
+    index_name = out.index.name
+    if index_name is None and "coll_mf_id" not in out.columns:
+        out = out.reset_index(drop=False)
+        index_col = out.columns[0]
+    elif index_name is not None:
+        out = out.reset_index(drop=False)
+        index_col = index_name
+    else:
+        index_col = "coll_mf_id"
+
+    drop_cols = [c for c in GROUP_COLUMNS if c in out.columns]
+    if drop_cols:
+        out = out.drop(columns=drop_cols)
+
+    lab = labels.reset_index()
+    if lab.columns[0] != "cluster":
+        lab = lab.rename(columns={lab.columns[0]: "cluster"})
+    out = out.merge(lab, on="cluster", how="left")
+
+    if index_col in out.columns:
+        out = out.set_index(index_col)
+        out.index.name = index_col if index_col == "coll_mf_id" else index_name
+    return out
+
+
+def merge_feature_group_labels_into_frames(
+    labels: pd.DataFrame,
+    mass_features_df: Optional[pd.DataFrame],
+    induced_df: Optional[pd.DataFrame] = None,
+):
+    """Join labels onto mass-feature and induced tables. See merge helper above."""
+    return (
+        merge_feature_group_labels_into_frame(labels, mass_features_df),
+        merge_feature_group_labels_into_frame(labels, induced_df),
+    )
+
+
+def annotation_meta_for_sample_mf(
+    mass_features_df: Optional[pd.DataFrame],
+    labels: Optional[pd.DataFrame],
+    sample_id,
+    mf_id,
+) -> Optional[dict]:
+    """Return group annotation fields for one sample mass feature, or None.
+
+    Looks up ``cluster`` for ``(sample_id, mf_id)`` then reads label columns.
+    Returns None when labels are absent or the feature is ungrouped.
+    """
+    if labels is None or mass_features_df is None or len(labels) == 0:
+        return None
+    if "cluster" not in mass_features_df.columns:
+        return None
+    df = mass_features_df
+    if "sample_id" not in df.columns or "mf_id" not in df.columns:
+        return None
+    hit = df[(df["sample_id"] == sample_id) & (df["mf_id"] == mf_id)]
+    if hit.empty:
+        # sample_id may be int vs str
+        hit = df[
+            (df["sample_id"].astype(str) == str(sample_id))
+            & (df["mf_id"].astype(str) == str(mf_id))
+        ]
+    if hit.empty:
+        return None
+    cluster = hit.iloc[0]["cluster"]
+    if _is_null_label_value(cluster):
+        return None
+    cid = int(cluster)
+    if cid not in labels.index:
+        return None
+    row = labels.loc[cid]
+    if _is_null_label_value(row.get("feature_group_id", pd.NA)):
+        return None
+    return {
+        "cluster": cid,
+        "feature_group_id": row.get("feature_group_id"),
+        "ion_role": row.get("ion_role"),
+        "ion_type": row.get("ion_type"),
+        "possible_ion_types": row.get("possible_ion_types"),
+        "isotope_state": row.get("isotope_state"),
+        "mono_cluster_id": row.get("mono_cluster_id"),
+    }
+
+
 def _mz_tol_abs(mz_a: float, mz_b: float, mz_tol_ppm: float) -> float:
     return max(mz_a, mz_b) * mz_tol_ppm * 1e-6
 
@@ -1460,16 +1635,36 @@ def group_features_arrays(
     mz_by_cluster = {
         int(cid): float(m) for cid, m in zip(cluster_ids, mz)
     }
-    # Adduct stage: singly-charged ion-type pairs (inside find_adduct_edges)
+    # Adduct stage: only mono or unlabeled endpoints (never ion_role=isotope)
     if len(params.ion_types) >= 2:
+        eligible_mask = np.array(
+            [
+                is_adduct_endpoint_eligible(
+                    labels.loc[cid, "ion_role"] if cid in labels.index else None
+                )
+                for cid in cluster_ids
+            ],
+            dtype=bool,
+        )
+        elig_ids = cluster_ids[eligible_mask]
+        elig_mz = mz[eligible_mask]
+        elig_rt = rt[eligible_mask]
+        elig_heights = heights[eligible_mask]
+
         t0 = time.perf_counter()
-        add_edges = find_adduct_edges(cluster_ids, mz, rt, params)
+        if len(elig_ids) >= 2:
+            add_edges = find_adduct_edges(elig_ids, elig_mz, elig_rt, params)
+        else:
+            add_edges = pd.DataFrame(columns=list(_ADDUCT_EDGE_COLUMNS))
         if timings_out is not None:
             timings_out["adduct_edges"] = time.perf_counter() - t0
             timings_out["n_adduct_edges_geom"] = float(len(add_edges))
+            timings_out["n_adduct_endpoints"] = float(len(elig_ids))
 
         t0 = time.perf_counter()
-        add_edges = filter_edges_by_height_correlation(add_edges, heights, params)
+        add_edges = filter_edges_by_height_correlation(
+            add_edges, elig_heights, params
+        )
         if timings_out is not None:
             timings_out["adduct_corr"] = time.perf_counter() - t0
             timings_out["n_adduct_edges"] = float(len(add_edges))

@@ -2660,6 +2660,9 @@ class LCMSCollectionExport():
             # Save cluster assignments if they exist, only overwrite if specified
             self._save_cluster_assignments_to_hdf5(hdf_handle, overwrite)
 
+            # Save consensus feature-group labels if present
+            self._save_feature_group_labels_to_hdf5(hdf_handle, overwrite)
+
         # Save new raw file locations to each LCMS object's HDF5 file if needed
         if hasattr(self.mass_spectra_collection, 'raw_files_relocated') and self.mass_spectra_collection.raw_files_relocated:
             self._update_raw_file_locations_in_hdf5()
@@ -2896,7 +2899,55 @@ class LCMSCollectionExport():
             grp.create_dataset(
                 "cluster", data=cluster_assignments["cluster"].to_numpy()
             )
-    
+
+    def _save_feature_group_labels_to_hdf5(self, hdf_handle, overwrite):
+        """Save cluster-indexed feature-group labels to the collection HDF5."""
+        from corems.mass_spectra.calc.feature_grouping import GROUP_COLUMNS
+
+        labels = getattr(
+            self.mass_spectra_collection, "feature_group_dataframe", None
+        )
+        if labels is None or len(labels) == 0:
+            return
+
+        group_name = "feature_group_labels"
+        if group_name in hdf_handle:
+            if not overwrite:
+                return
+            del hdf_handle[group_name]
+
+        grp = hdf_handle.create_group(group_name)
+        index_vals = np.asarray(
+            [int(x) for x in labels.index],
+            dtype=np.int64,
+        )
+        grp.create_dataset("cluster", data=index_vals)
+
+        for col in GROUP_COLUMNS:
+            if col not in labels.columns:
+                continue
+            series = labels[col]
+            if col in ("feature_group_id", "mono_cluster_id"):
+                # Nullable ints → float with NaN for missing
+                data = series.astype("Float64").to_numpy(dtype=float)
+                grp.create_dataset(col, data=data)
+            else:
+                # Object / string columns
+                encoded = np.asarray(
+                    [
+                        (
+                            b""
+                            if v is None
+                            or (isinstance(v, float) and np.isnan(v))
+                            or (hasattr(pd, "isna") and pd.isna(v))
+                            else str(v).encode("utf-8")
+                        )
+                        for v in series.tolist()
+                    ],
+                    dtype="S",
+                )
+                grp.create_dataset(col, data=encoded)
+
     def _build_cluster_mf_map(self):
         """Build a mapping of which mass features should be saved for each sample.
         

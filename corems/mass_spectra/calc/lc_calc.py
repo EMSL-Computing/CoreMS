@@ -3826,41 +3826,17 @@ class LCMSCollectionCalculations:
         self._last_feature_group_timings = stage_timings
         self.feature_group_dataframe = labels
 
-        # Propagate onto mass feature tables by cluster; keep coll_mf_id index
-        def _merge_labels(df):
-            if df is None or len(df) == 0:
-                return df
-            out = df.copy()
-            index_name = out.index.name
-            if index_name is None and "coll_mf_id" not in out.columns:
-                # Preserve anonymous index values after merge
-                out = out.reset_index(drop=False)
-                index_col = out.columns[0]
-            elif index_name is not None:
-                out = out.reset_index(drop=False)
-                index_col = index_name
-            else:
-                index_col = "coll_mf_id"
+        from corems.mass_spectra.calc.feature_grouping import (
+            merge_feature_group_labels_into_frames,
+        )
 
-            drop_cols = [c for c in GROUP_COLUMNS if c in out.columns]
-            if drop_cols:
-                out = out.drop(columns=drop_cols)
-
-            lab = labels.reset_index()
-            if lab.columns[0] != "cluster":
-                lab = lab.rename(columns={lab.columns[0]: "cluster"})
-            out = out.merge(lab, on="cluster", how="left")
-
-            if index_col in out.columns:
-                out = out.set_index(index_col)
-                out.index.name = index_col if index_col == "coll_mf_id" else index_name
-            return out
-
-        self.mass_features_dataframe = _merge_labels(self.mass_features_dataframe)
+        self.mass_features_dataframe, induced = merge_feature_group_labels_into_frames(
+            labels,
+            self.mass_features_dataframe,
+            self.induced_mass_features_dataframe,
+        )
         if self.induced_mass_features_dataframe is not None:
-            self.induced_mass_features_dataframe = _merge_labels(
-                self.induced_mass_features_dataframe
-            )
+            self.induced_mass_features_dataframe = induced
 
         return labels
 

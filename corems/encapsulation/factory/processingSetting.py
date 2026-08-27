@@ -1397,6 +1397,13 @@ class LCMSCollectionSettings:
         collection polarity** (all samples share one polarity): only keys
         ending in ``+`` are kept for positive mode and only keys ending in
         ``-`` for negative mode. Order among kept keys is preserved.
+    feature_group_constrain_annotation : bool, optional
+        When True and ``feature_group_dataframe`` is present, collection MS1
+        formula search, MS2 spectral search, and collection annotation tables
+        skip consensus isotopes (``ion_role == "isotope"``) and keep
+        identifications only when their ion type is in that feature's
+        ``possible_ion_types``. No-op when grouping labels are absent.
+        Default is True.
     feature_group_partition_size : int, optional
         Target number of clusters per RT partition when multi-core grouping is used.
         Default is 5000.
@@ -1448,6 +1455,7 @@ class LCMSCollectionSettings:
             fromlist=["DEFAULT_ION_TYPES"],
         ).DEFAULT_ION_TYPES
     )
+    feature_group_constrain_annotation: bool = True
     feature_group_partition_size: int = 5000
 
     def __post_init__(self):
