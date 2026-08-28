@@ -1,24 +1,9 @@
 """
-Consensus feature grouping: natural-abundance isotopes + singly-charged adducts.
+Natural-abundance isotope + singly-charged adduct grouping for consensus features.
 
-**Isotopes:** natural-abundance isotopologues only (e.g. ¹²C/¹³C; rare forms in
-``Atoms`` above a natural-abundance floor). Unit spacing is the raw Atoms
-mass difference (``|z| = 1``). Not for tracer/enriched labeling or
-multi-charge envelopes.
-
-**Adducts:** alternate **singly-charged** ion forms linked by **pairwise**
-mass offsets from ``ion_type_dict`` (``corems.mass_spectra.output.export``)
-among ``feature_group_ion_types`` (e.g. ``[M+H]+`` and ``[M+NH4]+``). No
-designated “base” form — any pair with matching Δm can link. Same-analyte
-forms share one ``feature_group_id`` with isotopes of each form.
-
-Approach: RT ∩ Δm edges (isotope unit steps and/or adduct shifts) → Pearson
-**apex height** gate → isotope roll-up → merge across adduct edges.
-
-Quant gate is fixed (no runtime method switch):
-
-- Correlation: Pearson only (pairwise-complete on samples with both heights > 0)
-- Abundance: mass-feature apex ``intensity`` only (not integrated area)
+Unit isotope edges (``Atoms``, ``|z| = 1``) and pairwise ``ion_type_dict``
+adduct links → Pearson apex-height gate → roll-up / merge labels.
+Not for tracer labeling or multi-charge envelopes.
 """
 
 from __future__ import annotations
@@ -34,7 +19,9 @@ from scipy import sparse
 from scipy.spatial import KDTree
 from scipy.stats import pearsonr
 
-from corems.encapsulation.constant import Atoms
+from corems.encapsulation.constant import Atoms, ION_TYPE_DICT
+
+_ION_TYPE_CHARGE_RE = re.compile(r"(\d*)([+-])\s*$")
 
 GROUP_COLUMNS = (
     "feature_group_id",
@@ -52,12 +39,9 @@ POSSIBLE_ION_TYPES_SEP = ";"
 CORR_METHOD = "pearson"
 HEIGHT_COL = "intensity"  # apex peak height; not integrated area
 
-# Default ion forms for adduct linking (keys in ion_type_dict).
-# Ordered most → least common (literature frequency). Order is preserved
-# after polarity filtering and is used to break exact Δm / neutral-mass ties
-# (prefer lower index / more common forms; e.g. [M+H-H2O]+ over [M+H+H2O]+
-# when both fit the same spacing to [M+H]+). Opposite-sign keys are dropped
-# at group_consensus_features time (collections are single-polarity).
+# Explicit allow-list for feature-group adduct search (membership matters).
+# Must be keys in ION_TYPE_DICT with |z| = 1. Residual ties keep all matches in
+# possible_ion_types; preferred ion_type among ties is alphabetical.
 DEFAULT_ION_TYPES: Tuple[str, ...] = (
     "[M+H]+",
     "[M+H-H2O]+",
@@ -103,40 +87,18 @@ def normalize_ms_polarity(polarity: PolarityLike) -> Optional[str]:
     return None
 
 
-_ION_TYPE_CHARGE_RE = re.compile(r"(\d*)([+-])\s*$")
-
-
-def ion_type_polarity(ion_type: str) -> Optional[str]:
-    """Infer polarity of an ``ion_type_dict`` key from its trailing charge sign.
-
-    Keys ending in ``+`` / ``2+`` / ``3+`` are positive (e.g. ``[M+H]+``,
-    ``[M+2H]2+``); ending in ``-`` / ``2-`` are negative (e.g. ``[M+HCOO]-``,
-    ``[M-2H]2-``). Returns ``None`` if no trailing sign is present
-    (e.g. bare ``protonated``).
-    """
-    if ion_type is None:
-        return None
-    s = str(ion_type).strip()
-    if not s:
-        return None
-    m = _ION_TYPE_CHARGE_RE.search(s)
-    if m is None:
-        return None
-    return "positive" if m.group(2) == "+" else "negative"
+def ion_type_polarity(ion_type: str) -> str:
+    """Polarity from ``ION_TYPE_DICT`` (source of truth)."""
+    if ion_type not in ION_TYPE_DICT:
+        raise KeyError(f"unsupported ion type {ion_type!r}")
+    return ION_TYPE_DICT[ion_type]["polarity"]
 
 
 def ion_type_charge(ion_type: str) -> int:
-    """Absolute charge state encoded in an ion-type key.
-
-    Examples: ``[M+H]+`` → 1, ``[M+2H]2+`` → 2, ``[M-2H]2-`` → 2,
-    ``[M+3H]3+`` → 3. Keys without a trailing charge marker default to 1.
-    """
-    if ion_type is None:
-        return 1
-    s = str(ion_type).strip()
-    m = _ION_TYPE_CHARGE_RE.search(s)
+    """Absolute charge from an ion-type key (``[M+H]+`` → 1, ``[M+2H]2+`` → 2)."""
+    m = _ION_TYPE_CHARGE_RE.search(str(ion_type).strip())
     if m is None:
-        return 1
+        raise ValueError(f"ion_type {ion_type!r} has no trailing charge marker")
     digits = m.group(1)
     return int(digits) if digits else 1
 
@@ -169,18 +131,12 @@ def filter_ion_types_for_polarity(
     Returns
     -------
     tuple of str
-        Filtered ion types. When polarity is known, types without a trailing
-        ``+``/``-`` charge marker are dropped (cannot be assigned safely).
+        Filtered ion types matching ``ion_type_dict`` polarity.
     """
     pol = normalize_ms_polarity(polarity)
     if pol is None:
         return tuple(ion_types)
-    kept: list[str] = []
-    for it in ion_types:
-        sign = ion_type_polarity(it)
-        if sign == pol:
-            kept.append(it)
-    return tuple(kept)
+    return tuple(it for it in ion_types if ion_type_polarity(it) == pol)
 
 
 def params_with_polarity_filtered_ion_types(
@@ -201,15 +157,13 @@ class FeatureGroupParams:
     **Isotopes:** natural-abundance rare forms in ``Atoms`` at or above
     ``min_isotope_abundance``. Not for tracer / labeled experiments.
 
-    **Adducts:** ``ion_types`` is an ordered sequence of ``ion_type_dict`` keys
-    (most → least common by default). Keys must be singly charged (``|z| = 1``).
-    Edges are sought for every pair via neutral-mass consistency. There is no
-    designated base form and no intensity prior. When two type assignments
-    fit equally well, the earlier (more common) types in this sequence win.
+    **Adducts:** ``ion_types`` lists ``ION_TYPE_DICT`` keys (``|z| = 1``).
+    Pairwise neutral-mass edges; residual ties keep all matches in
+    ``possible_ion_types`` (preferred label is alphabetical among ties).
 
     ``rt_tol`` / ``mz_tol_ppm`` come from collection alignment settings via
-    :meth:`from_lcms_collection_settings`. Correlation is always Pearson on
-    apex ``intensity``.
+    :meth:`from_lcms_collection_settings`. Correlation is Pearson on apex
+    ``intensity``.
     """
 
     rt_tol: float = 0.4
@@ -221,7 +175,7 @@ class FeatureGroupParams:
     max_isotope_offset: int = 4
     corr_threshold: float = 0.80
     min_shared_sample_fraction: float = 0.15
-    # ion_type_dict keys to link; order = most → least common (tie-break)
+    # Allow-list of ION_TYPE_DICT keys (|z|=1); membership matters, not order
     ion_types: Tuple[str, ...] = DEFAULT_ION_TYPES
     partition_size: int = 5000
     cores: int = 1
@@ -256,10 +210,9 @@ class FeatureGroupParams:
             e.g. formate/acetate negative adducts are not used on positive
             data. ``group_consensus_features()`` supplies collection polarity.
         """
-        ion_types = getattr(
-            settings, "feature_group_ion_types", DEFAULT_ION_TYPES
+        ion_types = filter_ion_types_for_polarity(
+            tuple(settings.feature_group_ion_types), polarity
         )
-        ion_types = filter_ion_types_for_polarity(tuple(ion_types), polarity)
         return cls(
             rt_tol=float(settings.alignment_rt_tol),
             mz_tol_ppm=float(settings.alignment_mz_tol_ppm),
@@ -274,7 +227,7 @@ class FeatureGroupParams:
             ),
             ion_types=tuple(ion_types),
             partition_size=int(settings.feature_group_partition_size),
-            cores=int(getattr(settings, "cores", 1)),
+            cores=int(settings.cores),
         )
 
 
@@ -439,112 +392,67 @@ def empty_group_labels(cluster_ids: Sequence) -> pd.DataFrame:
 
 
 def format_possible_ion_types(types: Sequence[str]) -> Optional[str]:
-    """Join unique ion types preserving order (preferred first)."""
+    """Join unique ion-type strings (preferred first). Empty → None."""
     seen = set()
     ordered = []
     for t in types:
-        if t is None or (isinstance(t, float) and np.isnan(t)):
+        if not t or t in seen:
             continue
-        s = str(t)
-        if s in seen or s == "" or s == "None":
-            continue
-        seen.add(s)
-        ordered.append(s)
-    if not ordered:
-        return None
-    return POSSIBLE_ION_TYPES_SEP.join(ordered)
+        seen.add(t)
+        ordered.append(t)
+    return POSSIBLE_ION_TYPES_SEP.join(ordered) if ordered else None
 
 
 def parse_possible_ion_types(val) -> list:
-    """Split a possible_ion_types cell into a list of type strings."""
-    if val is None or (isinstance(val, float) and np.isnan(val)) or pd.isna(val):
+    """Split a ``possible_ion_types`` cell; null/empty → []."""
+    if val is None or pd.isna(val):
         return []
-    s = str(val).strip()
-    if not s or s == "None":
-        return []
-    return [p for p in s.split(POSSIBLE_ION_TYPES_SEP) if p]
+    return [p for p in str(val).split(POSSIBLE_ION_TYPES_SEP) if p]
 
 
 def merge_possible_ion_types(*vals) -> Optional[str]:
-    """Union possible-type strings; first occurrence order wins (preferred)."""
+    """Union possible-type strings; first occurrence wins."""
     ordered = []
     for v in vals:
         ordered.extend(parse_possible_ion_types(v))
     return format_possible_ion_types(ordered)
 
 
-def _is_null_label_value(val) -> bool:
-    if val is None:
-        return True
-    if isinstance(val, float) and np.isnan(val):
-        return True
-    try:
-        if pd.isna(val):
-            return True
-    except (TypeError, ValueError):
-        pass
-    return False
+def _isna(val) -> bool:
+    """True for None / NA (pandas-compatible)."""
+    return val is None or pd.isna(val)
 
 
 def is_adduct_endpoint_eligible(ion_role) -> bool:
-    """True if a cluster may be an adduct-edge endpoint.
-
-    Eligible: chemical mono, or no isotope annotation (``ion_role`` null).
-    Ineligible: ``ion_role == "isotope"``.
-    """
-    if _is_null_label_value(ion_role):
-        return True
-    return str(ion_role) != "isotope"
+    """Adduct endpoints: mono or unlabeled; not ``isotope``."""
+    return _isna(ion_role) or ion_role != "isotope"
 
 
 def constrain_annotation_active(labels, constrain_flag: bool) -> bool:
-    """True when annotation constraints should run (flag on and labels present)."""
-    if not constrain_flag:
-        return False
-    if labels is None:
-        return False
-    try:
-        return len(labels) > 0
-    except TypeError:
-        return False
+    """True when constrain flag is on and a non-empty labels table exists."""
+    return bool(constrain_flag) and labels is not None and len(labels) > 0
 
 
 def should_skip_isotope_for_annotation(ion_role, constrain_active: bool) -> bool:
-    """True when a consensus isotope should be omitted from search/export."""
-    if not constrain_active:
-        return False
-    if _is_null_label_value(ion_role):
-        return False
-    return str(ion_role) == "isotope"
+    """Skip consensus isotopes when annotation constrain is active."""
+    return constrain_active and ion_role == "isotope"
 
 
 def allowed_ion_types_for_row(ion_type, possible_ion_types):
-    """Allow-list for ID ion types, or None when no adduct filter applies.
-
-    Uses ``possible_ion_types`` when present; falls back to ``{ion_type}``.
-    Returns None when both are empty (no filter for that row).
-    """
+    """Allow-list for ID ion types, or None if no filter for this row."""
     parsed = parse_possible_ion_types(possible_ion_types)
     if parsed:
         return set(parsed)
-    if not _is_null_label_value(ion_type) and str(ion_type) not in ("", "None"):
+    if ion_type and not _isna(ion_type):
         return {str(ion_type)}
     return None
 
 
 def ion_type_allowed(id_ion_type, allowed) -> bool:
-    """True if ``id_ion_type`` may be kept given an allow-list (or no filter).
-
-    Parameters
-    ----------
-    id_ion_type :
-        Ion type string on an MS1/MS2 identification.
-    allowed : set of str or None
-        From :func:`allowed_ion_types_for_row`. None means do not filter.
-    """
+    """True if identification ion type is allowed (``allowed is None`` → keep)."""
     if allowed is None:
         return True
-    if _is_null_label_value(id_ion_type) or str(id_ion_type) in ("", "None"):
+    if not id_ion_type or _isna(id_ion_type):
         return False
     return str(id_ion_type) in allowed
 
@@ -553,26 +461,16 @@ def merge_feature_group_labels_into_frame(
     labels: pd.DataFrame,
     df: Optional[pd.DataFrame],
 ) -> Optional[pd.DataFrame]:
-    """Join GROUP_COLUMNS from cluster-indexed ``labels`` onto one feature table.
-
-    Used by ``group_consensus_features`` and HDF5 reload so merge logic stays DRY.
-    """
-    if df is None or len(df) == 0:
-        return df
-    if labels is None or len(labels) == 0:
+    """Left-join GROUP_COLUMNS from cluster-indexed ``labels`` onto a feature table."""
+    if df is None or len(df) == 0 or labels is None or len(labels) == 0:
         return df
     if "cluster" not in df.columns:
-        return df
+        raise ValueError("mass feature table must have a 'cluster' column")
+
     out = df.copy()
-    index_name = out.index.name
-    if index_name is None and "coll_mf_id" not in out.columns:
-        out = out.reset_index(drop=False)
-        index_col = out.columns[0]
-    elif index_name is not None:
-        out = out.reset_index(drop=False)
-        index_col = index_name
-    else:
-        index_col = "coll_mf_id"
+    index_name = out.index.name or "coll_mf_id"
+    out = out.reset_index(drop=False)
+    index_col = index_name if index_name in out.columns else out.columns[0]
 
     drop_cols = [c for c in GROUP_COLUMNS if c in out.columns]
     if drop_cols:
@@ -582,10 +480,8 @@ def merge_feature_group_labels_into_frame(
     if lab.columns[0] != "cluster":
         lab = lab.rename(columns={lab.columns[0]: "cluster"})
     out = out.merge(lab, on="cluster", how="left")
-
-    if index_col in out.columns:
-        out = out.set_index(index_col)
-        out.index.name = index_col if index_col == "coll_mf_id" else index_name
+    out = out.set_index(index_col)
+    out.index.name = index_name
     return out
 
 
@@ -594,7 +490,7 @@ def merge_feature_group_labels_into_frames(
     mass_features_df: Optional[pd.DataFrame],
     induced_df: Optional[pd.DataFrame] = None,
 ):
-    """Join labels onto mass-feature and induced tables. See merge helper above."""
+    """Join labels onto mass-feature and induced tables."""
     return (
         merge_feature_group_labels_into_frame(labels, mass_features_df),
         merge_feature_group_labels_into_frame(labels, induced_df),
@@ -602,49 +498,35 @@ def merge_feature_group_labels_into_frames(
 
 
 def annotation_meta_for_sample_mf(
-    mass_features_df: Optional[pd.DataFrame],
+    mass_features_df: pd.DataFrame,
     labels: Optional[pd.DataFrame],
     sample_id,
     mf_id,
 ) -> Optional[dict]:
-    """Return group annotation fields for one sample mass feature, or None.
-
-    Looks up ``cluster`` for ``(sample_id, mf_id)`` then reads label columns.
-    Returns None when labels are absent or the feature is ungrouped.
-    """
-    if labels is None or mass_features_df is None or len(labels) == 0:
+    """Group-label fields for ``(sample_id, mf_id)``, or None if ungrouped / no labels."""
+    if labels is None or len(labels) == 0:
         return None
-    if "cluster" not in mass_features_df.columns:
-        return None
-    df = mass_features_df
-    if "sample_id" not in df.columns or "mf_id" not in df.columns:
-        return None
-    hit = df[(df["sample_id"] == sample_id) & (df["mf_id"] == mf_id)]
-    if hit.empty:
-        # sample_id may be int vs str
-        hit = df[
-            (df["sample_id"].astype(str) == str(sample_id))
-            & (df["mf_id"].astype(str) == str(mf_id))
-        ]
+    hit = mass_features_df[
+        (mass_features_df["sample_id"] == sample_id)
+        & (mass_features_df["mf_id"] == mf_id)
+    ]
     if hit.empty:
         return None
     cluster = hit.iloc[0]["cluster"]
-    if _is_null_label_value(cluster):
+    if _isna(cluster):
         return None
     cid = int(cluster)
-    if cid not in labels.index:
-        return None
     row = labels.loc[cid]
-    if _is_null_label_value(row.get("feature_group_id", pd.NA)):
+    if _isna(row["feature_group_id"]):
         return None
     return {
         "cluster": cid,
-        "feature_group_id": row.get("feature_group_id"),
-        "ion_role": row.get("ion_role"),
-        "ion_type": row.get("ion_type"),
-        "possible_ion_types": row.get("possible_ion_types"),
-        "isotope_state": row.get("isotope_state"),
-        "mono_cluster_id": row.get("mono_cluster_id"),
+        "feature_group_id": row["feature_group_id"],
+        "ion_role": row["ion_role"],
+        "ion_type": row["ion_type"],
+        "possible_ion_types": row["possible_ion_types"],
+        "isotope_state": row["isotope_state"],
+        "mono_cluster_id": row["mono_cluster_id"],
     }
 
 
@@ -653,10 +535,8 @@ def _mz_tol_abs(mz_a: float, mz_b: float, mz_tol_ppm: float) -> float:
 
 
 def _get_ion_type_dict() -> Dict:
-    """Lazy import to avoid heavy export module at package import time."""
-    from corems.mass_spectra.output.export import ion_type_dict
-
-    return ion_type_dict
+    """``ION_TYPE_DICT`` from encapsulation.constant."""
+    return ION_TYPE_DICT
 
 
 def _atom_count_mass(atom_counts: Dict[str, int]) -> float:
@@ -689,8 +569,8 @@ def _ion_type_mass_offset(ion_type: str) -> float:
             f"(e.g. '[M+H]+', '[M+NH4]+'). "
             f"Known: {sorted(ion_type_dict.keys())}"
         )
-    add_dict, sub_dict = ion_type_dict[ion_type]
-    return _atom_count_mass(add_dict) - _atom_count_mass(sub_dict)
+    entry = ion_type_dict[ion_type]
+    return _atom_count_mass(entry["add"]) - _atom_count_mass(entry["sub"])
 
 
 def ion_type_mass_delta(
@@ -902,7 +782,6 @@ _ADDUCT_EDGE_COLUMNS = [
     "charge",
     "abs_dm",
     "residual",
-    "rank_sum",
     "n_interpretations",
 ]
 
@@ -924,12 +803,9 @@ def find_adduct_edges(
     singly charged (``|z| = 1``).
 
     When several type assignments fit with the same residual (within
-    ``_RESIDUAL_TIE_EPS``), all are kept as ``parent_possible_ion_types`` /
-    ``child_possible_ion_types`` (preferred first by rank-sum). ``parent_ion_type``
-    / ``child_ion_type`` remain the single preferred interpretation.
-
-    Example: Δm ≈ m(NH₃) ties ``[M+H-NH3]+``/``[M+H]+`` with
-    ``[M+H]+``/``[M+NH4]+``.
+    ``_RESIDUAL_TIE_EPS``), all are kept in ``possible_ion_types``. The single
+    preferred ``parent_ion_type`` / ``child_ion_type`` is a stable alphabetical
+    pick among those ties (no literature rank).
 
     Returns
     -------
@@ -942,7 +818,6 @@ def find_adduct_edges(
     if n_feat < 2 or len(ion_types) < 2:
         return pd.DataFrame(columns=edge_columns)
 
-    type_rank = {t: i for i, t in enumerate(ion_types)}
     typed: list[Tuple[str, int, float]] = []
     for t in ion_types:
         typed.append((t, ion_type_charge(t), float(_ion_type_mass_offset(t))))
@@ -973,13 +848,11 @@ def find_adduct_edges(
         mz_hi = float(mz[i_hi])
         dm = abs(mz_hi - mz_lo)
 
-        # All type assignments that pass ppm tolerance
         cands = []
         for t_lo, z_lo, off_lo in typed:
             M_lo = z_lo * mz_lo - off_lo
             if M_lo <= 0:
                 continue
-            rank_lo = type_rank[t_lo]
             for t_hi, z_hi, off_hi in typed:
                 if not is_allowed_adduct_type_pair(t_lo, t_hi):
                     continue
@@ -990,34 +863,17 @@ def find_adduct_edges(
                 tol = max(M_lo, M_hi) * ppm * 1e-6
                 if residual > tol:
                     continue
-                rank_hi = type_rank[t_hi]
-                cands.append(
-                    (
-                        residual,
-                        rank_lo + rank_hi,
-                        rank_lo,
-                        rank_hi,
-                        t_lo,
-                        t_hi,
-                        z_lo,
-                        z_hi,
-                    )
-                )
+                cands.append((residual, t_lo, t_hi, z_lo, z_hi))
 
         if not cands:
             continue
 
-        cands.sort()
+        cands.sort()  # residual, then alphabetical t_lo, t_hi
         best_res = cands[0][0]
-        ties = [
-            c
-            for c in cands
-            if abs(c[0] - best_res) <= _RESIDUAL_TIE_EPS
-        ]
-        # Preferred = first after sort (residual, rank_sum, rank_lo, rank_hi)
-        residual, rank_sum, _rlo, _rhi, t_lo, t_hi, z_lo, z_hi = ties[0]
-        parent_poss = format_possible_ion_types([c[4] for c in ties])
-        child_poss = format_possible_ion_types([c[5] for c in ties])
+        ties = [c for c in cands if abs(c[0] - best_res) <= _RESIDUAL_TIE_EPS]
+        residual, t_lo, t_hi, z_lo, z_hi = ties[0]
+        parent_poss = format_possible_ion_types([c[1] for c in ties])
+        child_poss = format_possible_ion_types([c[2] for c in ties])
 
         seen_pairs.add((i_lo, i_hi))
         rows.append(
@@ -1033,7 +889,6 @@ def find_adduct_edges(
                 "charge": int(max(z_lo, z_hi)),
                 "abs_dm": dm,
                 "residual": float(residual),
-                "rank_sum": int(rank_sum),
                 "n_interpretations": int(len(ties)),
             }
         )
@@ -1044,16 +899,14 @@ def find_adduct_edges(
 
 
 def sort_adduct_edges(edges: pd.DataFrame) -> pd.DataFrame:
-    """Order edges for merge: residual ↑, rank_sum ↑, then cluster ids."""
+    """Order edges for merge: residual ↑, then cluster ids."""
     if edges is None or edges.empty:
         return edges if edges is not None else pd.DataFrame(columns=_ADDUCT_EDGE_COLUMNS)
     out = edges.copy()
     if "residual" not in out.columns:
         out["residual"] = 0.0
-    if "rank_sum" not in out.columns:
-        out["rank_sum"] = 0
     return out.sort_values(
-        by=["residual", "rank_sum", "parent_cluster", "child_cluster"],
+        by=["residual", "parent_cluster", "child_cluster"],
         kind="mergesort",
     ).reset_index(drop=True)
 
@@ -1146,9 +999,9 @@ def assign_isotope_labels(
     all_children = set()
     for row in edges.itertuples(index=False):
         p, c = int(row.parent_idx), int(row.child_idx)
-        rare = getattr(row, "rare_label", None) or row.atom
-        z = int(getattr(row, "charge", 1))
-        children_of.setdefault(p, []).append((c, rare, row.atom, z))
+        children_of.setdefault(p, []).append(
+            (c, row.rare_label, row.atom, int(row.charge))
+        )
         all_parents.add(p)
         all_children.add(c)
 
@@ -1228,10 +1081,6 @@ def _remap_group_id(labels: pd.DataFrame, old_gid, new_gid) -> None:
     labels.loc[mask, "feature_group_id"] = new_gid
 
 
-def _is_null_ion_type(val) -> bool:
-    return val is None or (isinstance(val, float) and np.isnan(val)) or pd.isna(val)
-
-
 def _form_members_for_endpoint(
     labels: pd.DataFrame,
     endpoint: int,
@@ -1264,7 +1113,7 @@ def _form_members_for_endpoint(
         if not same_mono:
             continue
         it = labels.loc[cid, "ion_type"]
-        if _is_null_ion_type(it) or it == target_ion_type:
+        if _isna(it) or it == target_ion_type:
             members.append(cid_i)
     if endpoint not in members:
         members.append(int(endpoint))
@@ -1286,7 +1135,7 @@ def _form_mono_id(labels: pd.DataFrame, form_members: Sequence[int], endpoint: i
 
 def _type_compatible(existing, preferred: str, possible_str) -> bool:
     """True if cluster can accept preferred type (null, same, or in possible)."""
-    if _is_null_ion_type(existing):
+    if _isna(existing):
         return True
     if existing == preferred:
         return True
@@ -1354,8 +1203,8 @@ def merge_adduct_edges_into_labels(
             continue
 
         # Prefer already-assigned primary type when compatible with possibles
-        paint_light = type_light if _is_null_ion_type(it_p) else it_p
-        paint_heavy = type_heavy if _is_null_ion_type(it_c) else it_c
+        paint_light = type_light if _isna(it_p) else it_p
+        paint_heavy = type_heavy if _isna(it_c) else it_c
 
         light_form = _form_members_for_endpoint(labels, parent_c, paint_light)
         heavy_form = _form_members_for_endpoint(labels, child_c, paint_heavy)
@@ -1390,14 +1239,14 @@ def merge_adduct_edges_into_labels(
 
         # Seed unlabeled endpoints only after the edge is accepted
         for cid in (parent_c, child_c):
-            if _is_null_ion_type(labels.loc[cid, "ion_role"]):
+            if _isna(labels.loc[cid, "ion_role"]):
                 labels.loc[cid, "ion_role"] = "mono"
                 labels.loc[cid, "isotope_state"] = "M+0"
 
         for mid in (light_mono, heavy_mono):
             if mid in labels.index and labels.loc[mid, "ion_role"] != "isotope":
                 labels.loc[mid, "ion_role"] = "mono"
-                if _is_null_ion_type(labels.loc[mid, "isotope_state"]):
+                if _isna(labels.loc[mid, "isotope_state"]):
                     labels.loc[mid, "isotope_state"] = "M+0"
 
         def _paint_form(form_members, preferred, poss_str, mono_id):
@@ -1405,7 +1254,7 @@ def merge_adduct_edges_into_labels(
                 if cid not in labels.index:
                     continue
                 it = labels.loc[cid, "ion_type"]
-                if not _is_null_ion_type(it) and it != preferred:
+                if not _isna(it) and it != preferred:
                     if str(it) not in parse_possible_ion_types(poss_str):
                         continue
                     # Keep existing primary; only expand possibles
@@ -1541,7 +1390,7 @@ def validate_feature_group_labels(
     if "possible_ion_types" in labels.columns and "ion_type" in labels.columns:
         for cid in labels.index:
             it = labels.loc[cid, "ion_type"]
-            if _is_null_ion_type(it):
+            if _isna(it):
                 continue
             poss = labels.loc[cid, "possible_ion_types"]
             labels.loc[cid, "possible_ion_types"] = merge_possible_ion_types(

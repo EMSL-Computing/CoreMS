@@ -190,11 +190,14 @@ def test_default_feature_group_settings_locked_in():
     assert s.feature_group_min_isotope_abundance == pytest.approx(0.01)
     assert "[M+2H]2+" not in s.feature_group_ion_types
     assert s.feature_group_ion_types == DEFAULT_ION_TYPES
-    # Most common first; water loss before water adduct
-    assert s.feature_group_ion_types.index("[M+H-H2O]+") < s.feature_group_ion_types.index(
-        "[M+H+H2O]+"
+    assert "[M+H]+" in s.feature_group_ion_types
+    # Allow-list can be narrowed in settings
+    s.feature_group_ion_types = ("[M+H]+", "[M+Na]+")
+    assert FeatureGroupParams.from_lcms_collection_settings(s).ion_types == (
+        "[M+H]+",
+        "[M+Na]+",
     )
-    assert s.feature_group_ion_types[0] == "[M+H]+"
+    s.feature_group_ion_types = DEFAULT_ION_TYPES
 
     params = FeatureGroupParams.from_lcms_collection_settings(s)
     assert params.corr_threshold == pytest.approx(0.80)
@@ -250,21 +253,33 @@ def test_filter_ion_types_for_polarity_drops_wrong_sign():
     assert ion_type_polarity("[M+H]+") == "positive"
     assert ion_type_polarity("[M+2H]2+") == "positive"
     assert ion_type_polarity("[M-2H]2-") == "negative"
-    assert ion_type_polarity("protonated") is None
+    assert ion_type_polarity("protonated") == "positive"
     assert normalize_ms_polarity("pos") == "positive"
     assert normalize_ms_polarity("neg") == "negative"
 
 
 def test_common_ion_types_in_dict_and_charge_parse():
-    """All default adduct keys exist and are singly charged."""
+    """Allow-list defaults are |z|=1 keys in ION_TYPE_DICT with polarity."""
+    from corems.encapsulation.constant import ION_TYPE_DICT
     from corems.mass_spectra.output.export import ion_type_dict
 
+    assert ion_type_dict is ION_TYPE_DICT
+    assert len(DEFAULT_ION_TYPES) == 14
     for it in DEFAULT_ION_TYPES:
-        assert it in ion_type_dict, f"missing ion_type_dict key: {it}"
+        assert it in ION_TYPE_DICT, f"missing ION_TYPE_DICT key: {it}"
+        entry = ION_TYPE_DICT[it]
+        assert entry["polarity"] in ("positive", "negative")
+        assert "add" in entry and "sub" in entry
+        assert "feature_group_order" not in entry
         assert ion_type_charge(it) == 1
+        assert ion_type_polarity(it) == entry["polarity"]
         validate_feature_group_params(
             FeatureGroupParams(ion_types=(it, "[M+H]+") if it != "[M+H]+" else (it, "[M+Na]+"))
         )
+    # Narrow allow-list is valid
+    validate_feature_group_params(
+        FeatureGroupParams(ion_types=("[M+H]+", "[M+Na]+"))
+    )
 
     # Parser still understands multi-charge suffixes (formula/export keys)
     assert ion_type_charge("[M+H]+") == 1
@@ -275,11 +290,10 @@ def test_common_ion_types_in_dict_and_charge_parse():
 
 
 def test_water_loss_preferred_over_water_adduct_on_delta_tie():
-    """Exact 18.01 Da spacing: prefer [M+H-H2O]+/[M+H]+ over [M+H]+/[M+H+H2O]+.
+    """Exact 18.01 Da spacing: both interps kept; preferred is stable alpha pick.
 
-    Both assignments are geometrically perfect; ordered ion_types (most common
-    first) must break the tie toward water loss, which ranks earlier than water
-    adduct in DEFAULT_ION_TYPES. Alternates are retained in possible_ion_types.
+    Alternates are retained in possible_ion_types; alphabetical preference
+    among residual ties picks [M+H-H2O]+ / [M+H]+ over [M+H]+ / [M+H+H2O]+.
     """
     M = 400.0
     from corems.mass_spectra.calc.feature_grouping import _ion_type_mass_offset
@@ -354,7 +368,7 @@ def test_nh3_vs_nh4_keeps_ambiguous_possible_ion_types():
     edges = find_adduct_edges(cluster_ids, mz, rt, params)
     assert len(edges) == 1
     row = edges.iloc[0]
-    # Preferred by rank-sum: NH3-loss + MH (not MH + NH4)
+    # Preferred among residual ties (alphabetical): NH3-loss + MH
     assert row["parent_ion_type"] == "[M+H-NH3]+"
     assert row["child_ion_type"] == "[M+H]+"
     assert "[M+H]+" in str(row["parent_possible_ion_types"])

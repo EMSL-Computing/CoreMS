@@ -29,9 +29,10 @@ from corems.molecular_formula.calc.MolecularFormulaCalc import MolecularFormulaC
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.molecular_id.calc.SpectralSimilarity import methods_name
 
-# Canonical location is MolecularFormulaCalc; re-export for existing imports
-# (feature_grouping, notebooks, etc.).
-ion_type_dict = MolecularFormulaCalc.ion_type_dict
+# Canonical location is encapsulation.constant.ION_TYPE_DICT; re-export.
+from corems.encapsulation.constant import ION_TYPE_DICT
+
+ion_type_dict = ION_TYPE_DICT
 
 
 class LowResGCMSExport:

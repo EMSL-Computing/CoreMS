@@ -1351,62 +1351,31 @@ class LCMSCollectionSettings:
         Tuple of available metrics for determining the most representative sample.
         Default is ('intensity', 'intensity_prefer_ms2').
     feature_group_isotope_atoms : tuple of str, optional
-        Mono element symbols whose **natural-abundance** rare isotopes are
-        considered when **feature grouping** builds isotope Δm edges via
-        ``Atoms`` (e.g. ``("C",)`` → natural ¹³C; ``("Se",)`` → all Se rare
-        forms above the natural-abundance floor). Used only by consensus
-        feature grouping; not molecular-formula ``usedAtoms`` or
-        other isotope settings. Default is ``("C",)``. Not for enriched/tracer
-        isotope systems.
+        Mono elements for natural-abundance isotope Δm edges via ``Atoms``
+        (e.g. ``("C",)``). Default ``("C",)``. Not for tracer labeling.
     feature_group_min_isotope_abundance : float, optional
-        Minimum **natural** isotopic abundance (fraction 0–1 from
-        ``Atoms.isotopic_abundance``) required for a rare isotope to be used in
-        feature-grouping spacing search. All listed rare isotopes of each
-        ``feature_group_isotope_atoms`` entry that meet this floor are considered
-        (important for multi-isotope elements such as Se). Default is 0.01 (1%).
-        Filters natural-abundance forms only.
+        Min natural abundance (0–1) for rare forms in isotope spacing.
+        Default 0.01.
     feature_group_max_isotope_offset : int, optional
-        Maximum natural-abundance isotope offset *n* for M+n links of a single
-        rare form (e.g. ¹³C₁…¹³Cₙ). Default is 4.
+        Max M+n roll-up depth for one rare form (e.g. ¹³Cₙ). Default 4.
     feature_group_corr_threshold : float, optional
-        Minimum Pearson correlation of cross-sample **peak height** (apex
-        ``intensity``) vectors to accept a grouping edge. Only Pearson is used
-        (no Spearman/cosine/etc. switch). Correlation is pairwise-complete:
-        samples where either height is 0 are dropped. Default is 0.80, chosen
-        to stay on the natural ¹³C recall plateau while remaining conservative for
-        later adduct linking (geometry + correlation only, no intensity ladder).
+        Min Pearson correlation of apex ``intensity`` vectors for an edge
+        (pairwise-complete; zeros dropped). Default 0.80.
     feature_group_min_shared_sample_fraction : float, optional
-        Minimum fraction of samples (0–1) in which both features must have height
-        > 0 before the Pearson height-correlation gate is trusted. Required shared
-        count is ``ceil(fraction * n_samples)``, at least 1 when fraction > 0.
-        Default is 0.15 (15% of samples).
+        Min fraction of samples with both heights > 0 before correlation
+        is trusted (``ceil(fraction * n_samples)``). Default 0.15.
     feature_group_ion_types : tuple of str, optional
-        Ion forms considered for feature-group adduct linking, as keys in
-        ``ion_type_dict`` (``corems.mass_spectra.output.export``). **Order
-        matters:** most → least common. On exact Δm / neutral-mass ties
-        (e.g. ``[M+H]+``↔``[M+H-H2O]+`` vs ``[M+H]+``↔``[M+H+H2O]+``), earlier
-        types are preferred. One type or empty disables adduct linking
-        (isotopes only).
-
-        Default is the literature-ordered singly-charged set starting
-        ``[M+H]+``, ``[M+H-H2O]+``, ``[M-H]-``, … through ``[M]+``
-        (see ``DEFAULT_ION_TYPES`` in feature_grouping). All keys must have
-        ``|z| = 1``; multi-charge forms are out of scope.
-
-        At ``group_consensus_features()`` time, entries are **filtered by
-        collection polarity** (all samples share one polarity): only keys
-        ending in ``+`` are kept for positive mode and only keys ending in
-        ``-`` for negative mode. Order among kept keys is preserved.
+        Allow-list of ``ION_TYPE_DICT`` keys for adduct linking (``|z| = 1``).
+        Empty/one type → isotopes only. Default is a curated common set
+        (``DEFAULT_ION_TYPES``); narrow further to reduce false adduct links.
+        Filtered by collection polarity at ``group_consensus_features()``.
     feature_group_constrain_annotation : bool, optional
-        When True and ``feature_group_dataframe`` is present, collection MS1
-        formula search, MS2 spectral search, and collection annotation tables
-        skip consensus isotopes (``ion_role == "isotope"``) and keep
-        identifications only when their ion type is in that feature's
-        ``possible_ion_types``. No-op when grouping labels are absent.
-        Default is True.
+        If True and labels exist, skip consensus isotopes in collection
+        MS1/MS2/annotation and keep IDs only if ion type is in
+        ``possible_ion_types``. Default True.
     feature_group_partition_size : int, optional
-        Target number of clusters per RT partition when multi-core grouping is used.
-        Default is 5000.
+        Reserved RT-partition size for future multicore grouping.
+        Default 5000.
     """
     # Settings for general processing
     cores: int = 1
@@ -1439,16 +1408,12 @@ class LCMSCollectionSettings:
     consensus_representative_metric: str = 'intensity_prefer_ms2'
     consensus_representative_metrics_available: tuple = ('intensity', 'intensity_prefer_ms2')
 
-    # Consensus feature grouping: natural-abundance isotopes + z=1 adducts.
-    # Not for tracer/enriched labeling. Multi-charge envelopes are out of scope.
-    # RT / m/z windows: reuse alignment_rt_tol and alignment_mz_tol_ppm.
-    # Quant gate is fixed: Pearson on apex intensity (no metric/area switch).
+    # Feature grouping (isotopes + z=1 adducts); RT/m/z use alignment_* tols
     feature_group_isotope_atoms: tuple = ("C",)
     feature_group_min_isotope_abundance: float = 0.01
     feature_group_max_isotope_offset: int = 4
     feature_group_corr_threshold: float = 0.80
     feature_group_min_shared_sample_fraction: float = 0.15
-    # Most → least common; imported so defaults stay a single source of truth
     feature_group_ion_types: tuple = dataclasses.field(
         default_factory=lambda: __import__(
             "corems.mass_spectra.calc.feature_grouping",

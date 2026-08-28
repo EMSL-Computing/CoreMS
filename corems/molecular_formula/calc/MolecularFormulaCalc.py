@@ -12,7 +12,12 @@ from numpy import array, exp, isnan, nextafter, power
 # TODO in a future release remove support for legacy isospecpy
 from packaging import version
 
-from corems.encapsulation.constant import Atoms, Labels
+from corems.encapsulation.constant import (
+    ADDUCT_ALIASES as _ADDUCT_ALIASES,
+    Atoms,
+    ION_TYPE_DICT,
+    Labels,
+)
 from corems.encapsulation.factory.parameters import MSParameters
 from corems.molecular_id.calc.SpectralSimilarity import SpectralSimilarity
 
@@ -91,64 +96,15 @@ class MolecularFormulaCalc:
 
     Notes
     -----
-    LCMS adduct helpers (``ion_type_dict``, ``get_ion_formula``, etc.) use
-    adduct strings such as ``[M+H]+`` / ``[M-H]-``. These are distinct from
-    FTMS assignment labels in :class:`~corems.encapsulation.constant.Labels`
-    (``DE_OR_PROTONATED``, ``RADICAL``, ``ADDUCT``) used by ``_calc_mz``.
+    LCMS adduct helpers use :data:`~corems.encapsulation.constant.ION_TYPE_DICT`
+    (``[M+H]+`` / ``[M-H]-``, etc.). Distinct from FTMS assignment labels in
+    :class:`~corems.encapsulation.constant.Labels` (``DE_OR_PROTONATED``,
+    ``RADICAL``, ``ADDUCT``) used by ``_calc_mz``.
     """
 
-    # adduct : [atoms to add, atoms to subtract when calculating formula of ion]
-    # Charge state may be encoded in the key suffix (e.g. ``2+``, ``2-``);
-    # mass offsets are neutral-atom counts only. Multi-charge m/z uses
-    # ``m/z = (M + offset) / |z|`` with |z| from the key (see feature_grouping).
-    ion_type_dict = {
-        "M+": [{}, {}],
-        "[M]+": [{}, {}],
-        "protonated": [{"H": 1}, {}],
-        "[M+H]+": [{"H": 1}, {}],
-        "[M+2H]2+": [{"H": 2}, {}],
-        "[M+3H]3+": [{"H": 3}, {}],
-        "[M+NH4]+": [{"N": 1, "H": 4}, {}],  # ammonium
-        "[M+Na]+": [{"Na": 1}, {}],
-        "[M+K]+": [{"K": 1}, {}],
-        "[M+2Na]2+": [{"Na": 2}, {}],
-        "[M+H+Na]2+": [{"H": 1, "Na": 1}, {}],
-        "[M+H+K]2+": [{"H": 1, "K": 1}, {}],
-        "[M+2Na+Cl]+": [{"Na": 2, "Cl": 1}, {}],
-        "[M+2Na-H]+": [{"Na": 2}, {"H": 1}],
-        "[M-H+2Na]+": [{"Na": 2}, {"H": 1}],  # synonym of [M+2Na-H]+
-        "[M+C2H3Na2O2]+": [{"C": 2, "H": 3, "Na": 2, "O": 2}, {}],
-        "[M+C4H10N3]+": [{"C": 4, "H": 10, "N": 3}, {}],
-        "[M+NH4+ACN]+": [{"C": 2, "H": 7, "N": 2}, {}],
-        # Neutral losses / solvent adducts (positive)
-        "[M+H-H2O]+": [{}, {"H": 1, "O": 1}],
-        "[M+H-2H2O]+": [{}, {"H": 3, "O": 2}],  # +H − 2 H2O
-        "[M+H-NH3]+": [{}, {"N": 1, "H": 2}],  # +H − NH3
-        "[M+2H-NH3]2+": [{}, {"N": 1, "H": 1}],  # +2H − NH3
-        "[M+2H-H2O]2+": [{}, {"O": 1}],  # +2H − H2O
-        "[M+NH4-H2O]+": [{"N": 1, "H": 2}, {}],  # NH4 − H2O
-        "[M+H+H2O]+": [{"H": 3, "O": 1}, {}],  # H + H2O
-        # Negative
-        "de-protonated": [{}, {"H": 1}],
-        "[M-H]-": [{}, {"H": 1}],
-        "[M-2H]2-": [{}, {"H": 2}],
-        "[M-H-H2O]-": [{}, {"H": 3, "O": 1}],
-        "[M-H+H2O]-": [{"H": 1, "O": 1}, {}],  # −H + H2O
-        "[M+Cl]-": [{"Cl": 1}, {}],
-        "[M+HCOO]-": [{"C": 1, "H": 1, "O": 2}, {}],  # formate
-        "[M+CH3COO]-": [{"C": 2, "H": 3, "O": 2}, {}],  # acetate
-        "[M+2NaAc+Cl]-": [{"Na": 2, "C": 2, "H": 3, "O": 2, "Cl": 1}, {}],
-        "[M+K-2H]-": [{"K": 1}, {"H": 2}],
-        "[M+Na-2H]-": [{"Na": 1}, {"H": 2}],
-    }
-
-    # Common alternate adduct strings → keys in ion_type_dict
-    ADDUCT_ALIASES = {
-        "[M+HCOOH-H]-": "[M+HCOO]-",
-        "[M+CH3COOH-H]-": "[M+CH3COO]-",
-        "[M+FA-H]-": "[M+HCOO]-",
-        "[M+AcOH-H]-": "[M+CH3COO]-",
-    }
+    # Back-compat aliases → corems.encapsulation.constant source of truth
+    ion_type_dict = ION_TYPE_DICT
+    ADDUCT_ALIASES = _ADDUCT_ALIASES
 
     def _calc_resolving_power_low_pressure(self, B, T):
         """
@@ -287,18 +243,27 @@ class MolecularFormulaCalc:
             )
         neutral_formula_dict = formula_obj.to_dict().copy()
 
-        adduct_add_dict = MolecularFormulaCalc.ion_type_dict[ion_type][0]
+        entry = MolecularFormulaCalc.ion_type_dict[ion_type]
+        adduct_add_dict = entry["add"]
         for key in adduct_add_dict:
             if key in neutral_formula_dict:
                 neutral_formula_dict[key] += adduct_add_dict[key]
             else:
                 neutral_formula_dict[key] = adduct_add_dict[key]
 
-        adduct_subtract = MolecularFormulaCalc.ion_type_dict[ion_type][1]
+        adduct_subtract = entry["sub"]
         for key in adduct_subtract:
             neutral_formula_dict[key] -= adduct_subtract[key]
 
         return MolecularFormula(neutral_formula_dict, ion_charge=0).string
+
+    @staticmethod
+    def polarity_from_ion_type(ion_type: str) -> str:
+        """Return ``'positive'`` or ``'negative'`` from ``ION_TYPE_DICT``."""
+        ion_type = MolecularFormulaCalc.normalize_ion_type(ion_type)
+        if ion_type not in ION_TYPE_DICT:
+            raise KeyError(f"unsupported ion type {ion_type!r}")
+        return ION_TYPE_DICT[ion_type]["polarity"]
 
     @staticmethod
     def precursor_mz_from_formula(neutral_formula, ion_type, charge=None):
