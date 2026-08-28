@@ -16,7 +16,6 @@ from corems.mass_spectra.calc.feature_grouping import (
     find_isotope_edges,
     group_features_arrays,
     ion_type_charge,
-    ion_type_polarity,
     is_allowed_adduct_type_pair,
     isotope_mass_delta,
     isotope_state_label,
@@ -249,11 +248,13 @@ def test_filter_ion_types_for_polarity_drops_wrong_sign():
     assert filter_ion_types_for_polarity(mixed, None) == mixed
     assert filter_ion_types_for_polarity(mixed, "") == mixed
 
-    assert ion_type_polarity("[M+HCOO]-") == "negative"
-    assert ion_type_polarity("[M+H]+") == "positive"
-    assert ion_type_polarity("[M+2H]2+") == "positive"
-    assert ion_type_polarity("[M-2H]2-") == "negative"
-    assert ion_type_polarity("protonated") == "positive"
+    from corems.encapsulation.constant import ION_TYPE_DICT
+
+    assert ION_TYPE_DICT["[M+HCOO]-"]["polarity"] == "negative"
+    assert ION_TYPE_DICT["[M+H]+"]["polarity"] == "positive"
+    assert ION_TYPE_DICT["[M+2H]2+"]["polarity"] == "positive"
+    assert ION_TYPE_DICT["[M-2H]2-"]["polarity"] == "negative"
+    assert ION_TYPE_DICT["protonated"]["polarity"] == "positive"
     assert normalize_ms_polarity("pos") == "positive"
     assert normalize_ms_polarity("neg") == "negative"
 
@@ -272,7 +273,6 @@ def test_common_ion_types_in_dict_and_charge_parse():
         assert "add" in entry and "sub" in entry
         assert "feature_group_order" not in entry
         assert ion_type_charge(it) == 1
-        assert ion_type_polarity(it) == entry["polarity"]
         validate_feature_group_params(
             FeatureGroupParams(ion_types=(it, "[M+H]+") if it != "[M+H]+" else (it, "[M+Na]+"))
         )

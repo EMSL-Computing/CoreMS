@@ -87,13 +87,6 @@ def normalize_ms_polarity(polarity: PolarityLike) -> Optional[str]:
     return None
 
 
-def ion_type_polarity(ion_type: str) -> str:
-    """Polarity from ``ION_TYPE_DICT`` (source of truth)."""
-    if ion_type not in ION_TYPE_DICT:
-        raise KeyError(f"unsupported ion type {ion_type!r}")
-    return ION_TYPE_DICT[ion_type]["polarity"]
-
-
 def ion_type_charge(ion_type: str) -> int:
     """Absolute charge from an ion-type key (``[M+H]+`` → 1, ``[M+2H]2+`` → 2)."""
     m = _ION_TYPE_CHARGE_RE.search(str(ion_type).strip())
@@ -136,7 +129,9 @@ def filter_ion_types_for_polarity(
     pol = normalize_ms_polarity(polarity)
     if pol is None:
         return tuple(ion_types)
-    return tuple(it for it in ion_types if ion_type_polarity(it) == pol)
+    return tuple(
+        it for it in ion_types if ION_TYPE_DICT[it]["polarity"] == pol
+    )
 
 
 def params_with_polarity_filtered_ion_types(
