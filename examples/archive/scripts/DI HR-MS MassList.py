@@ -35,7 +35,7 @@ def mzdomain_calibration(mass_spectrum):
     mass_spectrum.settings.min_calib_ppm_error = 0
     mass_spectrum.settings.max_calib_ppm_error = 1
 
-    #file_location = Path.cwd() / "tests/tests_data/ESI_NEG_SRFA.d/"
+    #file_location = Path.cwd() / "tests/tests_data/ftms/srfa_bruker_solarix_direct_infusion/ESI_NEG_SRFA.d/"
 
 def run_bruker(file_location):
 
