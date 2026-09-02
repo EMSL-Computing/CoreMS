@@ -15,8 +15,11 @@ class _MSPeak(MSPeakCalculation):
 
     Parameters:
     ----------
-    ion_charge : int
-        The ion charge of the peak.
+    polarity : int
+        Acquisition polarity of the peak (``+1`` or ``-1``). Historically
+        passed and stored as ``ion_charge``; that name is kept as a
+        deprecated alias. True assignment charge lives on
+        ``MolecularFormula.ion_charge`` after formula matching.
     mz_exp : float
         The experimental m/z value of the peak.
     abundance : float
@@ -60,7 +63,7 @@ class _MSPeak(MSPeakCalculation):
 
     def __init__(
         self,
-        ion_charge,
+        polarity,
         mz_exp,
         abundance,
         resolving_power,
@@ -71,10 +74,10 @@ class _MSPeak(MSPeakCalculation):
         exp_freq=None,
     ):
         self._ms_parent = ms_parent
-        # needed to create the object
-        self.ion_charge = int(ion_charge)
+        # Polarity only (±1). Assignment charge is MolecularFormula.ion_charge.
+        self.polarity = int(polarity)
         self._mz_exp = float(mz_exp)
-        self.mass = float(mz_exp) / float(ion_charge)
+        self.mass = float(mz_exp) / float(self.polarity)
         self.abundance = float(abundance)
         self.resolving_power = float(resolving_power)
         self.signal_to_noise = float(signal_to_noise)
@@ -116,6 +119,20 @@ class _MSPeak(MSPeakCalculation):
 
         # Label for what type of peak it is - real signal, noise, sinc wiggle, magnetron or harmonic peak, etc.
         self.peak_type = None
+
+    @property
+    def ion_charge(self):
+        """Deprecated alias for :attr:`polarity` (±1).
+
+        Peaks do not carry assignment charge state. After molecular formula
+        matching, use ``MolecularFormula.ion_charge`` on assigned formulas.
+        """
+        return self.polarity
+
+    @ion_charge.setter
+    def ion_charge(self, value):
+        """Deprecated. Sets :attr:`polarity`."""
+        self.polarity = int(value)
 
     def __len__(self):
         return len(self.molecular_formulas)
@@ -445,8 +462,11 @@ class ICRMassPeak(_MSPeak):
         1. Marshall et al. (Mass Spectrom Rev. 1998 Jan-Feb;17(1):1-35.)
             DOI: 10.1002/(SICI)1098-2787(1998)17:1<1::AID-MAS1>3.0.CO;2-K
         """
-        #Calculate theoretical low pressure limit (undamped) ICR resolving power
-        RP_unwindowed = (1.274e7 * self.ion_charge * B * T) / (self.mz_exp * self.ion_charge)
+        # Calculate theoretical low pressure limit (undamped) ICR resolving power
+        # Peak polarity is ±1 (legacy field was named ion_charge).
+        RP_unwindowed = (1.274e7 * self.polarity * B * T) / (
+            self.mz_exp * self.polarity
+        )
 
         # Default correction factor (no windowing)
         CF = 1.0

@@ -1044,7 +1044,26 @@ class MolecularFormulaSearchSettings:
     db_chunk_size : int, optional
         Chunk size to use for database queries. Default is 300.
     ion_charge : int, optional
-        Ion charge. Default is -1.
+        **Legacy / unused for formula search.** Kept so older YAML/JSON/TOML
+        and ``MolecularFormulaSearchSettings(ion_charge=...)`` keep loading
+        without error. Default is -1. Search polarity comes from the mass
+        spectrum or LCMS object (DI often -1 from data; LC has no default).
+        Absolute multi-charge range uses ``min_ion_charge`` / ``max_ion_charge``
+        only. Do not use this field for new workflows.
+    min_ion_charge : int, optional
+        Minimum **absolute** ion charge for molecular formula search. Default is 1.
+        With ``max_ion_charge``, defines the inclusive absolute charge range searched
+        at polarity-signed values (e.g. positive polarity and max 2 → z = +1, +2).
+        No 13C-based charge determination is performed; every selected peak is
+        searched at each charge and candidates are ranked by existing formula
+        scores (isotopologue similarity, confidence). Peak ``polarity`` remains
+        ±1 (legacy alias ``peak.ion_charge``); assignment charge lives on
+        ``MolecularFormula.ion_charge``.
+    max_ion_charge : int, optional
+        Maximum **absolute** ion charge for molecular formula search. Default is 1
+        (legacy single-charge behavior). Must be >= ``min_ion_charge``.
+        Incompatible with ``isAdduct=True`` when greater than 1 (adduct search is
+        single-charge only; multi-charge adducts are not modeled).
     min_hc_filter : float, optional
         Minimum hydrogen to carbon ratio. Default is 0.3.
     max_hc_filter : float, optional
@@ -1090,6 +1109,8 @@ class MolecularFormulaSearchSettings:
         If True, search for protonated ions. Default is True.
     isAdduct : bool, optional
         If True, search for adduct ions. Default is False.
+        Requires ``max_ion_charge == 1`` (and typically ``min_ion_charge == 1``);
+        multi-charge formula search does not include adduct ion types.
     usedAtoms : dict, optional
         Dictionary of **element symbols** (most-abundant mono codes) to
         (min, max) count ranges for molecular formula search. Keys must be
@@ -1148,7 +1169,14 @@ class MolecularFormulaSearchSettings:
     db_chunk_size: int = 300
 
     # query setting========
+    # Legacy BC only (parameter files / constructor). Not used for search.
+    # Polarity: spectrum/LCMS data. Multi-z absolute range: min/max_ion_charge.
     ion_charge: int = -1
+
+    # Absolute charge range for formula search (polarity supplies sign).
+    # Defaults 1..1 preserve single-charge behavior.
+    min_ion_charge: int = 1
+    max_ion_charge: int = 1
 
     min_hc_filter: float = 0.3
 
@@ -1272,6 +1300,34 @@ class MolecularFormulaSearchSettings:
                 else:
                     # will get the first number of all possible covalances, which should be the most commum
                     self.used_atom_valences[atom] = covalence[0]
+
+        self.validate_ion_charge_settings()
+
+    def validate_ion_charge_settings(self):
+        """Validate absolute charge range and adduct compatibility.
+
+        Raises
+        ------
+        ValueError
+            If ``min_ion_charge`` / ``max_ion_charge`` are invalid, or if
+            ``isAdduct`` is enabled with multi-charge search
+            (``max_ion_charge > 1``).
+        """
+        min_z = int(self.min_ion_charge)
+        max_z = int(self.max_ion_charge)
+        if min_z < 1:
+            raise ValueError("min_ion_charge must be >= 1")
+        if max_z < min_z:
+            raise ValueError("max_ion_charge must be >= min_ion_charge")
+        # Multi-charge adducts ([M+Na+H]2+, [M+2Na]2+, etc.) are not modeled;
+        # adduct search is single-charge only.
+        if self.isAdduct and max_z > 1:
+            raise ValueError(
+                "isAdduct=True is incompatible with multi-charge formula search "
+                f"(max_ion_charge={max_z}). Set max_ion_charge=1 for adduct "
+                "search, or disable isAdduct for multi-charge protonated/radical "
+                "search."
+            )
 @dataclasses.dataclass
 class LCMSCollectionSettings:
     """Settings for LCMS collection class

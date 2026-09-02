@@ -660,8 +660,6 @@ class MolecularCombinations:
         list
             A list of molecular formula data dictionaries.
         """
-        ion_charge = 0
-
         class_dict = classe_tuple[1]
         odd_or_even = self.get_h_odd_or_even(class_dict)
 
