@@ -23,7 +23,7 @@ Release when `dev` has a coherent set of changes ready for users (features, fixe
 | `make minor` | Backwards-compatible new features |
 | `make major` | Incompatible API changes |
 
-Each of those updates version metadata (see `.bumpversion.cfg`) and regenerates docs via `make docu` (pdoc). The install how-to source is `docs/user/installation.md`, included on the package landing page through `corems.__doc__`.
+Each of those updates version metadata (see `.bumpversion.cfg`) and regenerates docs via `make docu` (UML class diagrams via `make uml` / pyreverse + Graphviz, then pdoc). The install how-to source is `docs/user/installation.md`, included on the package landing page through `corems.__doc__`. Maintainers need the `dev` extra (`pylint`) and system Graphviz (`dot`) installed so `make uml` succeeds during a version bump.
 
 ## Release steps (GitLab)
 
