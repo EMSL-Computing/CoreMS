@@ -1,15 +1,13 @@
 """Generate corems.encapsulation.nist_atoms from a vendored NIST ASCII dump.
 
-Maintainer only. Not imported by formula search. Run via `make nist-atoms`.
-Downloads the NIST dump and errors if the download fails. Writes files only
-if the dump or generated tables changed.
+Maintainer only. Run via `make nist-atoms`. Downloads the NIST dump and errors
+if that fails. Writes files only if the dump or generated tables changed.
 """
 
 from __future__ import annotations
 
 import re
 import ssl
-import sys
 import urllib.error
 import urllib.request
 from collections import defaultdict
@@ -37,7 +35,6 @@ NIST_TABLE_ID = (
 
 MASS_SIGNIFICANT = 1e-7
 ABUNDANCE_SIGNIFICANT = 1e-6
-
 _UNCERT = re.compile(r"\([^)]*\)")
 
 # CHONPS / group order for bare element symbols (formula .string stability).
@@ -64,17 +61,12 @@ HYDROGEN_CANONICAL = {1: "H", 2: "D", 3: "T"}
 @dataclass(frozen=True)
 class Nuclide:
     z: int
-    nist_symbol: str
     element: str
     mass_number: int
     mass: float
     mass_literal: str
     abundance: float
     abundance_literal: str
-
-
-def _field_value(line: str) -> str:
-    return line.split("=", 1)[1].strip()
 
 
 def parse_nist_number(raw: str) -> tuple[float | None, str | None]:
@@ -93,10 +85,9 @@ def _read_header_retrieved(text: str) -> str:
 
 
 def records_body(text: str) -> str:
-    """Return normalized NIST 8-line records, stripping HTML chrome and comments."""
+    """Normalized NIST 8-line records, HTML chrome and comments stripped."""
     lowered = text.lower()
-    start = lowered.find("<pre>")
-    end = lowered.find("</pre>")
+    start, end = lowered.find("<pre>"), lowered.find("</pre>")
     if start != -1 and end != -1:
         text = text[start + len("<pre>") : end]
     text = text.replace("&nbsp;", "")
@@ -114,9 +105,7 @@ def records_body(text: str) -> str:
         lines.append(line.rstrip())
     while lines and not lines[-1].strip():
         lines.pop()
-    if not started:
-        return ""
-    return "\n".join(lines) + "\n"
+    return ("\n".join(lines) + "\n") if started else ""
 
 
 def _ssl_context():
@@ -133,15 +122,11 @@ def fetch_nist_dump() -> str:
         NIST_DUMP_URL,
         headers={"User-Agent": "CoreMS nist-atoms generator"},
     )
-    context = _ssl_context()
     try:
-        with urllib.request.urlopen(request, timeout=60, context=context) as response:
+        with urllib.request.urlopen(
+            request, timeout=60, context=_ssl_context()
+        ) as response:
             raw = response.read()
-            status = getattr(response, "status", None)
-            if status is not None and status >= 400:
-                raise SystemExit(
-                    f"Failed to download NIST dump from {NIST_DUMP_URL}: HTTP {status}"
-                )
     except urllib.error.URLError as exc:
         hint = ""
         if "CERTIFICATE" in str(exc).upper():
@@ -175,54 +160,42 @@ def vendored_header(retrieved: str) -> str:
     )
 
 
+def _nuclide_from_record(rec: dict[str, str]) -> Nuclide | None:
+    mass, mass_lit = parse_nist_number(rec.get("Relative Atomic Mass", ""))
+    abundance, abund_lit = parse_nist_number(rec.get("Isotopic Composition", ""))
+    if mass is None or abundance is None:
+        return None
+    z = int(rec["Atomic Number"])
+    nist_symbol = rec["Atomic Symbol"].strip()
+    return Nuclide(
+        z=z,
+        element="H" if z == 1 else nist_symbol,
+        mass_number=int(rec["Mass Number"]),
+        mass=mass,
+        mass_literal=mass_lit,
+        abundance=abundance,
+        abundance_literal=abund_lit,
+    )
+
+
 def parse_nist(path: Path) -> tuple[list[Nuclide], str]:
     text = path.read_text(encoding="utf-8")
-    retrieved = _read_header_retrieved(text)
-    records: list[dict[str, str]] = []
-    current: dict[str, str] = {}
-    for raw_line in text.splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#"):
-            if current and "Atomic Number" in current:
-                records.append(current)
-                current = {}
-            continue
-        if "=" not in line:
-            continue
-        key, _sep, _rest = line.partition("=")
-        key = key.strip()
-        if key == "Atomic Number" and current:
-            records.append(current)
-            current = {}
-        current[key] = _field_value(line)
-    if current and "Atomic Number" in current:
-        records.append(current)
-
     nuclides: list[Nuclide] = []
-    for rec in records:
-        z = int(rec["Atomic Number"])
-        nist_symbol = rec["Atomic Symbol"].strip()
-        mass_number = int(rec["Mass Number"])
-        mass, mass_lit = parse_nist_number(rec.get("Relative Atomic Mass", ""))
-        abundance, abund_lit = parse_nist_number(rec.get("Isotopic Composition", ""))
-        if mass is None:
+    rec: dict[str, str] = {}
+    for line in records_body(text).splitlines():
+        if not line.strip():
+            n = _nuclide_from_record(rec)
+            if n:
+                nuclides.append(n)
+            rec = {}
             continue
-        if abundance is None:
-            continue
-        element = "H" if z == 1 else nist_symbol
-        nuclides.append(
-            Nuclide(
-                z=z,
-                nist_symbol=nist_symbol,
-                element=element,
-                mass_number=mass_number,
-                mass=mass,
-                mass_literal=mass_lit,
-                abundance=abundance,
-                abundance_literal=abund_lit,
-            )
-        )
-    return nuclides, retrieved
+        if "=" in line:
+            key, _, value = line.partition("=")
+            rec[key.strip()] = value.strip()
+    n = _nuclide_from_record(rec)
+    if n:
+        nuclides.append(n)
+    return nuclides, _read_header_retrieved(text)
 
 
 def canonical_key(n: Nuclide, most_abundant: Nuclide) -> str:
@@ -237,6 +210,13 @@ def nuclide_lookup_key(n: Nuclide) -> str:
     return f"{n.mass_number}{n.element}"
 
 
+def _store(n: Nuclide, key: str, masses: dict, mass_lits: dict, abunds: dict, abund_lits: dict) -> None:
+    masses[key] = n.mass
+    mass_lits[key] = n.mass_literal
+    abunds[key] = n.abundance
+    abund_lits[key] = n.abundance_literal
+
+
 def build_tables(nuclides: list[Nuclide], retrieved: str) -> dict:
     by_element: dict[str, list[Nuclide]] = defaultdict(list)
     for n in nuclides:
@@ -247,25 +227,17 @@ def build_tables(nuclides: list[Nuclide], retrieved: str) -> dict:
     isotopic_abundance: dict[str, float] = {}
     abund_literals: dict[str, str] = {}
     isotopes: dict[str, list] = {}
-    canonical_of: dict[tuple[str, int], str] = {}
 
     for element, group in by_element.items():
         most = max(group, key=lambda n: n.abundance)
+        most_canonical = canonical_key(most, most)
         rares: list[tuple[int, str]] = []
         for n in group:
             ckey = canonical_key(n, most)
+            _store(n, ckey, atomic_masses, mass_literals, isotopic_abundance, abund_literals)
             nkey = nuclide_lookup_key(n)
-            canonical_of[(element, n.mass_number)] = ckey
-            atomic_masses[ckey] = n.mass
-            mass_literals[ckey] = n.mass_literal
-            isotopic_abundance[ckey] = n.abundance
-            abund_literals[ckey] = n.abundance_literal
             if nkey != ckey:
-                atomic_masses[nkey] = n.mass
-                mass_literals[nkey] = n.mass_literal
-                isotopic_abundance[nkey] = n.abundance
-                abund_literals[nkey] = n.abundance_literal
-            most_canonical = canonical_key(most, most)
+                _store(n, nkey, atomic_masses, mass_literals, isotopic_abundance, abund_literals)
             if ckey != most_canonical:
                 rares.append((n.mass_number, ckey))
         rares.sort()
@@ -293,7 +265,7 @@ def build_tables(nuclides: list[Nuclide], retrieved: str) -> dict:
         "atoms_order": atoms_order,
         "mass_literals": mass_literals,
         "abund_literals": abund_literals,
-        "canonical_keys": [k for k in atoms_order],
+        "canonical_keys": list(atoms_order),
     }
 
 
@@ -319,10 +291,8 @@ def _format_str_dict(mapping: dict[str, str], key_order: list[str]) -> str:
 def _format_isotopes(isotopes: dict[str, list], element_order: list[str]) -> str:
     lines = ["{"]
     for element in element_order:
-        if element not in isotopes:
-            continue
-        rares = isotopes[element]
-        lines.append(f"    {element!r}: {rares!r},")
+        if element in isotopes:
+            lines.append(f"    {element!r}: {isotopes[element]!r},")
     lines.append("}")
     return "\n".join(lines)
 
@@ -337,7 +307,8 @@ def _format_list(values: list[str]) -> str:
 
 def render_module(tables: dict) -> str:
     key_order = tables["canonical_keys"]
-    body = f'''"""NIST-pinned atomic masses, abundances, and isotope lists.
+    iso_order = [e for e in tables["atoms_order"] if e in tables["isotopes"]]
+    return f'''"""NIST-pinned atomic masses, abundances, and isotope lists.
 
 Do not edit by hand. Regenerate with `make nist-atoms`.
 
@@ -358,31 +329,25 @@ atomic_masses = {_format_str_dict(tables["mass_literals"], key_order)}
 
 isotopic_abundance = {_format_str_dict(tables["abund_literals"], key_order)}
 
-isotopes = {_format_isotopes(tables["isotopes"], [e for e in tables["atoms_order"] if e in tables["isotopes"]])}
+isotopes = {_format_isotopes(tables["isotopes"], iso_order)}
 
 atoms_order = {_format_list(tables["atoms_order"])}
 '''
-    return body
+
+
+def _exec_module(path: Path) -> dict:
+    ns: dict = {}
+    exec(path.read_text(encoding="utf-8"), ns)
+    return ns
 
 
 def load_previous_tables() -> tuple[dict[str, float], dict[str, float], set[str], str]:
-    if OUTPUT_PY.is_file():
-        ns: dict = {}
-        exec(OUTPUT_PY.read_text(encoding="utf-8"), ns)
-        return (
-            dict(ns["atomic_masses"]),
-            dict(ns["isotopic_abundance"]),
-            set(ns["atoms_order"]),
-            ns.get("NIST_TABLE_ID", "previous nist_atoms.py"),
-        )
-    sys.path.insert(0, str(REPO_ROOT))
-    from corems.encapsulation.constant import Atoms  # noqa: WPS433
-
+    ns = _exec_module(OUTPUT_PY)
     return (
-        dict(Atoms.atomic_masses),
-        dict(Atoms.isotopic_abundance),
-        set(Atoms.atoms_order),
-        "corems.encapsulation.constant.Atoms (pre-NIST module)",
+        dict(ns["atomic_masses"]),
+        dict(ns["isotopic_abundance"]),
+        set(ns["atoms_order"]),
+        ns.get("NIST_TABLE_ID", "previous nist_atoms.py"),
     )
 
 
@@ -393,43 +358,41 @@ def write_changes(
     previous_canonical: set[str],
     previous_id: str,
 ) -> None:
-    new_masses: dict[str, float] = tables["atomic_masses"]
-    new_abund: dict[str, float] = tables["isotopic_abundance"]
+    new_masses = tables["atomic_masses"]
+    new_abund = tables["isotopic_abundance"]
     new_canon = set(tables["canonical_keys"])
     old_canon = set(previous_canonical)
-
     added = sorted(new_canon - old_canon)
     removed = sorted(old_canon - new_canon)
-    shared = sorted(new_canon & old_canon)
 
     all_rows = []
     significant = []
-    for key in shared:
-        old_m = previous_masses.get(key)
-        new_m = new_masses.get(key)
-        old_a = previous_abund.get(key)
-        new_a = new_abund.get(key)
+    for key in sorted(new_canon & old_canon):
+        old_m, new_m = previous_masses.get(key), new_masses.get(key)
+        old_a, new_a = previous_abund.get(key), new_abund.get(key)
         d_m = None if old_m is None or new_m is None else new_m - old_m
         d_a = None if old_a is None or new_a is None else new_a - old_a
-        if (d_m is None or d_m == 0) and (d_a is None or d_a == 0):
+        if not d_m and not d_a:
             continue
-        all_rows.append((key, d_m, d_a, old_m, new_m, old_a, new_a))
-        sig_m = d_m is not None and abs(d_m) >= MASS_SIGNIFICANT
-        sig_a = d_a is not None and abs(d_a) >= ABUNDANCE_SIGNIFICANT
-        if sig_m or sig_a:
-            significant.append((key, d_m, d_a, old_m, new_m, old_a, new_a))
+        row = (key, d_m, d_a, old_m, new_m, old_a, new_a)
+        all_rows.append(row)
+        if (d_m and abs(d_m) >= MASS_SIGNIFICANT) or (
+            d_a and abs(d_a) >= ABUNDANCE_SIGNIFICANT
+        ):
+            significant.append(row)
 
     def fmt_delta(key, d_m, d_a, old_m, new_m, old_a, new_a) -> str:
         bits = [f"- `{key}`"]
         if d_m:
             bits.append(f"mass {old_m} → {new_m} (Δ {d_m:+.8g} u)")
             if abs(d_m) >= 0.5:
-                bits.append(
-                    "(most-abundant nuclide assignment likely changed)"
-                )
+                bits.append("(most-abundant nuclide assignment likely changed)")
         if d_a:
             bits.append(f"abundance {old_a} → {new_a} (Δ {d_a:+.8g})")
         return " ".join(bits)
+
+    def bullets(keys: list[str]) -> list[str]:
+        return [f"- `{k}`" for k in keys] if keys else ["- None"]
 
     lines = [
         "# NIST atoms change log",
@@ -439,11 +402,15 @@ def write_changes(
         "",
         "## Added canonical keys",
         "",
+        *bullets(added),
+        "",
+        "## Removed canonical keys",
+        "",
+        *bullets(removed),
+        "",
+        "## Significant (copy into release notes)",
+        "",
     ]
-    lines.extend(f"- `{k}`" for k in added) if added else lines.append("- None")
-    lines += ["", "## Removed canonical keys", ""]
-    lines.extend(f"- `{k}`" for k in removed) if removed else lines.append("- None")
-    lines += ["", "## Significant (copy into release notes)", ""]
     if significant or added or removed:
         if added:
             lines.append("Added: " + ", ".join(f"`{k}`" for k in added))
@@ -451,14 +418,13 @@ def write_changes(
             lines.append("Removed: " + ", ".join(f"`{k}`" for k in removed))
         lines.extend(fmt_delta(*row) for row in significant)
         if not significant and (added or removed):
-            lines.append("No mass/abundance deltas above threshold; see added/removed above.")
+            lines.append(
+                "No mass/abundance deltas above threshold; see added/removed above."
+            )
     else:
         lines.append("None")
     lines += ["", "## All mass/abundance deltas (canonical keys)", ""]
-    if all_rows:
-        lines.extend(fmt_delta(*row) for row in all_rows)
-    else:
-        lines.append("None")
+    lines.extend(fmt_delta(*row) for row in all_rows) if all_rows else lines.append("None")
     lines.append("")
     CHANGES_MD.write_text("\n".join(lines), encoding="utf-8")
 
@@ -468,11 +434,12 @@ def check_committed_module() -> None:
     tables = build_tables(nuclides, retrieved)
     if not OUTPUT_PY.is_file():
         raise SystemExit(f"missing {OUTPUT_PY}")
-    ns: dict = {}
-    exec(OUTPUT_PY.read_text(encoding="utf-8"), ns)
+    ns = _exec_module(OUTPUT_PY)
     for name in ("atomic_masses", "isotopic_abundance", "isotopes", "atoms_order"):
         if ns[name] != tables[name]:
-            raise SystemExit(f"nist_atoms.py is out of date ({name} mismatch). Run make nist-atoms.")
+            raise SystemExit(
+                f"nist_atoms.py is out of date ({name} mismatch). Run make nist-atoms."
+            )
     if ns.get("NIST_TABLE_ID") != tables["NIST_TABLE_ID"]:
         raise SystemExit("nist_atoms.py NIST_TABLE_ID mismatch. Run make nist-atoms.")
     if ns.get("NIST_DUMP_URL") != tables["NIST_DUMP_URL"]:
@@ -480,14 +447,12 @@ def check_committed_module() -> None:
 
 
 def generate() -> None:
-    fetched = fetch_nist_dump()
-    new_body = records_body(fetched)
+    new_body = records_body(fetch_nist_dump())
     if not new_body:
         raise SystemExit("NIST dump contained no Atomic Number records after HTML strip")
 
     existing_text = NIST_TXT.read_text(encoding="utf-8") if NIST_TXT.is_file() else ""
-    existing_body = records_body(existing_text) if existing_text else ""
-    dump_changed = new_body != existing_body
+    dump_changed = new_body != records_body(existing_text)
 
     if dump_changed:
         retrieved = date.today().isoformat()
@@ -497,30 +462,20 @@ def generate() -> None:
         retrieved = _read_header_retrieved(existing_text)
         print("NIST dump unchanged")
 
-    # Parse the fetched or existing NIST into nuclides
-    nuclides, _header_retrieved = parse_nist(NIST_TXT)
-    tables = build_tables(nuclides, retrieved or _header_retrieved)
+    nuclides, header_retrieved = parse_nist(NIST_TXT)
+    tables = build_tables(nuclides, retrieved or header_retrieved)
     new_module = render_module(tables)
     existing_module = OUTPUT_PY.read_text(encoding="utf-8") if OUTPUT_PY.is_file() else ""
     if not dump_changed and existing_module == new_module:
         print("nist_atoms.py already up to date; no files written")
         return
 
-    previous_masses, previous_abund, previous_canonical, previous_id = (
-        load_previous_tables()
-    )
+    previous = load_previous_tables()
     OUTPUT_PY.write_text(new_module, encoding="utf-8")
-    write_changes(
-        tables, previous_masses, previous_abund, previous_canonical, previous_id
-    )
+    write_changes(tables, *previous)
     print(f"Wrote {OUTPUT_PY.relative_to(REPO_ROOT)}")
     print(f"Wrote {CHANGES_MD.relative_to(REPO_ROOT)}")
 
 
-def main() -> int:
-    generate()
-    return 0
-
-
 if __name__ == "__main__":
-    raise SystemExit(main())
+    generate()
