@@ -180,7 +180,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
     def add_mspeak(
         self,
-        ion_charge,
+        polarity,
         mz_exp,
         abundance,
         resolving_power,
@@ -188,13 +188,16 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         massspec_indexes,
         exp_freq=None,
         ms_parent=None,
+        **kwargs,
     ):
         """Add a new MSPeak object to the MassSpectrum object.
 
         Parameters
         ----------
-        ion_charge : int
-            The ion charge of the MSPeak.
+        polarity : int
+            Acquisition polarity of the MSPeak (``+1`` or ``-1``).
+            Do **not** pass ``ion_charge``; peaks store polarity only.
+            Assignment charge lives on ``MolecularFormula.ion_charge``.
         mz_exp : float
             The experimental m/z value of the MSPeak.
         abundance : float
@@ -209,9 +212,27 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             The experimental frequency of the MSPeak. Defaults to None.
         ms_parent : MSParent, optional
             The MSParent object associated with the MSPeak. Defaults to None.
+
+        Raises
+        ------
+        TypeError
+            If ``ion_charge`` is passed (removed; use ``polarity``), or if any
+            other unexpected keyword argument is given.
         """
+        if "ion_charge" in kwargs:
+            raise TypeError(
+                "add_mspeak() no longer accepts ion_charge=...; pass polarity "
+                "(±1) instead. Peaks store acquisition polarity only. Assignment "
+                "charge belongs on MolecularFormula.ion_charge after formula matching."
+            )
+        if kwargs:
+            unexpected = ", ".join(sorted(kwargs))
+            raise TypeError(
+                f"add_mspeak() got unexpected keyword argument(s): {unexpected}"
+            )
+
         mspeak = MSPeak(
-            ion_charge,
+            polarity,
             mz_exp,
             abundance,
             resolving_power,
@@ -799,7 +820,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         indexes_to_remove = [
             index
             for index, mspeak in enumerate(self.mspeaks)
-            if mspeak.resolving_power >= rpe(mspeak.mz_exp, mspeak.ion_charge)
+            if mspeak.resolving_power >= rpe(mspeak.mz_exp, mspeak.polarity)
         ]
         self.filter_by_index(indexes_to_remove)
 
@@ -1602,7 +1623,8 @@ class MassSpecCentroid(MassSpecBase):
         # mspeak objs are usually added inside the PeaKPicking class
         # for profile and freq based data
         data_dict = self.data_dict
-        ion_charge = self.polarity
+        # Peak polarity only (±1); formula assignment charge is separate.
+        peak_polarity = self.polarity
 
         # Check if resolving power is present
         rp_present = True
@@ -1659,7 +1681,7 @@ class MassSpecCentroid(MassSpecBase):
                 and abun[index] / factor >= abundance_threshold
             ):
                 self.add_mspeak(
-                    ion_charge,
+                    peak_polarity,
                     mz,
                     abun[index],
                     rp_i,
@@ -1672,7 +1694,7 @@ class MassSpecCentroid(MassSpecBase):
                 and s2n_i >= self.parameters.mass_spectrum.noise_threshold_min_s2n
             ):
                 self.add_mspeak(
-                    ion_charge,
+                    peak_polarity,
                     mz,
                     abun[index],
                     rp_i,
