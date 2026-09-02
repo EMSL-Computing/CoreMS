@@ -193,9 +193,15 @@ class SimilarityEngine:
         Fragment m/z tolerance (Da) for spectrum cleaning and similarity
         scoring.  Resolution priority: explicit kwarg > extracted from
         *fe_lib* > 0.01 Da fallback.
-    entropy_threshold_low : float
+    entropy_threshold_low : float or None, optional
         Minimum entropy similarity score required to trigger additional
-        metric computation.  Default 0.1.
+        metric computation.  If None and *settings* does not supply a value,
+        default is 0.1.
+    settings : SpectralSimilaritySearchSettings, optional
+        Encapsulated spectral-similarity defaults (for example
+        ``lcms.parameters.mass_spectrum["ms2"].spectral_similarity_search``).
+        When provided, fills any constructor fields left as ``None``.
+        Explicit keyword arguments always override *settings*.
 
     Attributes
     ----------
@@ -214,9 +220,11 @@ class SimilarityEngine:
     **Tolerance resolution order** (highest priority first):
 
     1. Explicit *ms2_tolerance_da* kwarg.
-    2. ``fe_lib.entropy_search.max_ms2_tolerance_in_da`` (when *fe_lib* is
+    2. *settings.ms2_tolerance_da* when *settings* is provided and the kwarg
+       is omitted.
+    3. ``fe_lib.entropy_search.max_ms2_tolerance_in_da`` (when *fe_lib* is
        not ``None``).
-    3. Hard-coded fallback of 0.01 Da.
+    4. Hard-coded fallback of 0.01 Da.
 
     **Precursor filter behaviour by search type:**
 
@@ -236,12 +244,33 @@ class SimilarityEngine:
     def __init__(
         self,
         fe_lib,
-        search_type: str = "open",
+        search_type: str | None = None,
         additional_similarities: list[str] | None = None,
         ms1_tolerance_da: float | None = None,
         ms2_tolerance_da: float | None = None,
-        entropy_threshold_low: float = 0.1,
+        entropy_threshold_low: float | None = None,
+        settings=None,
     ):
+        if settings is not None:
+            if search_type is None:
+                search_type = settings.search_type
+            if additional_similarities is None:
+                additional_similarities = list(settings.additional_similarities)
+            if ms1_tolerance_da is None:
+                ms1_tolerance_da = settings.ms1_tolerance_da
+            if ms2_tolerance_da is None:
+                ms2_tolerance_da = settings.ms2_tolerance_da
+            if (
+                entropy_threshold_low is None
+                and settings.entropy_threshold_low is not None
+            ):
+                entropy_threshold_low = settings.entropy_threshold_low
+            self._settings = settings
+        else:
+            self._settings = None
+
+        if search_type is None:
+            search_type = "open"
         if search_type not in _FE_METHOD_MAP:
             raise ValueError(
                 f"search_type must be one of {list(_FE_METHOD_MAP.keys())}, "
@@ -272,7 +301,9 @@ class SimilarityEngine:
         self.peak_sep_da = 2 * self.ms2_tolerance_da
         self.ms1_tolerance_da = ms1_tolerance_da if ms1_tolerance_da is not None else 0.01
 
-        self.entropy_threshold_low = entropy_threshold_low
+        self.entropy_threshold_low = (
+            entropy_threshold_low if entropy_threshold_low is not None else 0.1
+        )
 
     # ── Internal helpers ──────────────────────────────────────────────────────
 

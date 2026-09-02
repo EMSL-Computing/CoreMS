@@ -7,6 +7,39 @@ from typing import List, Dict
 
 from corems.encapsulation.constant import Atoms, Labels
 
+# Field metadata: omit from JSON/TOML parameter export (in-memory back-compat only).
+LEGACY_PARAMETER = "legacy"
+
+
+def legacy_field(default, **kwargs):
+    """``dataclasses.field`` that marks a setting as legacy (not exported).
+
+    Use for in-memory / back-compat aliases that must not appear in
+    parameter JSON/TOML when settings are dumped. Export paths should use
+    :func:`settings_to_export_dict` (or equivalent) so this metadata is honored.
+    """
+    metadata = dict(kwargs.pop("metadata", {}) or {})
+    metadata[LEGACY_PARAMETER] = True
+    return dataclasses.field(default=default, metadata=metadata, **kwargs)
+
+
+def settings_to_export_dict(settings_obj) -> dict:
+    """Serialize settings for parameter export; skip fields marked legacy.
+
+    Fields defined with :func:`legacy_field` (metadata
+    ``LEGACY_PARAMETER=True``) are omitted. Used by LCMS parameter dump so
+    old annotation knobs on ``LiquidChromatographSetting`` are not rewritten
+    into TOML/JSON after migration to ``spectral_similarity_search``.
+    """
+    if not dataclasses.is_dataclass(settings_obj) or isinstance(settings_obj, type):
+        return dict(getattr(settings_obj, "__dict__", {}))
+    out = {}
+    for f in dataclasses.fields(settings_obj):
+        if f.metadata.get(LEGACY_PARAMETER, False):
+            continue
+        out[f.name] = getattr(settings_obj, f.name)
+    return out
+
 
 def validate_used_atoms_keys(used_atoms):
     """Validate that usedAtoms keys are element symbols, not rare isotopes.
@@ -316,15 +349,13 @@ class LiquidChromatographSetting:
         Default is 0.05.
     ms2_min_fe_score : float, optional
         Minimum flash entropy for retaining MS2 annotations.
-        Called within the LCMSSpectralSearch.fe_search() method.
+        Legacy; prefer ``mass_spectrum["ms2"].spectral_similarity_search.ms2_min_fe_score``.
         Default is 0.2.
     search_as_lipids : bool, optional
-        If True, prepare the database for lipid searching.
-        Called within the LCMSSpectralSearch.fe_prep_search_db() method.
+        Legacy lipid-search flag; prefer ``mass_spectrum["ms2"].spectral_similarity_search``.
         Default is False.
     include_fragment_types : bool, optional
-        If True, include fragment types in the database.
-        Called within the LCMSSpectralSearch.fe_search() and related methods.
+        Legacy fragment-type flag; prefer ``mass_spectrum["ms2"].spectral_similarity_search``.
         Default is False.
     export_profile_spectra : bool, optional
         If True, export profile spectra data.
@@ -411,10 +442,10 @@ class LiquidChromatographSetting:
     ms2_dda_rt_tolerance: float = 0.15
     ms2_dda_mz_tolerance: float = 0.05
 
-    # Parameters used for flash entropy searching and database preparation
-    ms2_min_fe_score: float = 0.2
-    search_as_lipids: bool = False
-    include_fragment_types: bool = False
+    # Legacy MS2 spectral annotation aliases (not exported; prefer MSParameters.spectral_similarity_search)
+    ms2_min_fe_score: float = legacy_field(0.2)
+    search_as_lipids: bool = legacy_field(False)
+    include_fragment_types: bool = legacy_field(False)
 
     # Parameters used for saving the data
     export_profile_spectra: bool = False
@@ -439,6 +470,78 @@ class LiquidChromatographSetting:
             if not isinstance(value, field.type):
                 value = field.type(value)
                 setattr(self, field.name, value)
+
+
+@dataclasses.dataclass
+class SpectralSimilaritySearchSettings:
+    """Parameters for using spectral similarity to search spectra against a library of reference spectra (including within molecular networking).
+
+    Lives on :class:`~corems.encapsulation.factory.parameters.MSParameters`
+    as ``spectral_similarity_search`` (e.g. ``lcms.parameters.mass_spectrum["ms2"].spectral_similarity_search``).
+
+    Not used for MS2 *molecular formula* search
+    (``mass_spectrum[key].molecular_search``).
+    """
+
+    # --- FlashEntropy library build (intensity normalize always on) ---
+    max_ms2_tolerance_in_da: float = 0.01
+    max_indexed_mz: float = 3000.0
+    precursor_ions_removal_da: float | None = None
+    noise_threshold: float = 0.0
+
+    # --- Annotation ---
+    ms2_min_fe_score: float = 0.2
+    include_fragment_types: bool = False
+    search_as_lipids: bool = False
+    peak_sep_da: float | None = None
+
+    # --- Molecular networking ---
+    search_type: str = "open"
+    additional_similarities: list = dataclasses.field(
+        default_factory=lambda: ["cosine"]
+    )
+    similarity_thresholds: dict = dataclasses.field(default_factory=dict)
+    ms1_tolerance_da: float | None = None
+    ms2_tolerance_da: float | None = None
+    entropy_threshold_low: float | None = None
+    library_similarity_threshold: float = 0.3
+    hydrate_library_similarities: bool = False
+
+    def __post_init__(self):
+        if self.additional_similarities is not None:
+            self.additional_similarities = list(self.additional_similarities)
+        if self.similarity_thresholds is not None:
+            self.similarity_thresholds = dict(self.similarity_thresholds)
+
+    @property
+    def min_ms2_difference_in_da(self) -> float:
+        """Minimum peak separation (Da); always ``2 * max_ms2_tolerance_in_da``."""
+        return 2.0 * float(self.max_ms2_tolerance_in_da)
+
+    def copy(self) -> "SpectralSimilaritySearchSettings":
+        """Return a copy with mutable list/dict fields isolated."""
+        return dataclasses.replace(
+            self,
+            additional_similarities=list(self.additional_similarities),
+            similarity_thresholds=dict(self.similarity_thresholds),
+        )
+
+    def as_fe_kwargs(self) -> dict:
+        """FlashEntropy library-build kwargs (historical ``fe_kwargs`` shape)."""
+        return {
+            "min_ms2_difference_in_da": self.min_ms2_difference_in_da,
+            "max_ms2_tolerance_in_da": self.max_ms2_tolerance_in_da,
+            "max_indexed_mz": self.max_indexed_mz,
+            "precursor_ions_removal_da": self.precursor_ions_removal_da,
+            "noise_threshold": self.noise_threshold,
+        }
+
+    @property
+    def resolved_peak_sep_da(self) -> float:
+        """Peak separation (Da) for annotation search."""
+        if self.peak_sep_da is not None:
+            return float(self.peak_sep_da)
+        return float(self.min_ms2_difference_in_da)
 
 
 @dataclasses.dataclass

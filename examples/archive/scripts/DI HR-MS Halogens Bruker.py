@@ -11,7 +11,6 @@ from numpy import unique
 
 from corems import SuppressPrints, get_dirnames
 from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
-from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.mass_spectrum.calc.MassErrorPrediction import MassErrorPrediction
