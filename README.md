@@ -68,7 +68,7 @@ CoreMS aims to provide
 - **Installation source:** [docs/user/installation.md](./docs/user/installation.md) (also rendered into the pdoc landing page via `corems.__doc__`)
 - **Overview slides:** [CoreMS-Overview.pdf](https://github.com/EMSL-Computing/CoreMS/blob/master/examples/CoreMS-Overview.pdf)
 
-Build local docs: `make docu`, then open `docs/corems.html`.
+Build local docs: `just docu`, then open `docs/corems.html`.
 
 ***
 
@@ -204,16 +204,16 @@ CoreMS provides a Dockerfile that packages the entire application (including .NE
 
 ### Building the Docker Image
 
-The Makefile provides convenience targets for building the image. The image is tagged with the current version from `.bumpversion.cfg`.
+The [justfile](./justfile) provides convenience recipes for building the image (install `just` first — see <https://just.systems>). The image is tagged with the current version from `.bumpversion.cfg`.
 
 **On Linux/Windows (standard build):**
 ```bash
-make build-image-local
+just build-image-local
 ```
 
 **On macOS (cross-platform build for linux/amd64):**
 ```bash
-make build-image-mac-local
+just build-image-mac-local
 ```
 
 This runs `docker build` with the `--platform linux/amd64` flag, which is necessary when building on Apple Silicon (M1/M2/M3) Macs to ensure compatibility.
@@ -238,12 +238,12 @@ The Dockerfile performs the following steps:
 
 **On Linux/Windows:**
 ```bash
-make image-run-local
+just image-run-local
 ```
 
 **On macOS:**
 ```bash
-make image-run-mac-local
+just image-run-mac-local
 ```
 
 This launches an interactive bash shell inside the container:
@@ -266,21 +266,21 @@ Your files will then be accessible at `/data` inside the container.
 
 ### Managing the PostgreSQL Database with Docker Compose
 
-The `docker-compose.yml` file defines a PostgreSQL database service for CoreMS. The Makefile provides targets to manage it:
+The `docker-compose.yml` file defines a PostgreSQL database service for CoreMS. The [justfile](./justfile) provides recipes to manage it:
 
 **Start the database:**
 ```bash
-make db-up
+just db-up
 ```
 
 **Stop the database:**
 ```bash
-make db-down
+just db-down
 ```
 
 **View database logs:**
 ```bash
-make db-logs
+just db-logs
 ```
 
 These are equivalent to running `docker-compose up -d`, `docker-compose down`, and `docker-compose logs -f` respectively.

@@ -107,7 +107,7 @@ exclude_lines = [
 ]
 
 # ---------------------------------------------------------------------------
-# Pylint (release / maintainer lint via `make lint`; see RELEASE.md)
+# Pylint (release / maintainer lint via `just lint`; see RELEASE.md)
 # Disable high-volume project-wide style debt so the report is reviewable.
 # Tighten this list over time as the codebase is cleaned up.
 # ---------------------------------------------------------------------------
