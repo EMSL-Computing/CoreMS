@@ -33,7 +33,12 @@ All release steps should be done on the `dev` branch and then merged into `maste
    - Gitlab CI green on `dev`.
    - Changelog or release notes drafted (these will be copied into the MR description and later into the release on GitHub).
    - No open blockers for the intended version.
-   - **Lint the package** (advisory maintainer review; not a hard CI gate):
+   - Check the pinned NIST atom tables **before linting** (does **not** re-download or regenerate):
+     ```bash
+     make nist-atoms-check
+     ```
+     If `corems/encapsulation/nist_atoms.py` changed since the last tagged release, copy the **Significant** subsection from `tools/nist_atoms/CHANGES.md` into the release notes. Do not run `make nist-atoms` as a side effect of `make patch|minor|major`. Updating NIST is a separate feature MR: run `make nist-atoms` (it downloads the dump, errors if that fails, and writes files only if the dump or generated tables changed), then review the dict diff and change log, then lint.
+   - **Lint the package** (advisory maintainer review; not a hard CI gate). Run this after the NIST pin check so pylint sees the committed `nist_atoms.py`:
      1. Activate the same environment you use for CoreMS development and install/update dev extras so `pylint` is available, e.g.:
         ```bash
         pip install -e ".[dev]"

@@ -4,7 +4,7 @@ parameters_path = parameter.json
 LIPIDOMICS_SQLITE_URL ?= https://nmdcdemo.emsl.pnnl.gov/lipidomics/parameter_files/202412_lipid_ref.sqlite
 LIPIDOMICS_SQLITE_PATH ?= tests/tests_data/lcms/202412_lipid_ref.sqlite
 
-.PHONY: download-lipidomics-db ci-test-source ci-test-notebooks ci-test-all test-pytest-xdist test-notebooks ci-test uml docu lint lint-all
+.PHONY: download-lipidomics-db ci-test-source ci-test-notebooks ci-test-all test-pytest-xdist test-notebooks ci-test uml docu lint lint-all nist-atoms nist-atoms-check
 
 # ----------------------------------------------------------------------
 # Platform-specific logic
@@ -142,6 +142,13 @@ db-logs:
 db-connect:
 
 	@docker exec -it molformdb psql -U postgres
+
+# Downloads the NIST dump (errors if that fails). No-op if dump and tables match.
+nist-atoms:
+	$(PYTHON) tools/nist_atoms/generate.py
+
+nist-atoms-check:
+	$(PYTHON) tools/nist_atoms/generate.py --check
 
 uml:
 	@$(PYTHON) docs/generate_uml.py
