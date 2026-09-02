@@ -311,14 +311,16 @@ def render_module(tables: dict) -> str:
     return f'''"""NIST-pinned atomic masses, abundances, and isotope lists.
 
 Do not edit by hand. Regenerate with `make nist-atoms`.
+Public lookup API is ``corems.encapsulation.constant.Atoms``.
 
 Hydrogen aliases: H/1H, D/2H.
 Most-abundant nuclides are stored under both the bare symbol and the
 mass-number key (C and 12C). Formula strings use canonical keys only.
 
-``isotopes`` maps an element symbol to rare-nuclide keys, or ``[None]``
-when there is no heavy isotope (same sentinel ``Atoms`` already uses).
-English names are not a NIST field; see ``Atoms.element_names``.
+``isotopes`` here is a list of rare-nuclide keys, or ``[None]`` when there
+is no heavy isotope. Do not use this dict as ``Atoms.isotopes`` (that
+value is ``[English name, rare keys]``). English names are not a NIST
+field; see ``Atoms.element_names``.
 """
 
 NIST_TABLE_ID = {tables["NIST_TABLE_ID"]!r}
@@ -360,14 +362,18 @@ def write_changes(
 ) -> None:
     new_masses = tables["atomic_masses"]
     new_abund = tables["isotopic_abundance"]
-    new_canon = set(tables["canonical_keys"])
-    old_canon = set(previous_canonical)
-    added = sorted(new_canon - old_canon)
-    removed = sorted(old_canon - new_canon)
+    new_order = set(tables["canonical_keys"])
+    old_order = set(previous_canonical)
+    old_lookup = set(previous_masses)
+    new_lookup = set(new_masses)
+
+    added_formula = sorted(new_order - old_order)
+    deleted_library = sorted(old_lookup - new_lookup)
+    aliases_retained = sorted(new_lookup - new_order)
 
     all_rows = []
     significant = []
-    for key in sorted(new_canon & old_canon):
+    for key in sorted(new_lookup & old_lookup):
         old_m, new_m = previous_masses.get(key), new_masses.get(key)
         old_a, new_a = previous_abund.get(key), new_abund.get(key)
         d_m = None if old_m is None or new_m is None else new_m - old_m
@@ -394,36 +400,88 @@ def write_changes(
     def bullets(keys: list[str]) -> list[str]:
         return [f"- `{k}`" for k in keys] if keys else ["- None"]
 
+    def csv_keys(keys: list[str]) -> str:
+        return ", ".join(f"`{k}`" for k in keys)
+
+    breaking = []
+    for key, d_m, d_a, old_m, new_m, old_a, new_a in significant:
+        if d_m and abs(d_m) >= 0.5:
+            old_alias = next(
+                (
+                    k
+                    for k in new_lookup
+                    if k != key and new_masses.get(k) == old_m
+                ),
+                None,
+            )
+            extra = f" Look up `{old_alias}` for the old mass." if old_alias else ""
+            breaking.append(
+                f"- Bare `{key}` is now mass {new_m} (Δ {d_m:+.8g} u).{extra}"
+            )
+    if deleted_library:
+        breaking.append(
+            "- Deleted from the library (no mass lookup): " + csv_keys(deleted_library)
+        )
+    if added_formula:
+        breaking.append(
+            "- New rare formula-string keys expand in IsoSpec when those "
+            "elements are in `usedAtoms`."
+        )
+    left_order = sorted((old_order - new_order) & new_lookup)
+    if left_order:
+        reassigned = [
+            key
+            for key, d_m, d_a, old_m, new_m, old_a, new_a in significant
+            if d_m and abs(d_m) >= 0.5
+        ]
+        example = next(
+            (k for k in left_order if any(k.endswith(el) for el in reassigned)),
+            left_order[0],
+        )
+        breaking.append(
+            "- Lookup aliases not in `atoms_order` will not reimport as "
+            f"mass-list columns (e.g. `{example}`). Remaining bare-symbol "
+            "counts use the new most-abundant mass."
+        )
+
     lines = [
         "# NIST atoms change log",
         "",
         f"Previous: {previous_id}",
         f"New: {tables['NIST_TABLE_ID']} (retrieved {tables['NIST_RETRIEVED']})",
         "",
-        "## Added canonical keys",
+        "## Breaking",
         "",
-        *bullets(added),
+        *(breaking if breaking else ["- None"]),
         "",
-        "## Removed canonical keys",
+        "## Added formula-string keys",
         "",
-        *bullets(removed),
+        *bullets(added_formula),
+        "",
+        "## Deleted from the library",
+        "",
+        *bullets(deleted_library),
+        "",
+        "## Lookup aliases retained (not in atoms_order)",
+        "",
+        *bullets(aliases_retained),
         "",
         "## Significant (copy into release notes)",
         "",
     ]
-    if significant or added or removed:
-        if added:
-            lines.append("Added: " + ", ".join(f"`{k}`" for k in added))
-        if removed:
-            lines.append("Removed: " + ", ".join(f"`{k}`" for k in removed))
+    if significant or added_formula or deleted_library:
+        if deleted_library:
+            lines.append("Deleted from the library: " + csv_keys(deleted_library))
+        if added_formula:
+            lines.append("Added formula-string keys: " + csv_keys(added_formula))
         lines.extend(fmt_delta(*row) for row in significant)
-        if not significant and (added or removed):
+        if not significant and (added_formula or deleted_library):
             lines.append(
-                "No mass/abundance deltas above threshold; see added/removed above."
+                "No mass/abundance deltas above threshold; see deleted/added above."
             )
     else:
         lines.append("None")
-    lines += ["", "## All mass/abundance deltas (canonical keys)", ""]
+    lines += ["", "## All mass/abundance deltas (lookup keys)", ""]
     lines.extend(fmt_delta(*row) for row in all_rows) if all_rows else lines.append("None")
     lines.append("")
     CHANGES_MD.write_text("\n".join(lines), encoding="utf-8")

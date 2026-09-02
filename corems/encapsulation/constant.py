@@ -51,17 +51,24 @@ class Labels:  # pragma: no cover
 class Atoms:  # pragma: no cover
     """Class for Atoms in CoreMS
 
-    This class includes key properties of atoms (and the electron) and isotopes, including their exact masses, relative abundances, and covalences.
-    It also associates which isotopes are for the same element, and provides an ordering of elements.
+    Public API for exact masses, isotopic abundances, rare-isotope lists,
+    formula-string order, English names, and covalence. Do not use
+    ``nist_atoms.isotopes`` as ``Atoms.isotopes``: the generated module stores
+    a list of rare keys (or ``[None]``); this class stores
+    ``[English name, rare keys]``.
 
-    IUPAC definition of monoisotopic mass is based on the most abundant isotopes of each element present.
-    Bare element symbols are the most abundant isotope (C, Cl). Rare isotopes use
-    mass-number keys (13C, 37Cl). Hydrogen uses H and D. Masses and abundances
-    may also be looked up by nuclide key (12C, 1H).
+    IUPAC monoisotopic mass uses the most abundant isotope of each element.
+    Bare element symbols are the most abundant isotope (C, Cl). Rare isotopes
+    use mass-number keys (13C, 37Cl). Hydrogen uses H and D. Masses and
+    abundances may also be looked up by nuclide key (12C, 1H). Formula strings
+    and mass-list columns use ``atoms_order`` (canonical keys only).
 
-    Masses, abundances, rare-isotope lists, and atoms_order are generated from a
-    pinned NIST snapshot. See corems.encapsulation.nist_atoms. English element
-    names and covalence are hand-maintained (NIST does not publish names).
+    Masses, abundances, rare lists, and ``atoms_order`` come from a pinned NIST
+    snapshot (``corems.encapsulation.nist_atoms``). English names and covalence
+    are hand-maintained. ``Atoms.isotopes`` membership is not enough to search
+    an element: ``usedAtoms`` still needs a valence in
+    ``used_atom_valences`` (usually from ``atoms_covalence``). Pin deltas
+    and breaking notes are in ``tools/nist_atoms/CHANGES.md``.
 
     References
     ----------

@@ -193,3 +193,54 @@ def test_generate_writes_nothing_when_dump_and_module_match():
     assert gen.NIST_TXT.read_text(encoding="utf-8") == vendored
     assert gen.OUTPUT_PY.read_text(encoding="utf-8") == module_before
     assert gen.CHANGES_MD.stat().st_mtime == changes_mtime
+
+
+def test_write_changes_separates_deleted_from_lookup_aliases(tmp_path):
+    """atoms_order-only drops must not be listed as deleted from the library."""
+    gen = _load_generate_module()
+    gen.CHANGES_MD = tmp_path / "CHANGES.md"
+    tables = {
+        "NIST_TABLE_ID": "new-pin",
+        "NIST_RETRIEVED": "2026-09-02",
+        "atomic_masses": {
+            "C": 12.0,
+            "Cd": 113.9,
+            "114Cd": 113.9,
+            "112Cd": 111.9,
+            "12C": 12.0,
+        },
+        "isotopic_abundance": {
+            "C": 0.99,
+            "Cd": 0.2873,
+            "114Cd": 0.2873,
+            "112Cd": 0.2413,
+            "12C": 0.99,
+        },
+        "canonical_keys": ["C", "Cd", "112Cd"],
+    }
+    gen.write_changes(
+        tables,
+        {"C": 12.0, "Cd": 111.9, "114Cd": 113.9, "T": 3.016},
+        {"C": 0.99, "Cd": 0.2413, "114Cd": 0.2873, "T": 0.0},
+        {"C", "Cd", "114Cd"},
+        "previous-pin",
+    )
+    text = gen.CHANGES_MD.read_text(encoding="utf-8")
+    breaking = text.split("## Breaking")[1].split("##")[0]
+    assert "Bare `Cd`" in breaking
+    assert "`112Cd`" in breaking
+    assert "Deleted from the library" in breaking
+    assert "`T`" in breaking
+    assert "mass-list columns" in breaking
+    assert "`114Cd`" in breaking
+    assert "## Deleted from the library" in text
+    assert "- `T`" in text.split("## Deleted from the library")[1].split("##")[0]
+    assert "## Lookup aliases retained (not in atoms_order)" in text
+    alias_block = text.split("## Lookup aliases retained (not in atoms_order)")[1].split("##")[0]
+    assert "`114Cd`" in alias_block
+    significant = text.split("## Significant (copy into release notes)")[1].split("##")[0]
+    assert "Deleted from the library: `T`" in significant
+    assert "Removed:" not in significant
+    assert "`114Cd`" not in significant
+    assert "`Cd`" in significant
+    assert "most-abundant nuclide assignment likely changed" in significant

@@ -3,7 +3,14 @@
 Previous: corems.encapsulation.constant.Atoms (pre-NIST module)
 New: Coursey et al. Atomic Weights and Isotopic Compositions version 4.1. https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses (retrieved 2026-09-02)
 
-## Added canonical keys
+## Breaking
+
+- Bare `Cd` is now mass 113.90336509 (Δ +2.0006022 u). Look up `112Cd` for the old mass.
+- Deleted from the library (no mass lookup): `145Pm`, `147Pm`, `14C`, `209Po`, `210At`, `210Po`, `211At`, `211Rn`, `220Rn`, `222Rn`, `223Fr`, `223Ra`, `224Ra`, `226Ra`, `227Ac`, `228Ra`, `230Th`, `233U`, `236Np`, `236U`, `237Np`, `238Pu`, `239Pu`, `240Pu`, `241Am`, `241Pu`, `242Pu`, `243Am`, `243Cm`, `244Cm`, `244Pu`, `245Cm`, `246Cm`, `247Bk`, `247Cm`, `248Cm`, `249Bk`, `249Cf`, `250Cf`, `251Cf`, `252Cf`, `252Es`, `257Fm`, `258Md`, `259No`, `260Md`, `262Lr`, `267Rf`, `268Db`, `270Hs`, `271Sg`, `272Bh`, `276Mt`, `280Rg`, `281Ds`, `284Nh`, `285Cn`, `288Mc`, `289Fl`, `292Ts`, `293Lv`, `294Og`, `T`, `Tc`
+- New rare formula-string keys expand in IsoSpec when those elements are in `usedAtoms`.
+- Lookup aliases not in `atoms_order` will not reimport as mass-list columns (e.g. `114Cd`). Remaining bare-symbol counts use the new most-abundant mass.
+
+## Added formula-string keys
 
 - `136Ce`
 - `138Ce`
@@ -64,75 +71,171 @@ New: Coursey et al. Atomic Weights and Isotopic Compositions version 4.1. https:
 - `78Kr`
 - `84Sr`
 
-## Removed canonical keys
+## Deleted from the library
 
+- `145Pm`
+- `147Pm`
+- `14C`
+- `209Po`
+- `210At`
+- `210Po`
+- `211At`
+- `211Rn`
+- `220Rn`
+- `222Rn`
+- `223Fr`
+- `223Ra`
+- `224Ra`
+- `226Ra`
+- `227Ac`
+- `228Ra`
+- `230Th`
+- `233U`
+- `236Np`
+- `236U`
+- `237Np`
+- `238Pu`
+- `239Pu`
+- `240Pu`
+- `241Am`
+- `241Pu`
+- `242Pu`
+- `243Am`
+- `243Cm`
+- `244Cm`
+- `244Pu`
+- `245Cm`
+- `246Cm`
+- `247Bk`
+- `247Cm`
+- `248Cm`
+- `249Bk`
+- `249Cf`
+- `250Cf`
+- `251Cf`
+- `252Cf`
+- `252Es`
+- `257Fm`
+- `258Md`
+- `259No`
+- `260Md`
+- `262Lr`
+- `267Rf`
+- `268Db`
+- `270Hs`
+- `271Sg`
+- `272Bh`
+- `276Mt`
+- `280Rg`
+- `281Ds`
+- `284Nh`
+- `285Cn`
+- `288Mc`
+- `289Fl`
+- `292Ts`
+- `293Lv`
+- `294Og`
+- `T`
+- `Tc`
+
+## Lookup aliases retained (not in atoms_order)
+
+- `102Ru`
+- `103Rh`
 - `106Pd`
+- `107Ag`
 - `114Cd`
 - `115In`
+- `11B`
 - `120Sn`
 - `121Sb`
+- `127I`
+- `12C`
 - `130Te`
 - `132Xe`
+- `133Cs`
 - `138Ba`
+- `139La`
+- `140Ce`
+- `141Pr`
+- `142Nd`
+- `14N`
+- `152Sm`
+- `153Eu`
+- `158Gd`
+- `159Tb`
+- `164Dy`
+- `165Ho`
+- `166Er`
+- `169Tm`
+- `16O`
+- `174Yb`
+- `175Lu`
 - `180Hf`
+- `181Ta`
 - `184W`
 - `187Re`
-- `192Ir`
 - `192Os`
+- `193Ir`
 - `195Pt`
+- `197Au`
+- `19F`
+- `1H`
 - `202Hg`
 - `205Tl`
 - `208Pb`
+- `209Bi`
+- `20Ne`
+- `231Pa`
+- `232Th`
+- `238U`
+- `23Na`
+- `24Mg`
+- `27Al`
+- `28Si`
+- `2H`
+- `31P`
+- `32S`
+- `35Cl`
+- `39K`
+- `40Ar`
 - `40Ca`
+- `45Sc`
+- `48Ti`
+- `4He`
+- `51V`
+- `52Cr`
+- `55Mn`
+- `56Fe`
+- `58Ni`
+- `59Co`
+- `63Cu`
+- `64Zn`
+- `69Ga`
+- `74Ge`
+- `75As`
+- `79Br`
+- `7Li`
+- `80Se`
+- `84Kr`
 - `85Rb`
 - `88Sr`
-- `Ac`
-- `Am`
-- `At`
-- `Bh`
-- `Bk`
-- `Cf`
-- `Cm`
-- `Cn`
-- `Db`
-- `Ds`
-- `Es`
-- `Fl`
-- `Fm`
-- `Fr`
-- `Hs`
-- `Lr`
-- `Lv`
-- `Mc`
-- `Md`
-- `Mt`
-- `Nh`
-- `No`
-- `Np`
-- `Og`
-- `Pm`
-- `Po`
-- `Pu`
-- `Ra`
-- `Rf`
-- `Rg`
-- `Rn`
-- `Sg`
-- `Tc`
-- `Ts`
+- `89Y`
+- `90Zr`
+- `93Nb`
+- `98Mo`
+- `9Be`
 
 ## Significant (copy into release notes)
 
-Added: `136Ce`, `138Ce`, `138La`, `142Ce`, `143Nd`, `144Nd`, `144Sm`, `145Nd`, `146Nd`, `147Sm`, `148Nd`, `148Sm`, `149Sm`, `150Nd`, `150Sm`, `151Eu`, `152Gd`, `154Gd`, `154Sm`, `155Gd`, `156Dy`, `156Gd`, `157Gd`, `158Dy`, `160Dy`, `160Gd`, `161Dy`, `162Dy`, `162Er`, `163Dy`, `164Er`, `167Er`, `168Er`, `168Yb`, `170Er`, `170Yb`, `171Yb`, `172Yb`, `173Yb`, `176Lu`, `176Yb`, `180Ta`, `21Ne`, `234U`, `235U`, `36Ar`, `38Ar`, `3He`, `40K`, `42Ca`, `43Ca`, `46Ca`, `48Ca`, `64Ni`, `70Zn`, `74Se`, `78Kr`, `84Sr`
-Removed: `106Pd`, `114Cd`, `115In`, `120Sn`, `121Sb`, `130Te`, `132Xe`, `138Ba`, `180Hf`, `184W`, `187Re`, `192Ir`, `192Os`, `195Pt`, `202Hg`, `205Tl`, `208Pb`, `40Ca`, `85Rb`, `88Sr`, `Ac`, `Am`, `At`, `Bh`, `Bk`, `Cf`, `Cm`, `Cn`, `Db`, `Ds`, `Es`, `Fl`, `Fm`, `Fr`, `Hs`, `Lr`, `Lv`, `Mc`, `Md`, `Mt`, `Nh`, `No`, `Np`, `Og`, `Pm`, `Po`, `Pu`, `Ra`, `Rf`, `Rg`, `Rn`, `Sg`, `Tc`, `Ts`
+Deleted from the library: `145Pm`, `147Pm`, `14C`, `209Po`, `210At`, `210Po`, `211At`, `211Rn`, `220Rn`, `222Rn`, `223Fr`, `223Ra`, `224Ra`, `226Ra`, `227Ac`, `228Ra`, `230Th`, `233U`, `236Np`, `236U`, `237Np`, `238Pu`, `239Pu`, `240Pu`, `241Am`, `241Pu`, `242Pu`, `243Am`, `243Cm`, `244Cm`, `244Pu`, `245Cm`, `246Cm`, `247Bk`, `247Cm`, `248Cm`, `249Bk`, `249Cf`, `250Cf`, `251Cf`, `252Cf`, `252Es`, `257Fm`, `258Md`, `259No`, `260Md`, `262Lr`, `267Rf`, `268Db`, `270Hs`, `271Sg`, `272Bh`, `276Mt`, `280Rg`, `281Ds`, `284Nh`, `285Cn`, `288Mc`, `289Fl`, `292Ts`, `293Lv`, `294Og`, `T`, `Tc`
+Added formula-string keys: `136Ce`, `138Ce`, `138La`, `142Ce`, `143Nd`, `144Nd`, `144Sm`, `145Nd`, `146Nd`, `147Sm`, `148Nd`, `148Sm`, `149Sm`, `150Nd`, `150Sm`, `151Eu`, `152Gd`, `154Gd`, `154Sm`, `155Gd`, `156Dy`, `156Gd`, `157Gd`, `158Dy`, `160Dy`, `160Gd`, `161Dy`, `162Dy`, `162Er`, `163Dy`, `164Er`, `167Er`, `168Er`, `168Yb`, `170Er`, `170Yb`, `171Yb`, `172Yb`, `173Yb`, `176Lu`, `176Yb`, `180Ta`, `21Ne`, `234U`, `235U`, `36Ar`, `38Ar`, `3He`, `40K`, `42Ca`, `43Ca`, `46Ca`, `48Ca`, `64Ni`, `70Zn`, `74Se`, `78Kr`, `84Sr`
 - `199Hg` abundance 0.16872 → 0.1687 (Δ -2e-05)
-- `Cd` mass 111.90276287 → 113.90336509 (Δ +2.0006022 u) abundance 0.2413 → 0.2873 (Δ +0.046)
-  Bare `Cd` is now ¹¹⁴Cd (NIST most abundant). CoreMS previously keyed `Cd` as ¹¹²Cd. Look up `112Cd` for the old mass. Cadmium formula m/z shifts by ~2 u.
+- `48Ca` abundance 0.001872 → 0.00187 (Δ -2e-06)
+- `Cd` mass 111.90276287 → 113.90336509 (Δ +2.0006022 u) (most-abundant nuclide assignment likely changed) abundance 0.2413 → 0.2873 (Δ +0.046)
 
-
-Nuclides with an empty NIST isotopic composition are omitted (including `T` and `14C`).
-
-## All mass/abundance deltas (canonical keys)
+## All mass/abundance deltas (lookup keys)
 
 - `199Hg` abundance 0.16872 → 0.1687 (Δ -2e-05)
-- `Cd` mass 111.90276287 → 113.90336509 (Δ +2.0006022 u) abundance 0.2413 → 0.2873 (Δ +0.046)
+- `48Ca` abundance 0.001872 → 0.00187 (Δ -2e-06)
+- `Cd` mass 111.90276287 → 113.90336509 (Δ +2.0006022 u) (most-abundant nuclide assignment likely changed) abundance 0.2413 → 0.2873 (Δ +0.046)

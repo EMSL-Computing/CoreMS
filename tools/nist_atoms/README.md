@@ -28,8 +28,11 @@ make nist-atoms   # download NIST dump; rewrite tables only if needed
 Do not hook this into `make patch|minor|major`. Release prep runs `make nist-atoms`
 **before** `make lint`.
 
-If the pin changed, paste the **Significant** section of `CHANGES.md` into
-release notes (`RELEASE.md`).
+If the pin changed, paste the **Breaking** and **Significant** sections of
+`CHANGES.md` into release notes (`RELEASE.md`). Significant lists **Deleted
+from the library** (no mass lookup) separately from **lookup aliases** that
+remain on `Atoms.atomic_masses` but are not formula-string keys. Do not
+describe alias keys (`114Cd`, `12C`, `40Ca`, …) as removed.
 
 ## Policy
 

@@ -38,7 +38,7 @@ This should be done by a maintainer with write access to the repo ONLY. The foll
      ```bash
      make nist-atoms
      ```
-     This downloads the NIST dump (errors if that fails) and writes files only if the dump or generated tables changed. If `corems/encapsulation/nist_atoms.py` changed, copy the **Significant** subsection from `tools/nist_atoms/CHANGES.md` into the release notes, then lint.
+     This downloads the NIST dump (errors if that fails) and writes files only if the dump or generated tables changed. If `corems/encapsulation/nist_atoms.py` changed, copy the **Breaking** and **Significant** subsections from `tools/nist_atoms/CHANGES.md` into the release notes, then lint.
    - **Lint the package** (advisory maintainer review; not a hard CI gate). Run this after `make nist-atoms` so pylint sees the committed `nist_atoms.py`:
      1. Activate the same environment you use for CoreMS development and install/update dev extras so `pylint` is available, e.g.:
         ```bash

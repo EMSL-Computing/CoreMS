@@ -1,14 +1,16 @@
 """NIST-pinned atomic masses, abundances, and isotope lists.
 
 Do not edit by hand. Regenerate with `make nist-atoms`.
+Public lookup API is ``corems.encapsulation.constant.Atoms``.
 
 Hydrogen aliases: H/1H, D/2H.
 Most-abundant nuclides are stored under both the bare symbol and the
 mass-number key (C and 12C). Formula strings use canonical keys only.
 
-``isotopes`` maps an element symbol to rare-nuclide keys, or ``[None]``
-when there is no heavy isotope (same sentinel ``Atoms`` already uses).
-English names are not a NIST field; see ``Atoms.element_names``.
+``isotopes`` here is a list of rare-nuclide keys, or ``[None]`` when there
+is no heavy isotope. Do not use this dict as ``Atoms.isotopes`` (that
+value is ``[English name, rare keys]``). English names are not a NIST
+field; see ``Atoms.element_names``.
 """
 
 NIST_TABLE_ID = 'Coursey et al. Atomic Weights and Isotopic Compositions version 4.1. https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses'
