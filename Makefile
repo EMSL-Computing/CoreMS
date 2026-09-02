@@ -4,7 +4,7 @@ parameters_path = parameter.json
 LIPIDOMICS_SQLITE_URL ?= https://nmdcdemo.emsl.pnnl.gov/lipidomics/parameter_files/202412_lipid_ref.sqlite
 LIPIDOMICS_SQLITE_PATH ?= tests/tests_data/lcms/202412_lipid_ref.sqlite
 
-.PHONY: download-lipidomics-db ci-test-source ci-test-notebooks ci-test-all test-pytest-xdist test-notebooks ci-test uml docu
+.PHONY: download-lipidomics-db ci-test-source ci-test-notebooks ci-test-all test-pytest-xdist test-notebooks ci-test uml docu lint lint-all
 
 # ----------------------------------------------------------------------
 # Platform-specific logic
@@ -148,6 +148,15 @@ uml:
 
 docu: uml
 	pdoc --output-dir docs --docformat numpy corems
+
+# Package lint (release prep). Requires corems[dev] (pylint). Config: pyproject.toml.
+# Advisory for maintainers — see RELEASE.md. Exit code may be non-zero when issues remain.
+lint:
+	$(PYTHON) -m pylint corems
+
+# Broader first-party Python (package + tests + support scripts). Still advisory.
+lint-all:
+	$(PYTHON) -m pylint corems tests support_code
 
 SKIP_LIPIDOMICS_DB ?= 0
 SKIP_MOLECULAR_DB ?= 0

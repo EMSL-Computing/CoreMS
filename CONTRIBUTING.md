@@ -88,6 +88,7 @@ Reviewers check these before merging into **`dev`**:
 
 - Docstrings follow the [NumPy style](https://numpydoc.readthedocs.io/en/latest/format.html).
 - API docs are built with [pdoc](https://github.com/mitmproxy/pdoc) (`make docu`). The package landing page (`corems.__doc__`) includes `README.md` and `docs/user/installation.md` so install content uses the same pdoc styling as the API.
+- Maintainers: before cutting a release, run package lint (`make lint`) as described in [RELEASE.md](./RELEASE.md). Dev tooling is installed via `pip install -e ".[dev]"`.
 
 ## Issue reporting
 
