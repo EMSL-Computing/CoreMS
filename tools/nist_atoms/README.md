@@ -22,12 +22,11 @@ chrome, and compares records to the vendored file. If the dump is unchanged and
 ## Commands
 
 ```bash
-make nist-atoms        # download NIST dump; rewrite tables only if needed
-make nist-atoms-check  # offline: fail if committed module does not match the vendored file
+make nist-atoms   # download NIST dump; rewrite tables only if needed
 ```
 
-Do not hook regenerate into `make patch|minor|major`. Release prep runs **check**
-(no network) **before** `make lint`.
+Do not hook this into `make patch|minor|major`. Release prep runs `make nist-atoms`
+**before** `make lint`.
 
 If the pin changed, paste the **Significant** section of `CHANGES.md` into
 release notes (`RELEASE.md`).

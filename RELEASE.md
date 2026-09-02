@@ -28,17 +28,18 @@ Each of those updates version metadata (see `.bumpversion.cfg`) and regenerates 
 ## Release steps (GitLab)
 
 All release steps should be done on the `dev` branch and then merged into `master` via a merge request (MR). Only bump the version on `dev` and merge into `master`. 
+This should be done by a maintainer with write access to the repo ONLY. The following steps are a checklist for maintainers to follow when releasing a new version of CoreMS:
 
 1. **Ensure `dev` is ready**
    - Gitlab CI green on `dev`.
    - Changelog or release notes drafted (these will be copied into the MR description and later into the release on GitHub).
    - No open blockers for the intended version.
-   - Check the pinned NIST atom tables **before linting** (does **not** re-download or regenerate):
+   - Refresh / confirm the NIST atom pin **before linting**:
      ```bash
-     make nist-atoms-check
+     make nist-atoms
      ```
-     If `corems/encapsulation/nist_atoms.py` changed since the last tagged release, copy the **Significant** subsection from `tools/nist_atoms/CHANGES.md` into the release notes. Do not run `make nist-atoms` as a side effect of `make patch|minor|major`. Updating NIST is a separate feature MR: run `make nist-atoms` (it downloads the dump, errors if that fails, and writes files only if the dump or generated tables changed), then review the dict diff and change log, then lint.
-   - **Lint the package** (advisory maintainer review; not a hard CI gate). Run this after the NIST pin check so pylint sees the committed `nist_atoms.py`:
+     This downloads the NIST dump (errors if that fails) and writes files only if the dump or generated tables changed. If `corems/encapsulation/nist_atoms.py` changed, copy the **Significant** subsection from `tools/nist_atoms/CHANGES.md` into the release notes, then lint.
+   - **Lint the package** (advisory maintainer review; not a hard CI gate). Run this after `make nist-atoms` so pylint sees the committed `nist_atoms.py`:
      1. Activate the same environment you use for CoreMS development and install/update dev extras so `pylint` is available, e.g.:
         ```bash
         pip install -e ".[dev]"

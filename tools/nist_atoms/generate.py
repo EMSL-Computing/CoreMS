@@ -1,13 +1,12 @@
 """Generate corems.encapsulation.nist_atoms from a vendored NIST ASCII dump.
 
 Maintainer only. Not imported by formula search. Run via `make nist-atoms`.
-`make nist-atoms` downloads the NIST dump; it errors if the download fails.
-`--check` is offline and only compares the committed module to the vendored file.
+Downloads the NIST dump and errors if the download fails. Writes files only
+if the dump or generated tables changed.
 """
 
 from __future__ import annotations
 
-import argparse
 import re
 import ssl
 import sys
@@ -518,18 +517,7 @@ def generate() -> None:
     print(f"Wrote {CHANGES_MD.relative_to(REPO_ROOT)}")
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--check",
-        action="store_true",
-        help="Exit non-zero if nist_atoms.py does not match the vendored NIST file.",
-    )
-    args = parser.parse_args(argv)
-    if args.check:
-        check_committed_module()
-        print("nist_atoms.py matches vendored NIST dump")
-        return 0
+def main() -> int:
     generate()
     return 0
 

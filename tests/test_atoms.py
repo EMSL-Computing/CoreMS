@@ -136,17 +136,9 @@ def test_cadmium_bare_symbol_is_most_abundant_114cd():
 
 
 @pytest.mark.skipif(not GENERATE_PY.is_file(), reason="generator not in this install")
-def test_nist_atoms_check_matches_committed_module():
-    import subprocess
-    import sys
-
-    result = subprocess.run(
-        [sys.executable, str(GENERATE_PY), "--check"],
-        cwd=REPO_ROOT,
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode == 0, result.stdout + result.stderr
+def test_nist_atoms_module_matches_vendored_dump():
+    gen = _load_generate_module()
+    gen.check_committed_module()
 
 
 @pytest.mark.skipif(not GENERATE_PY.is_file(), reason="generator not in this install")
