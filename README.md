@@ -299,7 +299,7 @@ from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFor
 from corems.mass_spectrum.output.export import HighResMassSpecExport
 from matplotlib import pyplot
 
-file_path= 'tests/tests_data/ftms/ESI_NEG_SRFA.d'
+file_path= 'tests/tests_data/ftms/srfa_bruker_solarix_direct_infusion/ESI_NEG_SRFA.d'
 
 # Instatiate the Bruker Solarix reader with the filepath
 bruker_reader = ReadBrukerSolarix(file_path)

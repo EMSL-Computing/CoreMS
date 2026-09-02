@@ -112,7 +112,7 @@ if __name__ == "__main__":
     # file_location = file_dialog.getOpenFileName()[0]
     # app.quit()
 
-    file_location = "tests/tests_data/ftms/Exploris_SRFA_Example.raw"
+    file_location = "tests/tests_data/ftms/unreferenced/Exploris_SRFA_Example.raw"
     # change parameters here
 
     mass_spectrum = run_thermo(file_location)
