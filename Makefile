@@ -4,7 +4,7 @@ parameters_path = parameter.json
 LIPIDOMICS_SQLITE_URL ?= https://nmdcdemo.emsl.pnnl.gov/lipidomics/parameter_files/202412_lipid_ref.sqlite
 LIPIDOMICS_SQLITE_PATH ?= tests/tests_data/lcms/202412_lipid_ref.sqlite
 
-.PHONY: download-lipidomics-db ci-test-source ci-test-notebooks ci-test-all test-pytest-xdist test-notebooks ci-test lint lint-all
+.PHONY: download-lipidomics-db ci-test-source ci-test-notebooks ci-test-all test-pytest-xdist test-notebooks ci-test uml docu lint lint-all
 
 # ----------------------------------------------------------------------
 # Platform-specific logic
@@ -143,8 +143,10 @@ db-connect:
 
 	@docker exec -it molformdb psql -U postgres
 
-docu:
+uml:
+	@$(PYTHON) docs/generate_uml.py
 
+docu: uml
 	pdoc --output-dir docs --docformat numpy corems
 
 # Package lint (release prep). Requires corems[dev] (pylint). Config: pyproject.toml.
