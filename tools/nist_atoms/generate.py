@@ -447,13 +447,18 @@ def check_committed_module() -> None:
 
 
 def generate() -> None:
+    # 1. Download the NIST linearized-ASCII dump (errors if the request fails).
+    #    Strip HTML chrome so we compare/store only the 8-line records.
     new_body = records_body(fetch_nist_dump())
     if not new_body:
         raise SystemExit("NIST dump contained no Atomic Number records after HTML strip")
 
+    # 2. Compare those records to the vendored .txt (ignore the # header).
     existing_text = NIST_TXT.read_text(encoding="utf-8") if NIST_TXT.is_file() else ""
     dump_changed = new_body != records_body(existing_text)
 
+    # 3. If NIST changed, rewrite the vendored file with a fresh retrieved date.
+    #    If not, keep the existing header date so nist_atoms.py does not churn.
     if dump_changed:
         retrieved = date.today().isoformat()
         NIST_TXT.write_text(vendored_header(retrieved) + new_body, encoding="utf-8")
@@ -462,14 +467,20 @@ def generate() -> None:
         retrieved = _read_header_retrieved(existing_text)
         print("NIST dump unchanged")
 
+    # 4. Parse composed nuclides from the vendored file and build CoreMS tables
+    #    (canonical keys, dual lookups, rare lists, atoms_order).
     nuclides, header_retrieved = parse_nist(NIST_TXT)
     tables = build_tables(nuclides, retrieved or header_retrieved)
     new_module = render_module(tables)
+
+    # 5. Stop if neither the dump nor the generated module would change.
     existing_module = OUTPUT_PY.read_text(encoding="utf-8") if OUTPUT_PY.is_file() else ""
     if not dump_changed and existing_module == new_module:
         print("nist_atoms.py already up to date; no files written")
         return
 
+    # 6. Diff against the previously committed tables, then write nist_atoms.py
+    #    and CHANGES.md (Significant section is for release notes).
     previous = load_previous_tables()
     OUTPUT_PY.write_text(new_module, encoding="utf-8")
     write_changes(tables, *previous)
