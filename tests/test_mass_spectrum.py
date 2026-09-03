@@ -1,3 +1,10 @@
+import warnings
+from types import SimpleNamespace
+
+from numpy import allclose, arange, array, copy, isfinite, isnan
+
+from corems.mass_spectrum.calc.PeakPicking import PeakPicking
+
 # Tests for adpodization methods
 def test_hamming(bruker_transient):
     """Test the creation of a mass spectrum object with the Hamming apodization method"""
@@ -104,3 +111,97 @@ def test_mass_spectrum_properties(mass_spectrum_ftms):
     assert len(res) == len(mass_spectrum_ftms)
     mass_spectrum_ftms.get_masses_count_by_nominal_mass()
     mass_spectrum_ftms.resolving_power_calc(12, 1)
+
+
+def _resolving_power_picker():
+    picker = PeakPicking()
+    picker.mspeaks_settings = SimpleNamespace(
+        legacy_resolving_power=True,
+        legacy_centroid_polyfit=False,
+    )
+    return picker
+
+
+def _spectrum_edge_warnings(caught):
+    needles = (
+        "peak at low spectrum edge",
+        "peak at high spectrum edge",
+        "Zeroing the first 5 data points",
+        "Zeroing the last 5 data points",
+        "peak index minus adjacent to spectrum edge",
+        "peak index plus adjacent to spectrum edge",
+    )
+    return [
+        str(w.message)
+        for w in caught
+        if any(n in str(w.message) for n in needles)
+    ]
+
+
+def test_resolving_power_when_fwhm_is_measurable():
+    """Interior and padded-edge peaks get finite RP; abundance is not mutated."""
+    picker = _resolving_power_picker()
+    cases = (
+        (
+            array([100.0, 100.1, 100.2, 100.3, 100.4]),
+            array([0.0, 50.0, 100.0, 50.0, 0.0]),
+            2,
+            334.0,
+        ),
+        (
+            100.0 + 0.1 * arange(10),
+            array([0.0, 0.0, 0.0, 100.0, 50.0, 0.0, 10.0, 10.0, 10.0, 10.0]),
+            3,
+            None,
+        ),
+        (
+            100.0 + 0.1 * arange(10),
+            array([10.0, 10.0, 10.0, 10.0, 0.0, 50.0, 100.0, 50.0, 0.0, 0.0]),
+            6,
+            None,
+        ),
+    )
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        for massa, intes, apex, expected in cases:
+            original = copy(intes)
+            rp = picker.calculate_resolving_power(intes, massa, apex)
+            assert isfinite(rp)
+            assert rp > 0
+            if expected is not None:
+                assert allclose(rp, expected)
+            assert allclose(intes, original)
+    assert _spectrum_edge_warnings(caught) == []
+
+
+def test_resolving_power_nan_when_fwhm_truncated():
+    """Missing half-max on either side yields silent nan and does not zero abundance."""
+    picker = _resolving_power_picker()
+    cases = (
+        (
+            100.0 + 0.1 * arange(8),
+            array([100.0, 50.0, 0.0, 10.0, 10.0, 10.0, 10.0, 10.0]),
+            0,
+        ),
+        (
+            100.0 + 0.1 * arange(8),
+            array([10.0, 10.0, 10.0, 10.0, 10.0, 0.0, 50.0, 100.0]),
+            7,
+        ),
+        (
+            100.0 + 0.1 * arange(12),
+            array(
+                [80.0, 80.0, 80.0, 80.0, 80.0, 80.0, 100.0, 50.0, 0.0, 10.0, 10.0, 10.0]
+            ),
+            6,
+        ),
+    )
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        for massa, intes, apex in cases:
+            original = copy(intes)
+            rp = picker.calculate_resolving_power(intes, massa, apex)
+            assert isnan(rp)
+            assert allclose(intes, original)
+    assert _spectrum_edge_warnings(caught) == []
+
