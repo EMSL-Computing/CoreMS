@@ -149,14 +149,17 @@ uml:
 docu: uml
 	pdoc --output-dir docs --docformat numpy corems
 
-# Package lint (release prep). Requires corems[dev] (pylint). Config: pyproject.toml.
-# Advisory for maintainers — see RELEASE.md. Exit code may be non-zero when issues remain.
+# Format + auto-fix (release prep). Rewrites files — see RELEASE.md.
+# Requires corems[dev] (ruff). Config: pyproject.toml.
+# Do not use --unsafe-fixes.
 lint:
-	$(PYTHON) -m pylint corems
+	$(PYTHON) -m ruff format corems
+	$(PYTHON) -m ruff check --fix corems
 
-# Broader first-party Python (package + tests + support scripts). Still advisory.
+# Broader first-party Python (package + tests + support scripts). Also rewrites.
 lint-all:
-	$(PYTHON) -m pylint corems tests support_code
+	$(PYTHON) -m ruff format corems tests support_code
+	$(PYTHON) -m ruff check --fix corems tests support_code
 
 SKIP_LIPIDOMICS_DB ?= 0
 SKIP_MOLECULAR_DB ?= 0

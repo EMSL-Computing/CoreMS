@@ -41,10 +41,10 @@ By default the molecular formula database uses **SQLite** (local file; no extra 
 Install extras from `pyproject.toml` as needed:
 
 ```bash
-pip install "corems[dev]"          # tests, pylint, docs tooling (incl. pdoc)
+pip install "corems[dev]"          # tests, ruff, docs tooling (incl. pdoc)
 ```
 
-With `corems[dev]`, maintainers can run package lint via `make lint` (see [RELEASE.md](../../RELEASE.md)).
+With `corems[dev]`, maintainers can format and auto-fix the package via `make lint` at release time (see [RELEASE.md](../../RELEASE.md)). That command rewrites files.
 
 Check the installed package metadata or `pyproject.toml` for the current list of extras.
 
