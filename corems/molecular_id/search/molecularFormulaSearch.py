@@ -87,10 +87,6 @@ class SearchMolecularFormulas:
         Search for molecular formulas in the mass spectrum.
     * ion_charges_for_search().
         Build the signed charge tuple from polarity and absolute min/max settings.
-    * iter_ion_type_jobs().
-        Yield ion-type candidate jobs for one heteroatom class at one charge.
-    * run_formula_search_jobs().
-        Run charge × class × ion-type search, applying each candidate batch.
 
     """
 
@@ -192,7 +188,7 @@ class SearchMolecularFormulas:
         return tuple(sorted(charges, key=lambda z: (abs(z), z)))
 
     @staticmethod
-    def iter_ion_type_jobs(settings, dict_res, classe_str, ion_charge):
+    def _iter_ion_type_jobs(settings, dict_res, classe_str, ion_charge):
         """Yield ion-type candidate jobs for one heteroatom class at one charge.
 
         Encodes shared search policy: protonated and radical follow the
@@ -264,7 +260,7 @@ class SearchMolecularFormulas:
                     )
 
     @staticmethod
-    def run_formula_search_jobs(
+    def _run_formula_search_jobs(
         classes,
         nominal_mzs,
         mf_search_settings,
@@ -308,7 +304,7 @@ class SearchMolecularFormulas:
                 pbar = tqdm.tqdm(classe_chunk, disable=not verbose)
                 for classe_tuple in pbar:
                     classe_str = classe_tuple[0]
-                    for job in SearchMolecularFormulas.iter_ion_type_jobs(
+                    for job in SearchMolecularFormulas._iter_ion_type_jobs(
                         mf_search_settings, dict_res, classe_str, ion_charge
                     ):
                         pbar.set_description_str(desc=job.progress, refresh=True)
@@ -565,7 +561,7 @@ class SearchMolecularFormulas:
                 adduct_atom=job.adduct_atom,
             )
 
-        self.run_formula_search_jobs(
+        self._run_formula_search_jobs(
             classes,
             nominal_mzs,
             settings,
@@ -1187,7 +1183,7 @@ class SearchMolecularFormulasLC:
                     adduct_atom=job.adduct_atom,
                 )
 
-            SearchMolecularFormulas.run_formula_search_jobs(
+            SearchMolecularFormulas._run_formula_search_jobs(
                 classes,
                 nominal_mzs,
                 mol_settings,

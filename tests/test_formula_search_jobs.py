@@ -38,7 +38,7 @@ def _dict_res():
 
 def test_iter_ion_type_jobs_protonated_only():
     jobs = list(
-        SearchMolecularFormulas.iter_ion_type_jobs(
+        SearchMolecularFormulas._iter_ion_type_jobs(
             _settings(isProtonated=True, isRadical=False, isAdduct=False),
             _dict_res(),
             "C1H1",
@@ -59,7 +59,7 @@ def test_iter_ion_type_jobs_protonated_only():
 
 def test_iter_ion_type_jobs_all_types_at_z1():
     jobs = list(
-        SearchMolecularFormulas.iter_ion_type_jobs(
+        SearchMolecularFormulas._iter_ion_type_jobs(
             _settings(isProtonated=True, isRadical=True, isAdduct=True),
             _dict_res(),
             "C1H1",
@@ -78,7 +78,7 @@ def test_iter_ion_type_jobs_all_types_at_z1():
 
 def test_iter_ion_type_jobs_skips_adduct_when_abs_z_not_1():
     jobs = list(
-        SearchMolecularFormulas.iter_ion_type_jobs(
+        SearchMolecularFormulas._iter_ion_type_jobs(
             _settings(isProtonated=True, isRadical=False, isAdduct=True),
             _dict_res(),
             "C1H1",
@@ -87,7 +87,7 @@ def test_iter_ion_type_jobs_skips_adduct_when_abs_z_not_1():
     )
     assert [j.ion_type for j in jobs] == [Labels.protonated_de_ion]
     jobs_neg = list(
-        SearchMolecularFormulas.iter_ion_type_jobs(
+        SearchMolecularFormulas._iter_ion_type_jobs(
             _settings(isProtonated=False, isRadical=False, isAdduct=True),
             _dict_res(),
             "C1H1",
@@ -99,7 +99,7 @@ def test_iter_ion_type_jobs_skips_adduct_when_abs_z_not_1():
 
 def test_iter_ion_type_jobs_missing_class_or_ion_key_is_empty():
     jobs = list(
-        SearchMolecularFormulas.iter_ion_type_jobs(
+        SearchMolecularFormulas._iter_ion_type_jobs(
             _settings(isProtonated=True, isRadical=True, isAdduct=True),
             {Labels.protonated_de_ion: {}},
             "C1H1",
@@ -134,7 +134,7 @@ def test_run_formula_search_jobs_one_db_load_per_charge_per_chunk(monkeypatch):
     settings = _settings(isProtonated=True, isRadical=False, isAdduct=False)
     settings.db_chunk_size = 1
     jobs = []
-    SearchMolecularFormulas.run_formula_search_jobs(
+    SearchMolecularFormulas._run_formula_search_jobs(
         classes=[("C1", {}), ("C2", {})],
         nominal_mzs=[10, 20],
         mf_search_settings=settings,
