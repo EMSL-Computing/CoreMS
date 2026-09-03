@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 
 from corems.mass_spectra.input import rawFileReader
 from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
-from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.encapsulation.factory.parameters import MSParameters
 
@@ -113,7 +112,7 @@ if __name__ == "__main__":
     # file_location = file_dialog.getOpenFileName()[0]
     # app.quit()
 
-    file_location = "tests/tests_data/ftms/Exploris_SRFA_Example.raw"
+    file_location = "tests/tests_data/ftms/unreferenced/Exploris_SRFA_Example.raw"
     # change parameters here
 
     mass_spectrum = run_thermo(file_location)

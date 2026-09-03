@@ -59,7 +59,7 @@ Documentation = "https://emsl-computing.github.io/CoreMS/corems.html"
 
 [project.optional-dependencies]
 dev = [
-    "pylint",
+    "pylint>=3.0",
     "pytest>=8.3.2",
     "pytest-cov>=5.0.0",
     "pytest-xdist>=3.6.1",
@@ -104,4 +104,51 @@ omit = [
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
+]
+
+# ---------------------------------------------------------------------------
+# Pylint (release / maintainer lint via `make lint`; see RELEASE.md)
+# Disable high-volume project-wide style debt so the report is reviewable.
+# Tighten this list over time as the codebase is cleaned up.
+# ---------------------------------------------------------------------------
+[tool.pylint.main]
+jobs = 0
+py-version = "3.10"
+ignore-paths = [
+    "^.venv/.*",
+    "^corems/mass_spectra/input/win_only/.*",
+]
+
+[tool.pylint.messages_control]
+disable = [
+    # Legacy / project-wide naming and structure
+    "invalid-name",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-positional-arguments",
+    "too-many-locals",
+    "too-many-statements",
+    "too-many-branches",
+    "too-many-instance-attributes",
+    "too-many-public-methods",
+    "too-many-return-statements",
+    "too-many-nested-blocks",
+    "too-many-lines",
+    "duplicate-code",
+    # Formatting and docstring debt
+    "line-too-long",
+    "trailing-whitespace",
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
+    # Common style nits in this codebase
+    "no-else-return",
+    "consider-using-f-string",
+    "import-outside-toplevel",
+    "wrong-import-order",
+    "ungrouped-imports",
+    "protected-access",
+    "attribute-defined-outside-init",
+    # Dynamic attributes (numpy / instrument APIs) — high false-positive rate
+    "no-member",
 ]

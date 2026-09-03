@@ -299,7 +299,7 @@ from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFor
 from corems.mass_spectrum.output.export import HighResMassSpecExport
 from matplotlib import pyplot
 
-file_path= 'tests/tests_data/ftms/ESI_NEG_SRFA.d'
+file_path= 'tests/tests_data/ftms/srfa_bruker_solarix_direct_infusion/ESI_NEG_SRFA.d'
 
 # Instatiate the Bruker Solarix reader with the filepath
 bruker_reader = ReadBrukerSolarix(file_path)
@@ -365,7 +365,11 @@ df = mass_spectrum_obj.to_dataframe()
 
 ## UML Diagrams
 
-UML (unified modeling language) diagrams for Direct Infusion FT-MS and GC-MS classes can be found [here](docs/uml).
+Class diagrams for the main data-model stacks live in [`docs/uml`](docs/uml):
+
+- Direct Infusion FT-MS (`Direct_Infusion_FTMS_Data_Model.svg`)
+- GC-MS (`GC_MS_Data_Model.svg`)
+- LC-MS (`LC_MS_Data_Model.svg`)
 
 ***
 

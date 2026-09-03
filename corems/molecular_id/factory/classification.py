@@ -483,7 +483,8 @@ class HeteroatomsClassification(Mapping):
                             "abundance": ms_peak.abundance,
                             "resolving_power": ms_peak.resolving_power,
                             "sn": ms_peak.signal_to_noise,
-                            "ion_charge": ms_peak.ion_charge,
+                            # Assigned: formula charge (may be multi-charge), not peak polarity
+                            "ion_charge": m_formula.ion_charge,
                             "mass_error": m_formula.mz_error,
                             "DBE": m_formula.dbe,
                             "class": classe,
@@ -510,7 +511,8 @@ class HeteroatomsClassification(Mapping):
                         "abundance": ms_peak.abundance,
                         "resolving_power": ms_peak.resolving_power,
                         "sn": ms_peak.signal_to_noise,
-                        "ion_charge": ms_peak.ion_charge,
+                        # Peak polarity (±1); no formula charge for unassigned peaks
+                        "ion_charge": ms_peak.polarity,
                         "class": classe,
                         "class_abundance": percent_abundance,
                         "class_count": percent_abundance,
