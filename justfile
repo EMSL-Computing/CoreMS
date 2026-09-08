@@ -157,16 +157,19 @@ docu: uml
     pdoc --output-dir docs --docformat numpy corems
 
 # ----------------------------------------------------------------------
-# Lint (release prep). Advisory — see RELEASE.md.
-# Requires corems[dev] (pylint). Config: pyproject.toml.
+# Format + auto-fix (release prep). Rewrites files — see RELEASE.md.
+# Requires corems[dev] (ruff). Config: pyproject.toml.
+# Do not use --unsafe-fixes.
 # ----------------------------------------------------------------------
 
 lint:
-    {{python}} -m pylint corems
+    {{python}} -m ruff format corems
+    {{python}} -m ruff check --fix corems
 
-# Broader first-party Python (package + tests + support scripts). Still advisory.
+# Broader first-party Python (package + tests + support scripts). Also rewrites.
 lint-all:
-    {{python}} -m pylint corems tests support_code
+    {{python}} -m ruff format corems tests support_code
+    {{python}} -m ruff check --fix corems tests support_code
 
 # ----------------------------------------------------------------------
 # CI test recipes (install + test in one go)

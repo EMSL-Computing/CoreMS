@@ -22,6 +22,7 @@ pyvenv.cfg
 build/
 dist/
 *.d
+!tests/tests_data/**/*.d
 *.so
 *.pkl
 *.ems
@@ -106,10 +107,6 @@ data/ftms_nom_metadata_products.json
 data/ftms_nom_nmdc_data.csv
 data/nom_failed_files.json
 
-# Specific test fixtures
-tests/tests_data/ftms/ESFA_100k_9767-13548_chB.A_re_pc_Averaged1min.h5
-tests/tests_data/ftms/20190709_WK_CADY_Auto_S16_H1_Post_O5_1_01_36.txt
-
 # Dev container overrides
 .devcontainer/devcontainer.json
 
@@ -123,3 +120,8 @@ skills-lock.json
 
 # Local Grok/agent workspace (skills cache, reviews, plans)
 .grok/
+
+# Local claude workspace (skills cache, reviews, plans)
+.claude/
+CLAUDE.md
+.oldclaudedocs
