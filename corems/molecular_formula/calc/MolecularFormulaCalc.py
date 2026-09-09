@@ -446,8 +446,19 @@ class MolecularFormulaCalc:
 
             mformula_index = self.mono_isotopic_formula_index
             mspeak_index = self.mspeak_index_mono_isotopic
-
-            mspeak = self._mspeak_parent._ms_parent[mspeak_index]
+            parent_ms = self._mspeak_parent._ms_parent
+            if (
+                mformula_index is None
+                or mspeak_index is None
+                or mspeak_index < 0
+                or mspeak_index >= len(parent_ms)
+            ):
+                return 0.0
+            mspeak = parent_ms[mspeak_index]
+            if mformula_index < 0 or mformula_index >= len(mspeak):
+                # Parent formula list was filtered (e.g. ion-type constrain);
+                # stale isotopologue indexes should not fail export.
+                return 0.0
 
             expected_isotopologues = mspeak[mformula_index].expected_isotopologues
 

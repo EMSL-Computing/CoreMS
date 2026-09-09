@@ -714,8 +714,6 @@ class MolecularFormulaSearchOperation(SampleOperation):
             annotation_meta_for_sample_mf,
             constrain_annotation_active,
             should_skip_isotope_for_annotation,
-            allowed_ion_types_for_row,
-            ion_type_allowed,
         )
 
         settings = collection.parameters.lcms_collection
@@ -791,34 +789,6 @@ class MolecularFormulaSearchOperation(SampleOperation):
                             f"Sample {sample_id}: Molecular formula search failed after {max_retries} attempts due to database lock. "
                             "Try reducing parallel cores or increasing database timeout."
                         ) from e
-
-            if constrain:
-                for mf_id, mf in sample.mass_features.items():
-                    meta = annotation_meta_for_sample_mf(
-                        mf_df, labels, sample_id, mf_id
-                    )
-                    if meta is None:
-                        continue
-                    allowed = allowed_ion_types_for_row(
-                        meta.get("ion_type"), meta.get("possible_ion_types")
-                    )
-                    if allowed is None:
-                        continue
-                    try:
-                        peak = mf.ms1_peak
-                    except (AttributeError, IndexError):
-                        continue
-                    if peak is None or not getattr(peak, "molecular_formulas", None):
-                        continue
-                    keep = []
-                    for mf_obj in list(peak.molecular_formulas):
-                        it = getattr(mf_obj, "ion_type", None)
-                        if ion_type_allowed(it, allowed):
-                            keep.append(mf_obj)
-                    if len(keep) != len(peak.molecular_formulas):
-                        peak.clear_molecular_formulas()
-                        for mf_obj in keep:
-                            peak.add_molecular_formula(mf_obj)
         
         # Return count of features searched
         return len(sample.mass_features)
@@ -1018,7 +988,7 @@ class MS2SpectralSearchOperation(SampleOperation):
             constrain_annotation_active,
             should_skip_isotope_for_annotation,
             allowed_ion_types_for_row,
-            ion_type_allowed,
+            subset_hits_by_allowed_ion_types,
         )
 
         settings = collection.parameters.lcms_collection
@@ -1043,12 +1013,9 @@ class MS2SpectralSearchOperation(SampleOperation):
                 results = getattr(mf, "ms2_similarity_results", None) or []
                 filtered = []
                 for res in results:
-                    # SpectrumSearchResults / dict-like may expose ref_ion_type
-                    it = getattr(res, "ref_ion_type", None)
-                    if it is None and hasattr(res, "get"):
-                        it = res.get("ref_ion_type")
-                    if ion_type_allowed(it, allowed):
-                        filtered.append(res)
+                    kept = subset_hits_by_allowed_ion_types(res, allowed)
+                    if kept is not None:
+                        filtered.append(kept)
                 mf.ms2_similarity_results = filtered
         
         # Return the spectral search results for collection

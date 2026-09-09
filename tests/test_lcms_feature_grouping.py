@@ -158,6 +158,11 @@ def test_mh_mna_group_without_isotopes():
     assert labels.loc[1, "ion_type"] == "[M+Na]+"
     assert labels.loc[0, "feature_group_id"] == labels.loc[1, "feature_group_id"]
     assert pd.notna(labels.loc[0, "feature_group_id"])
+    # No isotope observed → not claimed as chemical mono
+    assert pd.isna(labels.loc[0, "mono_cluster_id"])
+    assert pd.isna(labels.loc[1, "mono_cluster_id"])
+    assert labels.loc[0, "ion_role"] is None or pd.isna(labels.loc[0, "ion_role"])
+    assert labels.loc[1, "ion_role"] is None or pd.isna(labels.loc[1, "ion_role"])
 
 
 def test_from_lcms_collection_settings_uses_alignment_tols():
@@ -290,10 +295,10 @@ def test_common_ion_types_in_dict_and_charge_parse():
 
 
 def test_water_loss_preferred_over_water_adduct_on_delta_tie():
-    """Exact 18.01 Da spacing: both interps kept; preferred is stable alpha pick.
+    """Exact 18.01 Da spacing: both interps kept in possible_ion_types.
 
-    Alternates are retained in possible_ion_types; alphabetical preference
-    among residual ties picks [M+H-H2O]+ / [M+H]+ over [M+H]+ / [M+H+H2O]+.
+    Edge parent/child_ion_type is a geometry handle only; labels do not
+    pick a preferred type among residual ties.
     """
     M = 400.0
     from corems.mass_spectra.calc.feature_grouping import _ion_type_mass_offset
@@ -378,10 +383,12 @@ def test_nh3_vs_nh4_keeps_ambiguous_possible_ion_types():
     assert int(row["n_interpretations"]) >= 2
 
     labels = group_features_arrays(cluster_ids, mz, rt, heights, params)
-    assert labels.loc[144, "ion_type"] == "[M+H-NH3]+"
-    assert labels.loc[179, "ion_type"] == "[M+H]+"
+    assert pd.isna(labels.loc[144, "ion_type"])
+    assert pd.isna(labels.loc[179, "ion_type"])
     assert "[M+H]+" in str(labels.loc[144, "possible_ion_types"])
+    assert "[M+H-NH3]+" in str(labels.loc[144, "possible_ion_types"])
     assert "[M+NH4]+" in str(labels.loc[179, "possible_ion_types"])
+    assert "[M+H]+" in str(labels.loc[179, "possible_ion_types"])
     assert labels.loc[144, "feature_group_id"] == labels.loc[179, "feature_group_id"]
 
 
@@ -411,8 +418,8 @@ def test_unrelated_high_mz_not_grouped():
     assert pd.notna(gid)
     assert labels.loc[1, "feature_group_id"] == gid
     assert labels.loc[2, "feature_group_id"] == gid
-    assert labels.loc[0, "ion_type"] == "[M+H]+"
-    assert labels.loc[2, "ion_type"] == "[M+Na]+"
+    assert "[M+H]+" in str(labels.loc[0, "possible_ion_types"])
+    assert "[M+Na]+" in str(labels.loc[2, "possible_ion_types"])
     assert pd.isna(labels.loc[3, "feature_group_id"]) or labels.loc[
         3, "feature_group_id"
     ] != gid
@@ -837,9 +844,33 @@ def test_annotation_eligibility_helpers():
         "[M+Na]+",
     }
     assert ion_type_allowed("[M+Na]+", {"[M+H]+", "[M+Na]+"})
+    assert ion_type_allowed("[m+h]+", {"[M+H]+"})
     assert not ion_type_allowed("[M+K]+", {"[M+H]+"})
     assert ion_type_allowed("[M+K]+", None)
     assert not ion_type_allowed(None, {"[M+H]+"})
+    # FlashEntropy stores parallel hit lists on SpectrumSearchResults
+    assert ion_type_allowed(["[M+H]+", "[M+K]+"], {"[M+H]+"})
+    assert not ion_type_allowed(["[M+K]+"], {"[M+H]+"})
+    assert ion_type_allowed(np.array(["[M+Na]+"]), {"[M+Na]+"})
+
+    from corems.mass_spectra.calc.feature_grouping import (
+        subset_hits_by_allowed_ion_types,
+    )
+    from types import SimpleNamespace
+
+    hits = SimpleNamespace(
+        ref_ion_type=["[M+H]+", "[M+K]+", "[M+Na]+"],
+        entropy_similarity=np.array([0.9, 0.8, 0.7]),
+        ref_mol_id=["a", "b", "c"],
+        precursor_mz=200.0,
+    )
+    kept = subset_hits_by_allowed_ion_types(hits, {"[M+H]+", "[M+Na]+"})
+    assert kept is hits
+    assert kept.ref_ion_type == ["[M+H]+", "[M+Na]+"]
+    assert list(kept.entropy_similarity) == [0.9, 0.7]
+    assert kept.ref_mol_id == ["a", "c"]
+    assert kept.precursor_mz == 200.0
+    assert subset_hits_by_allowed_ion_types(hits, {"[M+Li]+"}) is None
 
 
 def test_isotope_not_used_as_adduct_endpoint():
@@ -875,6 +906,11 @@ def test_isotope_not_used_as_adduct_endpoint():
     assert labels.loc[1, "feature_group_id"] == labels.loc[0, "feature_group_id"]
     # Isotope should not be typed as a separate adduct form
     assert labels.loc[1, "ion_type"] == "[M+H]+"
+    # [M+H]+ form has 13C → mono_cluster_id is set; Na form has no isotope
+    assert labels.loc[0, "mono_cluster_id"] == 0
+    assert labels.loc[1, "mono_cluster_id"] == 0
+    assert pd.isna(labels.loc[2, "mono_cluster_id"])
+    assert labels.loc[2, "ion_role"] is None or pd.isna(labels.loc[2, "ion_role"])
 
 
 def test_feature_group_constrain_annotation_setting_default():

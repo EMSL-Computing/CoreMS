@@ -32,7 +32,7 @@ GROUP_COLUMNS = (
     "mono_cluster_id",
 )
 
-# Separator for multi-candidate ion type strings (order = preferred first).
+# Separator for multi-candidate ion type strings (alphabetical, no preference).
 POSSIBLE_ION_TYPES_SEP = ";"
 
 # Fixed quant-gate policy. Not user-selectable switches.
@@ -41,7 +41,7 @@ HEIGHT_COL = "intensity"  # apex peak height; not integrated area
 
 # Explicit allow-list for feature-group adduct search (membership matters).
 # Must be keys in ION_TYPE_DICT with |z| = 1. Residual ties keep all matches in
-# possible_ion_types; preferred ion_type among ties is alphabetical.
+# possible_ion_types; ion_type is set only when a single interpretation fits.
 DEFAULT_ION_TYPES: Tuple[str, ...] = (
     "[M+H]+",
     "[M+H-H2O]+",
@@ -154,7 +154,7 @@ class FeatureGroupParams:
 
     **Adducts:** ``ion_types`` lists ``ION_TYPE_DICT`` keys (``|z| = 1``).
     Pairwise neutral-mass edges; residual ties keep all matches in
-    ``possible_ion_types`` (preferred label is alphabetical among ties).
+    ``possible_ion_types`` with no preferred ``ion_type``.
 
     ``rt_tol`` / ``mz_tol_ppm`` come from collection alignment settings via
     :meth:`from_lcms_collection_settings`. Correlation is Pearson on apex
@@ -387,7 +387,7 @@ def empty_group_labels(cluster_ids: Sequence) -> pd.DataFrame:
 
 
 def format_possible_ion_types(types: Sequence[str]) -> Optional[str]:
-    """Join unique ion-type strings (preferred first). Empty → None."""
+    """Join unique ion-type strings alphabetically. Empty → None."""
     seen = set()
     ordered = []
     for t in types:
@@ -395,12 +395,20 @@ def format_possible_ion_types(types: Sequence[str]) -> Optional[str]:
             continue
         seen.add(t)
         ordered.append(t)
+    ordered.sort()
     return POSSIBLE_ION_TYPES_SEP.join(ordered) if ordered else None
 
 
 def parse_possible_ion_types(val) -> list:
     """Split a ``possible_ion_types`` cell; null/empty → []."""
-    if val is None or pd.isna(val):
+    if val is None:
+        return []
+    if isinstance(val, (list, tuple, np.ndarray, pd.Series, pd.Index)):
+        out = []
+        for x in val:
+            out.extend(parse_possible_ion_types(x))
+        return out
+    if _isna(val):
         return []
     return [p for p in str(val).split(POSSIBLE_ION_TYPES_SEP) if p]
 
@@ -414,8 +422,18 @@ def merge_possible_ion_types(*vals) -> Optional[str]:
 
 
 def _isna(val) -> bool:
-    """True for None / NA (pandas-compatible)."""
-    return val is None or pd.isna(val)
+    """True for None / scalar NA. Sequences of identifications are not NA."""
+    if val is None:
+        return True
+    if isinstance(val, (list, tuple, set, dict, np.ndarray, pd.Series, pd.Index)):
+        return False
+    try:
+        result = pd.isna(val)
+    except (ValueError, TypeError):
+        return False
+    if hasattr(result, "ndim") and getattr(result, "ndim", 0) > 0:
+        return False
+    return bool(result)
 
 
 def is_adduct_endpoint_eligible(ion_role) -> bool:
@@ -438,18 +456,73 @@ def allowed_ion_types_for_row(ion_type, possible_ion_types):
     parsed = parse_possible_ion_types(possible_ion_types)
     if parsed:
         return set(parsed)
-    if ion_type and not _isna(ion_type):
-        return {str(ion_type)}
+    parsed_it = parse_possible_ion_types(ion_type)
+    if parsed_it:
+        return set(parsed_it)
     return None
 
 
 def ion_type_allowed(id_ion_type, allowed) -> bool:
-    """True if identification ion type is allowed (``allowed is None`` → keep)."""
+    """True if identification ion type is allowed (``allowed is None`` → keep).
+
+    ``id_ion_type`` may be a scalar or a sequence (MS2 hits store parallel
+    lists). A sequence is allowed if any token is in ``allowed``.
+    """
     if allowed is None:
         return True
-    if not id_ion_type or _isna(id_ion_type):
+    tokens = parse_possible_ion_types(id_ion_type)
+    if not tokens:
         return False
-    return str(id_ion_type) in allowed
+    allowed_l = {str(a).lower() for a in allowed}
+    return any(t.lower() in allowed_l for t in tokens)
+
+
+def subset_hits_by_allowed_ion_types(result, allowed, ion_attr: str = "ref_ion_type"):
+    """Keep parallel hit arrays on a search-result object whose ion type is allowed.
+
+    Returns ``result`` unchanged when ``allowed is None``. Returns ``None`` if
+    no hits remain. Sequences (FlashEntropy ``ref_ion_type`` lists) are subset
+    in place on list/tuple/ndarray attributes of matching length.
+    """
+    if allowed is None or result is None:
+        return result
+    ion_types = getattr(result, ion_attr, None)
+    if ion_types is None and hasattr(result, "get"):
+        ion_types = result.get(ion_attr)
+    if ion_types is None:
+        return result
+    if isinstance(ion_types, str) or not hasattr(ion_types, "__len__"):
+        return result if ion_type_allowed(ion_types, allowed) else None
+    n = len(ion_types)
+    if n == 0:
+        return result
+    keep = [i for i, it in enumerate(ion_types) if ion_type_allowed(it, allowed)]
+    if not keep:
+        return None
+    if len(keep) == n:
+        return result
+    keep_idx = np.asarray(keep, dtype=int)
+    items = (
+        result.items() if hasattr(result, "items") and not hasattr(result, "__dict__")
+        else vars(result).items()
+    )
+    for key, val in list(items):
+        if key.startswith("_"):
+            continue
+        if isinstance(val, np.ndarray) and val.shape[:1] == (n,):
+            new_val = val[keep_idx]
+        elif isinstance(val, (list, tuple)) and len(val) == n:
+            seq = [val[i] for i in keep]
+            new_val = type(val)(seq) if isinstance(val, tuple) else seq
+        elif isinstance(val, pd.Series) and len(val) == n:
+            new_val = val.iloc[keep]
+        else:
+            continue
+        if hasattr(result, "__dict__"):
+            setattr(result, key, new_val)
+        else:
+            result[key] = new_val
+    return result
 
 
 def merge_feature_group_labels_into_frame(
@@ -798,9 +871,10 @@ def find_adduct_edges(
     singly charged (``|z| = 1``).
 
     When several type assignments fit with the same residual (within
-    ``_RESIDUAL_TIE_EPS``), all are kept in ``possible_ion_types``. The single
-    preferred ``parent_ion_type`` / ``child_ion_type`` is a stable alphabetical
-    pick among those ties (no literature rank).
+    ``_RESIDUAL_TIE_EPS``), all are kept in ``possible_ion_types``.
+    ``parent_ion_type`` / ``child_ion_type`` on the edge row are a
+    deterministic handle for shared-M geometry only; labels do not treat
+    that pick as a preferred assignment when ``n_interpretations`` > 1.
 
     Returns
     -------
@@ -1084,9 +1158,10 @@ def _form_members_for_endpoint(
     """
     Isotope form subtree for an adduct-edge endpoint.
 
-    Members share the endpoint's chemical ``mono_cluster_id`` (or the endpoint
-    itself) and have ``ion_type`` null or equal to ``target_ion_type``.
-    Does **not** include other ion forms already in the same feature_group_id.
+    Members share the endpoint's chemical ``mono_cluster_id`` when an isotope
+    form exists, otherwise the endpoint itself. ``ion_type`` is null or equal
+    to ``target_ion_type``. Does **not** include other ion forms already in
+    the same feature_group_id.
     """
     if endpoint not in labels.index:
         return [endpoint]
@@ -1113,6 +1188,14 @@ def _form_members_for_endpoint(
     if endpoint not in members:
         members.append(int(endpoint))
     return members
+
+
+def _form_has_isotope(labels: pd.DataFrame, form_members: Sequence[int]) -> bool:
+    """True if any form member is labeled ``ion_role=isotope``."""
+    for cid in form_members:
+        if cid in labels.index and labels.loc[cid, "ion_role"] == "isotope":
+            return True
+    return False
 
 
 def _form_mono_id(labels: pd.DataFrame, form_members: Sequence[int], endpoint: int) -> int:
@@ -1147,8 +1230,11 @@ def merge_adduct_edges_into_labels(
     """
     Merge forms across ion-type edges under correctness constraints.
 
-    - Paint **form subtrees only** (mono + isotopes of that form).
-    - Require shared neutral mass between form monos (if ``mz_by_cluster``).
+    - Paint **form subtrees only** (isotope family of that form, or the
+      unlabeled endpoint when no isotope was observed).
+    - ``mono_cluster_id`` / ``ion_role=mono`` only when the form has an isotope.
+    - Require shared neutral mass between form reference clusters
+      (if ``mz_by_cluster``).
     - Reject if an endpoint already has a conflicting non-null ``ion_type``
       not listed among that edge's possible types.
     - Store residual-tied alternate types in ``possible_ion_types``.
@@ -1232,19 +1318,13 @@ def merge_adduct_edges_into_labels(
             if int(g_c) != keep_gid:
                 _remap_group_id(labels, int(g_c), keep_gid)
 
-        # Seed unlabeled endpoints only after the edge is accepted
-        for cid in (parent_c, child_c):
-            if _isna(labels.loc[cid, "ion_role"]):
-                labels.loc[cid, "ion_role"] = "mono"
-                labels.loc[cid, "isotope_state"] = "M+0"
-
-        for mid in (light_mono, heavy_mono):
-            if mid in labels.index and labels.loc[mid, "ion_role"] != "isotope":
-                labels.loc[mid, "ion_role"] = "mono"
-                if _isna(labels.loc[mid, "isotope_state"]):
-                    labels.loc[mid, "isotope_state"] = "M+0"
+        # Do not claim ion_role=mono / mono_cluster_id without an isotope.
+        # Adduct-only members still get feature_group_id and ion_type.
 
         def _paint_form(form_members, preferred, poss_str, mono_id):
+            set_mono_id = _form_has_isotope(labels, form_members)
+            poss_n = len(set(parse_possible_ion_types(poss_str) or [preferred]))
+            unique_type = poss_n <= 1
             for cid in form_members:
                 if cid not in labels.index:
                     continue
@@ -1252,7 +1332,6 @@ def merge_adduct_edges_into_labels(
                 if not _isna(it) and it != preferred:
                     if str(it) not in parse_possible_ion_types(poss_str):
                         continue
-                    # Keep existing primary; only expand possibles
                     labels.loc[cid, "feature_group_id"] = keep_gid
                     labels.loc[cid, "possible_ion_types"] = merge_possible_ion_types(
                         labels.loc[cid, "possible_ion_types"],
@@ -1260,16 +1339,20 @@ def merge_adduct_edges_into_labels(
                         poss_str,
                         it,
                     )
-                    labels.loc[cid, "mono_cluster_id"] = mono_id
+                    if set_mono_id:
+                        labels.loc[cid, "mono_cluster_id"] = mono_id
                     continue
                 labels.loc[cid, "feature_group_id"] = keep_gid
-                labels.loc[cid, "ion_type"] = preferred
                 labels.loc[cid, "possible_ion_types"] = merge_possible_ion_types(
                     labels.loc[cid, "possible_ion_types"],
                     preferred,
                     poss_str,
+                    it,
                 )
-                labels.loc[cid, "mono_cluster_id"] = mono_id
+                if unique_type:
+                    labels.loc[cid, "ion_type"] = preferred
+                if set_mono_id:
+                    labels.loc[cid, "mono_cluster_id"] = mono_id
 
         _paint_form(light_form, paint_light, poss_light, light_mono)
         _paint_form(heavy_form, paint_heavy, poss_heavy, heavy_mono)

@@ -630,6 +630,52 @@ def test_feature_group_labels_hdf5_round_trip(lcms_collection, tmp_path):
     assert collection3.feature_group_dataframe is None
 
 
+def test_feature_annotations_table_includes_grouping_drops_empty(lcms_collection):
+    """Grouping columns join onto annotations; all-NA columns are dropped."""
+    from corems.mass_spectra.calc.feature_grouping import GROUP_COLUMNS, empty_group_labels
+
+    lcms_collection = copy.deepcopy(lcms_collection)
+    if not lcms_collection.rt_alignment_attempted:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
+    lcms_collection.process_consensus_features(
+        load_representatives=True,
+        perform_gap_filling=False,
+        add_ms1=False,
+        add_ms2=False,
+        group_features=False,
+        keep_raw_data=False,
+        show_progress=False,
+    )
+    summary = lcms_collection.cluster_summary_dataframe
+    labels = empty_group_labels(summary.index)
+    cid = int(summary.index[0])
+    labels.loc[cid, "feature_group_id"] = 0
+    labels.loc[cid, "ion_role"] = "mono"
+    labels.loc[cid, "ion_type"] = "[M-H]-"
+    labels.loc[cid, "possible_ion_types"] = "[M-H]-"
+    labels.loc[cid, "isotope_state"] = "M+0"
+    labels.loc[cid, "mono_cluster_id"] = cid
+    lcms_collection.feature_group_dataframe = labels
+
+    table = lcms_collection.feature_annotations_table()
+    for col in (
+        "feature_group_id",
+        "ion_role",
+        "possible_ion_types",
+        "isotope_state",
+        "mono_cluster_id",
+    ):
+        assert col in table.columns
+    assert "ion_type" not in table.columns
+    hit = table[table["cluster"] == cid]
+    assert len(hit) >= 1
+    assert int(hit.iloc[0]["feature_group_id"]) == 0
+    assert hit.iloc[0]["ion_role"] == "mono"
+    assert "[M-H]-" in str(hit.iloc[0]["possible_ion_types"])
+    assert table.notna().any().all()
+
+
 def test_lcms_collection_drop_isotopologues(lcms_collection):
     """Test dropping isotopologues from the collection."""
     # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
