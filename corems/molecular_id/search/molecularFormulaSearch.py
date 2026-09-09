@@ -626,7 +626,14 @@ class SearchMolecularFormulas:
 
         for mf in possible_formulas_list:
             if neutral_molform:
-                nm = int(mf.protonated_mz)
+                # Bin by the nominal m/z of the requested ion hypothesis so
+                # candidates land in the same bin run_search looks them up under.
+                if ion_type == Labels.radical_ion:
+                    nm = int(mf.radical_mz)
+                elif ion_type == Labels.adduct_ion and adduct_atom:
+                    nm = int(mf.adduct_mz(adduct_atom))
+                else:
+                    nm = int(mf.protonated_mz)
             else:
                 nm = int(mf.mz_nominal_calc)
 
