@@ -1,6 +1,7 @@
 # %% Import libs
 import shutil
 import warnings
+from unittest.mock import MagicMock
 
 import numpy as np
 import pandas as pd
@@ -10,6 +11,8 @@ from corems.mass_spectra.output.export import LCMSMetabolomicsExport
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.molecular_id.search.database_interfaces import MSPInterface
 from corems.encapsulation.factory.parameters import LCMSParameters, reset_lcms_parameters, reset_ms_parameters
+from corems.encapsulation.factory.processingSetting import LiquidChromatographSetting
+from corems.mass_spectra.calc.lc_calc import LCCalculations
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 
 
@@ -316,3 +319,80 @@ def test_lcms_metabolomics_targeted_search(tmp_path, lcms_obj):
     # Reset the parameters to the original values
     reset_lcms_parameters()
     reset_ms_parameters()
+
+
+class _PeakPickHost(LCCalculations):
+    """Minimal LCCalculations host; real pickers are mocked."""
+
+    def __init__(self, ms_formats, method="auto", ms_level=1):
+        self.parameters = LCMSParameters(use_defaults=True)
+        self.parameters.lc_ms.peak_picking_method = method
+        self.scan_df = pd.DataFrame(
+            {
+                "ms_level": [ms_level] * len(ms_formats),
+                "ms_format": list(ms_formats),
+            }
+        )
+        self.find_mass_features_ph = MagicMock()
+        self.find_mass_features_ph_centroid = MagicMock()
+        self.cluster_mass_features = MagicMock()
+
+
+def test_lcms_peak_picking_auto_resolve():
+    assert LiquidChromatographSetting().peak_picking_method == "auto"
+    assert LCMSParameters(use_defaults=True).lc_ms.peak_picking_method == "auto"
+    assert "auto" in LiquidChromatographSetting().implemented_peak_picking_methods
+
+    ok = [
+        ("auto", ["profile", "profile"], "persistent homology"),
+        ("auto", ["centroid"], "centroided_persistent_homology"),
+        ("persistent homology", ["profile"], "persistent homology"),
+        ("centroided_persistent_homology", ["centroid"], "centroided_persistent_homology"),
+    ]
+    for method, formats, expected in ok:
+        host = _PeakPickHost(formats, method=method)
+        assert host._resolve_lcms_peak_picking_method() == expected
+
+    errors = [
+        ("auto", [], "auto-detect"),
+        ("auto", ["profile", "centroid"], "auto-detect"),
+        ("auto", ["profile", None], "auto-detect"),
+        ("auto", [None], "auto-detect"),
+        ("auto", ["unknown"], "auto-detect"),
+        ("not-a-method", ["profile"], "not implemented"),
+        ("persistent homology", ["centroid"], "not profile mode"),
+        ("centroided_persistent_homology", ["profile"], "not centroid mode"),
+    ]
+    for method, formats, match in errors:
+        host = _PeakPickHost(formats, method=method)
+        with pytest.raises(ValueError, match=match):
+            host._resolve_lcms_peak_picking_method()
+
+
+def test_lcms_peak_picking_auto_lock():
+    profile = _PeakPickHost(["profile"], method="auto")
+    profile.find_mass_features()
+    profile.find_mass_features_ph.assert_called_once()
+    profile.find_mass_features_ph_centroid.assert_not_called()
+    assert profile.parameters.lc_ms.peak_picking_method == "persistent homology"
+
+    centroid = _PeakPickHost(["centroid"], method="auto")
+    centroid.find_mass_features()
+    centroid.find_mass_features_ph_centroid.assert_called_once()
+    centroid.find_mass_features_ph.assert_not_called()
+    assert (
+        centroid.parameters.lc_ms.peak_picking_method
+        == "centroided_persistent_homology"
+    )
+
+    mixed = _PeakPickHost(["profile", "centroid"], method="auto")
+    with pytest.raises(ValueError, match="auto-detect"):
+        mixed.find_mass_features()
+    mixed.find_mass_features_ph.assert_not_called()
+    mixed.find_mass_features_ph_centroid.assert_not_called()
+    assert mixed.parameters.lc_ms.peak_picking_method == "auto"
+
+    mismatch = _PeakPickHost(["centroid"], method="persistent homology")
+    with pytest.raises(ValueError, match="not profile mode"):
+        mismatch.find_mass_features()
+    assert mismatch.parameters.lc_ms.peak_picking_method == "persistent homology"

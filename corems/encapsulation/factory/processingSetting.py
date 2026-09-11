@@ -285,10 +285,13 @@ class LiquidChromatographSetting:
         Default is {"noise_score_max": {"value": 0.8, "operator": ">="},"noise_score_min": {"value": 0.5, "operator": ">="}},
     peak_picking_method : str, optional
         Peak picking method to use. See implemented_peak_picking_methods for options.
-        Default is 'persistent homology'.
+        Default is 'auto', which selects persistent homology when all scans
+        at the requested MS level are profile and centroided persistent
+        homology when all are centroid, then stores the concrete method on
+        this setting so saved parameters record what was used.
     implemented_peak_picking_methods : tuple, optional
         Peak picking methods that can be implemented.
-        Default is ('persistent homology', 'centroided_persistent_homology').
+        Default is ('auto', 'persistent homology', 'centroided_persistent_homology').
     ph_smooth_it : int, optional
         Number of iterations to use for smoothing prior to finding mass features.
         Used only for "persistent homology" peak picking method.
@@ -419,8 +422,9 @@ class LiquidChromatographSetting:
     mass_feature_attribute_filter_dict: Dict = dataclasses.field(default_factory=dict)
 
     # Parameters used for 2D peak picking
-    peak_picking_method: str = "persistent homology"
+    peak_picking_method: str = "auto"
     implemented_peak_picking_methods: tuple = (
+        "auto",
         "persistent homology",
         "centroided_persistent_homology",
     )
