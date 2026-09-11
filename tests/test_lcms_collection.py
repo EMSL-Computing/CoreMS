@@ -1,5 +1,6 @@
 # %% Import libs
 from pathlib import Path
+import time
 
 import numpy as np
 import pytest
@@ -864,7 +865,7 @@ def test_lcms_collection_update_raw_file_locations(lcms_collection, tmp_path):
     assert lcms_collection.raw_files_relocated
 
 
-def test_lcms_collection_minimal_workflow(lcms_collection):
+def test_lcms_collection_minimal_workflow(lcms_collection, tmp_path):
     """
     Test a minimal end-to-end workflow with the collection.
     
@@ -873,7 +874,8 @@ def test_lcms_collection_minimal_workflow(lcms_collection):
     2. Align retention times
     3. Generate consensus features
     4. Perform gap filling
-    5. Create reports
+    5. Export consensus features to MGF
+    6. Create reports
     """
     # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
     lcms_collection = copy.deepcopy(lcms_collection)
@@ -895,7 +897,7 @@ def test_lcms_collection_minimal_workflow(lcms_collection):
         load_representatives=True,
         perform_gap_filling=True,
         add_ms1=True,
-        add_ms2=False,
+        add_ms2=True,
         molecular_formula_search=False,
         ms2_spectral_search=False,
         spectral_lib=False,
@@ -903,8 +905,28 @@ def test_lcms_collection_minimal_workflow(lcms_collection):
         gather_eics=True,
         keep_raw_data=False
     )
+
+    # Step 5: Export consensus representatives to MGF
+    mgf_path = tmp_path / "lcms_collection.mgf"
+    t0 = time.perf_counter()
+    written_mgf = lcms_collection.to_mgf(mgf_path, overwrite=True)
+    mgf_elapsed_s = time.perf_counter() - t0
+    mgf_text = written_mgf.read_text()
+    n_ms1 = mgf_text.count("MSLEVEL=1")
+    n_ms2 = mgf_text.count("MSLEVEL=2")
+    preview = "\n".join(mgf_text.splitlines()[:35])
+    print(
+        f"\n[test_lcms_collection_minimal_workflow] MGF export {mgf_elapsed_s:.3f} s; "
+        f"{cluster_count} consensus clusters; "
+        f"{n_ms1} MS1 / {n_ms2} MS2 blocks; "
+        f"{written_mgf.stat().st_size / 1024:.1f} KiB\n"
+        f"--- MGF preview ---\n{preview}\n--- end preview ---\n"
+    )
+    assert written_mgf.exists()
+    assert n_ms1 > 0
+    assert n_ms2 > 0
     
-    # Step 5: Create reports
+    # Step 6: Create reports
     pivot_table = lcms_collection.collection_pivot_table(verbose=False)
     assert pivot_table is not None
     

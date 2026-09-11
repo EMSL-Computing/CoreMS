@@ -1,5 +1,6 @@
 # %% Import libs
 import shutil
+import time
 import warnings
 
 import numpy as np
@@ -124,6 +125,26 @@ def test_lcms_metabolomics(tmp_path, postgres_database, lcms_obj, msp_file_locat
     lcms_obj.fe_search(
         scan_list=ms2_scans_oi_hr, fe_lib=msp_negative, peak_sep_da=0.01
     )
+
+    mgf_path = tmp_path / "lcms_metabolomics.mgf"
+    t0 = time.perf_counter()
+    written_mgf = lcms_obj.to_mgf(mgf_path, overwrite=True)
+    mgf_elapsed_s = time.perf_counter() - t0
+    mgf_text = written_mgf.read_text()
+    n_ms1 = mgf_text.count("MSLEVEL=1")
+    n_ms2 = mgf_text.count("MSLEVEL=2")
+    n_features = len(lcms_obj.mass_features)
+    preview = "\n".join(mgf_text.splitlines()[:35])
+    print(
+        f"\n[test_lcms_metabolomics] MGF export {mgf_elapsed_s:.3f} s; "
+        f"{n_features} mass features on object; "
+        f"{n_ms1} MS1 / {n_ms2} MS2 blocks; "
+        f"{written_mgf.stat().st_size / 1024:.1f} KiB\n"
+        f"--- MGF preview ---\n{preview}\n--- end preview ---\n"
+    )
+    assert written_mgf.exists()
+    assert n_ms1 > 0
+    assert n_ms2 > 0
 
     # Export the lcms object to an hdf5 file using the LipidomicsExport class
     export_stem = tmp_path / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab"
