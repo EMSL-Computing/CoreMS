@@ -9,7 +9,7 @@ Usage (from repo root)::
 
     python3 docs/generate_uml.py
     # or
-    make uml
+    just uml
 """
 
 from __future__ import annotations
