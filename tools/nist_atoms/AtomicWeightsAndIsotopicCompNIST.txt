@@ -4,7 +4,7 @@
 # Retrieved: 2026-09-02
 # Compilation: Coursey et al. version 4.1 (https://physics.nist.gov/Comp)
 #
-# Do not edit records by hand. `make nist-atoms` re-downloads this file.
+# Do not edit records by hand. `just nist-atoms` re-downloads this file.
 # Parser ignores lines starting with #.
 
 Atomic Number = 1

@@ -709,11 +709,30 @@ class MolecularFormulaSearchOperation(SampleOperation):
                 "Molecular formula search requires MS1 spectra to be associated with mass features. "
                 "Ensure add_ms1=True when reloading features."
             )
+
+        from corems.mass_spectra.calc.feature_grouping import (
+            annotation_meta_for_sample_mf,
+            constrain_annotation_active,
+            should_skip_isotope_for_annotation,
+        )
+
+        settings = collection.parameters.lcms_collection
+        labels = getattr(collection, "feature_group_dataframe", None)
+        constrain = constrain_annotation_active(
+            labels, bool(getattr(settings, "feature_group_constrain_annotation", True))
+        )
+        mf_df = getattr(collection, "mass_features_dataframe", None)
         
         # Prepare data for bulk molecular formula search
         # Group mass features by their apex scan
         scan_to_mf = {}
         for mf_id, mf in sample.mass_features.items():
+            if constrain:
+                meta = annotation_meta_for_sample_mf(mf_df, labels, sample_id, mf_id)
+                if meta is not None and should_skip_isotope_for_annotation(
+                    meta.get("ion_role"), True
+                ):
+                    continue
             apex_scan = mf.apex_scan
             if apex_scan not in scan_to_mf:
                 scan_to_mf[apex_scan] = []
@@ -963,6 +982,41 @@ class MS2SpectralSearchOperation(SampleOperation):
             fe_lib=fe_lib,
             peak_sep_da=peak_sep_da
         )
+
+        from corems.mass_spectra.calc.feature_grouping import (
+            annotation_meta_for_sample_mf,
+            constrain_annotation_active,
+            should_skip_isotope_for_annotation,
+            allowed_ion_types_for_row,
+            subset_hits_by_allowed_ion_types,
+        )
+
+        settings = collection.parameters.lcms_collection
+        labels = getattr(collection, "feature_group_dataframe", None)
+        constrain = constrain_annotation_active(
+            labels, bool(getattr(settings, "feature_group_constrain_annotation", True))
+        )
+        if constrain:
+            mf_df = getattr(collection, "mass_features_dataframe", None)
+            for mf_id, mf in list(sample.mass_features.items()):
+                meta = annotation_meta_for_sample_mf(mf_df, labels, sample_id, mf_id)
+                if meta is None:
+                    continue
+                if should_skip_isotope_for_annotation(meta.get("ion_role"), True):
+                    mf.ms2_similarity_results = []
+                    continue
+                allowed = allowed_ion_types_for_row(
+                    meta.get("ion_type"), meta.get("possible_ion_types")
+                )
+                if allowed is None:
+                    continue
+                results = getattr(mf, "ms2_similarity_results", None) or []
+                filtered = []
+                for res in results:
+                    kept = subset_hits_by_allowed_ion_types(res, allowed)
+                    if kept is not None:
+                        filtered.append(kept)
+                mf.ms2_similarity_results = filtered
         
         # Return the spectral search results for collection
         # (needed for multiprocessing - results populated in worker need to be returned)

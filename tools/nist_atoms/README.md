@@ -15,18 +15,18 @@ Dump URL:
 
 https://physics.nist.gov/cgi-bin/Compositions/stand_alone.pl?ele=&ascii=ascii2&isotype=all
 
-`make nist-atoms` downloads that dump (errors if the download fails), strips HTML
+`just nist-atoms` downloads that dump (errors if the download fails), strips HTML
 chrome, and compares records to the vendored file. If the dump is unchanged and
 `nist_atoms.py` already matches, it writes nothing.
 
 ## Commands
 
 ```bash
-make nist-atoms   # download NIST dump; rewrite tables only if needed
+just nist-atoms   # download NIST dump; rewrite tables only if needed
 ```
 
-Do not hook this into `make patch|minor|major`. Release prep runs `make nist-atoms`
-**before** `make lint`.
+Do not hook this into `just patch|minor|major`. Release prep runs `just nist-atoms`
+**before** `just lint`.
 
 If the pin changed, paste the **Breaking** and **Significant** sections of
 `CHANGES.md` into release notes (`RELEASE.md`). Significant lists **Deleted

@@ -1,6 +1,6 @@
 """NIST-pinned atomic masses, abundances, and isotope lists.
 
-Do not edit by hand. Regenerate with `make nist-atoms`.
+Do not edit by hand. Regenerate with `just nist-atoms`.
 Public lookup API is ``corems.encapsulation.constant.Atoms``.
 
 Hydrogen aliases: H/1H, D/2H.

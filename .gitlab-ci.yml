@@ -65,6 +65,9 @@ stages:
   - export PATH="$PATH:/usr/local/dotnet"
   - rm /tmp/dotnet-install.sh
 
+.install-just: &install-just
+  - curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+
 .test_job_rules: &test_job_rules
   - if: '$CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"'
     changes:
@@ -76,7 +79,7 @@ stages:
       - support_code/**/*
       - Dockerfile*
       - docker-compose*.yml
-      - Makefile
+      - justfile
       - setup.py
       - pyproject.toml
       - pytest.ini
@@ -94,7 +97,8 @@ test-source:
   rules: *test_job_rules
   script:
     - *install-dotnet
-    - make ci-test-source LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite"
+    - *install-just
+    - LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite" just ci-test-source
 
 # ---------------------------------------------------------------------------
 # Notebook tests
@@ -104,7 +108,8 @@ test-notebooks:
   rules: *test_job_rules
   script:
     - *install-dotnet
-    - make ci-test-notebooks LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite"
+    - *install-just
+    - LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite" just ci-test-notebooks
 
   artifacts:
     when: on_failure

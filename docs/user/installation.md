@@ -2,7 +2,7 @@
 
 How to install **CoreMS 4.0+** for normal use, development, optional databases, and Thermo `.raw` support.
 
-This is the **canonical install guide**. The [README](../../README.md) has a short quickstart only. This file is loaded into `corems.__doc__` (together with the README) so `make docu` / pdoc shows it on the package landing page with the same styling as the API docs.
+This is the **canonical install guide**. The [README](../../README.md) has a short quickstart only. This file is loaded into `corems.__doc__` (together with the README) so `just docu` / pdoc shows it on the package landing page with the same styling as the API docs.
 
 ## Requirements
 
@@ -41,10 +41,10 @@ By default the molecular formula database uses **SQLite** (local file; no extra 
 Install extras from `pyproject.toml` as needed:
 
 ```bash
-pip install "corems[dev]"          # tests, pylint, docs tooling (incl. pdoc)
+pip install "corems[dev]"          # tests, ruff, docs tooling (incl. pdoc)
 ```
 
-With `corems[dev]`, maintainers can run package lint via `make lint` (see [RELEASE.md](../../RELEASE.md)).
+With `corems[dev]`, maintainers can format and auto-fix the package via `just lint` at release time (see [RELEASE.md](../../RELEASE.md)). That command rewrites files.
 
 Check the installed package metadata or `pyproject.toml` for the current list of extras.
 
@@ -140,7 +140,7 @@ You may also need Mono’s libraries discoverable on your system (distribution-s
 
 ## Docker image (full application)
 
-To run CoreMS in a container that already includes **.NET 8** and dependencies, see [Building and Running the CoreMS Docker Image](../../README.md#docker-image) in the README (`make build-image-local` / `make build-image-mac-local` on Apple Silicon).
+To run CoreMS in a container that already includes **.NET 8** and dependencies, see [Building and Running the CoreMS Docker Image](../../README.md#docker-image) in the README (`just build-image-local` / `just build-image-mac-local` on Apple Silicon).
 
 ## Example notebooks
 
@@ -159,7 +159,7 @@ Workflow examples live under `examples/notebooks/`. These are intended as demons
 ## Building the documentation site
 
 ```bash
-make docu
+just docu
 ```
 
 Opens as `docs/corems.html`. The landing module page includes this install guide via `corems/__init__.py`.

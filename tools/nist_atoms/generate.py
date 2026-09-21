@@ -1,6 +1,6 @@
 """Generate corems.encapsulation.nist_atoms from a vendored NIST ASCII dump.
 
-Maintainer only. Run via `make nist-atoms`. Downloads the NIST dump and errors
+Maintainer only. Run via `just nist-atoms`. Downloads the NIST dump and errors
 if that fails. Writes files only if the dump or generated tables changed.
 """
 
@@ -132,7 +132,7 @@ def fetch_nist_dump() -> str:
         if "CERTIFICATE" in str(exc).upper():
             hint = (
                 " Use the CoreMS venv Python (certifi), e.g. "
-                "PYTHON=.venv/bin/python make nist-atoms."
+                "PYTHON=.venv/bin/python just nist-atoms."
             )
         raise SystemExit(
             f"Failed to download NIST dump from {NIST_DUMP_URL}: {exc}.{hint}"
@@ -154,7 +154,7 @@ def vendored_header(retrieved: str) -> str:
         f"# Retrieved: {retrieved}\n"
         "# Compilation: Coursey et al. version 4.1 (https://physics.nist.gov/Comp)\n"
         "#\n"
-        "# Do not edit records by hand. `make nist-atoms` re-downloads this file.\n"
+        "# Do not edit records by hand. `just nist-atoms` re-downloads this file.\n"
         "# Parser ignores lines starting with #.\n"
         "\n"
     )
@@ -310,7 +310,7 @@ def render_module(tables: dict) -> str:
     iso_order = [e for e in tables["atoms_order"] if e in tables["isotopes"]]
     return f'''"""NIST-pinned atomic masses, abundances, and isotope lists.
 
-Do not edit by hand. Regenerate with `make nist-atoms`.
+Do not edit by hand. Regenerate with `just nist-atoms`.
 Public lookup API is ``corems.encapsulation.constant.Atoms``.
 
 Hydrogen aliases: H/1H, D/2H.
@@ -496,12 +496,12 @@ def check_committed_module() -> None:
     for name in ("atomic_masses", "isotopic_abundance", "isotopes", "atoms_order"):
         if ns[name] != tables[name]:
             raise SystemExit(
-                f"nist_atoms.py is out of date ({name} mismatch). Run make nist-atoms."
+                f"nist_atoms.py is out of date ({name} mismatch). Run just nist-atoms."
             )
     if ns.get("NIST_TABLE_ID") != tables["NIST_TABLE_ID"]:
-        raise SystemExit("nist_atoms.py NIST_TABLE_ID mismatch. Run make nist-atoms.")
+        raise SystemExit("nist_atoms.py NIST_TABLE_ID mismatch. Run just nist-atoms.")
     if ns.get("NIST_DUMP_URL") != tables["NIST_DUMP_URL"]:
-        raise SystemExit("nist_atoms.py NIST_DUMP_URL mismatch. Run make nist-atoms.")
+        raise SystemExit("nist_atoms.py NIST_DUMP_URL mismatch. Run just nist-atoms.")
 
 
 def generate() -> None:
