@@ -244,12 +244,6 @@ class MassSpectraBase:
         # Skip scans that have already been added to _ms to avoid redundant reprocessing
         already_added = [s for s in scan_list if s in self._ms]
         if already_added:
-            warnings.warn(
-                "Skipping {} scan(s) already present in _ms: {}".format(
-                    len(already_added), already_added
-                ),
-                UserWarning,
-            )
             scan_list = [s for s in scan_list if s not in self._ms]
         if not scan_list:
             return
@@ -1799,6 +1793,9 @@ class LCMSCollection(LCMSCollectionCalculations):
         self._parameters = LCMSCollectionParameters()
         self.isotopes_dropped = False
         self._mass_features_locked = False  # Prevents rebuilding mass_features_dataframe from samples
+        # Consensus feature grouping labels (isotopes + z=1 adducts);
+        # index = cluster. Not tracer/enriched labeling.
+        self.feature_group_dataframe = None
 
         # These attributes are set during processing
         self.rt_aligned = False
@@ -2406,6 +2403,23 @@ class LCMSCollection(LCMSCollectionCalculations):
             cols = ['cluster'] + cols
             consensus_report = consensus_report[cols]
         
+        # Do not present a single preferred ion_type; possible_ion_types holds
+        # all residual-tied candidates (same policy as cluster_summary).
+        if "ion_type" in consensus_report.columns:
+            if "possible_ion_types" in consensus_report.columns:
+                from corems.mass_spectra.calc.feature_grouping import (
+                    merge_possible_ion_types,
+                )
+
+                for i in consensus_report.index:
+                    filled = merge_possible_ion_types(
+                        consensus_report.at[i, "ion_type"],
+                        consensus_report.at[i, "possible_ion_types"],
+                    )
+                    if filled is not None:
+                        consensus_report.at[i, "possible_ion_types"] = filled
+            consensus_report = consensus_report.drop(columns=["ion_type"])
+
         # Sort by cluster and return with cluster as a regular column
         return consensus_report.sort_values(by='cluster')
 
@@ -2538,6 +2552,93 @@ class LCMSCollection(LCMSCollectionCalculations):
             raise ValueError("No samples with loaded mass features found in collection")
         
         collection_report = pd.concat(all_sample_reports, ignore_index=True)
+
+        # Feature-group constrain: drop consensus isotopes; filter library ion types
+        from corems.mass_spectra.calc.feature_grouping import (
+            allowed_ion_types_for_row,
+            constrain_annotation_active,
+            ion_type_allowed,
+            should_skip_isotope_for_annotation,
+        )
+
+        labels = getattr(self, "feature_group_dataframe", None)
+        constrain = constrain_annotation_active(
+            labels,
+            bool(
+                getattr(
+                    self.parameters.lcms_collection,
+                    "feature_group_constrain_annotation",
+                    True,
+                )
+            ),
+        )
+        if constrain and labels is not None and "cluster" in collection_report.columns:
+            keep_rows = []
+            for _, row in collection_report.iterrows():
+                cid = row.get("cluster")
+                if cid is None or (isinstance(cid, float) and pd.isna(cid)):
+                    keep_rows.append(True)
+                    continue
+                try:
+                    cid_i = int(cid)
+                except (TypeError, ValueError):
+                    keep_rows.append(True)
+                    continue
+                if cid_i not in labels.index:
+                    keep_rows.append(True)
+                    continue
+                lab = labels.loc[cid_i]
+                if should_skip_isotope_for_annotation(lab.get("ion_role"), True):
+                    keep_rows.append(False)
+                    continue
+                allowed = allowed_ion_types_for_row(
+                    lab.get("ion_type"), lab.get("possible_ion_types")
+                )
+                if allowed is None:
+                    keep_rows.append(True)
+                    continue
+                drop = False
+                for col in ("Ion Type", "Library Ion Type"):
+                    it = row.get(col)
+                    if it is None or (isinstance(it, float) and pd.isna(it)):
+                        continue
+                    if not ion_type_allowed(it, allowed):
+                        drop = True
+                        break
+                keep_rows.append(not drop)
+            collection_report = collection_report.loc[keep_rows].reset_index(drop=True)
+
+        # Join consensus feature-group labels (drop ion_type; possibles only)
+        from corems.mass_spectra.calc.feature_grouping import (
+            GROUP_COLUMNS,
+            merge_possible_ion_types,
+        )
+
+        if labels is not None and len(labels) and "cluster" in collection_report.columns:
+            gcols = [c for c in GROUP_COLUMNS if c in labels.columns]
+            grouping = labels[gcols].copy().reset_index()
+            first = grouping.columns[0]
+            if first != "cluster":
+                grouping = grouping.rename(columns={first: "cluster"})
+            drop_existing = [c for c in gcols if c in collection_report.columns]
+            if drop_existing:
+                collection_report = collection_report.drop(columns=drop_existing)
+            collection_report = collection_report.merge(
+                grouping, on="cluster", how="left"
+            )
+            if (
+                "ion_type" in collection_report.columns
+                and "possible_ion_types" in collection_report.columns
+            ):
+                for i in collection_report.index:
+                    filled = merge_possible_ion_types(
+                        collection_report.at[i, "ion_type"],
+                        collection_report.at[i, "possible_ion_types"],
+                    )
+                    if filled is not None:
+                        collection_report.at[i, "possible_ion_types"] = filled
+            if "ion_type" in collection_report.columns:
+                collection_report = collection_report.drop(columns=["ion_type"])
         
         # Warn only if NO samples in the collection have MS2 annotations
         if not has_any_ms2_annotations:
@@ -2547,8 +2648,20 @@ class LCMSCollection(LCMSCollectionCalculations):
             )
         
         # Reorder columns to match specified order
+        group_front = [
+            c
+            for c in (
+                "feature_group_id",
+                "ion_role",
+                "possible_ion_types",
+                "isotope_state",
+                "mono_cluster_id",
+            )
+            if c in collection_report.columns
+        ]
         desired_cols = [
             'cluster',
+            *group_front,
             'Isotopologue Type',
             'Is Largest Ion after Deconvolution',
             'MS2 Spectrum',
@@ -2571,9 +2684,15 @@ class LCMSCollection(LCMSCollectionCalculations):
             'representative_sample'
         ]
         
-        # Include only desired columns that exist, maintaining order
-        cols = [col for col in desired_cols if col in collection_report.columns]
-        collection_report = collection_report[cols]
+        leading = [c for c in desired_cols if c in collection_report.columns]
+        rest = [c for c in collection_report.columns if c not in leading]
+        collection_report = collection_report[leading + rest]
+        nonempty = [
+            c
+            for c in collection_report.columns
+            if c == "cluster" or collection_report[c].notna().any()
+        ]
+        collection_report = collection_report[nonempty]
         
         # Optionally drop rows without any annotations
         if drop_unannotated:
@@ -2585,22 +2704,18 @@ class LCMSCollection(LCMSCollectionCalculations):
             if len(annot_cols) > 0:
                 collection_report = collection_report[collection_report[annot_cols].notna().any(axis=1)]
         
-        # Sort by cluster, then by annotation quality
+        # Sort by cluster, then by annotation quality (only columns that remain)
         sort_cols = ['cluster']
+        sort_asc = [True]
         if 'Entropy Similarity' in collection_report.columns:
-            sort_cols.extend(['Entropy Similarity', 'Confidence Score'])
-            collection_report = collection_report.sort_values(
-                by=sort_cols,
-                ascending=[True, False, False]
-            )
-        elif 'Confidence Score' in collection_report.columns:
+            sort_cols.append('Entropy Similarity')
+            sort_asc.append(False)
+        if 'Confidence Score' in collection_report.columns:
             sort_cols.append('Confidence Score')
-            collection_report = collection_report.sort_values(
-                by=sort_cols,
-                ascending=[True, False]
-            )
-        else:
-            collection_report = collection_report.sort_values(by=sort_cols)
+            sort_asc.append(False)
+        collection_report = collection_report.sort_values(
+            by=sort_cols, ascending=sort_asc
+        )
         
         if report_best_only:
             # Keep only the best annotation per cluster based on the first annotation column available
