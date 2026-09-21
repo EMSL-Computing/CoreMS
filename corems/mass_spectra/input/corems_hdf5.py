@@ -1435,6 +1435,56 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
                 # Drop rows with NaN cluster values
                 lcms_collection.mass_features_dataframe.dropna(subset=['cluster'], inplace=True)
 
+    def _load_feature_group_labels(self, lcms_collection):
+        """Restore ``feature_group_dataframe`` and merge onto feature tables."""
+        from corems.mass_spectra.calc.feature_grouping import (
+            GROUP_COLUMNS,
+            empty_group_labels,
+            merge_feature_group_labels_into_frames,
+        )
+
+        with h5py.File(self.collection_hdf5_path, "r") as f:
+            if "feature_group_labels" not in f:
+                return
+            grp = f["feature_group_labels"]
+            if "cluster" not in grp:
+                raise ValueError(
+                    "feature_group_labels HDF5 group is missing 'cluster' dataset"
+                )
+            clusters = np.asarray(grp["cluster"][:], dtype=np.int64)
+            labels = empty_group_labels(clusters)
+            for col in GROUP_COLUMNS:
+                if col not in grp:
+                    continue
+                raw = grp[col][:]
+                if col in ("feature_group_id", "mono_cluster_id"):
+                    vals = []
+                    for v in raw:
+                        if v is None or (isinstance(v, float) and np.isnan(v)):
+                            vals.append(pd.NA)
+                        else:
+                            vals.append(int(v))
+                    labels[col] = pd.Series(vals, index=labels.index, dtype="Int64")
+                else:
+                    decoded = []
+                    for v in raw:
+                        if isinstance(v, (bytes, bytearray, np.bytes_)):
+                            s = v.decode("utf-8")
+                        else:
+                            s = "" if v is None else str(v)
+                        decoded.append(None if s == "" else s)
+                    labels[col] = decoded
+
+        lcms_collection.feature_group_dataframe = labels
+        mf, induced = merge_feature_group_labels_into_frames(
+            labels,
+            lcms_collection.mass_features_dataframe,
+            getattr(lcms_collection, "induced_mass_features_dataframe", None),
+        )
+        lcms_collection.mass_features_dataframe = mf
+        if getattr(lcms_collection, "induced_mass_features_dataframe", None) is not None:
+            lcms_collection.induced_mass_features_dataframe = induced
+
     def get_lcms_collection(self, load_raw=False, load_light=False, load_representatives=False, load_eics=False, load_ms1=False, load_ms2=False):
         """Get the LCMS collection from the saved HDF5 file.
         
@@ -1484,6 +1534,9 @@ class ReadSavedLCMSCollection(ReadCoreMSHDFMassSpectraCollection):
         # Combine induced mass features into the collection-level dataframe if any were loaded
         if lcms_collection.missing_mass_features_searched:
             lcms_collection._combine_mass_features(induced_features=True)
+
+        # Restore feature-group labels after clusters (+ induced) are in place
+        self._load_feature_group_labels(lcms_collection)
         
         # Load representative mass features if requested
         if load_representatives:

@@ -19,11 +19,11 @@ Release when `dev` has a coherent set of changes ready for users (features, fixe
 
 | Bump | Use when |
 |---|---|
-| `make patch` | Backwards-compatible bug fixes |
-| `make minor` | Backwards-compatible new features |
-| `make major` | Incompatible API changes |
+| `just patch` | Backwards-compatible bug fixes |
+| `just minor` | Backwards-compatible new features |
+| `just major` | Incompatible API changes |
 
-Each of those updates version metadata (see `.bumpversion.cfg`) and regenerates docs via `make docu` (UML class diagrams via `make uml` / pyreverse + Graphviz, then pdoc). The install how-to source is `docs/user/installation.md`, included on the package landing page through `corems.__doc__`. Maintainers need the `dev` extra (`ruff` for `make lint`, `pylint` for `pyreverse` / `make uml`, `pdoc`, …) and system Graphviz (`dot`) so format and docs steps succeed during a version bump.
+Each of those updates version metadata (see `.bumpversion.cfg`) and regenerates docs via `just docu` (UML class diagrams via `just uml` / pyreverse + Graphviz, then pdoc). The install how-to source is `docs/user/installation.md`, included on the package landing page through `corems.__doc__`. Maintainers need the `dev` extra (`ruff` for `just lint`, `pylint` for `pyreverse` / `just uml`, `pdoc`, …) and system Graphviz (`dot`) so format and docs steps succeed during a version bump.
 
 ## Release steps (GitLab)
 
@@ -40,12 +40,12 @@ All release steps should be done on the `dev` branch and then merged into `maste
         ```
      2. From the repo root run:
         ```bash
-        make lint
+        just lint
         ```
-        This runs `ruff format` then `ruff check --fix` on `corems` (config in `pyproject.toml`). Use the venv’s Python (activate the venv first, or `make lint PYTHON=.venv/bin/python`). The first run after ruff is introduced will produce a large diff; later releases should be small.
+        This runs `ruff format` then `ruff check --fix` on `corems` (config in `pyproject.toml`). Use the venv’s Python (activate the venv first, or `PYTHON=.venv/bin/python just lint`). The first run after ruff is introduced will produce a large diff; later releases should be small.
      3. Optional broader pass (tests and support scripts; also rewrites):
         ```bash
-        make lint-all
+        just lint-all
         ```
      4. Review `git diff` and commit the formatted/fixed files (a dedicated commit is fine, especially the first time). Findings that `--fix` cannot apply may remain and may make the command exit non-zero; that does not block the release. Do not use `--unsafe-fixes`.
 
@@ -53,7 +53,7 @@ All release steps should be done on the `dev` branch and then merged into `maste
    ```bash
    git checkout dev
    git pull
-   make patch   # or: make minor / make major
+   just patch   # or: just minor / just major
    git add -u   # or: git add -A if you want to include new files AND your repo is clean
    git commit -m "Bump version for release x.y.z"
    git push origin dev
@@ -72,12 +72,12 @@ All release steps should be done on the `dev` branch and then merged into `maste
    ```bash
    git checkout master
    git pull
-   make tag
+   just tag
    ```
-   `make tag` creates an annotated tag from `.bumpversion.cfg` and pushes it.
+   `just tag` creates an annotated tag from `.bumpversion.cfg` and pushes it.
 
 6. **Publish via CI**
-   - After the tag is on `master`, CI/CD publishes the package to PyPI. Do not run `make pypi` by hand.
+   - After the tag is on `master`, CI/CD publishes the package to PyPI. Do not run `just pypi` by hand.
    - Wait and verify that the release is visible on [PyPI](https://pypi.org/project/corems/) and CI is green on the tag pipeline.
 
 7. **Sync `dev`**
