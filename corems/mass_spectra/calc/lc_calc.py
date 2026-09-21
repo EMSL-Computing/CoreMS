@@ -363,11 +363,83 @@ class LCCalculations:
                 ms.process_mass_spec()
         return ms
 
+    def _resolve_lcms_peak_picking_method(self, ms_level=1):
+        """Resolve and validate the 2D peak picking method against scan formats.
+
+        Parameters
+        ----------
+        ms_level : int, optional
+            MS level whose ``scan_df`` formats are checked. Default is 1.
+
+        Returns
+        -------
+        str
+            Concrete method: ``persistent homology`` or
+            ``centroided_persistent_homology``. If the stored method is
+            ``auto``, it is chosen from scan formats (all profile or all
+            centroid).
+
+        Raises
+        ------
+        ValueError
+            If the method is not implemented, ``auto`` cannot be resolved
+            (empty, mixed, or unknown formats), or an explicit method does
+            not match the scan formats at ``ms_level``.
+        """
+        method = self.parameters.lc_ms.peak_picking_method
+        msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
+        values = list(msx_scan_df["ms_format"])
+
+        if method == "auto":
+            if len(values) == 0:
+                raise ValueError(
+                    "Cannot auto-detect peak picking method: no scans found "
+                    "for the requested MS level."
+                )
+            if all(v == "profile" for v in values):
+                return "persistent homology"
+            if all(v == "centroid" for v in values):
+                return "centroided_persistent_homology"
+            found = sorted({str(v) for v in values})
+            raise ValueError(
+                "Cannot auto-detect peak picking method: MS scans are mixed "
+                f"or unknown format (found {found}). Set peak_picking_method "
+                "explicitly to 'persistent homology' or "
+                "'centroided_persistent_homology'."
+            )
+
+        if method == "persistent homology":
+            if len(values) == 0 or not all(v == "profile" for v in values):
+                raise ValueError(
+                    "MS{} scans are not profile mode, which is required for persistent homology peak picking.".format(
+                        ms_level
+                    )
+                )
+            return method
+
+        if method == "centroided_persistent_homology":
+            if len(values) == 0 or not all(v == "centroid" for v in values):
+                raise ValueError(
+                    "MS{} scans are not centroid mode, which is required for persistent homology centroided peak picking.".format(
+                        ms_level
+                    )
+                )
+            return method
+
+        raise ValueError("Peak picking method not implemented")
+
     def find_mass_features(self, ms_level=1, grid=True, assign_ms2_scans=False, ms2_scan_filter=None, 
                           targeted_search=False, target_search_dict=None, accumulate_features=False):
         """Find mass features within an LCMSBase object
 
-        Note that this is a wrapper function that calls the find_mass_features_ph function, but can be extended to support other peak picking methods in the future.
+        Wrapper that dispatches to a 2D peak picking implementation.
+
+        If ``parameters.lc_ms.peak_picking_method`` is ``auto``, the method is
+        chosen from ``scan_df.ms_format`` at the requested MS level (all
+        profile → persistent homology; all centroid → centroided persistent
+        homology). A successful auto resolve overwrites
+        ``peak_picking_method`` with the concrete method so saved parameters
+        record what was used.
 
         Parameters
         ----------
@@ -407,7 +479,10 @@ class LCCalculations:
         ------
         ValueError
             If no MS level data is found on the object.
+            If ``auto`` cannot resolve a method (empty, mixed, or unknown
+            ``ms_format`` values at the requested MS level).
             If persistent homology peak picking is attempted on non-profile mode data.
+            If centroided persistent homology is attempted on non-centroid mode data.
             If data is not gridded and grid is False.
             If peak picking method is not implemented.
             If targeted_search is True but target_search_dict is None or invalid.
@@ -428,46 +503,28 @@ class LCCalculations:
             if len(target_search_dict['target_mz_list']) != len(target_search_dict['target_rt_list']):
                 raise ValueError("target_mz_list and target_rt_list must have the same length")
         
-        pp_method = self.parameters.lc_ms.peak_picking_method
+        requested_method = self.parameters.lc_ms.peak_picking_method
+        pp_method = self._resolve_lcms_peak_picking_method(ms_level=ms_level)
+        if requested_method == "auto":
+            self.parameters.lc_ms.peak_picking_method = pp_method
+
+        if targeted_search:
+            mf_type = target_search_dict.get('type', 'targeted')
+        else:
+            mf_type = 'untargeted'
 
         if pp_method == "persistent homology":
-            msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
-            if all(msx_scan_df["ms_format"] == "profile"):
-                # Determine mass feature type
-                if targeted_search:
-                    mf_type = target_search_dict.get('type', 'targeted')
-                else:
-                    mf_type = 'untargeted'
-                self.find_mass_features_ph(ms_level=ms_level, grid=grid, 
-                                          targeted_search=targeted_search, 
-                                          target_search_dict=target_search_dict,
-                                          mf_type=mf_type,
-                                          accumulate_features=accumulate_features)
-            else:
-                raise ValueError(
-                    "MS{} scans are not profile mode, which is required for persistent homology peak picking.".format(
-                        ms_level
-                    )
-                )
+            self.find_mass_features_ph(ms_level=ms_level, grid=grid, 
+                                      targeted_search=targeted_search, 
+                                      target_search_dict=target_search_dict,
+                                      mf_type=mf_type,
+                                      accumulate_features=accumulate_features)
         elif pp_method == "centroided_persistent_homology":
-            msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
-            if all(msx_scan_df["ms_format"] == "centroid"):
-                # Determine mass feature type
-                if targeted_search:
-                    mf_type = target_search_dict.get('type', 'targeted')
-                else:
-                    mf_type = 'untargeted'
-                self.find_mass_features_ph_centroid(ms_level=ms_level, 
-                                                    targeted_search=targeted_search, 
-                                                    target_search_dict=target_search_dict,
-                                                    mf_type=mf_type,
-                                                    accumulate_features=accumulate_features)
-            else:
-                raise ValueError(
-                    "MS{} scans are not centroid mode, which is required for persistent homology centroided peak picking.".format(
-                        ms_level
-                    )
-                )
+            self.find_mass_features_ph_centroid(ms_level=ms_level, 
+                                                targeted_search=targeted_search, 
+                                                target_search_dict=target_search_dict,
+                                                mf_type=mf_type,
+                                                accumulate_features=accumulate_features)
         else:
             raise ValueError("Peak picking method not implemented")
         
