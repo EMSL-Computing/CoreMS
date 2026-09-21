@@ -28,12 +28,18 @@ Each of those updates version metadata (see `.bumpversion.cfg`) and regenerates 
 ## Release steps (GitLab)
 
 All release steps should be done on the `dev` branch and then merged into `master` via a merge request (MR). Only bump the version on `dev` and merge into `master`. 
+This should be done by a maintainer with write access to the repo ONLY. The following steps are a checklist for maintainers to follow when releasing a new version of CoreMS:
 
 1. **Ensure `dev` is ready**
    - Gitlab CI green on `dev`.
    - Changelog or release notes drafted (these will be copied into the MR description and later into the release on GitHub).
    - No open blockers for the intended version.
-   - **Format and auto-fix the package** (release prep; not a hard CI gate). This **rewrites files**.
+   - Refresh / confirm the NIST atom pin **before formatting**:
+     ```bash
+     just nist-atoms
+     ```
+     This downloads the NIST dump (errors if that fails) and writes files only if the dump or generated tables changed. If `corems/encapsulation/nist_atoms.py` changed, copy the **Breaking** and **Significant** subsections from `tools/nist_atoms/CHANGES.md` into the release notes, then format.
+   - **Format and auto-fix the package** (release prep; not a hard CI gate). This **rewrites files**. Run this after `just nist-atoms` so ruff sees the committed `nist_atoms.py`.
      1. Activate the same environment you use for CoreMS development and install/update dev extras so `ruff` is available, e.g.:
         ```bash
         pip install -e ".[dev]"

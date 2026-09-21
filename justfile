@@ -147,6 +147,14 @@ db-connect:
     @docker exec -it molformdb psql -U postgres
 
 # ----------------------------------------------------------------------
+# NIST atom pin (maintainer). Downloads the dump and rewrites tables only
+# if the dump or generated module changed. See tools/nist_atoms/README.md.
+# ----------------------------------------------------------------------
+
+nist-atoms:
+    {{python}} tools/nist_atoms/generate.py
+
+# ----------------------------------------------------------------------
 # Docs / UML
 # ----------------------------------------------------------------------
 

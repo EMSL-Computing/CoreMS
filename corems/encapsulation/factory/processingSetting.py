@@ -47,7 +47,10 @@ def validate_used_atoms_keys(used_atoms):
     Molecular formula search treats each usedAtoms key as a monoisotopic
     (most-abundant) element. Heavy isotopologues (e.g. 13C, 54Fe, 37Cl) are
     produced later by isotopologue expansion of mono formulas, not by listing
-    rare-isotope labels in usedAtoms.
+    rare-isotope labels in usedAtoms. Membership in ``Atoms.isotopes`` does
+    not mean the element is ready to search: each key still needs a valence
+    in ``used_atom_valences`` (typically copied from ``Atoms.atoms_covalence``),
+    or DBE calculation can fail.
 
     Parameters
     ----------
@@ -935,6 +938,7 @@ class MolecularLookupDictSettings:
         ``Atoms.isotopes`` (e.g. ``C``, ``Fe``, ``Cl``), **not** specific
         isotope labels (e.g. ``13C``, ``54Fe``, ``37Cl``). Rare isotopes are
         produced by isotopologue expansion of mono formulas after assignment.
+        Each key also needs a valence in ``used_atom_valences``.
         Default is {'C': (1, 90), 'H': (4, 200), 'O': (0, 12), 'N': (0, 0),
         'S': (0, 0), 'P': (0, 0), 'Cl': (0, 0)}.
     min_mz : float, optional
@@ -1124,7 +1128,9 @@ class MolecularFormulaSearchSettings:
         expansion of mono formulas after assignment (when
         ``find_isotopologues`` is enabled), not by listing them here.
         Invalid keys raise ``ValueError`` at settings construction, assignment,
-        or search entry. Default empty dict is filled with C and H ranges in
+        or search entry. Each key also needs a valence in
+        ``used_atom_valences`` (usually from ``Atoms.atoms_covalence``).
+        Default empty dict is filled with C and H ranges in
         ``__post_init__``.
     ion_types_excluded : list, optional
         List of ion types to exclude from molecular id search, commonly ['[M+CH3COO]-]'] or ['[M+COOH]-'] depending on mobile phase content. Default is [].

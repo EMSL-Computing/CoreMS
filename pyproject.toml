@@ -81,7 +81,7 @@ networking = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-exclude = ["tests*", "*.win_only"]
+exclude = ["tests*", "*.win_only", "tools*"]
 
 [tool.setuptools.package-data]
 "*" = ["ext_lib/*", "ext_lib/dotnet/*", "disclaimer.txt"]
