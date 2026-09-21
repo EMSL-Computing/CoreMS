@@ -579,6 +579,104 @@ def test_lcms_collection_export_import_hdf5(lcms_collection, tmp_path):
         assert cluster_count_1 == cluster_count_2
 
 
+def test_feature_group_labels_hdf5_round_trip(lcms_collection, tmp_path):
+    """feature_group_dataframe survives collection HDF5 export/import."""
+    import h5py
+    from corems.mass_spectra.calc.feature_grouping import empty_group_labels
+    from corems.mass_spectra.input.corems_hdf5 import ReadSavedLCMSCollection
+
+    lcms_collection = copy.deepcopy(lcms_collection)
+    if not lcms_collection.rt_alignment_attempted:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
+
+    summary = lcms_collection.cluster_summary_dataframe
+    assert summary is not None and len(summary) > 0
+    clusters = summary.index.to_numpy()[: min(5, len(summary))]
+    labels = empty_group_labels(clusters)
+    for i, cid in enumerate(clusters):
+        labels.loc[cid, "feature_group_id"] = 0
+        labels.loc[cid, "ion_role"] = "mono" if i == 0 else "isotope"
+        labels.loc[cid, "ion_type"] = "[M+H]+"
+        labels.loc[cid, "possible_ion_types"] = "[M+H]+;[M+Na]+"
+        labels.loc[cid, "isotope_state"] = "M+0" if i == 0 else "13C1"
+        labels.loc[cid, "mono_cluster_id"] = int(clusters[0])
+    lcms_collection.feature_group_dataframe = labels
+
+    export_path = tmp_path / "fg_roundtrip"
+    exporter = LCMSCollectionExport(
+        out_file_path=str(export_path),
+        mass_spectra_collection=lcms_collection,
+    )
+    exporter.export_to_hdf5(overwrite=True, save_parameters=False, update_lcms_objects=False)
+    hdf5_path = export_path.with_suffix(".hdf5")
+    assert hdf5_path.exists()
+    with h5py.File(hdf5_path, "r") as f:
+        assert "feature_group_labels" in f
+
+    reader = ReadSavedLCMSCollection(collection_hdf5_path=str(hdf5_path), cores=1)
+    collection2 = reader.get_lcms_collection(load_raw=False, load_light=True)
+    assert collection2.feature_group_dataframe is not None
+    got = collection2.feature_group_dataframe
+    for cid in clusters:
+        assert int(got.loc[cid, "feature_group_id"]) == 0
+        assert got.loc[cid, "ion_type"] == "[M+H]+"
+        assert "[M+Na]+" in str(got.loc[cid, "possible_ion_types"])
+    # Older files without the group still load
+    with h5py.File(hdf5_path, "a") as f:
+        del f["feature_group_labels"]
+    collection3 = ReadSavedLCMSCollection(
+        collection_hdf5_path=str(hdf5_path), cores=1
+    ).get_lcms_collection(load_raw=False, load_light=True)
+    assert collection3.feature_group_dataframe is None
+
+
+def test_feature_annotations_table_includes_grouping_drops_empty(lcms_collection):
+    """Grouping columns join onto annotations; all-NA columns are dropped."""
+    from corems.mass_spectra.calc.feature_grouping import GROUP_COLUMNS, empty_group_labels
+
+    lcms_collection = copy.deepcopy(lcms_collection)
+    if not lcms_collection.rt_alignment_attempted:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
+    lcms_collection.process_consensus_features(
+        load_representatives=True,
+        perform_gap_filling=False,
+        add_ms1=False,
+        add_ms2=False,
+        group_features=False,
+        keep_raw_data=False,
+        show_progress=False,
+    )
+    summary = lcms_collection.cluster_summary_dataframe
+    labels = empty_group_labels(summary.index)
+    cid = int(summary.index[0])
+    labels.loc[cid, "feature_group_id"] = 0
+    labels.loc[cid, "ion_role"] = "mono"
+    labels.loc[cid, "ion_type"] = "[M-H]-"
+    labels.loc[cid, "possible_ion_types"] = "[M-H]-"
+    labels.loc[cid, "isotope_state"] = "M+0"
+    labels.loc[cid, "mono_cluster_id"] = cid
+    lcms_collection.feature_group_dataframe = labels
+
+    table = lcms_collection.feature_annotations_table()
+    for col in (
+        "feature_group_id",
+        "ion_role",
+        "possible_ion_types",
+        "isotope_state",
+        "mono_cluster_id",
+    ):
+        assert col in table.columns
+    assert "ion_type" not in table.columns
+    hit = table[table["cluster"] == cid]
+    assert len(hit) >= 1
+    assert int(hit.iloc[0]["feature_group_id"]) == 0
+    assert hit.iloc[0]["ion_role"] == "mono"
+    assert "[M-H]-" in str(hit.iloc[0]["possible_ion_types"])
+    assert table.notna().any().all()
+
+
 def test_lcms_collection_drop_isotopologues(lcms_collection):
     """Test dropping isotopologues from the collection."""
     # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original

@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import pandas as pd
 import warnings, scipy, multiprocessing
@@ -361,11 +363,83 @@ class LCCalculations:
                 ms.process_mass_spec()
         return ms
 
+    def _resolve_lcms_peak_picking_method(self, ms_level=1):
+        """Resolve and validate the 2D peak picking method against scan formats.
+
+        Parameters
+        ----------
+        ms_level : int, optional
+            MS level whose ``scan_df`` formats are checked. Default is 1.
+
+        Returns
+        -------
+        str
+            Concrete method: ``persistent homology`` or
+            ``centroided_persistent_homology``. If the stored method is
+            ``auto``, it is chosen from scan formats (all profile or all
+            centroid).
+
+        Raises
+        ------
+        ValueError
+            If the method is not implemented, ``auto`` cannot be resolved
+            (empty, mixed, or unknown formats), or an explicit method does
+            not match the scan formats at ``ms_level``.
+        """
+        method = self.parameters.lc_ms.peak_picking_method
+        msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
+        values = list(msx_scan_df["ms_format"])
+
+        if method == "auto":
+            if len(values) == 0:
+                raise ValueError(
+                    "Cannot auto-detect peak picking method: no scans found "
+                    "for the requested MS level."
+                )
+            if all(v == "profile" for v in values):
+                return "persistent homology"
+            if all(v == "centroid" for v in values):
+                return "centroided_persistent_homology"
+            found = sorted({str(v) for v in values})
+            raise ValueError(
+                "Cannot auto-detect peak picking method: MS scans are mixed "
+                f"or unknown format (found {found}). Set peak_picking_method "
+                "explicitly to 'persistent homology' or "
+                "'centroided_persistent_homology'."
+            )
+
+        if method == "persistent homology":
+            if len(values) == 0 or not all(v == "profile" for v in values):
+                raise ValueError(
+                    "MS{} scans are not profile mode, which is required for persistent homology peak picking.".format(
+                        ms_level
+                    )
+                )
+            return method
+
+        if method == "centroided_persistent_homology":
+            if len(values) == 0 or not all(v == "centroid" for v in values):
+                raise ValueError(
+                    "MS{} scans are not centroid mode, which is required for persistent homology centroided peak picking.".format(
+                        ms_level
+                    )
+                )
+            return method
+
+        raise ValueError("Peak picking method not implemented")
+
     def find_mass_features(self, ms_level=1, grid=True, assign_ms2_scans=False, ms2_scan_filter=None, 
                           targeted_search=False, target_search_dict=None, accumulate_features=False):
         """Find mass features within an LCMSBase object
 
-        Note that this is a wrapper function that calls the find_mass_features_ph function, but can be extended to support other peak picking methods in the future.
+        Wrapper that dispatches to a 2D peak picking implementation.
+
+        If ``parameters.lc_ms.peak_picking_method`` is ``auto``, the method is
+        chosen from ``scan_df.ms_format`` at the requested MS level (all
+        profile → persistent homology; all centroid → centroided persistent
+        homology). A successful auto resolve overwrites
+        ``peak_picking_method`` with the concrete method so saved parameters
+        record what was used.
 
         Parameters
         ----------
@@ -405,7 +479,10 @@ class LCCalculations:
         ------
         ValueError
             If no MS level data is found on the object.
+            If ``auto`` cannot resolve a method (empty, mixed, or unknown
+            ``ms_format`` values at the requested MS level).
             If persistent homology peak picking is attempted on non-profile mode data.
+            If centroided persistent homology is attempted on non-centroid mode data.
             If data is not gridded and grid is False.
             If peak picking method is not implemented.
             If targeted_search is True but target_search_dict is None or invalid.
@@ -426,46 +503,28 @@ class LCCalculations:
             if len(target_search_dict['target_mz_list']) != len(target_search_dict['target_rt_list']):
                 raise ValueError("target_mz_list and target_rt_list must have the same length")
         
-        pp_method = self.parameters.lc_ms.peak_picking_method
+        requested_method = self.parameters.lc_ms.peak_picking_method
+        pp_method = self._resolve_lcms_peak_picking_method(ms_level=ms_level)
+        if requested_method == "auto":
+            self.parameters.lc_ms.peak_picking_method = pp_method
+
+        if targeted_search:
+            mf_type = target_search_dict.get('type', 'targeted')
+        else:
+            mf_type = 'untargeted'
 
         if pp_method == "persistent homology":
-            msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
-            if all(msx_scan_df["ms_format"] == "profile"):
-                # Determine mass feature type
-                if targeted_search:
-                    mf_type = target_search_dict.get('type', 'targeted')
-                else:
-                    mf_type = 'untargeted'
-                self.find_mass_features_ph(ms_level=ms_level, grid=grid, 
-                                          targeted_search=targeted_search, 
-                                          target_search_dict=target_search_dict,
-                                          mf_type=mf_type,
-                                          accumulate_features=accumulate_features)
-            else:
-                raise ValueError(
-                    "MS{} scans are not profile mode, which is required for persistent homology peak picking.".format(
-                        ms_level
-                    )
-                )
+            self.find_mass_features_ph(ms_level=ms_level, grid=grid, 
+                                      targeted_search=targeted_search, 
+                                      target_search_dict=target_search_dict,
+                                      mf_type=mf_type,
+                                      accumulate_features=accumulate_features)
         elif pp_method == "centroided_persistent_homology":
-            msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
-            if all(msx_scan_df["ms_format"] == "centroid"):
-                # Determine mass feature type
-                if targeted_search:
-                    mf_type = target_search_dict.get('type', 'targeted')
-                else:
-                    mf_type = 'untargeted'
-                self.find_mass_features_ph_centroid(ms_level=ms_level, 
-                                                    targeted_search=targeted_search, 
-                                                    target_search_dict=target_search_dict,
-                                                    mf_type=mf_type,
-                                                    accumulate_features=accumulate_features)
-            else:
-                raise ValueError(
-                    "MS{} scans are not centroid mode, which is required for persistent homology centroided peak picking.".format(
-                        ms_level
-                    )
-                )
+            self.find_mass_features_ph_centroid(ms_level=ms_level, 
+                                                targeted_search=targeted_search, 
+                                                target_search_dict=target_search_dict,
+                                                mf_type=mf_type,
+                                                accumulate_features=accumulate_features)
         else:
             raise ValueError("Peak picking method not implemented")
         
@@ -3570,7 +3629,7 @@ class LCMSCollectionCalculations:
         plot_mz_features_per_cluster : Shows cluster size distribution
         """
         # First check if there are minimum columns in the features dataframe
-        if len(self.mass_features_dataframe.columns) < 1:
+        if self.mass_features_dataframe is None or len(self.mass_features_dataframe.columns) < 1:
             return None
 
         # Combine regular and induced mass features
@@ -3626,7 +3685,218 @@ class LCMSCollectionCalculations:
         summary_df = summary_df.rename(columns={"cluster_": "cluster"})
         # Set cluster as the index for easy lookup
         summary_df = summary_df.set_index('cluster')
+
+        # Merge consensus feature-group labels when present (isotopes + adducts).
+        # Cluster summary exposes possible_ion_types (all
+        # residual-tied candidates) and drops ion_type so a single type column
+        # is not mistaken for unique assignment.
+        fg = getattr(self, "feature_group_dataframe", None)
+        if fg is not None and len(fg) > 0:
+            from corems.mass_spectra.calc.feature_grouping import (
+                GROUP_COLUMNS,
+                merge_possible_ion_types,
+            )
+
+            cols = [c for c in GROUP_COLUMNS if c in fg.columns]
+            if cols:
+                drop_cols = [c for c in cols if c in summary_df.columns]
+                if drop_cols:
+                    summary_df = summary_df.drop(columns=drop_cols)
+                # Also drop stale ion_type from a prior join shape
+                if "ion_type" in summary_df.columns:
+                    summary_df = summary_df.drop(columns=["ion_type"])
+                summary_df = summary_df.join(fg[cols], how="left")
+
+            if (
+                "possible_ion_types" in summary_df.columns
+                and "ion_type" in summary_df.columns
+            ):
+                for cid in summary_df.index:
+                    it = summary_df.loc[cid, "ion_type"]
+                    poss = summary_df.loc[cid, "possible_ion_types"]
+                    filled = merge_possible_ion_types(it, poss)
+                    if filled is not None:
+                        summary_df.loc[cid, "possible_ion_types"] = filled
+            if "ion_type" in summary_df.columns:
+                summary_df = summary_df.drop(columns=["ion_type"])
+
         return summary_df
+
+    def group_consensus_features(self):
+        """
+        Group consensus features into natural-abundance isotope and adduct families.
+
+        After consensus clustering and gap-filling, labels clusters that share
+        similar retention time, an interpretable **singly-charged** mass offset,
+        and correlated cross-sample **apex peak heights**.
+
+        Two stages
+        ----------
+        1. **Isotopes.** Unit ``Atoms`` edges (e.g. ¹²C/¹³C) plus roll-up to
+           ¹³C₂, ¹³C₃, … when intermediates exist. Spacing is the raw Atoms
+           Δm (``|z| = 1``). Multi-charge envelopes are out of scope.
+           Chemical mono is the geometry root, not the tallest peak.
+        2. **Adducts.** Pairwise ``ion_type_dict`` forms in
+           ``feature_group_ion_types`` (must be ``|z| = 1``). Empty or a
+           single configured type skips adduct linking (isotopes only).
+
+        **Not** for tracer, enriched, or isotopically labeled experiments.
+
+        Quant gate is fixed (no settings switch):
+
+        - Correlation: **Pearson** only, pairwise-complete on samples with both
+          heights > 0 (threshold ``feature_group_corr_threshold``, default 0.80)
+        - Abundance: mass-feature apex ``intensity`` only (not integrated area)
+
+        Coelution and m/z delta windows reuse collection
+        ``alignment_rt_tol`` and ``alignment_mz_tol_ppm``. Other knobs
+        (``feature_group_isotope_atoms``, shared-sample fraction,
+        ``feature_group_ion_types``, …) live on ``parameters.lcms_collection``.
+
+        ``feature_group_ion_types`` is filtered to the collection polarity
+        (all samples share one polarity; mixed collections cannot be
+        instantiated). Only keys ending in ``+`` are kept on positive data
+        and only keys ending in ``-`` on negative data.
+
+        Preferred for collection-level families. Optional per-file
+        ``LCMSBase.find_c13_mass_features`` remains available for single-file
+        workflows; do not treat both as authoritative in the same pipeline.
+
+        Must run after ``add_consensus_mass_features()``. Height matrix prefers
+        gap-filled (induced) apex intensities when present; missing entries are 0.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Cluster-indexed labels with columns ``feature_group_id``,
+            ``ion_role``, ``ion_type``, ``possible_ion_types``,
+            ``isotope_state``, ``mono_cluster_id`` (set only when the form
+            has at least one isotope). Also stored on
+            ``self.feature_group_dataframe`` and merged into
+            ``mass_features_dataframe`` / ``induced_mass_features_dataframe``.
+
+        Raises
+        ------
+        ValueError
+            If consensus features are missing or settings are invalid.
+        """
+        from corems.mass_spectra.calc.feature_grouping import (
+            GROUP_COLUMNS,
+            HEIGHT_COL,
+            FeatureGroupParams,
+            build_height_matrix_from_features,
+            group_features_arrays,
+            normalize_ms_polarity,
+        )
+
+        if (
+            self.mass_features_dataframe is None
+            or len(self.mass_features_dataframe) == 0
+        ):
+            raise ValueError(
+                "No mass features dataframe. Run add_consensus_mass_features() first."
+            )
+        if "cluster" not in self.mass_features_dataframe.columns:
+            raise ValueError(
+                "mass_features_dataframe has no 'cluster' column. "
+                "Run add_consensus_mass_features() first."
+            )
+
+        # Clear prior labels (idempotent re-run)
+        self.feature_group_dataframe = None
+        for col in GROUP_COLUMNS:
+            if col in self.mass_features_dataframe.columns:
+                self.mass_features_dataframe = self.mass_features_dataframe.drop(
+                    columns=[col]
+                )
+            if (
+                self.induced_mass_features_dataframe is not None
+                and col in self.induced_mass_features_dataframe.columns
+            ):
+                self.induced_mass_features_dataframe = (
+                    self.induced_mass_features_dataframe.drop(columns=[col])
+                )
+
+        summary = self.summarize_clusters()
+        if summary is None or len(summary) == 0:
+            raise ValueError(
+                "cluster summary is empty. Run add_consensus_mass_features() first."
+            )
+
+        # Collection polarity: all samples share one polarity (enforced when
+        # LCMSCollection is loaded). Filter opposite-sign adducts.
+        collection_polarity = None
+        if len(self):
+            collection_polarity = normalize_ms_polarity(
+                getattr(self[0], "polarity", None)
+            )
+
+        params = FeatureGroupParams.from_lcms_collection_settings(
+            self.parameters.lcms_collection,
+            polarity=collection_polarity,
+        )
+
+        cluster_ids = summary.index.to_numpy()
+        mz = summary["mz_median"].to_numpy(dtype=float)
+        if "scan_time_aligned_median" not in summary.columns:
+            raise ValueError(
+                "cluster summary missing scan_time_aligned_median; "
+                "ensure features are RT-aligned before consensus."
+            )
+        rt = summary["scan_time_aligned_median"].to_numpy(dtype=float)
+
+        # Sample ids as used in mass_features_dataframe
+        sample_ids = sorted(self.mass_features_dataframe["sample_id"].dropna().unique())
+        if self.induced_mass_features_dataframe is not None and len(
+            self.induced_mass_features_dataframe
+        ):
+            sample_ids = sorted(
+                set(sample_ids)
+                | set(
+                    self.induced_mass_features_dataframe["sample_id"]
+                    .dropna()
+                    .unique()
+                    .tolist()
+                )
+            )
+
+        t_height = time.perf_counter()
+        heights = build_height_matrix_from_features(
+            self.mass_features_dataframe,
+            cluster_ids=cluster_ids,
+            sample_ids=sample_ids,
+            induced_df=self.induced_mass_features_dataframe,
+            intensity_col=HEIGHT_COL,  # apex intensity only; not area
+        )
+        stage_timings = {
+            "height_matrix": time.perf_counter() - t_height,
+            "n_ion_types_configured": float(len(params.ion_types)),
+            "collection_polarity": (
+                str(collection_polarity) if collection_polarity else "unknown"
+            ),
+        }
+
+        algo_timings: dict = {}
+        labels = group_features_arrays(
+            cluster_ids, mz, rt, heights, params, timings_out=algo_timings
+        )
+        stage_timings.update(algo_timings)
+        self._last_feature_group_timings = stage_timings
+        self.feature_group_dataframe = labels
+
+        from corems.mass_spectra.calc.feature_grouping import (
+            merge_feature_group_labels_into_frames,
+        )
+
+        self.mass_features_dataframe, induced = merge_feature_group_labels_into_frames(
+            labels,
+            self.mass_features_dataframe,
+            self.induced_mass_features_dataframe,
+        )
+        if self.induced_mass_features_dataframe is not None:
+            self.induced_mass_features_dataframe = induced
+
+        return labels
 
     def plot_mz_features_per_cluster(self, return_fig=False, path=None):
         """
@@ -5653,6 +5923,7 @@ class LCMSCollectionCalculations:
                                    ms2_spectral_search=False, spectral_lib=None,
                                    molecular_metadata=None,
                                    gather_eics=False,
+                                   group_features=False,
                                    keep_raw_data=False,
                                    show_progress=True):
         """
@@ -5670,6 +5941,11 @@ class LCMSCollectionCalculations:
         perform_gap_filling : bool, optional
             If True, performs gap-filling for missing cluster features. Default is True.
             This operation loads raw MS1 data which can be reused by subsequent operations.
+        group_features : bool, optional
+            If True, run ``group_consensus_features()`` after gap-fill (and before
+            molecular formula / MS2 search when those are also enabled).
+            Collection-level natural-abundance **isotope and adduct** family
+            labeling (singly charged only; not tracer/enriched). Default is False.
         add_ms1 : bool, optional
             If True and load_representatives=True, associates MS1 spectra with
             loaded features. Automatically uses raw data from gap-filling if available,
@@ -5785,13 +6061,15 @@ class LCMSCollectionCalculations:
             ms2_spectral_search or 
             gather_eics or
             add_ms1 or
-            add_ms2
+            add_ms2 or
+            group_features
         )
         
         if not has_operations:
             raise ValueError(
                 "At least one operation must be enabled: perform_gap_filling, load_representatives, "
-                "molecular_formula_search, ms2_spectral_search, gather_eics, add_ms1, or add_ms2"
+                "molecular_formula_search, ms2_spectral_search, gather_eics, add_ms1, add_ms2, "
+                "or group_features"
             )
         
         # Validate prerequisites for gap-filling
@@ -5826,56 +6104,65 @@ class LCMSCollectionCalculations:
                         "with ms2_spectral_search=True."
                     )
         
-        # Build pipeline
-        operations = []
-        
+        # Build pipeline in two phases so group_features runs after gap-fill
+        # and before formula / MS2 search when those are requested in the same call.
+        pre_operations = []
+        post_operations = []
+
         if perform_gap_filling:
             expand_on_miss = self.parameters.lcms_collection.gap_fill_expand_on_miss
-            operations.append(GapFillOperation('gap_fill', expand_on_miss=expand_on_miss))
-        
+            pre_operations.append(GapFillOperation('gap_fill', expand_on_miss=expand_on_miss))
+
         if load_representatives:
-            operations.append(ReloadFeaturesOperation(
+            # MS1/MS2 association for representatives can happen in pre-pass;
+            # formula/MS2 library search stay in post-pass after grouping.
+            pre_operations.append(ReloadFeaturesOperation(
                 'reload',
                 add_ms1=add_ms1,
                 add_ms2=add_ms2,
-                auto_process_ms2=add_ms2,  # Auto-process MS2 if add_ms2 is enabled
+                auto_process_ms2=add_ms2,
                 ms2_scan_filter=ms2_scan_filter
             ))
-        
+
         if molecular_formula_search:
-            operations.append(MolecularFormulaSearchOperation('mf_search'))
-        
+            post_operations.append(MolecularFormulaSearchOperation('mf_search'))
+
         if ms2_spectral_search:
-            operations.append(MS2SpectralSearchOperation(
+            post_operations.append(MS2SpectralSearchOperation(
                 'ms2_search',
                 ms2_scan_filter=ms2_scan_filter
             ))
-            # Store spectral library and metadata for runtime preparation
             self._spectral_lib = spectral_lib
             self._spectral_search_molecular_metadata = molecular_metadata
-        
+
         if gather_eics:
-            operations.append(LoadEICsOperation('load_eics'))
-        
-        # Execute pipeline (description auto-generated from operations)
-        results = self.process_samples_pipeline(
-            operations,
-            keep_raw_data=keep_raw_data,
-            show_progress=show_progress
-        )
-        
-        # Store molecular metadata if spectral search was performed
-        if ms2_spectral_search and hasattr(self, '_spectral_search_molecular_metadata'):
-            # This allows users to access the metadata for reporting
-            self.spectral_search_molecular_metadata = self._spectral_search_molecular_metadata
-        # Post-processing
+            # After grouping when grouping is requested; otherwise with pre-pass
+            # (or post-pass if only annotation ops are enabled).
+            if group_features or not pre_operations:
+                post_operations.append(LoadEICsOperation('load_eics'))
+            else:
+                pre_operations.append(LoadEICsOperation('load_eics'))
+
+        results = {}
+
+        def _run_ops(operations):
+            if not operations:
+                return {}
+            return self.process_samples_pipeline(
+                operations,
+                keep_raw_data=keep_raw_data,
+                show_progress=show_progress
+            )
+
+        # Phase 1: gap-fill / reload (and eics if not grouping)
+        if pre_operations:
+            results.update(_run_ops(pre_operations))
+
+        # Post-processing for gap-fill must happen before grouping so heights include induced
         if perform_gap_filling:
-            # Combine induced mass features into dataframe
             self._combine_mass_features(induced_features=True)
-            # Mark that gap-filling has been performed
             self.missing_mass_features_searched = True
 
-            # Add ._eic_mz to induced_mass_features_dataframe if it exists
             if self.induced_mass_features_dataframe is not None and len(self.induced_mass_features_dataframe) > 0:
                 eics_mz = []
                 for i, row in self.induced_mass_features_dataframe.iterrows():
@@ -5888,20 +6175,44 @@ class LCMSCollectionCalculations:
                         eics_mz.append(None)
                 self.induced_mass_features_dataframe['_eic_mz'] = eics_mz
 
+        # Collection-level isotope + adduct grouping
+        if group_features:
+            t_group = time.perf_counter()
+            labels = self.group_consensus_features()
+            group_wall = time.perf_counter() - t_group
+            results['group_features'] = {
+                'n_clusters': len(labels),
+                'n_grouped': int(labels['feature_group_id'].notna().sum()),
+                'n_groups': int(labels['feature_group_id'].nunique(dropna=True)),
+                'wall_seconds': group_wall,
+                'stage_timings': getattr(
+                    self, '_last_feature_group_timings', None
+                ),
+            }
+
+        # Phase 2: annotation / optional EICs after grouping
+        if post_operations:
+            # If only post_operations and no pre, still need a pipeline run
+            post_results = _run_ops(post_operations)
+            for k, v in post_results.items():
+                results[k] = v
+
+        # Store molecular metadata if spectral search was performed
+        if ms2_spectral_search and hasattr(self, '_spectral_search_molecular_metadata'):
+            self.spectral_search_molecular_metadata = self._spectral_search_molecular_metadata
+
         # Associate EICs while induced feature objects still exist (before any clear).
-        # Must run after the pipeline so sample.eics is populated on the main process.
         if gather_eics:
             print("\nAssociating EICs with mass features:")
             from tqdm import tqdm
 
             for sample_id in tqdm(range(len(self.samples)), unit="sample", ncols=80):
                 sample = self[sample_id]
-                if sample.eics:  # Only if EICs were loaded
+                if sample.eics:
                     sample.associate_eics_with_mass_features(induced=False)
                     sample.associate_eics_with_mass_features(induced=True)
 
-        # Drop induced feature objects to free memory. EICs remain on sample.eics
-        # (and _eic_mz on the induced dataframe) for plotting/lookup.
+        # Drop induced feature objects to free memory after grouping + post-ops
         if perform_gap_filling:
             for sample_name in self.samples:
                 self._lcms[sample_name].induced_mass_features = {}

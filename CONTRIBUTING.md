@@ -56,21 +56,21 @@ Version bumps and packaging are handled at release time by maintainers, not on e
 
 Activate your existing virtualenv first (with CoreMS, pytest, and Thermo/.NET support already set up). Then run tests from the repo root **without** reinstalling the package.
 
-Prefer these targets for day-to-day work. They use your current env and do not run `pip install`:
+Prefer these recipes for day-to-day work. They use your current env and do not run `pip install`. Install [just](https://just.systems) first if you don't have it; `just --list` shows every available recipe.
 
 | Command | What it runs |
 |---|---|
-| `make test-pytest-xdist` | pytest with xdist (recommended default) |
-| `make test-notebooks` | Example notebook tests |
-| `make ci-test` | Both of the above |
-| `make download-lipidomics-db` | LC-MS lipidomics SQLite used by some tests (skipped if already present) |
+| `just test-pytest-xdist` | pytest with xdist (recommended default) |
+| `just test-notebooks` | Example notebook tests |
+| `just ci-test` | Both of the above |
+| `just download-lipidomics-db` | LC-MS lipidomics SQLite used by some tests (skipped if already present) |
 
 Before opening a PR or MR:
 
 ```bash
-make ci-test
+just ci-test
 # or source tests only:
-make test-pytest-xdist
+just test-pytest-xdist
 ```
 
 ## PR / MR checklist
@@ -87,8 +87,8 @@ Reviewers check these before merging into **`dev`**:
 ## Code style
 
 - Docstrings follow the [NumPy style](https://numpydoc.readthedocs.io/en/latest/format.html).
-- API docs are built with [pdoc](https://github.com/mitmproxy/pdoc) (`make docu`). The package landing page (`corems.__doc__`) includes `README.md` and `docs/user/installation.md` so install content uses the same pdoc styling as the API.
-- Maintainers: before cutting a release, run `make lint` as described in [RELEASE.md](./RELEASE.md). That command **rewrites** package Python (`ruff format` + `ruff check --fix`). Do not run it on a feature branch unless you intend to commit the diff. Dev tooling is installed via `pip install -e ".[dev]"`.
+- API docs are built with [pdoc](https://github.com/mitmproxy/pdoc) (`just docu`). The package landing page (`corems.__doc__`) includes `README.md` and `docs/user/installation.md` so install content uses the same pdoc styling as the API.
+- Maintainers: before cutting a release, run `just lint` as described in [RELEASE.md](./RELEASE.md). That command **rewrites** package Python (`ruff format` + `ruff check --fix`). Do not run it on a feature branch unless you intend to commit the diff. Dev tooling is installed via `pip install -e ".[dev]"`.
 
 ## Issue reporting
 

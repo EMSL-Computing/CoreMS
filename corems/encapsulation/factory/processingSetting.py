@@ -47,7 +47,10 @@ def validate_used_atoms_keys(used_atoms):
     Molecular formula search treats each usedAtoms key as a monoisotopic
     (most-abundant) element. Heavy isotopologues (e.g. 13C, 54Fe, 37Cl) are
     produced later by isotopologue expansion of mono formulas, not by listing
-    rare-isotope labels in usedAtoms.
+    rare-isotope labels in usedAtoms. Membership in ``Atoms.isotopes`` does
+    not mean the element is ready to search: each key still needs a valence
+    in ``used_atom_valences`` (typically copied from ``Atoms.atoms_covalence``),
+    or DBE calculation can fail.
 
     Parameters
     ----------
@@ -285,10 +288,13 @@ class LiquidChromatographSetting:
         Default is {"noise_score_max": {"value": 0.8, "operator": ">="},"noise_score_min": {"value": 0.5, "operator": ">="}},
     peak_picking_method : str, optional
         Peak picking method to use. See implemented_peak_picking_methods for options.
-        Default is 'persistent homology'.
+        Default is 'auto', which selects persistent homology when all scans
+        at the requested MS level are profile and centroided persistent
+        homology when all are centroid, then stores the concrete method on
+        this setting so saved parameters record what was used.
     implemented_peak_picking_methods : tuple, optional
         Peak picking methods that can be implemented.
-        Default is ('persistent homology', 'centroided_persistent_homology').
+        Default is ('auto', 'persistent homology', 'centroided_persistent_homology').
     ph_smooth_it : int, optional
         Number of iterations to use for smoothing prior to finding mass features.
         Used only for "persistent homology" peak picking method.
@@ -419,8 +425,9 @@ class LiquidChromatographSetting:
     mass_feature_attribute_filter_dict: Dict = dataclasses.field(default_factory=dict)
 
     # Parameters used for 2D peak picking
-    peak_picking_method: str = "persistent homology"
+    peak_picking_method: str = "auto"
     implemented_peak_picking_methods: tuple = (
+        "auto",
         "persistent homology",
         "centroided_persistent_homology",
     )
@@ -931,6 +938,7 @@ class MolecularLookupDictSettings:
         ``Atoms.isotopes`` (e.g. ``C``, ``Fe``, ``Cl``), **not** specific
         isotope labels (e.g. ``13C``, ``54Fe``, ``37Cl``). Rare isotopes are
         produced by isotopologue expansion of mono formulas after assignment.
+        Each key also needs a valence in ``used_atom_valences``.
         Default is {'C': (1, 90), 'H': (4, 200), 'O': (0, 12), 'N': (0, 0),
         'S': (0, 0), 'P': (0, 0), 'Cl': (0, 0)}.
     min_mz : float, optional
@@ -1120,7 +1128,9 @@ class MolecularFormulaSearchSettings:
         expansion of mono formulas after assignment (when
         ``find_isotopologues`` is enabled), not by listing them here.
         Invalid keys raise ``ValueError`` at settings construction, assignment,
-        or search entry. Default empty dict is filled with C and H ranges in
+        or search entry. Each key also needs a valence in
+        ``used_atom_valences`` (usually from ``Atoms.atoms_covalence``).
+        Default empty dict is filled with C and H ranges in
         ``__post_init__``.
     ion_types_excluded : list, optional
         List of ion types to exclude from molecular id search, commonly ['[M+CH3COO]-]'] or ['[M+COOH]-'] depending on mobile phase content. Default is [].
@@ -1375,9 +1385,11 @@ class LCMSCollectionSettings:
         Threshold for the improved fraction of the hold out mass features for accepting retention time alignment.
         Default is 0.5.
     alignment_mz_tol_ppm: int, optional
-        m/z tolerance in ppm for retention time alignment, in ppm. Default is 5.
+        m/z tolerance in ppm for retention time alignment and for consensus feature
+        grouping isotope (and later adduct) mass deltas. Default is 5.
     alignment_rt_tol: float, optional
-        Retention time tolerance for retention time alignment, in minutes. Default is 0.3.
+        Retention time tolerance in minutes for retention time alignment and for
+        consensus feature grouping coelution windows. Default is 0.3.
     consensus_mz_tol_ppm: int, optional
         m/z tolerance in ppm for consensus mass feature alignment. Default is 5.
         The recommendation is that this value should be the same as alignment_mz_tol_ppm.
@@ -1404,6 +1416,32 @@ class LCMSCollectionSettings:
     consensus_representative_metrics_available : tuple, optional
         Tuple of available metrics for determining the most representative sample.
         Default is ('intensity', 'intensity_prefer_ms2').
+    feature_group_isotope_atoms : tuple of str, optional
+        Mono elements for natural-abundance isotope Δm edges via ``Atoms``
+        (e.g. ``("C",)``). Default ``("C",)``. Not for tracer labeling.
+    feature_group_min_isotope_abundance : float, optional
+        Min natural abundance (0–1) for rare forms in isotope spacing.
+        Default 0.01.
+    feature_group_max_isotope_offset : int, optional
+        Max M+n roll-up depth for one rare form (e.g. ¹³Cₙ). Default 4.
+    feature_group_corr_threshold : float, optional
+        Min Pearson correlation of apex ``intensity`` vectors for an edge
+        (pairwise-complete; zeros dropped). Default 0.80.
+    feature_group_min_shared_sample_fraction : float, optional
+        Min fraction of samples with both heights > 0 before correlation
+        is trusted (``ceil(fraction * n_samples)``). Default 0.15.
+    feature_group_ion_types : tuple of str, optional
+        Allow-list of ``ION_TYPE_DICT`` keys for adduct linking (``|z| = 1``).
+        Empty/one type → isotopes only. Default is a curated common set
+        (``DEFAULT_ION_TYPES``); narrow further to reduce false adduct links.
+        Filtered by collection polarity at ``group_consensus_features()``.
+    feature_group_constrain_annotation : bool, optional
+        If True and labels exist, skip consensus isotopes in collection
+        MS1/MS2/annotation and keep IDs only if ion type is in
+        ``possible_ion_types``. Default True.
+    feature_group_partition_size : int, optional
+        Reserved RT-partition size for future multicore grouping.
+        Default 5000.
     """
     # Settings for general processing
     cores: int = 1
@@ -1435,6 +1473,21 @@ class LCMSCollectionSettings:
     # Consensus mass feature visualization parameters
     consensus_representative_metric: str = 'intensity_prefer_ms2'
     consensus_representative_metrics_available: tuple = ('intensity', 'intensity_prefer_ms2')
+
+    # Feature grouping (isotopes + z=1 adducts); RT/m/z use alignment_* tols
+    feature_group_isotope_atoms: tuple = ("C",)
+    feature_group_min_isotope_abundance: float = 0.01
+    feature_group_max_isotope_offset: int = 4
+    feature_group_corr_threshold: float = 0.80
+    feature_group_min_shared_sample_fraction: float = 0.15
+    feature_group_ion_types: tuple = dataclasses.field(
+        default_factory=lambda: __import__(
+            "corems.mass_spectra.calc.feature_grouping",
+            fromlist=["DEFAULT_ION_TYPES"],
+        ).DEFAULT_ION_TYPES
+    )
+    feature_group_constrain_annotation: bool = True
+    feature_group_partition_size: int = 5000
 
     def __post_init__(self):
         self.consensus_mz_tol_ppm = self.alignment_mz_tol_ppm

@@ -60,7 +60,7 @@ Documentation = "https://emsl-computing.github.io/CoreMS/corems.html"
 [project.optional-dependencies]
 dev = [
     "ruff>=0.8",
-    "pylint>=3.0",  # pyreverse for make uml / make docu
+    "pylint>=3.0",  # pyreverse for just uml / just docu
     "pytest>=8.3.2",
     "pytest-cov>=5.0.0",
     "pytest-xdist>=3.6.1",
@@ -81,7 +81,7 @@ networking = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-exclude = ["tests*", "*.win_only"]
+exclude = ["tests*", "*.win_only", "tools*"]
 
 [tool.setuptools.package-data]
 "*" = ["ext_lib/*", "ext_lib/dotnet/*", "disclaimer.txt"]
@@ -108,8 +108,8 @@ exclude_lines = [
 ]
 
 # ---------------------------------------------------------------------------
-# Ruff (release / maintainer format+fix via `make lint`; see RELEASE.md)
-# `make lint` rewrites files. Do not run it except during release prep
+# Ruff (release / maintainer format+fix via `just lint`; see RELEASE.md)
+# `just lint` rewrites files. Do not run it except during release prep
 # unless you intend to commit the diff. Default rule set only.
 # ---------------------------------------------------------------------------
 [tool.ruff]
