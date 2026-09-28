@@ -7,11 +7,15 @@ import pandas as pd
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 from corems.mass_spectra.factory.lc_class import LCMSBase, LCMSCollection
-from corems.mass_spectrum.input.numpyArray import ms_from_array_centroid
+from corems.mass_spectrum.input.numpyArray import (
+    ms_from_array_centroid,
+    ms_from_array_profile,
+)
 from corems.mass_spectra.output.mgf import (
     feature_mgf_text,
     format_ion_block,
     iter_collection_mgf_records,
+    peak_mz_abundance,
     sirius_charge,
     write_feature_records_to_mgf,
 )
@@ -153,6 +157,63 @@ def test_ms2_mode_all_writes_multiple_ms2_blocks():
     text = feature_mgf_text(feat, 21, "positive", ms2_mode="all")
     assert text.count("MSLEVEL=1") == 1
     assert text.count("MSLEVEL=2") == 2
+
+
+def _processed_with_no_peaks():
+    """Profile spectrum whose noise threshold removes every peak.
+
+    Raw arrays still hold the unfiltered trace. ``_dynamic_range`` is 0,
+    which is how ``process_mass_spec`` marks a finished spectrum with no peaks.
+    """
+    spec = ms_from_array_profile(
+        np.array([200.0, 250.5, 300.0]),
+        np.array([1.0, 1000.0, 1.0]),
+        "filtered",
+        polarity=1,
+        auto_process=False,
+    )
+    spec.settings.noise_threshold_method = "relative_abundance"
+    spec.settings.noise_threshold_min_relative_abundance = 101
+    spec.process_mass_spec()
+    return spec
+
+
+def test_processed_empty_mspeaks_are_not_exported_as_raw():
+    """Empty mspeaks after processing are no peaks, not the raw trace."""
+    filtered = _processed_with_no_peaks()
+    assert filtered.mspeaks == []
+    assert list(filtered._mz_exp) == [200.0, 250.5, 300.0]
+    mz, ab = peak_mz_abundance(filtered)
+    assert mz.size == 0
+    assert ab.size == 0
+
+    unprocessed = ms_from_array_centroid(
+        [185.041199],
+        [4034.0],
+        [10000.0],
+        [10.0],
+        "raw",
+        polarity=1,
+        auto_process=False,
+    )
+    mz_raw, _ = peak_mz_abundance(unprocessed)
+    assert mz_raw.tolist() == [185.041199]
+
+    feat = _feature_with_spectra()
+    filtered.scan_number = 161
+    feat.ms2_scan_numbers.append(161)
+    feat.ms2_mass_spectra[161] = filtered
+    text = feature_mgf_text(feat, 21, "positive", ms2_mode="all")
+    assert text.count("MSLEVEL=2") == 1
+    assert "SCANS=160" in text
+    assert "SCANS=161" not in text
+    assert "185.041199 " in text
+    assert "250.5" not in text
+
+    only = _feature_with_spectra()
+    only.ms2_mass_spectra[160] = filtered
+    assert feature_mgf_text(only, 21, "positive", ms2_mode="all") is None
+    assert feature_mgf_text(only, 21, "positive") is None
 
 
 def _similarity_result(spec, score):

@@ -68,6 +68,10 @@ def ensure_mgf_path(out_file_path) -> Path:
 def peak_mz_abundance(spectrum):
     """Return (mz, abundance) from processed peaks, else raw arrays.
 
+    A spectrum that has been through ``process_mass_spec`` is read from
+    ``mspeaks`` even when that list is empty. Raw ``_mz_exp`` /
+    ``_abundance`` are used only when the spectrum has not been processed.
+
     Parameters
     ----------
     spectrum : MassSpectrum or None
@@ -76,12 +80,17 @@ def peak_mz_abundance(spectrum):
     Returns
     -------
     tuple of numpy.ndarray
-        ``(mz, abundance)``. Empty arrays if ``spectrum`` is None or has no peaks.
+        ``(mz, abundance)``. Empty arrays if ``spectrum`` is None, the
+        processed peak list is empty, or raw arrays are missing.
     """
     if spectrum is None:
         return np.array([]), np.array([])
+    # process_mass_spec sets _dynamic_range, including 0 when no peaks remain.
+    processed = getattr(spectrum, "_dynamic_range", None) is not None
     mspeaks = getattr(spectrum, "mspeaks", None)
-    if mspeaks:
+    if processed or mspeaks:
+        if not mspeaks:
+            return np.array([]), np.array([])
         return np.asarray(spectrum.mz_exp, dtype=float), np.asarray(
             spectrum.abundance, dtype=float
         )
