@@ -122,6 +122,13 @@ def _scan_of_spectrum(feature, spec):
 
 
 def _ms2_spectra(feature, ms2_mode: str):
+    """Select MS2 spectra for one feature.
+
+    ``'best'`` returns ``feature.best_ms2``: the scan with the highest
+    library entropy similarity when ``ms2_similarity_results`` is
+    non-empty, otherwise the non-chimeric scan closest to the apex.
+    ``'all'`` returns every associated scan that has peaks.
+    """
     if ms2_mode not in ("best", "all"):
         raise ValueError(f"ms2_mode must be 'best' or 'all', got {ms2_mode!r}")
     if ms2_mode == "best":
@@ -197,7 +204,11 @@ def feature_mgf_text(
     sample_name : str, optional
         Used in the default TITLE.
     ms2_mode : {'best', 'all'}, optional
-        Which associated MS2 spectra to write.
+        Which associated MS2 spectra to write. ``'best'`` (default)
+        writes ``LCMSMassFeature.best_ms2``. After a spectral search
+        that is the scan with the highest library entropy similarity;
+        with no search results it is the non-chimeric scan closest to
+        the apex. ``'all'`` writes every MS2 scan that has peaks.
     title : str, optional
         Override TITLE.
 
@@ -253,7 +264,11 @@ def write_feature_records_to_mgf(
     out_file_path : str or Path
         Output path. ``.mgf`` is appended when no suffix is given.
     ms2_mode : {'best', 'all'}, optional
-        Which associated MS2 spectra to write.
+        Which associated MS2 spectra to write. ``'best'`` (default)
+        writes ``LCMSMassFeature.best_ms2``. After a spectral search
+        that is the scan with the highest library entropy similarity;
+        with no search results it is the non-chimeric scan closest to
+        the apex. ``'all'`` writes every MS2 scan that has peaks.
     overwrite : bool, optional
         Replace an existing file. Default is False.
 

@@ -15,6 +15,7 @@ from corems.mass_spectra.output.mgf import (
     sirius_charge,
     write_feature_records_to_mgf,
 )
+from corems.molecular_id.factory.spectrum_search_results import SpectrumSearchResults
 
 
 def test_sirius_charge():
@@ -152,6 +153,67 @@ def test_ms2_mode_all_writes_multiple_ms2_blocks():
     text = feature_mgf_text(feat, 21, "positive", ms2_mode="all")
     assert text.count("MSLEVEL=1") == 1
     assert text.count("MSLEVEL=2") == 2
+
+
+def _similarity_result(spec, score):
+    return SpectrumSearchResults(
+        spec,
+        438.32,
+        {
+            "entropy_similarity": np.array([score]),
+            "ref_mol_id": ["mol"],
+            "ref_ms_id": ["ref"],
+            "ref_precursor_mz": [438.32],
+            "precursor_mz_error_ppm": [0.0],
+            "ref_ion_type": ["[M+H]+"],
+        },
+    )
+
+
+def test_best_mode_writes_highest_similarity_scan():
+    """Default ``best`` is ``LCMSMassFeature.best_ms2`` after a search.
+
+    Two MS2 scans are attached. The scan nearer the apex would be chosen
+    with no search results. A lower-scoring similarity result on that scan
+    and a higher-scoring result on the farther scan select the library hit.
+    """
+    parent = _DummyLCMS()
+    parent.get_time_of_scan_id = lambda scan: {160: 5.21, 200: 7.0}[scan]
+    feat = LCMSMassFeature(
+        parent,
+        mz=438.32,
+        retention_time=5.2,
+        intensity=1000.0,
+        apex_scan=154,
+        id=21,
+    )
+    feat.ms2_scan_numbers = [160, 200]
+    feat.ms2_mass_spectra[160] = _centroid_ms(
+        [185.041199], [4034.674316], name="apex_ms2"
+    )
+    feat.ms2_mass_spectra[160].scan_number = 160
+    feat.ms2_mass_spectra[200] = _centroid_ms([100.1], [50.0], name="hit_ms2")
+    feat.ms2_mass_spectra[200].scan_number = 200
+
+    before_search = feature_mgf_text(feat, 21, "positive")
+    assert before_search.count("MSLEVEL=2") == 1
+    assert "SCANS=160" in before_search
+    assert "SCANS=200" not in before_search
+    assert "185.041199 " in before_search
+    assert "100.1 " not in before_search
+
+    feat.ms2_similarity_results = [
+        _similarity_result(feat.ms2_mass_spectra[160], 0.2),
+        _similarity_result(feat.ms2_mass_spectra[200], 0.91),
+    ]
+    assert feat.best_ms2 is feat.ms2_mass_spectra[200]
+    text = feature_mgf_text(feat, 21, "positive")
+    assert text.count("BEGIN IONS") == 2
+    assert text.count("MSLEVEL=2") == 1
+    assert "SCANS=200" in text
+    assert "SCANS=160" not in text
+    assert "100.1 50.0" in text
+    assert "185.041199" not in text
 
 
 def test_write_feature_records_skips_and_raises_when_empty(tmp_path):

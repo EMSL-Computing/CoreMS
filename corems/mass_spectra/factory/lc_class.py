@@ -1135,7 +1135,10 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         Each complete feature is written as a one-peak MS1 block (feature
         precursor m/z and intensity) and one or more MS2 blocks sharing
-        FEATURE_ID. Features missing MS2 are skipped.
+        FEATURE_ID. ``ms2_mode='best'`` writes ``LCMSMassFeature.best_ms2``:
+        the highest library-similarity scan after a spectral search,
+        otherwise the non-chimeric scan closest to the apex. Features
+        missing MS2 are skipped.
 
         Parameters
         ----------
@@ -1144,7 +1147,11 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         feature_ids : iterable, optional
             Mass-feature ids to export. Default is all keys in ``mass_features``.
         ms2_mode : {'best', 'all'}, optional
-            Which associated MS2 spectra to write. Default is ``'best'``.
+            Which associated MS2 spectra to write. ``'best'`` (default)
+            writes ``LCMSMassFeature.best_ms2``. After a spectral search
+            that is the scan with the highest library entropy similarity;
+            with no search results it is the non-chimeric scan closest to
+            the apex. ``'all'`` writes every MS2 scan that has peaks.
         overwrite : bool, optional
             Replace an existing file. Default is False.
 
@@ -2487,7 +2494,10 @@ class LCMSCollection(LCMSCollectionCalculations):
     ):
         """Export consensus representative features to a SIRIUS-compatible MGF file.
 
-        FEATURE_ID is the consensus cluster id. Requires representative mass
+        FEATURE_ID is the consensus cluster id. ``ms2_mode='best'`` writes
+        each representative's ``LCMSMassFeature.best_ms2``: the highest
+        library-similarity scan after a spectral search, otherwise the
+        non-chimeric scan closest to the apex. Requires representative mass
         features loaded on samples (typically via
         ``process_consensus_features(load_representatives=True, add_ms2=True)``).
 
@@ -2498,7 +2508,11 @@ class LCMSCollection(LCMSCollectionCalculations):
         cluster_ids : iterable, optional
             Consensus cluster ids to export. Default is all representatives.
         ms2_mode : {'best', 'all'}, optional
-            Which associated MS2 spectra to write. Default is ``'best'``.
+            Which associated MS2 spectra to write. ``'best'`` (default)
+            writes ``LCMSMassFeature.best_ms2``. After a spectral search
+            that is the scan with the highest library entropy similarity;
+            with no search results it is the non-chimeric scan closest to
+            the apex. ``'all'`` writes every MS2 scan that has peaks.
         overwrite : bool, optional
             Replace an existing file. Default is False.
 
