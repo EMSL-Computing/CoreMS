@@ -1138,7 +1138,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         FEATURE_ID. ``ms2_mode='best'`` writes ``LCMSMassFeature.best_ms2``:
         the highest library-similarity scan after a spectral search,
         otherwise the non-chimeric scan closest to the apex. Features
-        missing MS2 are skipped.
+        missing a usable MS2 spectrum are skipped. A feature with no
+        precursor m/z aborts the export before any bytes are written.
 
         Parameters
         ----------
@@ -1159,6 +1160,22 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         -------
         pathlib.Path
             Path of the written MGF file.
+
+        Warns
+        -----
+        UserWarning
+            If one or more features are skipped because they have no usable
+            MS2 spectrum.
+
+        Raises
+        ------
+        FileExistsError
+            If the path exists and ``overwrite`` is False.
+        ValueError
+            If a requested mass-feature id is unknown, polarity is not
+            ``'positive'`` or ``'negative'``, a feature has no precursor
+            m/z, or no complete MS1/MS2 pairs remain. A missing precursor
+            m/z stops the export before the file is written.
         """
         from corems.mass_spectra.output.mgf import write_feature_records_to_mgf
 
@@ -2497,8 +2514,11 @@ class LCMSCollection(LCMSCollectionCalculations):
         FEATURE_ID is the consensus cluster id. ``ms2_mode='best'`` writes
         each representative's ``LCMSMassFeature.best_ms2``: the highest
         library-similarity scan after a spectral search, otherwise the
-        non-chimeric scan closest to the apex. Requires representative mass
-        features loaded on samples (typically via
+        non-chimeric scan closest to the apex. Representatives missing a
+        usable MS2 spectrum are skipped, the same as a single-sample export.
+        A representative with no precursor m/z aborts the export before any
+        bytes are written. Requires representative mass features loaded on
+        samples (typically via
         ``process_consensus_features(load_representatives=True, add_ms2=True)``).
 
         Parameters
@@ -2520,6 +2540,23 @@ class LCMSCollection(LCMSCollectionCalculations):
         -------
         pathlib.Path
             Path of the written MGF file.
+
+        Warns
+        -----
+        UserWarning
+            If one or more representatives are skipped because they have no
+            usable MS2 spectrum.
+
+        Raises
+        ------
+        FileExistsError
+            If the path exists and ``overwrite`` is False.
+        ValueError
+            If representatives are missing or not loaded, a requested
+            cluster id is unknown, polarity is not ``'positive'`` or
+            ``'negative'``, a representative has no precursor m/z, or no
+            complete MS1/MS2 pairs remain. A missing precursor m/z stops
+            the export before the file is written.
         """
         from corems.mass_spectra.output.mgf import (
             iter_collection_mgf_records,
