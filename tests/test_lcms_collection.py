@@ -12,6 +12,8 @@ from corems.encapsulation.factory.parameters import LCMSParameters, LCMSCollecti
 from corems.molecular_id.search.database_interfaces import MSPInterface
 from corems.mass_spectra.output.mgf import iter_collection_mgf_records
 
+from test_lcms_mgf_export import assert_sirius_feature_export
+
 
 @pytest.fixture(scope="module")
 def lcms_collection_folder(tmp_path_factory, lcms_obj):
@@ -963,39 +965,6 @@ def test_lcms_collection_update_raw_file_locations(lcms_collection, tmp_path):
     assert lcms_collection.raw_files_relocated
 
 
-def _ion_blocks(text):
-    """Split MGF text into header lines for each BEGIN IONS block."""
-    blocks = []
-    current = None
-    for line in text.splitlines():
-        if line == "BEGIN IONS":
-            current = []
-        elif line == "END IONS":
-            blocks.append(current)
-            current = None
-        elif current is not None:
-            current.append(line)
-    return blocks
-
-
-def _header(block, key):
-    prefix = f"{key}="
-    for line in block:
-        if line.startswith(prefix):
-            return line[len(prefix) :]
-    return None
-
-
-def _peak_lines(block):
-    peaks = []
-    for line in block:
-        if "=" in line:
-            continue
-        mz_token, abundance_token = line.split()
-        peaks.append((float(mz_token), float(abundance_token)))
-    return peaks
-
-
 def test_lcms_collection_minimal_workflow(lcms_collection, tmp_path):
     """
     Test a minimal end-to-end workflow with the collection.
@@ -1041,38 +1010,20 @@ def test_lcms_collection_minimal_workflow(lcms_collection, tmp_path):
     mgf_path = tmp_path / "lcms_collection.mgf"
     written_mgf = lcms_collection.to_mgf(mgf_path, overwrite=True)
     assert written_mgf.exists()
-    blocks = _ion_blocks(written_mgf.read_text())
-    ms1_blocks = [block for block in blocks if _header(block, "MSLEVEL") == "1"]
-    ms2_blocks = [block for block in blocks if _header(block, "MSLEVEL") == "2"]
-    assert ms1_blocks
-    assert len(ms1_blocks) == len(ms2_blocks)
     records = iter_collection_mgf_records(lcms_collection)
-    by_id = {
-        f"{cluster}": (feat, sample_name) for cluster, feat, sample_name in records
+    exported_ids = assert_sirius_feature_export(
+        written_mgf.read_text(),
+        {f"{cluster}": feat for cluster, feat, _name in records},
+        {
+            f"{cluster}": lcms_collection._lcms[name].polarity
+            for cluster, _feat, name in records
+        },
+    )
+    skipped = {
+        f"{cluster}" for cluster, feat, _name in records if not feat.ms2_mass_spectra
     }
-    ms1 = ms1_blocks[0]
-    feature_id = _header(ms1, "FEATURE_ID")
-    feat, sample_name = by_id[feature_id]
-    assert lcms_collection._lcms[sample_name].polarity == "negative"
-    assert _header(ms1, "CHARGE") == "1-"
-    peaks = _peak_lines(ms1)
-    assert len(peaks) == 1
-    assert peaks[0][0] == pytest.approx(float(feat.mz))
-    assert peaks[0][1] == pytest.approx(float(feat.intensity))
-    paired_ms2 = [
-        block
-        for block in ms2_blocks
-        if _header(block, "FEATURE_ID") == feature_id
-    ]
-    assert len(paired_ms2) == 1
-    assert _peak_lines(paired_ms2[0])
-    exported_ids = {_header(block, "FEATURE_ID") for block in blocks}
-    skipped = [
-        cluster for cluster, feat, _sample in records if not feat.ms2_mass_spectra
-    ]
     assert skipped
-    for cluster in skipped:
-        assert f"{cluster}" not in exported_ids
+    assert skipped.isdisjoint(exported_ids)
     
     # Step 6: Create reports
     pivot_table = lcms_collection.collection_pivot_table(verbose=False)

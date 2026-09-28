@@ -14,38 +14,7 @@ from corems.encapsulation.factory.processingSetting import LiquidChromatographSe
 from corems.mass_spectra.calc.lc_calc import LCCalculations
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 
-
-def _ion_blocks(text):
-    """Split MGF text into header lines for each BEGIN IONS block."""
-    blocks = []
-    current = None
-    for line in text.splitlines():
-        if line == "BEGIN IONS":
-            current = []
-        elif line == "END IONS":
-            blocks.append(current)
-            current = None
-        elif current is not None:
-            current.append(line)
-    return blocks
-
-
-def _header(block, key):
-    prefix = f"{key}="
-    for line in block:
-        if line.startswith(prefix):
-            return line[len(prefix) :]
-    return None
-
-
-def _peak_lines(block):
-    peaks = []
-    for line in block:
-        if "=" in line:
-            continue
-        mz_token, abundance_token = line.split()
-        peaks.append((float(mz_token), float(abundance_token)))
-    return peaks
+from test_lcms_mgf_export import assert_sirius_feature_export
 
 
 @pytest.mark.molecular_db
@@ -160,36 +129,18 @@ def test_lcms_metabolomics(tmp_path, postgres_database, lcms_obj, msp_file_locat
     mgf_path = tmp_path / "lcms_metabolomics.mgf"
     written_mgf = lcms_obj.to_mgf(mgf_path, overwrite=True)
     assert written_mgf.exists()
-    blocks = _ion_blocks(written_mgf.read_text())
-    ms1_blocks = [block for block in blocks if _header(block, "MSLEVEL") == "1"]
-    ms2_blocks = [block for block in blocks if _header(block, "MSLEVEL") == "2"]
-    assert ms1_blocks
-    assert len(ms1_blocks) == len(ms2_blocks)
-    ms1 = ms1_blocks[0]
-    feature_id = _header(ms1, "FEATURE_ID")
-    feat = lcms_obj.mass_features[int(feature_id)]
-    assert lcms_obj.polarity == "negative"
-    assert _header(ms1, "CHARGE") == "1-"
-    peaks = _peak_lines(ms1)
-    assert len(peaks) == 1
-    assert peaks[0][0] == pytest.approx(float(feat.mz))
-    assert peaks[0][1] == pytest.approx(float(feat.intensity))
-    paired_ms2 = [
-        block
-        for block in ms2_blocks
-        if _header(block, "FEATURE_ID") == feature_id
-    ]
-    assert len(paired_ms2) == 1
-    assert _peak_lines(paired_ms2[0])
-    exported_ids = {_header(block, "FEATURE_ID") for block in blocks}
-    skipped = [
-        mf_id
+    exported_ids = assert_sirius_feature_export(
+        written_mgf.read_text(),
+        {str(mf_id): mf for mf_id, mf in lcms_obj.mass_features.items()},
+        lcms_obj.polarity,
+    )
+    skipped = {
+        str(mf_id)
         for mf_id, mf in lcms_obj.mass_features.items()
         if not mf.ms2_mass_spectra
-    ]
+    }
     assert skipped
-    for mf_id in skipped:
-        assert f"{mf_id}" not in exported_ids
+    assert skipped.isdisjoint(exported_ids)
 
     # Export the lcms object to an hdf5 file using the LipidomicsExport class
     export_stem = tmp_path / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab"

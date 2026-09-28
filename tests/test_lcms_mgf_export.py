@@ -427,6 +427,62 @@ def test_lcmscollection_to_mgf_feature_id_is_cluster(tmp_path):
     assert "FEATURE_ID=21" not in text
 
 
+def _ion_blocks(text):
+    blocks = []
+    current = None
+    for line in text.splitlines():
+        if line == "BEGIN IONS":
+            current = []
+        elif line == "END IONS":
+            blocks.append(current)
+            current = None
+        elif current is not None:
+            current.append(line)
+    return blocks
+
+
+def _header(block, key):
+    prefix = f"{key}="
+    for line in block:
+        if line.startswith(prefix):
+            return line[len(prefix) :]
+    return None
+
+
+def _peak_lines(block):
+    return [
+        (float(mz), float(abundance))
+        for line in block
+        if "=" not in line
+        for mz, abundance in [line.split()]
+    ]
+
+
+def assert_sirius_feature_export(text, features_by_id, polarity):
+    """One-peak MS1, charge from polarity, and one paired MS2.
+
+    ``polarity`` is ``'positive'`` or ``'negative'``, or a map of FEATURE_ID
+    to that string. Returns the FEATURE_ID tokens written to the file.
+    """
+    blocks = _ion_blocks(text)
+    ms1_blocks = [block for block in blocks if _header(block, "MSLEVEL") == "1"]
+    ms2_blocks = [block for block in blocks if _header(block, "MSLEVEL") == "2"]
+    assert ms1_blocks
+    assert len(ms1_blocks) == len(ms2_blocks)
+    ms1 = ms1_blocks[0]
+    feature_id = _header(ms1, "FEATURE_ID")
+    feat = features_by_id[feature_id]
+    sample_polarity = polarity[feature_id] if isinstance(polarity, dict) else polarity
+    assert _header(ms1, "CHARGE") == sirius_charge(sample_polarity)
+    assert _peak_lines(ms1) == pytest.approx([(float(feat.mz), float(feat.intensity))])
+    paired = [
+        block for block in ms2_blocks if _header(block, "FEATURE_ID") == feature_id
+    ]
+    assert len(paired) == 1
+    assert _peak_lines(paired[0])
+    return {_header(block, "FEATURE_ID") for block in blocks}
+
+
 def test_collection_unloaded_representative_raises():
     obj, feat = _lcms_with_feature()
     obj.mass_features = {}
