@@ -45,9 +45,7 @@ dependencies = [
     "scipy>=1.14.0",
     "seaborn>=0.13.2",
     "setuptools>=72.0.0",
-    # 2.1 requires Python >=3.11 and maps a bare postgresql:// URL to psycopg 3.
-    # CoreMS installs psycopg2 and still supports Python 3.10.
-    "SQLAlchemy>=2.0.0,<2.1",
+    "SQLAlchemy>=2.0.0",
     "packaging>=23.0",
     "toml>=0.10.2",
     "tqdm>=4.66.0",
