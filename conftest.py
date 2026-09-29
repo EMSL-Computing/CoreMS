@@ -137,7 +137,7 @@ def postgres_database():
     try:
         # Test if postgres hostname is reachable
         socket.gethostbyname('postgres')
-        return "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"  ## Git CI/CD Build Pipeline
+        return "postgresql+psycopg://coremsdb:coremsmolform@postgres:5432/molformula"  ## Git CI/CD Build Pipeline
     except socket.gaierror:
         # Fall back to sqlite3 for local testing when postgres is not available
         return "" ## sqlite3 database (local)

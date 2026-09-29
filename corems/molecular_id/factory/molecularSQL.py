@@ -27,6 +27,7 @@ from sqlalchemy.sql.operators import exists
 from sqlalchemy.sql.schema import UniqueConstraint
 
 from corems.encapsulation.constant import Atoms, Labels
+from corems.molecular_id.factory.postgres_url import psycopg3_url
 
 Base = declarative_base()
 
@@ -380,7 +381,7 @@ class MolForm_SQL:
         database_name : str
             The name of the database.
         """
-        engine = create_engine(url)
+        engine = create_engine(psycopg3_url(url))
         conn = engine.connect()
         conn.execute("commit")
         conn.execute("create database " + database_name)
@@ -415,6 +416,8 @@ class MolForm_SQL:
                 os.mkdir(directory + "/db")
 
             url = "sqlite:///{DB}/db/molformulas.sqlite".format(DB=directory)
+
+        url = psycopg3_url(url)
 
         if url[0:6] == "sqlite":
             self.type = "sqlite"

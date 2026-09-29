@@ -20,6 +20,8 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.pool import QueuePool
 
+from corems.molecular_id.factory.postgres_url import psycopg3_url
+
 Base = declarative_base()
 
 
@@ -416,6 +418,7 @@ class EI_LowRes_SQLite:
             url = "sqlite:///{DB}/db/pnnl_lowres_gcms_compounds.sqlite".format(
                 DB=directory
             )
+        url = psycopg3_url(url)
         return create_engine(url, poolclass=QueuePool)
 
     def __enter__(self):
