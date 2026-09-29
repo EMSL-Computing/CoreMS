@@ -212,9 +212,10 @@ def test_legacy_annotation_fields_load_then_save_omitted_from_toml(tmp_path):
     assert s2.include_fragment_types is True
     assert obj2.parameters.lc_ms.eic_tolerance_ppm == 6.0
 
-    import toml as _toml
+    import tomlkit
 
-    data = _toml.load(out_path)
+    with out_path.open(encoding="utf-8") as handle:
+        data = tomlkit.load(handle)
     lc_section = data.get("LiquidChromatograph") or {}
     for key in _LEGACY_ANNOTATION_KEYS:
         assert key not in lc_section, f"legacy key {key!r} should not be saved under LiquidChromatograph"
