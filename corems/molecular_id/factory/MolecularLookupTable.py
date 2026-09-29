@@ -27,8 +27,8 @@ from corems.molecular_id.factory.molecularSQL import (
     HeteroAtoms,
     MolecularFormulaLink,
     MolForm_SQL,
+    psycopg3_url,
 )
-from corems.molecular_id.factory.postgres_url import psycopg3_url
 
 
 @contextlib.contextmanager

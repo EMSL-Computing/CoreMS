@@ -20,7 +20,7 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.pool import QueuePool
 
-from corems.molecular_id.factory.postgres_url import psycopg3_url
+from corems.molecular_id.factory.molecularSQL import psycopg3_url
 
 Base = declarative_base()
 
