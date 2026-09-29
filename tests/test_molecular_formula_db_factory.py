@@ -6,8 +6,15 @@ from sqlalchemy.engine.url import make_url
 
 from corems.encapsulation.constant import Labels
 from corems.molecular_id.factory.EI_SQL import EI_LowRes_SQLite
-from corems.molecular_id.factory.MolecularLookupTable import insert_database_worker
-from corems.molecular_id.factory.molecularSQL import MolForm_SQL, psycopg3_url
+from corems.molecular_id.factory.MolecularLookupTable import (
+    MolecularCombinations,
+    insert_database_worker,
+)
+from corems.molecular_id.factory.molecularSQL import (
+    MolecularFormulaLink,
+    MolForm_SQL,
+    psycopg3_url,
+)
 from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.encapsulation.factory.processingSetting  import MolecularFormulaSearchSettings
 
@@ -30,17 +37,32 @@ def test_nist_to_sql():
         sqlLite_obj.session.close()
         sqlLite_obj.engine.dispose()
 
-@pytest.mark.molecular_db
-def test_query_sql():
-
-    sqldb = MolForm_SQL()
-
+def test_query_sql(tmp_path):
+    url = f"sqlite:///{tmp_path / 'molformulas.sqlite'}"
+    build = MolecularFormulaSearchSettings(
+        url_database=url,
+        usedAtoms={"C": (10, 12), "H": (12, 20), "O": (2, 2)},
+        verbose_processing=False,
+    )
+    query = MolecularFormulaSearchSettings(verbose_processing=False)
+    sqldb = MolForm_SQL(url=url)
     try:
-        ion_type = Labels.protonated_de_ion
-        classe = ['{"O": 2}']
-        nominal_mz = [301]
-        results = sqldb.get_dict_by_classes(classe, ion_type, nominal_mz, +1, MolecularFormulaSearchSettings())
-        assert len(results.get(classe[0]).get(301)) == 3
+        MolecularCombinations(sqldb).runworker(build, print_time=False)
+        link = sqldb.session.query(MolecularFormulaLink).first()
+        classe = link.heteroAtoms.name
+        nominal = int(link._protonated_mz(1))
+        results = sqldb.get_dict_by_classes(
+            [classe], Labels.protonated_de_ion, [nominal], +1, query
+        )
+        matches = results[classe][nominal]
+        assert matches
+        assert all(formula.to_dict()["O"] == 2 for formula in matches)
+        assert all(int(formula._protonated_mz(1)) == nominal for formula in matches)
+
+        missed = sqldb.get_dict_by_classes(
+            [classe], Labels.protonated_de_ion, [nominal + 1000], +1, query
+        )
+        assert classe not in missed
     finally:
         sqldb.close()
 
