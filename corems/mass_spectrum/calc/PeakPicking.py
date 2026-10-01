@@ -396,7 +396,9 @@ class PeakPicking:
         Returns
         -------
         float
-            The resolving power of the peak.
+            The resolving power of the peak, or ``nan`` if a half-maximum
+            crossing does not exist on both sides (spectrum edge truncates
+            the peak).
 
         Notes
         --------
@@ -408,37 +410,19 @@ class PeakPicking:
 
         peak_height = intes[current_index]
         target_peak_height = peak_height / 2
-
-        peak_height_minus = peak_height
-        peak_height_plus = peak_height
-
-        # There are issues when a peak is at the high or low limit of a spectrum in finding its local minima and maxima
-        # This solution will return nan for resolving power when a peak is possibly too close to an edge to avoid the issue
-
-        if current_index < 5:
-            warnings.warn("peak at low spectrum edge, returning no resolving power")
-            return nan
-        elif abs(current_index - len(intes)) < 5:
-            warnings.warn("peak at high spectrum edge, returning no resolving power")
-            return nan
-        else:
-            pass
+        n_points = len(intes)
 
         index_minus = current_index
-        while peak_height_minus >= target_peak_height:
-            index_minus = index_minus - 1
-            if index_minus < 0:
-                warnings.warn(
-                    "Res. calc. warning - peak index minus adjacent to spectrum edge \n \
-                        Zeroing the first 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported \n \
-                        Perhaps try to increase picking_point_extrapolate (e.g. to 3)"
-                )
-                # Pad the first 5 data points with zeros and restart the loop
-                intes[:5] = 0
-                peak_height_minus = target_peak_height
-                index_minus = current_index
-            else:
-                peak_height_minus = intes[index_minus]
+        while index_minus > 0 and intes[index_minus] >= target_peak_height:
+            index_minus -= 1
+        if intes[index_minus] >= target_peak_height:
+            return nan
+
+        index_plus = current_index
+        while index_plus < n_points - 1 and intes[index_plus] >= target_peak_height:
+            index_plus += 1
+        if intes[index_plus] >= target_peak_height:
+            return nan
 
         if self.mspeaks_settings.legacy_centroid_polyfit:
             x = [massa[index_minus], massa[index_minus + 1]]
@@ -458,23 +442,6 @@ class PeakPicking:
         else:
             y_intercept = target_peak_height
         massa1 = (y_intercept - b) / a
-
-        index_plus = current_index
-        while peak_height_plus >= target_peak_height:
-            index_plus = index_plus + 1
-
-            try:
-                peak_height_plus = intes[index_plus]
-            except IndexError:
-                warnings.warn(
-                    "Res. calc. warning - peak index plus adjacent to spectrum edge \n \
-                        Zeroing the last 5 data points of abundance. Peaks at spectrum edge may be incorrectly reported\
-                        Perhaps try to increase picking_point_extrapolate (e.g. to 3)"
-                )
-                # Pad the first 5 data points with zeros and restart the loop
-                intes[-5:] = 0
-                peak_height_plus = target_peak_height
-                index_plus = current_index
 
         if self.mspeaks_settings.legacy_centroid_polyfit:
             x = [massa[index_plus], massa[index_plus - 1]]
