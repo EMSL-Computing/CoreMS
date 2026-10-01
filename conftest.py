@@ -137,7 +137,7 @@ def postgres_database():
     try:
         # Test if postgres hostname is reachable
         socket.gethostbyname('postgres')
-        # Name psycopg2. SQLAlchemy 2.1 maps a bare postgresql:// URL to psycopg 3.
+        # Name psycopg2. SQLAlchemy 2.1 loads psycopg 3 for a bare postgresql:// URL.
         return "postgresql+psycopg2://coremsdb:coremsmolform@postgres:5432/molformula"
     except socket.gaierror:
         # Fall back to sqlite3 for local testing when postgres is not available

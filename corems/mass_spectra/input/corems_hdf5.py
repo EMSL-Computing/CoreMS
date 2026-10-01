@@ -4,7 +4,7 @@ __date__ = "Oct 29, 2019"
 
 from threading import Thread
 import h5py
-import toml
+import tomlkit
 import json
 import multiprocessing
 from pathlib import Path
@@ -1143,7 +1143,7 @@ class ReadCoreMSHDFMassSpectraCollection:
             suffix = ".json"
 
         elif self.parameters_files[0].suffix == ".toml":
-            importer = toml
+            importer = tomlkit
             suffix = ".toml"
 
         manfiest_df = self.manifest_dataframe

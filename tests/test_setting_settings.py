@@ -25,6 +25,59 @@ def test_toml():
     assert os.path.exists('SettingsCoreMS.toml')
     os.remove('SettingsCoreMS.toml')
 
+
+def test_toml_omits_null_settings(tmp_path):
+    """Unset numeric settings are left out of the TOML file.
+
+    TOML has no null. Those fields stay at their in-memory defaults and are
+    not written as values.
+    """
+    import tomlkit
+
+    path = tmp_path / "SettingsCoreMS.toml"
+    parameter_to_json.dump_all_settings_toml(file_path=path)
+    with path.open(encoding="utf-8") as handle:
+        data = tomlkit.load(handle)
+
+    section = data["SpectralSimilaritySearch"]
+    assert "precursor_ions_removal_da" not in section
+    assert "peak_sep_da" not in section
+    assert section["max_ms2_tolerance_in_da"] == 0.01
+    assert section["search_type"] == "open"
+
+
+def test_toml_reloads_used_atoms_as_tuples(tmp_path):
+    """Atom-count ranges stay tuples after a TOML round trip.
+
+    Each range is stored as an array. Loading puts a tuple back on the
+    parameter object so the reloaded settings compare equal to the original.
+    """
+    from corems.encapsulation.input.parameter_from_json import (
+        load_and_set_toml_parameters_lcms,
+    )
+
+    class Holder:
+        def __init__(self):
+            self.parameters = LCMSParameters(use_defaults=True)
+
+    original = Holder()
+    original.parameters.mass_spectrum["ms1"].molecular_search.usedAtoms = {
+        "C": (5, 30),
+        "H": (18, 200),
+    }
+    path = tmp_path / "SettingsCoreMS.toml"
+    parameter_to_json.dump_lcms_settings_toml(file_path=path, lcms_obj=original)
+
+    loaded = Holder()
+    load_and_set_toml_parameters_lcms(loaded, parameters_path=str(path))
+    used = loaded.parameters.mass_spectrum["ms1"].molecular_search.usedAtoms
+    assert used["C"] == (5, 30)
+    assert isinstance(used["C"], tuple)
+    assert used["H"] == (18, 200)
+    assert isinstance(used["H"], tuple)
+    assert loaded.parameters == original.parameters
+
+
 def test_json():
       
     parameter_to_json.dump_all_settings_json()
