@@ -14,6 +14,8 @@ from corems.encapsulation.factory.processingSetting import LiquidChromatographSe
 from corems.mass_spectra.calc.lc_calc import LCCalculations
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 
+from test_lcms_mgf_export import assert_sirius_feature_export
+
 
 @pytest.mark.molecular_db
 def test_lcms_metabolomics(tmp_path, postgres_database, lcms_obj, msp_file_location):
@@ -123,6 +125,22 @@ def test_lcms_metabolomics(tmp_path, postgres_database, lcms_obj, msp_file_locat
     lcms_obj.fe_search(
         scan_list=ms2_scans_oi_hr, fe_lib=msp_negative, peak_sep_da=0.01
     )
+
+    mgf_path = tmp_path / "lcms_metabolomics.mgf"
+    written_mgf = lcms_obj.to_mgf(mgf_path, overwrite=True)
+    assert written_mgf.exists()
+    exported_ids = assert_sirius_feature_export(
+        written_mgf.read_text(),
+        {str(mf_id): mf for mf_id, mf in lcms_obj.mass_features.items()},
+        lcms_obj.polarity,
+    )
+    skipped = {
+        str(mf_id)
+        for mf_id, mf in lcms_obj.mass_features.items()
+        if not mf.ms2_mass_spectra
+    }
+    assert skipped
+    assert skipped.isdisjoint(exported_ids)
 
     # Export the lcms object to an hdf5 file using the LipidomicsExport class
     export_stem = tmp_path / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab"

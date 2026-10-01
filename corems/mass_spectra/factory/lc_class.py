@@ -448,6 +448,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         mass_features dictionary and adds the MS1 spectra to the _ms dictionary.
     * mass_features_to_df()
         Returns a pandas dataframe summarizing the mass features in the dataset.
+    * to_mgf(out_file_path, feature_ids=None, ...)
+        Export mass features to a SIRIUS-compatible MGF file.
     * set_tic_list_from_data(overwrite=False)
         Sets the TIC list from the mass spectrum objects within the _ms dictionary.
     * set_retention_time_from_data(overwrite=False)
@@ -1120,6 +1122,82 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             df_mf = df_mf.dropna(axis=1, how='all')
         
         return df_mf
+
+    def to_mgf(
+        self,
+        out_file_path,
+        feature_ids=None,
+        *,
+        ms2_mode="best",
+        overwrite=False,
+    ):
+        """Export mass features to a SIRIUS-compatible MGF file.
+
+        Each complete feature is written as a one-peak MS1 block (feature
+        precursor m/z and intensity) and one or more MS2 blocks sharing
+        FEATURE_ID. ``ms2_mode='best'`` writes ``LCMSMassFeature.best_ms2``:
+        the highest library-similarity scan after a spectral search,
+        otherwise the non-chimeric scan closest to the apex. Features
+        missing a usable MS2 spectrum are skipped. A feature with no
+        precursor m/z aborts the export before any bytes are written.
+
+        Parameters
+        ----------
+        out_file_path : str or Path
+            Output path. ``.mgf`` is appended when no suffix is given.
+        feature_ids : iterable, optional
+            Mass-feature ids to export. Default is all keys in ``mass_features``.
+        ms2_mode : {'best', 'all'}, optional
+            Which associated MS2 spectra to write. ``'best'`` (default)
+            writes ``LCMSMassFeature.best_ms2``. After a spectral search
+            that is the scan with the highest library entropy similarity;
+            with no search results it is the non-chimeric scan closest to
+            the apex. ``'all'`` writes every MS2 scan that has peaks.
+        overwrite : bool, optional
+            Replace an existing file. Default is False.
+
+        Returns
+        -------
+        pathlib.Path
+            Path of the written MGF file.
+
+        Warns
+        -----
+        UserWarning
+            If one or more features are skipped because they have no usable
+            MS2 spectrum.
+
+        Raises
+        ------
+        FileExistsError
+            If the path exists and ``overwrite`` is False.
+        ValueError
+            If a requested mass-feature id is unknown, polarity is not
+            ``'positive'`` or ``'negative'``, a feature has no precursor
+            m/z, or no complete MS1/MS2 pairs remain. A missing precursor
+            m/z stops the export before the file is written.
+        """
+        from corems.mass_spectra.output.mgf import write_feature_records_to_mgf
+
+        if feature_ids is None:
+            ids = list(self.mass_features.keys())
+        else:
+            ids = list(feature_ids)
+            missing = [i for i in ids if i not in self.mass_features]
+            if missing:
+                raise ValueError(f"Mass feature id(s) not found: {missing}")
+
+        records = [
+            (mf_id, self.mass_features[mf_id], getattr(self, "sample_name", None))
+            for mf_id in ids
+        ]
+        return write_feature_records_to_mgf(
+            records,
+            polarity=self.polarity,
+            out_file_path=out_file_path,
+            ms2_mode=ms2_mode,
+            overwrite=overwrite,
+        )
 
     def mass_features_ms1_annot_to_df(self, suppress_warnings=False):
         """Returns a pandas dataframe summarizing the MS1 annotations for the mass features in the dataset.
@@ -2422,6 +2500,84 @@ class LCMSCollection(LCMSCollectionCalculations):
 
         # Sort by cluster and return with cluster as a regular column
         return consensus_report.sort_values(by='cluster')
+
+    def to_mgf(
+        self,
+        out_file_path,
+        cluster_ids=None,
+        *,
+        ms2_mode="best",
+        overwrite=False,
+    ):
+        """Export consensus representative features to a SIRIUS-compatible MGF file.
+
+        FEATURE_ID is the consensus cluster id. ``ms2_mode='best'`` writes
+        each representative's ``LCMSMassFeature.best_ms2``: the highest
+        library-similarity scan after a spectral search, otherwise the
+        non-chimeric scan closest to the apex. Representatives missing a
+        usable MS2 spectrum are skipped, the same as a single-sample export.
+        A representative with no precursor m/z aborts the export before any
+        bytes are written. Requires representative mass features loaded on
+        samples (typically via
+        ``process_consensus_features(load_representatives=True, add_ms2=True)``).
+
+        Parameters
+        ----------
+        out_file_path : str or Path
+            Output path. ``.mgf`` is appended when no suffix is given.
+        cluster_ids : iterable, optional
+            Consensus cluster ids to export. Default is all representatives.
+        ms2_mode : {'best', 'all'}, optional
+            Which associated MS2 spectra to write. ``'best'`` (default)
+            writes ``LCMSMassFeature.best_ms2``. After a spectral search
+            that is the scan with the highest library entropy similarity;
+            with no search results it is the non-chimeric scan closest to
+            the apex. ``'all'`` writes every MS2 scan that has peaks.
+        overwrite : bool, optional
+            Replace an existing file. Default is False.
+
+        Returns
+        -------
+        pathlib.Path
+            Path of the written MGF file.
+
+        Warns
+        -----
+        UserWarning
+            If one or more representatives are skipped because they have no
+            usable MS2 spectrum.
+
+        Raises
+        ------
+        FileExistsError
+            If the path exists and ``overwrite`` is False.
+        ValueError
+            If representatives are missing or not loaded, a requested
+            cluster id is unknown, polarity is not ``'positive'`` or
+            ``'negative'``, a representative has no precursor m/z, or no
+            complete MS1/MS2 pairs remain. A missing precursor m/z stops
+            the export before the file is written.
+        """
+        from corems.mass_spectra.output.mgf import (
+            iter_collection_mgf_records,
+            write_feature_records_to_mgf,
+        )
+
+        records = iter_collection_mgf_records(self, cluster_ids=cluster_ids)
+        if not records:
+            raise ValueError(
+                "No consensus representatives found. Run process_consensus_features() "
+                "with load_representatives=True, add_ms2=True first."
+            )
+        sample_name = records[0][2]
+        polarity = self._lcms[sample_name].polarity
+        return write_feature_records_to_mgf(
+            records,
+            polarity=polarity,
+            out_file_path=out_file_path,
+            ms2_mode=ms2_mode,
+            overwrite=overwrite,
+        )
 
     def feature_annotations_table(
             self, 

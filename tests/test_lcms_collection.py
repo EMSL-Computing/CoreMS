@@ -10,6 +10,9 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollec
 from corems.mass_spectra.output.export import LCMSMetabolomicsExport, LCMSCollectionExport
 from corems.encapsulation.factory.parameters import LCMSParameters, LCMSCollectionParameters
 from corems.molecular_id.search.database_interfaces import MSPInterface
+from corems.mass_spectra.output.mgf import iter_collection_mgf_records
+
+from test_lcms_mgf_export import assert_sirius_feature_export
 
 
 @pytest.fixture(scope="module")
@@ -962,7 +965,7 @@ def test_lcms_collection_update_raw_file_locations(lcms_collection, tmp_path):
     assert lcms_collection.raw_files_relocated
 
 
-def test_lcms_collection_minimal_workflow(lcms_collection):
+def test_lcms_collection_minimal_workflow(lcms_collection, tmp_path):
     """
     Test a minimal end-to-end workflow with the collection.
     
@@ -971,7 +974,8 @@ def test_lcms_collection_minimal_workflow(lcms_collection):
     2. Align retention times
     3. Generate consensus features
     4. Perform gap filling
-    5. Create reports
+    5. Export consensus features to MGF
+    6. Create reports
     """
     # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
     lcms_collection = copy.deepcopy(lcms_collection)
@@ -993,7 +997,7 @@ def test_lcms_collection_minimal_workflow(lcms_collection):
         load_representatives=True,
         perform_gap_filling=True,
         add_ms1=True,
-        add_ms2=False,
+        add_ms2=True,
         molecular_formula_search=False,
         ms2_spectral_search=False,
         spectral_lib=False,
@@ -1001,8 +1005,27 @@ def test_lcms_collection_minimal_workflow(lcms_collection):
         gather_eics=True,
         keep_raw_data=False
     )
+
+    # Step 5: Export consensus representatives to MGF
+    mgf_path = tmp_path / "lcms_collection.mgf"
+    written_mgf = lcms_collection.to_mgf(mgf_path, overwrite=True)
+    assert written_mgf.exists()
+    records = iter_collection_mgf_records(lcms_collection)
+    exported_ids = assert_sirius_feature_export(
+        written_mgf.read_text(),
+        {f"{cluster}": feat for cluster, feat, _name in records},
+        {
+            f"{cluster}": lcms_collection._lcms[name].polarity
+            for cluster, _feat, name in records
+        },
+    )
+    skipped = {
+        f"{cluster}" for cluster, feat, _name in records if not feat.ms2_mass_spectra
+    }
+    assert skipped
+    assert skipped.isdisjoint(exported_ids)
     
-    # Step 5: Create reports
+    # Step 6: Create reports
     pivot_table = lcms_collection.collection_pivot_table(verbose=False)
     assert pivot_table is not None
     
