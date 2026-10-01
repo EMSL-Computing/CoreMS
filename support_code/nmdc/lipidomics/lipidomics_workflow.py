@@ -10,7 +10,7 @@ sys.path.append("./")
 from multiprocessing import Pool
 from pathlib import Path
 import datetime
-import toml
+import tomlkit
 import warnings
 
 import pandas as pd
@@ -108,7 +108,7 @@ def load_scan_translator(scan_translator=None):
             scan_translator = Path(scan_translator)
         # read in the scan translator from toml
         with open(scan_translator, "r") as f:
-            scan_translator_dict = toml.load(f)
+            scan_translator_dict = tomlkit.load(f)
     for param_key in scan_translator_dict.keys():
         if scan_translator_dict[param_key]["scan_filter"] == "":
             scan_translator_dict[param_key]["scan_filter"] = None
@@ -361,15 +361,16 @@ def save_times(myLCMSobj, time_start, out_path, time_end=None):
             "metabolomics_workflow_start_time": processed_data_creation_time,
         }
         # save as a toml file
-        toml_string = toml.dumps(time_dict)  # Output to a string
+        toml_string = tomlkit.dumps(time_dict)  # Output to a string
         with open(time_toml_path, "w") as f:
             f.write(toml_string)
     elif time_toml_path.exists() and time_end is not None:
-        time_dict = toml.load(time_toml_path)
+        with open(time_toml_path, encoding="utf-8") as handle:
+            time_dict = tomlkit.load(handle)
         time_dict["metabolomics_workflow_end_time"] = time_end.strftime(
             "%Y-%m-%dT%H:%M:%SZ"
         )
-        toml_string = toml.dumps(time_dict)
+        toml_string = tomlkit.dumps(time_dict)
         with open(time_toml_path, "w") as f:
             f.write(toml_string)
 

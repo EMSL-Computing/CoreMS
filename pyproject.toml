@@ -15,6 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Development Status :: 4 - Beta",
 ]
 dependencies = [
@@ -46,7 +47,7 @@ dependencies = [
     "setuptools>=72.0.0",
     "SQLAlchemy>=2.1",
     "packaging>=23.0",
-    "toml>=0.10.2",
+    "tomlkit>=0.13.3",
     "tqdm>=4.66.0",
 ]
 

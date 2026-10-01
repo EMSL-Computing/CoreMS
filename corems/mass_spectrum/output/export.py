@@ -7,13 +7,13 @@ from pathlib import Path
 from threading import Thread
 
 import h5py
-import toml
 import numpy as np
 from numpy import nan as NaN, empty
 from pandas import DataFrame
 
 from corems.encapsulation.constant import Atoms, Labels #Labels is accessed in the eval() function
 from corems.encapsulation.output import parameter_to_dict
+from corems.encapsulation.output.parameter_to_json import _dumps_toml
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 
 
@@ -518,7 +518,7 @@ class HighResMassSpecExport(Thread):
         dict_setting["instrument_label"] = self.mass_spectrum.instrument_label
         dict_setting["sample_name"] = self.mass_spectrum.sample_name
 
-        output = toml.dumps(dict_setting)
+        output = _dumps_toml(dict_setting)
 
         return output
 

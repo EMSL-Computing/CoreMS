@@ -8,7 +8,7 @@ This is the **canonical install guide**. The [README](../../README.md) has a sho
 
 | Requirement | Notes |
 |---|---|
-| **Python 3.11–3.13** | From `requires-python` in `pyproject.toml` |
+| **Python 3.11–3.14** | From `requires-python` in `pyproject.toml` |
 | **pip** | Prefer upgrading: `python -m pip install -U pip` |
 | **Optional: Docker** | PostgreSQL via `docker-compose`, or the full CoreMS image |
 | **Optional: .NET 8 runtime** | Host Thermo `.raw` via Python.NET (see [system dependencies](#system-dependencies-thermo-raw)) |

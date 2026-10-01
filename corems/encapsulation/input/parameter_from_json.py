@@ -1,7 +1,7 @@
 from pathlib import Path
 import dataclasses
 import json
-import toml
+import tomlkit
 
 from corems.encapsulation.factory.parameters import MSParameters, LCMSParameters
 from corems.encapsulation.factory.processingSetting import (
@@ -46,7 +46,7 @@ def load_and_set_toml_parameters_ms(mass_spec_obj, parameters_path=False):
             "r",
             encoding="utf8",
         ) as stream:
-            data_loaded = toml.load(stream)
+            data_loaded = tomlkit.load(stream)
             _set_dict_data_ms(data_loaded, mass_spec_obj)
     else:
         raise FileNotFoundError("Could not locate %s", file_path)
@@ -116,7 +116,7 @@ def load_and_set_toml_parameters_gcms(gcms_obj, parameters_path=False):
             "r",
             encoding="utf8",
         ) as stream:
-            data_loaded = toml.load(stream)
+            data_loaded = tomlkit.load(stream)
             _set_dict_data_gcms(data_loaded, gcms_obj)
     else:
         raise FileNotFoundError("Could not locate %s", file_path)
@@ -213,7 +213,7 @@ def load_and_set_toml_parameters_lcms(lcms_obj, parameters_path=False):
             "r",
             encoding="utf8",
         ) as stream:
-            data_loaded = toml.load(stream)
+            data_loaded = tomlkit.load(stream)
             _set_dict_data_lcms(data_loaded, lcms_obj)
     else:
         raise FileNotFoundError("Could not locate %s", file_path)
@@ -289,8 +289,11 @@ def _set_dict_data_lcms(data_loaded, lcms_obj):
             if item not in writable:
                 continue
             if item == "usedAtoms":
-                for atom, atom_value in value.items():
-                    value[atom] = tuple(atom_value)
+                # Build a new dict. A tomlkit table turns an assigned tuple
+                # back into an array.
+                value = {
+                    atom: tuple(atom_value) for atom, atom_value in value.items()
+                }
             if item == "additional_similarities" and isinstance(value, list):
                 setattr(param_instance, item, list(value))
             elif item == "similarity_thresholds" and isinstance(value, dict):
@@ -426,7 +429,7 @@ def load_and_set_toml_parameters_class(
             "r",
             encoding="utf8",
         ) as stream:
-            data_loaded = toml.load(stream)
+            data_loaded = tomlkit.load(stream)
             parameter_class = _set_dict_data(
                 data_loaded, parameter_label, instance_parameters_class
             )
@@ -566,7 +569,7 @@ def load_and_set_toml_parameters_lcms_collection(lcms_collection, parameters_pat
 
     if file_path.exists():
         with open(file_path, "r", encoding="utf8") as stream:
-            data_loaded = toml.load(stream)
+            data_loaded = tomlkit.load(stream)
             _set_dict_data_lcms_collection(data_loaded, lcms_collection)
     else:
         raise FileNotFoundError(f"Could not locate {file_path}")

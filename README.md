@@ -178,7 +178,7 @@ pip install corems
 python -c "import corems; print(corems.__version__)"
 ```
 
-CoreMS **4.0+** requires **Python 3.11+** (including 3.13). Dependencies (including **pythonnet**) come from `pyproject.toml` with the package.
+CoreMS **4.0+** requires **Python 3.11+** (including 3.14). Dependencies (including **pythonnet**) come from `pyproject.toml` with the package.
 
 ```bash
 pip install "corems[dev]"   # tests / docs tooling

@@ -91,14 +91,32 @@ stages:
 
 # ---------------------------------------------------------------------------
 # Test
+# Source tests for the oldest and newest supported interpreters. They share
+# the test stage with test-notebooks, so all three jobs start together.
+# Notebooks and the package build keep the default python:3.13-slim image.
 # ---------------------------------------------------------------------------
-test-source:
+.test-source:
   stage: test
   rules: *test_job_rules
+  cache:
+    - key: "corems-lipidomics-sqlite"
+      paths:
+        - tests/tests_data/lcms/202412_lipid_ref.sqlite
+    - key: "$CI_COMMIT_REF_SLUG-$CI_JOB_NAME"
+      paths:
+        - .cache/pip
   script:
     - *install-dotnet
     - *install-just
     - LIPIDOMICS_SQLITE_PATH="$CI_PROJECT_DIR/tests/tests_data/lcms/202412_lipid_ref.sqlite" just ci-test-source
+
+test-source-py311:
+  extends: .test-source
+  image: python:3.11-slim
+
+test-source-py314:
+  extends: .test-source
+  image: python:3.14-slim
 
 # ---------------------------------------------------------------------------
 # Notebook tests
