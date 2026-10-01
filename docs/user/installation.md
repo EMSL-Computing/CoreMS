@@ -8,7 +8,7 @@ This is the **canonical install guide**. The [README](../../README.md) has a sho
 
 | Requirement | Notes |
 |---|---|
-| **Python 3.10–3.13** | From `requires-python` in `pyproject.toml` |
+| **Python 3.11–3.14** | From `requires-python` in `pyproject.toml` |
 | **pip** | Prefer upgrading: `python -m pip install -U pip` |
 | **Optional: Docker** | PostgreSQL via `docker-compose`, or the full CoreMS image |
 | **Optional: .NET 8 runtime** | Host Thermo `.raw` via Python.NET (see [system dependencies](#system-dependencies-thermo-raw)) |
@@ -150,7 +150,7 @@ Workflow examples live under `examples/notebooks/`. These are intended as demons
 
 | Symptom | What to check |
 |---|---|
-| `import corems` fails / wrong Python | Active venv; `python --version` is 3.10+ |
+| `import corems` fails / wrong Python | Active venv; `python --version` is 3.11+ |
 | Thermo `.raw` / pythonnet errors | .NET **8** installed; `PYTHONNET_RUNTIME=coreclr`; `dotnet --list-runtimes` |
 | Using Mono deliberately | `PYTHONNET_RUNTIME=mono`; Mono installed |
 | PostgreSQL connection errors | `docker-compose up -d`; `COREMS_DATABASE_URL` / URL in parameters |
