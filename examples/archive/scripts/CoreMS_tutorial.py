@@ -52,7 +52,7 @@ MzDomainCalibration(mass_spectrum, ref_file_location).run()
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.factory.classification import HeteroatomsClassification
 
-mass_spectrum.molecular_search_settings.url_database = "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
+mass_spectrum.molecular_search_settings.url_database = "postgresql+psycopg://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
 
 mass_spectrum.molecular_search_settings.error_method = 'None'
 mass_spectrum.molecular_search_settings.min_ppm_error  = -1

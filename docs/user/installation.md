@@ -89,7 +89,7 @@ docker-compose up -d
 3. Point CoreMS at the database (either approach):
 
 ```bash
-export COREMS_DATABASE_URL="postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
+export COREMS_DATABASE_URL="postgresql+psycopg://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
 ```
 
 Or set `MSParameters.molecular_search.url_database` to the same URL.

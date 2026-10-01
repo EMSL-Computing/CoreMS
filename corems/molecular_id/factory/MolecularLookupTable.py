@@ -27,6 +27,7 @@ from corems.molecular_id.factory.molecularSQL import (
     HeteroAtoms,
     MolecularFormulaLink,
     MolForm_SQL,
+    psycopg3_url,
 )
 
 
@@ -51,6 +52,8 @@ def insert_database_worker(args):
 
     if not url:
         url = "sqlite:///db/molformulas.sqlite"
+
+    url = psycopg3_url(url)
 
     if url[0:6] == "sqlite":
         engine = create_engine(url, echo=False)

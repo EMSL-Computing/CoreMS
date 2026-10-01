@@ -34,13 +34,16 @@ def test_ci_runs_source_tests_on_python_311_and_314():
     assert "just ci-test-notebooks" in text
 
 
-def test_ci_postgres_url_names_psycopg2():
-    """CI connects with the psycopg2 driver CoreMS installs.
+def test_ci_postgres_url_names_psycopg():
+    """CI connects with the psycopg 3 driver CoreMS installs.
 
-    SQLAlchemy 2.1 loads psycopg 3 for a bare postgresql:// URL.
+    SQLAlchemy 2.1 loads psycopg 3 for a bare postgresql:// URL. The CI URL
+    names that driver, and CoreMS does not install psycopg2.
     """
-    url = "postgresql+psycopg2://coremsdb:coremsmolform@postgres:5432/molformula"
+    url = "postgresql+psycopg://coremsdb:coremsmolform@postgres:5432/molformula"
     ci = (ROOT / ".gitlab-ci.yml").read_text(encoding="utf-8")
     conftest = (ROOT / "conftest.py").read_text(encoding="utf-8")
     assert url in ci
     assert url in conftest
+    assert "postgresql+psycopg2://" not in ci
+    assert "postgresql+psycopg2://" not in conftest
