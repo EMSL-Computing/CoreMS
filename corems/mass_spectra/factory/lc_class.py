@@ -2990,7 +2990,10 @@ class LCMSCollection(LCMSCollectionCalculations):
     def cluster_feature_dictionary(self):
         """Generates a dictionary with clusters for keys and mass feature IDs as entries"""
         df = self.mass_features_dataframe
-        cluster_dict = df.groupby('cluster').apply(lambda x: x.index.tolist()).to_dict()
+        cluster_dict = {
+            cluster: list(ids)
+            for cluster, ids in df.groupby('cluster').groups.items()
+        }
         return cluster_dict
     
     def get_eics_for_cluster(self, cluster_id):
