@@ -1053,7 +1053,26 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 eic_mz = mf_dict[mf_id].mz
             df_mf_single["_eic_mz"] = eic_mz
             df_mf_list.append(df_mf_single)
-        df_mf = pd.concat(df_mf_list)
+        # Drop all-NA columns per row so concat keeps the dtypes of columns
+        # that have values. Add back columns that were empty on every feature.
+        cleaned_frames = []
+        all_na_dtypes = {}
+        for frame in df_mf_list:
+            if len(frame) == 0:
+                continue
+            na_cols = frame.columns[frame.isna().all()]
+            for col in na_cols:
+                all_na_dtypes.setdefault(col, frame[col].dtype)
+            cleaned_frames.append(frame.drop(columns=na_cols))
+        df_mf = pd.concat(cleaned_frames)
+        for col, dtype in all_na_dtypes.items():
+            if col not in df_mf.columns:
+                if pd.api.types.is_object_dtype(dtype):
+                    df_mf[col] = pd.Series(
+                        [None] * len(df_mf), index=df_mf.index, dtype=object
+                    )
+                else:
+                    df_mf[col] = pd.Series(index=df_mf.index, dtype=dtype)
 
         # rename _area to area and id to mf_id
         df_mf = df_mf.rename(
