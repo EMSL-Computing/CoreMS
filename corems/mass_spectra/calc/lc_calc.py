@@ -2128,6 +2128,19 @@ class PHCalculations:
             )
             data_thres = data[data["intensity"] > threshold].reset_index(drop=True).copy()
 
+        # Grid and pick inside scan partitions. A full-frame grid builds one
+        # sparse distance matrix over every unique m/z; on an unaligned profile
+        # that matrix grows with the square of the scan count.
+        if len(data_thres) > 10000:
+            return self._find_mass_features_ph_partition(
+                data_thres,
+                dims,
+                persistence_threshold,
+                mf_type,
+                accumulate_features,
+                grid=grid,
+            )
+
         # Check if gridded, if not, grid
         gridded_mz = self.check_if_grid(data_thres)
         if gridded_mz is False:
@@ -2190,10 +2203,10 @@ class PHCalculations:
         # Populate mass_features attribute
         self._populate_mass_features(mass_features_df, mf_type, accumulate_features)
 
-    def _find_mass_features_ph_partition(self, data_thres, dims, persistence_threshold, mf_type="untargeted", accumulate_features=False):
+    def _find_mass_features_ph_partition(self, data_thres, dims, persistence_threshold, mf_type="untargeted", accumulate_features=False, grid=True):
         """Partition the persistent homology mass feature detection for large datasets.
 
-        This method splits the input data into overlapping scan partitions, processes each partition to detect mass features
+        This method splits the input data into overlapping scan partitions, grids each partition in m/z, processes each partition to detect mass features
         using persistent homology, rolls up duplicates within and across partitions, and populates the mass_features attribute.
 
         Parameters
@@ -2208,6 +2221,8 @@ class PHCalculations:
             Type label for the mass features. Default is "untargeted".
         accumulate_features : bool, optional
             If True, add to existing features rather than replacing them. Default is False.
+        grid : bool, optional
+            If True, grid each partition in the m/z dimension before peak picking. Default is True.
 
         Returns
         -------
@@ -2247,6 +2262,19 @@ class PHCalculations:
 
             if len(partition_data) == 0:
                 continue
+
+            # Grid this scan window only. The distance matrix is local to the
+            # partition, then the final roll-up merges peaks in the overlap.
+            if not self.check_if_grid(partition_data):
+                if grid is False:
+                    raise ValueError(
+                        "Data are not gridded in mz dimension, try reprocessing with a different params or grid data before running this function"
+                    )
+                partition_data = self.grid_data(partition_data)
+            if "scan_time" not in partition_data.columns:
+                partition_data = partition_data.merge(
+                    self.scan_df[["scan", "scan_time"]], on="scan"
+                )
 
             # Build factors for this partition
             factors = {
