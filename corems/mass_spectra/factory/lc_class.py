@@ -1053,26 +1053,31 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 eic_mz = mf_dict[mf_id].mz
             df_mf_single["_eic_mz"] = eic_mz
             df_mf_list.append(df_mf_single)
-        # Drop all-NA columns per row so concat keeps the dtypes of columns
-        # that have values. Add back columns that were empty on every feature.
-        cleaned_frames = []
-        all_na_dtypes = {}
+        # An all-NA object column next to a float makes concat warn, and a
+        # future pandas can change that float's dtype. Drop those empty
+        # entries. An all-NA object column next to an int id does not warn;
+        # dropping it turns the id into float64 (None, 2 -> nan, 2.0).
+        float_value_cols = set()
         for frame in df_mf_list:
             if len(frame) == 0:
                 continue
-            na_cols = frame.columns[frame.isna().all()]
-            for col in na_cols:
-                all_na_dtypes.setdefault(col, frame[col].dtype)
-            cleaned_frames.append(frame.drop(columns=na_cols))
+            for col in frame.columns:
+                values = frame[col]
+                if values.notna().any() and pd.api.types.is_float_dtype(values):
+                    float_value_cols.add(col)
+        cleaned_frames = []
+        for frame in df_mf_list:
+            if len(frame) == 0:
+                continue
+            empty_float_cols = [
+                col
+                for col in frame.columns
+                if col in float_value_cols and frame[col].isna().all()
+            ]
+            if empty_float_cols:
+                frame = frame.drop(columns=empty_float_cols)
+            cleaned_frames.append(frame)
         df_mf = pd.concat(cleaned_frames)
-        for col, dtype in all_na_dtypes.items():
-            if col not in df_mf.columns:
-                if pd.api.types.is_object_dtype(dtype):
-                    df_mf[col] = pd.Series(
-                        [None] * len(df_mf), index=df_mf.index, dtype=object
-                    )
-                else:
-                    df_mf[col] = pd.Series(index=df_mf.index, dtype=dtype)
 
         # rename _area to area and id to mf_id
         df_mf = df_mf.rename(

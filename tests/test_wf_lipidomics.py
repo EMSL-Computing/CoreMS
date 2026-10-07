@@ -2,6 +2,8 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import shutil
+import warnings
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -47,9 +49,39 @@ def test_import_lcmsobj_mzml():
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=True, spectrum_mode="centroid"
     )
-    mass_features_df = myLCMSobj.mass_features_to_df()
+    # One feature has an int monoisotopic id and a float width. The other
+    # leaves both empty. The id column must stay object; the width stays float.
+    unlabeled_id, labeled_id = list(myLCMSobj.mass_features)[:2]
+    unlabeled = myLCMSobj.mass_features[unlabeled_id]
+    labeled = myLCMSobj.mass_features[labeled_id]
+    labeled.monoisotopic_mf_id = int(labeled.id)
+    labeled.tailing_factor = 1.2
+    labeled._half_height_width = np.array([0.1, 0.3])
+    unlabeled._half_height_width = None
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        mass_features_df = myLCMSobj.mass_features_to_df()
+    assert not any(
+        issubclass(item.category, FutureWarning) and "all-NA" in str(item.message)
+        for item in caught
+    )
     assert mass_features_df.shape[0] == 1183
     assert mass_features_df.shape[1] > 15
+    mono = mass_features_df["monoisotopic_mf_id"]
+    assert mono.dtype == object
+    assert pd.isna(mono.loc[unlabeled.id])
+    labeled_mono = mono.loc[labeled.id]
+    assert isinstance(labeled_mono, (int, np.integer))
+    assert not isinstance(labeled_mono, (float, np.floating))
+    assert int(labeled_mono) == int(labeled.id)
+    assert mass_features_df["half_height_width"].dtype == np.dtype("float64")
+    assert mass_features_df.loc[labeled.id, "half_height_width"] == pytest.approx(0.2)
+    assert pd.isna(mass_features_df.loc[unlabeled.id, "half_height_width"])
+    assert mass_features_df["isotopologue_type"].isna().all()
+    assert mass_features_df["tailing_factor"].dtype == np.dtype("float64")
+    dropped = myLCMSobj.mass_features_to_df(drop_na_cols=True)
+    assert "isotopologue_type" not in dropped.columns
+    assert "monoisotopic_mf_id" in dropped.columns
     
     # Reset the MSParameters to the original values
     reset_lcms_parameters()
