@@ -2128,86 +2128,23 @@ class PHCalculations:
             )
             data_thres = data[data["intensity"] > threshold].reset_index(drop=True).copy()
 
-        # Grid and pick inside scan partitions. A full-frame grid builds one
-        # sparse distance matrix over every unique m/z; on an unaligned profile
-        # that matrix grows with the square of the scan count.
-        if len(data_thres) > 10000:
-            return self._find_mass_features_ph_partition(
-                data_thres,
-                dims,
-                persistence_threshold,
-                mf_type,
-                accumulate_features,
-                grid=grid,
-            )
-
-        # Check if gridded, if not, grid
-        gridded_mz = self.check_if_grid(data_thres)
-        if gridded_mz is False:
-            if grid is False:
-                raise ValueError(
-                    "Data are not gridded in mz dimension, try reprocessing with a different params or grid data before running this function"
-                )
-            else:
-                data_thres = self.grid_data(data_thres)
-
-        # Add scan_time (skip if already present from targeted mode)
-        if 'scan_time' not in data_thres.columns:
-            data_thres = data_thres.merge(self.scan_df[["scan", "scan_time"]], on="scan")
-        # Process in chunks if required
-        if len(data_thres) > 10000:
-            return self._find_mass_features_ph_partition(
-                data_thres, dims, persistence_threshold, mf_type, accumulate_features
-            )
-        else:
-            # Process all at once
-            return self._find_mass_features_ph_single(
-                data_thres, dims, persistence_threshold, mf_type, accumulate_features
-            )
-            return self._find_mass_features_ph_single(
-                data_thres, dims, persistence_threshold, mf_type
-            )
-
-    def _find_mass_features_ph_single(self, data_thres, dims, persistence_threshold, mf_type="untargeted", accumulate_features=False):
-        """Process all data at once (original logic)."""
-        # Build factors
-        factors = {
-            dim: pd.factorize(data_thres[dim], sort=True)[1].astype(np.float32)
-            for dim in dims
-        }
-
-        # Build indexes
-        index = {
-            dim: np.searchsorted(factors[dim], data_thres[dim]).astype(np.float32)
-            for dim in factors
-        }
-
-        # Smooth and process
-        mass_features_df = self._process_partition_ph(
-            data_thres, index, dims, persistence_threshold
+        # Grid inside each scan partition. One grid over the whole profile
+        # builds a distance matrix that grows with the square of the scan count.
+        return self._find_mass_features_ph_partition(
+            data_thres,
+            dims,
+            persistence_threshold,
+            mf_type,
+            accumulate_features,
+            grid=grid,
         )
-
-        # Roll up within chunk to remove duplicates
-        mass_features_df = self.roll_up_dataframe(
-            df=mass_features_df,
-            sort_by="persistence",
-            dims=["mz", "scan_time"],
-            tol=[
-                self.parameters.lc_ms.mass_feature_cluster_mz_tolerance_rel,
-                self.parameters.lc_ms.mass_feature_cluster_rt_tolerance,
-            ],
-            relative=[True, False],
-        )
-        mass_features_df = mass_features_df.reset_index(drop=True)
-
-        # Populate mass_features attribute
-        self._populate_mass_features(mass_features_df, mf_type, accumulate_features)
 
     def _find_mass_features_ph_partition(self, data_thres, dims, persistence_threshold, mf_type="untargeted", accumulate_features=False, grid=True):
-        """Partition the persistent homology mass feature detection for large datasets.
+        """Find mass features by gridding and picking overlapping scan partitions.
 
-        This method splits the input data into overlapping scan partitions, grids each partition in m/z, processes each partition to detect mass features
-        using persistent homology, rolls up duplicates within and across partitions, and populates the mass_features attribute.
+        Splits the input into overlapping scan partitions, grids each partition
+        in m/z, detects mass features with persistent homology, rolls up
+        duplicates within and across partitions, and populates mass_features.
 
         Parameters
         ----------
@@ -2234,14 +2171,16 @@ class PHCalculations:
         # Split scans into partitions
         unique_scans = sorted(data_thres["scan"].unique())
         unique_scans_n = len(unique_scans)
+        if unique_scans_n == 0:
+            if not accumulate_features:
+                self.mass_features = {}
+            return
 
         # Calculate partition size in scans based on goal
         partition_size_goal = 5000
         scans_per_partition = max(
             1, partition_size_goal // (len(data_thres) // unique_scans_n)
         )
-        if scans_per_partition == 0:
-            scans_per_partition = 1
 
         # Make partitions based on scans, with overlapping in partitioned scans
         scan_overlap = 4
