@@ -5367,6 +5367,27 @@ class LCMSCollectionCalculations:
 
         if not inplace:
             return self[obj_idx].induced_mass_features
+
+    def _missing_sample_ids_by_cluster(self, mfdf, cluster_ids):
+        """Sample ids with no feature row for each cluster, in sample-id order.
+
+        Includes samples that have no mass features. Lookup matches numpy
+        integers and integral floats to the cluster key.
+        """
+        all_sample_ids = list(range(len(self.samples)))
+        if mfdf is None or len(mfdf) == 0:
+            present_by_cluster = pd.Series(dtype=object)
+        else:
+            present_by_cluster = mfdf.groupby("cluster", sort=False)["sample_id"].agg(
+                lambda ids: set(ids.to_numpy())
+            )
+        missing = []
+        for cluster_id in cluster_ids:
+            present = present_by_cluster.get(cluster_id, ())
+            missing.append(
+                [sample_id for sample_id in all_sample_ids if sample_id not in present]
+            )
+        return missing
     
     def fill_missing_cluster_features(self):
         """
@@ -5448,15 +5469,11 @@ class LCMSCollectionCalculations:
         if len(missingdf) == 0:
             return
 
-        # Find which samples are missing for each cluster
-        # Use range(sample_ct) to include all samples, even those with no mass features
-        all_sample_ids = list(range(sample_ct))
-        missing_samples_list = []
-        for c in missingdf.cluster.to_numpy():
-            cludf = mfdf[mfdf.cluster == c]
-            missing = [x for x in all_sample_ids if x not in cludf.sample_id.unique()]
-            missing_samples_list.append(missing)
-        missingdf['missing_samples'] = missing_samples_list
+        # One groupby. Sample ids stay in collection order, including samples
+        # that have no mass features.
+        missingdf['missing_samples'] = self._missing_sample_ids_by_cluster(
+            mfdf, missingdf.cluster.to_numpy()
+        )
         
         # Calculate expanded search windows for expand_on_miss option
         mz_clu_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
@@ -5721,15 +5738,11 @@ class LCMSCollectionCalculations:
             missingdf = missingdf[missingdf.sample_id_nunique != sample_ct]
             
             if len(missingdf) > 0:
-                # Find which samples are missing for each cluster
-                # Use range(sample_ct) to include all samples, even those with no mass features
-                all_sample_ids = list(range(sample_ct))
-                missing_samples_list = []
-                for c in missingdf.cluster.to_numpy():
-                    cludf = mfdf[mfdf.cluster == c]
-                    missing = [x for x in all_sample_ids if x not in cludf.sample_id.unique()]
-                    missing_samples_list.append(missing)
-                missingdf['missing_samples'] = missing_samples_list
+                # One groupby. Sample ids stay in collection order, including samples
+                # that have no mass features.
+                missingdf['missing_samples'] = self._missing_sample_ids_by_cluster(
+                    mfdf, missingdf.cluster.to_numpy()
+                )
                 
                 # Calculate expanded search windows
                 mz_clu_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6

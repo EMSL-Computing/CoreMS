@@ -328,6 +328,24 @@ def test_lcms_collection_consensus_features(lcms_collection):
     for cluster_id in cluster_summary.index:
         assert cluster_id in cluster_dict
 
+    # Missing-sample lists keep sample-id order and include samples with no features.
+    from corems.mass_spectra.calc.lc_calc_operations import GapFillOperation
+
+    runtime = lcms_collection._prepare_pipeline_runtime_params(
+        [GapFillOperation(name="gap")]
+    )
+    missingdf = runtime["missingdf"]
+    assert len(missingdf) > 0
+    mfdf = lcms_collection.mass_features_dataframe
+    all_sample_ids = list(range(len(lcms_collection)))
+    for cluster_id, missing_ids in zip(
+        missingdf.cluster.to_numpy(), missingdf["missing_samples"]
+    ):
+        present = set(mfdf.loc[mfdf.cluster == cluster_id, "sample_id"].unique())
+        expected = [i for i in all_sample_ids if i not in present]
+        assert list(missing_ids) == expected
+        assert 2 in missing_ids
+
 
 def test_lcms_collection_gap_filling(lcms_collection):
     """Test gap filling to create induced mass features."""
