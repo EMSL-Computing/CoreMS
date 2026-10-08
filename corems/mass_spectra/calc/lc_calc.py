@@ -45,6 +45,47 @@ def find_closest(A, target):
     return idx
 
 
+def _mz_grid_centers(mz_desc, radius):
+    """m/z bin centers, highest intensity first.
+
+    ``mz_desc`` is unique and ordered from highest intensity to lowest. A value
+    is kept when no kept higher-intensity value lies within ``radius``. That is
+    the parent rule of the distance-pair grid, without building the pair matrix.
+    """
+    mz = np.asarray(mz_desc, dtype=np.float64)
+    n = mz.size
+    if n == 0:
+        return mz
+    rank_order = np.argsort(mz, kind="mergesort")
+    mz_by_rank = mz[rank_order]
+    rank_of = np.empty(n, dtype=np.intp)
+    rank_of[rank_order] = np.arange(n)
+    bit = np.zeros(n + 1, dtype=np.int32)
+    keep = np.zeros(n, dtype=bool)
+
+    def prefix(end):
+        total = 0
+        while end:
+            total += int(bit[end])
+            end -= end & -end
+        return total
+
+    def mark(rank):
+        node = rank + 1
+        while node <= n:
+            bit[node] += 1
+            node += node & -node
+
+    for i, value in enumerate(mz):
+        lo = int(np.searchsorted(mz_by_rank, value - radius, side="left"))
+        hi = int(np.searchsorted(mz_by_rank, value + radius, side="right"))
+        if prefix(hi) - prefix(lo) > 0:
+            continue
+        mark(int(rank_of[i]))
+        keep[i] = True
+    return mz[keep]
+
+
 class LCCalculations:
     """Methods for performing LC calculations on mass spectra data.
 
@@ -1963,32 +2004,10 @@ class PHCalculations:
             by=["intensity"], ascending=False
         )
         dat_mz = dat_mz[["mz"]].drop_duplicates().reset_index(drop=True).copy()
-
-        # Construct KD tree
-        tree = KDTree(dat_mz.mz.values.reshape(-1, 1))
-        sdm = tree.sparse_distance_matrix(tree, mz_diff_min, output_type="coo_matrix")
-        sdm = sparse.triu(sdm, k=1)
-        sdm.data = np.ones_like(sdm.data)
-        distances = sdm.tocoo()
-        pairs = np.stack((distances.row, distances.col), axis=1)
-
-        # Cull pairs to just get root
-        to_drop = []
-        while len(pairs) > 0:
-            root_parents = np.setdiff1d(np.unique(pairs[:, 0]), np.unique(pairs[:, 1]))
-            id_root_parents = np.isin(pairs[:, 0], root_parents)
-            children_of_roots = np.unique(pairs[id_root_parents, 1])
-            to_drop = np.append(to_drop, children_of_roots)
-
-            # Set up pairs array for next iteration by removing pairs with children or parents already dropped
-            pairs = pairs[~np.isin(pairs[:, 1], to_drop), :]
-            pairs = pairs[~np.isin(pairs[:, 0], to_drop), :]
-        dat_mz = dat_mz.reset_index(drop=True).drop(index=np.array(to_drop))
-        mz_dat_np = (
-            dat_mz[["mz"]]
-            .sort_values(by=["mz"])
-            .reset_index(drop=True)
-            .values.flatten()
+        # Same kept centers as the distance-pair grid. A 1D index replaces the
+        # pair matrix, which grew with the square of the scan count.
+        mz_dat_np = np.sort(
+            _mz_grid_centers(dat_mz["mz"].to_numpy(dtype=np.float64), mz_diff_min)
         )
 
         # Sort data by mz and recast mz to nearest value in mz_dat_np
@@ -2128,23 +2147,33 @@ class PHCalculations:
             )
             data_thres = data[data["intensity"] > threshold].reset_index(drop=True).copy()
 
-        # Grid inside each scan partition. One grid over the whole profile
-        # builds a distance matrix that grows with the square of the scan count.
+        # One m/z grid for the whole run. A separate grid in each scan window
+        # moves the apex of the same ion.
+        if not self.check_if_grid(data_thres):
+            if grid is False:
+                raise ValueError(
+                    "Data are not gridded in mz dimension, try reprocessing with a different params or grid data before running this function"
+                )
+            data_thres = self.grid_data(data_thres)
+        if "scan_time" not in data_thres.columns:
+            data_thres = data_thres.merge(
+                self.scan_df[["scan", "scan_time"]], on="scan"
+            )
+
         return self._find_mass_features_ph_partition(
             data_thres,
             dims,
             persistence_threshold,
             mf_type,
             accumulate_features,
-            grid=grid,
         )
 
-    def _find_mass_features_ph_partition(self, data_thres, dims, persistence_threshold, mf_type="untargeted", accumulate_features=False, grid=True):
-        """Find mass features by gridding and picking overlapping scan partitions.
+    def _find_mass_features_ph_partition(self, data_thres, dims, persistence_threshold, mf_type="untargeted", accumulate_features=False):
+        """Find mass features on overlapping scan partitions of one m/z grid.
 
-        Splits the input into overlapping scan partitions, grids each partition
-        in m/z, detects mass features with persistent homology, rolls up
-        duplicates within and across partitions, and populates mass_features.
+        Splits the already gridded input into overlapping scan partitions,
+        detects mass features with persistent homology, rolls up duplicates
+        within and across partitions, and populates mass_features.
 
         Parameters
         ----------
@@ -2158,8 +2187,6 @@ class PHCalculations:
             Type label for the mass features. Default is "untargeted".
         accumulate_features : bool, optional
             If True, add to existing features rather than replacing them. Default is False.
-        grid : bool, optional
-            If True, grid each partition in the m/z dimension before peak picking. Default is True.
 
         Returns
         -------
@@ -2202,14 +2229,6 @@ class PHCalculations:
             if len(partition_data) == 0:
                 continue
 
-            # Grid this scan window only. The distance matrix is local to the
-            # partition, then the final roll-up merges peaks in the overlap.
-            if not self.check_if_grid(partition_data):
-                if grid is False:
-                    raise ValueError(
-                        "Data are not gridded in mz dimension, try reprocessing with a different params or grid data before running this function"
-                    )
-                partition_data = self.grid_data(partition_data)
             if "scan_time" not in partition_data.columns:
                 partition_data = partition_data.merge(
                     self.scan_df[["scan", "scan_time"]], on="scan"
