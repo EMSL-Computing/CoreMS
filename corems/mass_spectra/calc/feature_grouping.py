@@ -1627,6 +1627,38 @@ def group_features_arrays(
     return labels
 
 
+def detected_cluster_mz_median(
+    mass_features_df: pd.DataFrame,
+    cluster_ids: Sequence,
+    cluster_col: str = "cluster",
+    mz_col: str = "mz",
+) -> np.ndarray:
+    """Median m/z of detected features, in ``cluster_ids`` order.
+
+    ``mass_features_df`` is the non-gap-filled table. Isotope and adduct
+    geometry uses this median, so a gap-filled apex m/z cannot move
+    ``ion_role``.
+    """
+    if mass_features_df is None or cluster_col not in mass_features_df.columns:
+        raise ValueError(f"mass features missing '{cluster_col}' column")
+    if mz_col not in mass_features_df.columns:
+        raise ValueError(f"mass features missing '{mz_col}' column")
+
+    detected = mass_features_df.dropna(subset=[cluster_col, mz_col]).copy()
+    detected[cluster_col] = detected[cluster_col].astype(int)
+    median_by_cluster = detected.groupby(cluster_col, sort=False)[mz_col].median()
+
+    ids = pd.Index(np.asarray(cluster_ids).astype(int))
+    missing = ids.difference(median_by_cluster.index)
+    if len(missing) > 0:
+        shown = ", ".join(str(cluster_id) for cluster_id in list(missing[:8]))
+        raise ValueError(
+            "ion-role m/z median needs a detected feature for every cluster; "
+            f"missing {shown}"
+        )
+    return median_by_cluster.reindex(ids).to_numpy(dtype=float)
+
+
 def build_height_matrix_from_features(
     mass_features_df: pd.DataFrame,
     cluster_ids: Sequence,

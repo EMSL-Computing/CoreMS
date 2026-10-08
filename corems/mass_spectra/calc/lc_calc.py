@@ -3616,7 +3616,9 @@ class LCMSCollectionCalculations:
         Notes
         -----
         - Summary DataFrame is automatically stored in cluster_summary_dataframe property
-        - Includes both regular and induced (gap-filled) mass features when available
+        - Includes both regular and induced (gap-filled) mass features when available.
+          ``group_consensus_features`` does not use this m/z median for ion-role
+          geometry; that median is detected features only.
         - Used by plotting methods: plot_consensus_mz_features, plot_mz_features_per_cluster
         - Sample count (sample_id_nunique) indicates cluster prevalence across samples
         - Filters applied by consensus_min_sample_fraction affect which clusters appear
@@ -3762,8 +3764,11 @@ class LCMSCollectionCalculations:
         ``LCMSBase.find_c13_mass_features`` remains available for single-file
         workflows; do not treat both as authoritative in the same pipeline.
 
-        Must run after ``add_consensus_mass_features()``. Height matrix prefers
-        gap-filled (induced) apex intensities when present; missing entries are 0.
+        Must run after ``add_consensus_mass_features()``. The m/z median used for
+        isotope and adduct spacing is calculated from detected features only.
+        Gap-filled m/z values stay on the induced rows and do not enter that
+        median. The height matrix still includes gap-filled apex intensities
+        when present; missing entries are 0.
 
         Returns
         -------
@@ -3785,6 +3790,7 @@ class LCMSCollectionCalculations:
             HEIGHT_COL,
             FeatureGroupParams,
             build_height_matrix_from_features,
+            detected_cluster_mz_median,
             group_features_arrays,
             normalize_ms_polarity,
         )
@@ -3837,7 +3843,8 @@ class LCMSCollectionCalculations:
         )
 
         cluster_ids = summary.index.to_numpy()
-        mz = summary["mz_median"].to_numpy(dtype=float)
+        # Gap-filled apex m/z is not part of ion-role geometry.
+        mz = detected_cluster_mz_median(self.mass_features_dataframe, cluster_ids)
         if "scan_time_aligned_median" not in summary.columns:
             raise ValueError(
                 "cluster summary missing scan_time_aligned_median; "

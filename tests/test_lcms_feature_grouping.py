@@ -918,3 +918,65 @@ def test_feature_group_constrain_annotation_setting_default():
 
     s = LCMSCollectionSettings()
     assert s.feature_group_constrain_annotation is True
+
+
+def _coll_feature_frame(rows):
+    df = pd.DataFrame(rows)
+    df.index.name = "coll_mf_id"
+    return df
+
+
+def test_ion_role_mz_median_ignores_gap_filled_features():
+    """Induced apex m/z must not move the median used for ion_role."""
+    from corems.mass_spectra.factory.lc_class import LCMSCollection
+
+    mono = 200.0
+    iso = mono + _delta_c13()
+    # Two shifted gap-filled rows pull the all-rows median off the 13C spacing.
+    shift = 0.04
+
+    def _row(cluster, sample_id, mz, intensity):
+        return {
+            "sample_name": f"s{sample_id}",
+            "sample_id": sample_id,
+            "cluster": cluster,
+            "mz": mz,
+            "scan_time": 5.0,
+            "scan_time_aligned": 5.0,
+            "intensity": intensity,
+        }
+
+    detected = _coll_feature_frame(
+        [
+            _row(1, 0, mono, 10.0),
+            _row(1, 1, mono, 20.0),
+            _row(2, 0, iso, 5.0),
+            _row(2, 1, iso, 10.0),
+        ]
+    )
+    induced = _coll_feature_frame(
+        [
+            _row(2, 0, iso + shift, 1.0),
+            _row(2, 1, iso + shift, 1.0),
+        ]
+    )
+
+    collection = LCMSCollection(
+        collection_location=".",
+        manifest={"s0": {"batch": 1, "order": 1}},
+    )
+
+    class _Sample:
+        polarity = None
+
+    collection._lcms["s0"] = _Sample()
+    collection.mass_features_dataframe = detected
+    collection.induced_mass_features_dataframe = induced
+
+    combined_mz = float(collection.summarize_clusters().loc[2, "mz_median"])
+    assert abs(combined_mz - iso) > 5e-6 * iso
+
+    labels = collection.group_consensus_features()
+    assert labels.loc[1, "ion_role"] == "mono"
+    assert labels.loc[2, "ion_role"] == "isotope"
+    assert labels.loc[1, "feature_group_id"] == labels.loc[2, "feature_group_id"]
