@@ -662,7 +662,22 @@ class LCCalculations:
 
         # Pre-sort raw_data by mz for faster filtering
         raw_data_sorted = raw_data.sort_values(["mz", "scan"]).reset_index(drop=True)
-        raw_data_mz = raw_data_sorted["mz"].values
+        raw_data_mz = raw_data_sorted["mz"].to_numpy()
+        raw_scan = raw_data_sorted["scan"].to_numpy()
+        raw_intensity = raw_data_sorted["intensity"].to_numpy()
+        scan_ids = scan_df_sub["scan"].to_numpy()
+        scan_time = scan_df_sub["scan_time"].to_numpy()
+        n_scans = scan_ids.size
+        # Sum into the scan-table row with the same float32 Kahan sum the
+        # previous groupby used, so the chromatogram values stay identical.
+        scan_order = np.argsort(scan_ids, kind="mergesort")
+        sorted_scan_ids = scan_ids[scan_order]
+        found = np.searchsorted(sorted_scan_ids, raw_scan)
+        in_range = found < n_scans
+        scan_col = np.empty(raw_scan.shape, dtype=np.intp)
+        scan_col[in_range] = scan_order[found[in_range]]
+        matched = np.zeros(raw_scan.shape, dtype=bool)
+        matched[in_range] = sorted_scan_ids[found[in_range]] == raw_scan[in_range]
 
         # Get EICs for each unique mz in mass features list
         for mz in mzs_to_extract:
@@ -670,19 +685,28 @@ class LCCalculations:
             mz_min = mz - self.parameters.lc_ms.eic_tolerance_ppm * mz / 1e6
 
             # Use binary search for faster mz range filtering
-            left_idx = np.searchsorted(raw_data_mz, mz_min, side="left")
-            right_idx = np.searchsorted(raw_data_mz, mz_max, side="right")
-            raw_data_sub = raw_data_sorted.iloc[left_idx:right_idx].copy()
-
-            raw_data_sub = (
-                raw_data_sub.groupby(["scan"])["intensity"].sum().reset_index()
-            )
-            raw_data_sub = scan_df_sub.merge(raw_data_sub, on="scan", how="left")
-            raw_data_sub["intensity"] = raw_data_sub["intensity"].fillna(0)
+            left_idx = int(np.searchsorted(raw_data_mz, mz_min, side="left"))
+            right_idx = int(np.searchsorted(raw_data_mz, mz_max, side="right"))
+            eic = np.zeros(n_scans, dtype=np.float32)
+            if left_idx < right_idx:
+                comp = np.zeros(n_scans, dtype=np.float32)
+                cols = scan_col[left_idx:right_idx]
+                vals = raw_intensity[left_idx:right_idx]
+                ok = matched[left_idx:right_idx]
+                for i in range(cols.size):
+                    if not ok[i]:
+                        continue
+                    col = cols[i]
+                    val = vals[i]
+                    y = val - comp[col]
+                    t = eic[col] + y
+                    c = (t - eic[col]) - y
+                    comp[col] = c if np.isfinite(c) else np.float32(0)
+                    eic[col] = t
             myEIC = EIC_Data(
-                scans=raw_data_sub["scan"].values,
-                time=raw_data_sub["scan_time"].values,
-                eic=raw_data_sub["intensity"].values,
+                scans=scan_ids.copy(),
+                time=scan_time.copy(),
+                eic=eic,
             )
             # Smooth EIC
             smoothed_eic = self.smooth_tic(myEIC.eic)
