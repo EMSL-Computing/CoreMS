@@ -5484,8 +5484,9 @@ class LCMSCollectionCalculations:
         rt_clu_tol = self.parameters.lcms_collection.consensus_rt_tol
         missingdf['mz_max_allowed'] = missingdf.mz_max + mz_clu_tol * missingdf.mz_max
         missingdf['mz_min_allowed'] = missingdf.mz_min - mz_clu_tol * missingdf.mz_min
-        missingdf['sta_max_allowed'] = missingdf.scan_time_aligned_max + rt_clu_tol * missingdf.scan_time_aligned_max
-        missingdf['sta_min_allowed'] = missingdf.scan_time_aligned_min - rt_clu_tol * missingdf.scan_time_aligned_min
+        # consensus_rt_tol is an absolute tolerance in minutes, same as clustering.
+        missingdf['sta_max_allowed'] = missingdf.scan_time_aligned_max + rt_clu_tol
+        missingdf['sta_min_allowed'] = missingdf.scan_time_aligned_min - rt_clu_tol
 
         # Compute cluster dictionary once to avoid recomputing for each sample
         cluster_dict = self.cluster_feature_dictionary
@@ -5753,8 +5754,9 @@ class LCMSCollectionCalculations:
                 rt_clu_tol = self.parameters.lcms_collection.consensus_rt_tol
                 missingdf['mz_max_allowed'] = missingdf.mz_max + mz_clu_tol * missingdf.mz_max
                 missingdf['mz_min_allowed'] = missingdf.mz_min - mz_clu_tol * missingdf.mz_min
-                missingdf['sta_max_allowed'] = missingdf.scan_time_aligned_max + rt_clu_tol * missingdf.scan_time_aligned_max
-                missingdf['sta_min_allowed'] = missingdf.scan_time_aligned_min - rt_clu_tol * missingdf.scan_time_aligned_min
+                # consensus_rt_tol is an absolute tolerance in minutes, same as clustering.
+                missingdf['sta_max_allowed'] = missingdf.scan_time_aligned_max + rt_clu_tol
+                missingdf['sta_min_allowed'] = missingdf.scan_time_aligned_min - rt_clu_tol
                 
                 runtime_params['missingdf'] = missingdf
                 runtime_params['cluster_dict'] = self.cluster_feature_dictionary

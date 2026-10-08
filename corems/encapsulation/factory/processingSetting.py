@@ -1402,9 +1402,9 @@ class LCMSCollectionSettings:
         Used for filtering consensus features and for gap-filling threshold.
         Default is 0.5 (50%). Higher values focus on more prevalent features.
     gap_fill_expand_on_miss : bool, optional
-        If True, expands search window using consensus_mz_tol_ppm and consensus_rt_tol
-        when no peak is found in the initial cluster boundaries during gap-filling.
-        Default is False.
+        If True, expands the search window when no peak is found inside the
+        cluster bounds. m/z widens by consensus_mz_tol_ppm. Retention time
+        widens by consensus_rt_tol minutes. Default is True.
     consensus_representative_metric : str, optional
         Metric used to determine the most representative sample for a consensus mass feature.
         Options:

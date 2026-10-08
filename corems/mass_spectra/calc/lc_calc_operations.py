@@ -194,7 +194,10 @@ class GapFillOperation(SampleOperation):
     name : str
         Operation name
     expand_on_miss : bool, optional
-        If True, expands search window when no peak is found. Default is False.
+        If True, a miss is searched again with the m/z window widened by
+        consensus_mz_tol_ppm and the retention-time window widened by
+        consensus_rt_tol minutes. Taken from gap_fill_expand_on_miss,
+        which defaults to True.
         
     Notes
     -----

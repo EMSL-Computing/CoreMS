@@ -345,6 +345,22 @@ def test_lcms_collection_consensus_features(lcms_collection):
         expected = [i for i in all_sample_ids if i not in present]
         assert list(missing_ids) == expected
         assert 2 in missing_ids
+    # A missed window widens by consensus_rt_tol minutes, and m/z by ppm.
+    rt_tol = lcms_collection.parameters.lcms_collection.consensus_rt_tol
+    mz_tol = lcms_collection.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
+    assert np.allclose(
+        missingdf["sta_max_allowed"], missingdf["scan_time_aligned_max"] + rt_tol
+    )
+    assert np.allclose(
+        missingdf["sta_min_allowed"], missingdf["scan_time_aligned_min"] - rt_tol
+    )
+    assert np.allclose(
+        missingdf["mz_max_allowed"], missingdf["mz_max"] + mz_tol * missingdf["mz_max"]
+    )
+    assert np.allclose(
+        missingdf["mz_min_allowed"], missingdf["mz_min"] - mz_tol * missingdf["mz_min"]
+    )
+    assert lcms_collection.parameters.lcms_collection.gap_fill_expand_on_miss is True
 
 
 def test_lcms_collection_gap_filling(lcms_collection):
