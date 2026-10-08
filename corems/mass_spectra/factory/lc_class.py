@@ -1479,7 +1479,8 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             ):
         """
         Returns multiple LCMSMassFeatures from a specific sample within specific mass and time ranges.
-        Vectorized batch version of search_for_targeted_mass_feature for improved performance.
+        Sorts m/z once and binary-searches each window. The selected row is the
+        highest intensity in the window, with the same tie break as a full scan.
 
         Parameters
         -----------
@@ -1526,43 +1527,71 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         scan_vals = ms1df.scan.values
         intensity_vals = ms1df.intensity.values
 
-        # Process all features
+        # Index finite m/z once. Comparisons promote to float64, and a NaN m/z
+        # never falls inside a window, so those rows stay out of the index.
+        mz64 = np.asarray(mz_vals, dtype=np.float64)
+        finite_idx = np.flatnonzero(np.isfinite(mz64))
+        mz_order = finite_idx[np.argsort(mz64[finite_idx])]
+        mz_sorted = mz64[mz_order]
+        mz_mins = np.asarray(mz_mins, dtype=np.float64)
+        mz_maxs = np.asarray(mz_maxs, dtype=np.float64)
+        st_mins = np.asarray(st_mins, dtype=np.float64)
+        st_maxs = np.asarray(st_maxs, dtype=np.float64)
+        st64 = np.asarray(st_vals, dtype=np.float64)
+        lo = np.searchsorted(mz_sorted, mz_mins, side="left")
+        hi = np.searchsorted(mz_sorted, mz_maxs, side="right")
+        intensity_is_float = np.issubdtype(intensity_vals.dtype, np.floating)
+
+        def _empty_feature(set_id):
+            return LCMSMassFeature(
+                self,
+                apex_scan=-99,
+                mz=np.nan,
+                intensity=np.nan,
+                retention_time=np.nan,
+                persistence=np.nan,
+                id=set_id,
+            )
+
         results = {}
         for i in range(n_features):
-            # Vectorized filtering
-            mask = (
-                (mz_vals >= mz_mins[i]) & (mz_vals <= mz_maxs[i]) &
-                (st_vals >= st_mins[i]) & (st_vals <= st_maxs[i])
+            set_id = set_ids[i]
+            bounds_ok = (
+                np.isfinite(mz_mins[i])
+                and np.isfinite(mz_maxs[i])
+                and mz_mins[i] <= mz_maxs[i]
             )
-            
-            if not mask.any():
-                row_dict = {
-                    'apex_scan': -99,
-                    'mz': np.nan,
-                    'intensity': np.nan,
-                    'retention_time': np.nan,
-                    'persistence': np.nan,
-                    'id': set_ids[i]
-                }
-            else:
-                # Find max intensity within filtered region
-                filtered_intensities = intensity_vals[mask]
-                max_idx = np.argmax(filtered_intensities)
-                
-                # Get indices of filtered data
-                filtered_indices = np.where(mask)[0]
-                peak_idx = filtered_indices[max_idx]
-                
-                row_dict = {
-                    'apex_scan': scan_vals[peak_idx],
-                    'mz': mz_vals[peak_idx],
-                    'intensity': intensity_vals[peak_idx],
-                    'retention_time': st_vals[peak_idx],
-                    'persistence': np.nan,
-                    'id': set_ids[i]
-                }
+            if not bounds_ok or lo[i] >= hi[i]:
+                results[set_id] = _empty_feature(set_id)
+                continue
 
-            results[set_ids[i]] = LCMSMassFeature(self, **row_dict)
+            idx = mz_order[lo[i] : hi[i]]
+            in_time = (st64[idx] >= st_mins[i]) & (st64[idx] <= st_maxs[i])
+            idx = idx[in_time]
+            if idx.size == 0:
+                results[set_id] = _empty_feature(set_id)
+                continue
+
+            # Same row as np.where(mask) + np.argmax: highest intensity, and
+            # the earliest original row when several share that intensity.
+            # np.argmax also prefers a NaN intensity over any finite value.
+            intensities = intensity_vals[idx]
+            if intensity_is_float and np.isnan(intensities).any():
+                idx = np.sort(idx)
+                peak_idx = idx[np.argmax(intensity_vals[idx])]
+            else:
+                max_intensity = intensities.max()
+                peak_idx = idx[intensities == max_intensity].min()
+
+            results[set_id] = LCMSMassFeature(
+                self,
+                apex_scan=scan_vals[peak_idx],
+                mz=mz_vals[peak_idx],
+                intensity=intensity_vals[peak_idx],
+                retention_time=st_vals[peak_idx],
+                persistence=np.nan,
+                id=set_id,
+            )
 
         return results
 

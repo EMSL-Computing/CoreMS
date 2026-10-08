@@ -381,25 +381,14 @@ class GapFillOperation(SampleOperation):
             induced_mass_features[peak.id] = peak
             cluster_dict[clusters[i]] += [set_ids[i]]
         
-        # Integrate mass features (don't fail on bad integration)
+        # Integrate mass features (don't fail on bad integration).
+        # m/z, intensity, and retention time are already on the feature from the
+        # targeted search. Representative selection reads mass_features_dataframe
+        # only, so a gap-filled feature is never the cluster representative and
+        # does not get a processed MS1 spectrum here.
         collection[sample_id].induced_mass_features = induced_mass_features
         collection[sample_id].integrate_mass_features(drop_if_fail=False, induced_features=True)
-        
-        # Add MS1 spectra and peak metrics to successfully detected induced features
-        # Only process features that were successfully detected (apex_scan != -99)
-        # This is critical for having m/z values in the pivot table for gap-filled features
-        successful_induced = {k: v for k, v in induced_mass_features.items() if v.apex_scan != -99}
-        
-        if len(successful_induced) > 0:
-            # Use the already-loaded raw data (use_parser=False) for efficiency
-            collection[sample_id].add_associated_ms1(
-                auto_process=True,
-                use_parser=False,
-                spectrum_mode=None,
-                induced_features=True
-            )
-        
-        # Return the induced features (some may have been filtered out)
+
         return collection[sample_id].induced_mass_features
         
     def collect_results(self, sample_id, result, collection):
