@@ -389,7 +389,11 @@ class GapFillOperation(SampleOperation):
         # only, so a gap-filled feature is never the cluster representative and
         # does not get a processed MS1 spectrum here.
         collection[sample_id].induced_mass_features = induced_mass_features
-        collection[sample_id].integrate_mass_features(drop_if_fail=False, induced_features=True)
+        # The duplicate scan only deletes keys from mass_features. Induced ids
+        # are strings such as c12_0_i, so that scan does not remove them.
+        collection[sample_id].integrate_mass_features(
+            drop_if_fail=False, induced_features=True, drop_duplicates=False
+        )
 
         return collection[sample_id].induced_mass_features
         

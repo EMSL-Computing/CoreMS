@@ -5363,7 +5363,11 @@ class LCMSCollectionCalculations:
             # need to set drop_if_fail to false for induced features as they will fail
             self[obj_idx].add_peak_metrics(induced_features = True)
             
-        self[obj_idx].integrate_mass_features(drop_if_fail = False, induced_features = True)
+        # The duplicate scan only deletes keys from mass_features. Induced ids
+        # are strings such as c12_0_i, so that scan does not remove them.
+        self[obj_idx].integrate_mass_features(
+            drop_if_fail=False, induced_features=True, drop_duplicates=False
+        )
 
         if not inplace:
             return self[obj_idx].induced_mass_features
