@@ -129,16 +129,20 @@ class ThermoBaseClass:
             file_path = file_location
 
         self.iRawDataPlus = RawFileReaderAdapter.FileFactory(str(file_path))
+        self.iFileHeader = None
 
         if not self.iRawDataPlus.IsOpen:
+            self.close_file()
             raise FileNotFoundError(
                 "Unable to access the RAW file using the RawFileReader class!"
             )
 
         # Check for any errors in the RAW file
         if self.iRawDataPlus.IsError:
+            file_error = self.iRawDataPlus.FileError
+            self.close_file()
             raise IOError(
-                "Error opening ({}) - {}".format(self.iRawDataPlus.FileError, file_path)
+                "Error opening ({}) - {}".format(file_error, file_path)
             )
 
         self.res = self.iRawDataPlus.SelectInstrument(Device.MS, 1)
@@ -277,10 +281,25 @@ class ThermoBaseClass:
         self.file_path.unlink()
 
     def close_file(self) -> None:
+        """Dispose the Thermo file handles.
+
+        A second call is a no-op. This does not delete an S3 temp copy;
+        ``remove_temp_file`` does that.
         """
-        Close the Thermo Raw file.
-        """
-        self.iRawDataPlus.Dispose()
+        for attr in ("iRawDataPlus", "iFileHeader"):
+            handle = getattr(self, attr, None)
+            if handle is None:
+                continue
+            dispose = getattr(handle, "Dispose", None)
+            setattr(self, attr, None)
+            if callable(dispose):
+                dispose()
+
+    def __del__(self):
+        try:
+            self.close_file()
+        except Exception:
+            return
 
     def get_polarity_mode(self, scan_number: int) -> int:
         """

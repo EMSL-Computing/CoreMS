@@ -405,7 +405,9 @@ def test_import_thermo_parse_metadata():
     sampleinfo = parser.get_sample_information()
     assert sampleinfo['BarcodeStatus'] == 'NotRead'
 
-    # Close the file
+    # Close the file. A second call must not touch the disposed handles.
     parser.close_file()
-    assert parser.iRawDataPlus.get_IsOpen() == False
+    assert parser.iRawDataPlus is None
+    assert parser.iFileHeader is None
+    parser.close_file()
 

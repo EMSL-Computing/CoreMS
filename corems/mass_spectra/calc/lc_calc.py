@@ -324,8 +324,9 @@ class LCCalculations:
                 )
 
         if use_parser:
+            parser = self.spectra_parser
             ms_list = [
-                self.spectra_parser.get_mass_spectrum_from_scan(
+                parser.get_mass_spectrum_from_scan(
                     x, spectrum_mode=spectrum_mode, auto_process=False
                 )
                 for x in scan_list

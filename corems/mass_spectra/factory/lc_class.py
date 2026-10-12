@@ -20,6 +20,30 @@ from corems.mass_spectrum.input.numpyArray import ms_from_array_profile, ms_from
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 
 
+def release_parser(parser):
+    """Close a spectra parser.
+
+    Thermo readers expose ``close_file``. mzML has neither. HDF5 exposes
+    ``close``. Call only the method that exists.
+    """
+    if parser is None:
+        return
+    closer = getattr(parser, "close_file", None)
+    if not callable(closer):
+        closer = getattr(parser, "close", None)
+    if callable(closer):
+        closer()
+
+
+def _paths_equal(left, right):
+    if left == right:
+        return True
+    try:
+        return Path(str(left)) == Path(str(right))
+    except (TypeError, ValueError):
+        return False
+
+
 class MassSpectraBase:
     """Base class for mass spectra objects.
 
@@ -90,6 +114,10 @@ class MassSpectraBase:
         self.analyzer = analyzer
         self.instrument_label = instrument_label
         self._raw_file_location = None
+        # Live reader for this process. Omitted from pickle; see __getstate__.
+        self._spectra_parser = None
+        # False when the cache is the caller's parser. close() must not Dispose it.
+        self._spectra_parser_owned = False
 
         # Add the spectra parser class to the object if it is not None
         if spectra_parser is not None:
@@ -97,46 +125,107 @@ class MassSpectraBase:
             if self.spectra_parser_class.__name__ == "ReadCoreMSHDFMassSpectra":
                 self.raw_file_location = spectra_parser.get_raw_file_location()
 
-            # Check that spectra_parser.sample_name is same as sample_name etc, raise warning if not
+            # Compare the instance that was passed in. The property opens a reader.
             if (
                 self.sample_name is not None
-                and self.sample_name != self.spectra_parser.sample_name
+                and self.sample_name != spectra_parser.sample_name
                 and self.spectra_parser_class.__name__ != "ReadCoreMSHDFMassSpectra"
             ):
                 warnings.warn(
                     "sample_name provided to MassSpectraBase object does not match sample_name provided to spectra parser object",
                     UserWarning,
                 )
-            if self.analyzer != self.spectra_parser.analyzer:
+            if self.analyzer != spectra_parser.analyzer:
                 warnings.warn(
                     "analyzer provided to MassSpectraBase object does not match analyzer provided to spectra parser object",
                     UserWarning,
                 )
-            if self.instrument_label != self.spectra_parser.instrument_label:
+            if self.instrument_label != spectra_parser.instrument_label:
                 warnings.warn(
                     "instrument provided to MassSpectraBase object does not match instrument provided to spectra parser object",
                     UserWarning,
                 )
-            if self.file_location != self.spectra_parser.file_location:
+            if self.file_location != spectra_parser.file_location:
                 warnings.warn(
                     "file_location provided to MassSpectraBase object does not match file_location provided to spectra parser object",
                     UserWarning,
                 )
+            if self._parser_matches(spectra_parser):
+                self._spectra_parser = spectra_parser
 
         # Instantiate empty dictionaries for scan information and mass spectra
         self._scan_info = {}
         self._ms = {}
         self._ms_unprocessed = {}
 
+    def _parser_matches(self, parser):
+        if parser is None:
+            return False
+        parser_path = getattr(parser, "file_location", None)
+        if parser_path is None:
+            return False
+        return _paths_equal(parser_path, self.raw_file_location)
+
+    def _release_cached_parser(self, force=False):
+        parser = getattr(self, "_spectra_parser", None)
+        owned = getattr(self, "_spectra_parser_owned", False)
+        if parser is None or not (owned or force):
+            return
+        self._spectra_parser = None
+        self._spectra_parser_owned = False
+        release_parser(parser)
+
     @property
     def spectra_parser(self):
-        """Returns an instance of the spectra parser class."""
-        # Check if a file exists at the raw_file_location
-        if not Path(self.raw_file_location).exists():
+        """Return one parser for ``raw_file_location``.
+
+        The first access opens it. Later accesses in this process reuse it.
+        A worker that received this object through pickle opens its own reader
+        on the first access there. The caller's parser, when one was passed
+        in, is reused and is not closed by this object.
+        """
+        cached = self._spectra_parser
+        if cached is not None and self._parser_matches(cached):
+            return cached
+        if cached is not None:
+            self._release_cached_parser(force=True)
+        if not hasattr(self, "spectra_parser_class"):
+            raise AttributeError("spectra_parser_class is not set")
+        location = self.raw_file_location
+        if not Path(location).exists():
             raise FileNotFoundError(
-                f"Raw file not found at location: {self.raw_file_location}, update raw_file_location property to point to correct location."
-            )        
-        return self.spectra_parser_class(self.raw_file_location)
+                f"Raw file not found at location: {location}, update raw_file_location property to point to correct location."
+            )
+        parser = self.spectra_parser_class(location)
+        self._spectra_parser = parser
+        self._spectra_parser_owned = True
+        return parser
+
+    def close(self):
+        """Release a reader this object opened.
+
+        A parser passed into the constructor stays open. Its owner closes it.
+        """
+        self._release_cached_parser(force=False)
+
+    def __del__(self):
+        try:
+            self.close()
+        except Exception:
+            return
+
+    def __getstate__(self):
+        # The Thermo reader is a pythonnet handle. It cannot cross a process
+        # boundary, and Mac multiprocessing uses spawn. The child reopens it.
+        state = self.__dict__.copy()
+        state["_spectra_parser"] = None
+        state["_spectra_parser_owned"] = False
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._spectra_parser = None
+        self._spectra_parser_owned = False
 
     @property
     def raw_file_location(self):
@@ -146,6 +235,9 @@ class MassSpectraBase:
     @raw_file_location.setter
     def raw_file_location(self, value):
         self._raw_file_location = value
+        cached = getattr(self, "_spectra_parser", None)
+        if cached is not None and not self._parser_matches(cached):
+            self._release_cached_parser(force=True)
 
     def add_mass_spectrum(self, mass_spec):
         """Adds a mass spectrum to the dataset.
@@ -2234,8 +2326,8 @@ class LCMSCollection(LCMSCollectionCalculations):
         if ms_level in self[sample_idx]._ms_unprocessed:
             raise ValueError(f"Raw data for MS{ms_level} already loaded for sample index {sample_idx}. Drop data first if you want to reload it.")
 
-        # Check the parser type of the LCMS object
-        if self[sample_idx].spectra_parser is None:
+        # Check the parser class. The spectra_parser property opens a reader.
+        if getattr(self[sample_idx], "spectra_parser_class", None) is None:
             raise ValueError("Spectra parser is not set for this LCMS object.")
 
         # Instantiate the parser and load the raw data using the correct method
