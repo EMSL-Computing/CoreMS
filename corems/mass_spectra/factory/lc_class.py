@@ -480,6 +480,16 @@ class MassSpectraBase:
     def __getitem__(self, scan_number):
         return self._ms.get(scan_number)
 
+    def __iter__(self):
+        """Returns an iterator over the mass spectra in the dataset.
+
+        Returns
+        --------
+        iterator
+            An iterator over the mass spectra in the dataset.
+        """
+        return iter(self._ms.values())
+
 
 class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSearch):
     """A class representing a liquid chromatography-mass spectrometry (LC-MS) data object.
