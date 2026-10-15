@@ -1,11 +1,12 @@
 # This file contains functions for subsetting dataframes that contain mass feature data.
 # This is based on the deimos package, found here: https://github.com/pnnl/deimos/blob/master/deimos/subset.py with some modifications.
 
-import multiprocessing as mp
 from functools import partial
 
 import numpy as np
 import pandas as pd
+
+from corems.encapsulation.spawn_pool import spawn_pool
 
 class MultiSamplePartitions:
     '''
@@ -157,7 +158,7 @@ class MultiSamplePartitions:
 
         # Parallel
         else:
-            with mp.Pool(processes=processes) as p:
+            with spawn_pool(processes) as p:
                 result = list(p.imap(partial(func, **kwargs), self))
 
         # Add partition index

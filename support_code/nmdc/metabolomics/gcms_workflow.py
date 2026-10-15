@@ -5,10 +5,10 @@ import sys
 sys.path.append("./")
 
 from pathlib import Path
-from multiprocessing import Pool
 import cProfile
 
 
+from corems.encapsulation.spawn_pool import spawn_pool
 from corems.molecular_id.input.nistMSI import ReadNistMSI
 from corems.mass_spectra.input.andiNetCDF import ReadAndiNetCDF
 from corems.molecular_id.search.compoundSearch import LowResMassSpectralMatch
@@ -103,11 +103,9 @@ def calibrate_and_search(out_put_file_name, jobs, dms_file_path):
             file_dialog.close()
 
             # run in multiprocessing mode
-            pool = Pool(jobs)
             args = [(file_path, ref_dict, cal_file_path) for file_path in file_locations[0]]
-            gcmss = pool.map(run, args)
-            pool.close()
-            pool.join()
+            with spawn_pool(jobs) as pool:
+                gcmss = pool.map(run, args)
 
             for file_index, gcms in enumerate(gcmss):
 

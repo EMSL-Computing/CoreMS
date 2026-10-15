@@ -16,6 +16,7 @@ import pandas as pd
 import warnings
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
+from corems.encapsulation.spawn_pool import spawn_pool
 from corems.encapsulation.input.parameter_from_json import (
     load_and_set_json_parameters_lcms,
     load_and_set_toml_parameters_lcms,
@@ -1231,9 +1232,9 @@ class ReadCoreMSHDFMassSpectraCollection:
             else:
                 ncores = self._cores
             # Create a pool of workers (one for each core or sample, whichever is smaller)
-            pool = multiprocessing.Pool(ncores)
             args = [(sample, load_raw, load_light, use_original_parser) for sample in samples]
-            lcms_objs = pool.starmap(self.get_lcms_obj, args)
+            with spawn_pool(ncores) as pool:
+                lcms_objs = pool.starmap(self.get_lcms_obj, args)
             for sample_name, lcms_obj in zip(samples, lcms_objs):
                 lcms_coll._lcms[sample_name] = lcms_obj
 
