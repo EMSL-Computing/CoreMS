@@ -4,7 +4,7 @@ import numpy as np
 from lmfit.models import GaussianModel
 
 # from matplotlib import rcParamsDefault, rcParams
-from numpy import array, float64, histogram, where
+from numpy import array, asarray, float64, histogram, searchsorted, where
 try:
     from numpy import trapezoid
 except ImportError:  # numpy < 2.0
@@ -1718,6 +1718,103 @@ class MassSpecCentroid(MassSpecBase):
                 )
 
         del self.data_dict
+
+    def to_profile(
+        self, mz_profile, abundance_profile, mz_cal_profile=None, peak_profile_indices=None
+    ):
+        """Return a :class:`MassSpecProfile` sharing this spectrum's peaks.
+
+        Reuses the already-picked peaks (and any molecular formula
+        assignments on them) instead of re-picking from the profile data, and
+        re-points each peak's parent reference to the returned object. Used to
+        rehydrate a profile mass spectrum from a CoreMS HDF5 file that stored
+        both a profile and a peak table, without re-running peak picking.
+
+        Parameters
+        ----------
+        mz_profile : array_like
+            Experimental (uncalibrated) m/z profile.
+        abundance_profile : array_like
+            Abundance profile, same length as ``mz_profile``.
+        mz_cal_profile : array_like, optional
+            Calibrated m/z profile, same length as ``mz_profile``. When
+            given, the returned spectrum has ``is_calibrated=True`` and
+            ``mz_exp_profile`` returns this array. Default is None.
+        peak_profile_indices : array_like of shape (n_peaks, 3), optional
+            Per-peak ``(left, apex, right)`` indices into
+            ``mz_profile``/``abundance_profile``, in the same order as
+            ``self.mspeaks``. When omitted (or its length doesn't match
+            ``self.mspeaks``), each peak's bounds are estimated instead:
+            the apex is the nearest profile index to the peak's m/z, and the
+            left/right bounds are the neighboring local minima.
+
+        Returns
+        -------
+        MassSpecProfile
+        """
+        d_params = {
+            "Aterm": self.Aterm,
+            "Bterm": self.Bterm,
+            "Cterm": self.Cterm,
+            Labels.label: self.label,
+            "analyzer": self.analyzer,
+            "acquisition_time": self.acquisition_time,
+            "instrument_label": self.instrument_label,
+            "polarity": self.polarity,
+            "scan_number": self.scan_number,
+            "rt": self.retention_time,
+            "mobility_rt": self.mobility_rt,
+            "mobility_scan": self.mobility_scan,
+            "filename_path": self._filename,
+            "dir_location": self._dir_location,
+            "baseline_noise": self._baseline_noise,
+            "baseline_noise_std": self._baseline_noise_std,
+            "sample_name": self.sample_name,
+        }
+
+        new_obj = MassSpecProfile(
+            {Labels.mz: mz_profile, Labels.abundance: abundance_profile},
+            d_params,
+            auto_process=False,
+        )
+
+        new_obj._mspeaks = self._mspeaks
+        new_obj.mspeaks = self.mspeaks
+        new_obj._dict_nominal_masses_indexes = self._dict_nominal_masses_indexes
+        new_obj._dynamic_range = self._dynamic_range
+        # MassSpecBase.__init__ gave new_obj a fresh, default MSParameters;
+        # replace it with this spectrum's (e.g. settings restored by a
+        # reader's load_settings()) so processing settings survive the
+        # conversion.
+        new_obj.parameters = self.parameters
+
+        if mz_cal_profile is not None:
+            new_obj.is_calibrated = True
+            new_obj.mz_cal_profile = mz_cal_profile
+
+        abundance_arr = asarray(new_obj.abundance_profile)
+        mz_arr = asarray(mz_profile)
+        n = len(abundance_arr)
+
+        if peak_profile_indices is not None and len(peak_profile_indices) != len(
+            new_obj.mspeaks
+        ):
+            peak_profile_indices = None
+
+        for i, mspeak in enumerate(new_obj.mspeaks):
+            mspeak._ms_parent = new_obj
+            if peak_profile_indices is not None:
+                left, apex, right = (int(v) for v in peak_profile_indices[i])
+            else:
+                apex = int(searchsorted(mz_arr, mspeak.mz_exp))
+                apex = min(max(apex, 1), n - 2)
+                right = new_obj.find_minima(apex, abundance_arr, n, right=True)
+                left = new_obj.find_minima(apex, abundance_arr, n, right=False)
+            mspeak.peak_left_index = left
+            mspeak.peak_apex_index = apex
+            mspeak.peak_right_index = right
+
+        return new_obj
 
 
 class MassSpecCentroidLowRes(MassSpecCentroid):

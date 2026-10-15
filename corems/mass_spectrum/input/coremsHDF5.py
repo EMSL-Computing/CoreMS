@@ -135,11 +135,10 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         load_settings=True,
         load_raw=True,
         load_molecular_formula=True,
+        force_centroid=False,
     ):
         """
         Instantiate a mass spectrum object from the CoreMS HDF5 file.
-        Note that this always returns a centroid mass spectrum object; functionality for profile and
-        frequency mass spectra is not yet implemented.
 
         Parameters
         ----------
@@ -152,15 +151,23 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         load_settings : bool, optional
             Whether to load the settings into the mass spectrum object. Default is True.
         load_raw : bool, optional
-            Whether to load the raw data into the mass spectrum object. Default is True.
+            Whether to load the raw profile data into the mass spectrum object,
+            when the scan has one. Default is True.
         load_molecular_formula : bool, optional
             Whether to load the molecular formula into the mass spectrum object.
             Default is True.
+        force_centroid : bool, optional
+            If True, always return a :class:`MassSpecCentroid`, even when the
+            scan has a stored profile. Has no effect on a file with no stored
+            profile for this scan, which already returns a
+            :class:`MassSpecCentroid`. Default is False.
 
         Returns
         -------
-        MassSpecCentroid
-            The mass spectrum object.
+        MassSpecCentroid or MassSpecProfile
+            A :class:`MassSpecProfile` sharing the loaded peaks when the scan
+            has a stored profile, ``load_raw`` is True, and ``force_centroid``
+            is False; otherwise a :class:`MassSpecCentroid`.
 
         Raises
         ------
@@ -210,6 +217,15 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
             mass_spec_obj.settings.noise_threshold_method = "absolute_abundance"
             mass_spec_obj.settings.noise_threshold_absolute_abundance = 0
             mass_spec_obj.process_mass_spec()
+            # MassSpecCentroid.process_mass_spec() recomputes baseline_noise/
+            # _std from this scan's own (small) peak table unless label ==
+            # Labels.thermo_centroid, which it never is here -- that estimate
+            # is unrelated to, and much noisier than, the original spectrum's
+            # stored noise stats. Put the stored values back so a reloaded
+            # spectrum's noise stats match what was exported, same as every
+            # other MassSpecAttrs field already restored via output_parameters.
+            mass_spec_obj._baseline_noise = output_parameters["baseline_noise"]
+            mass_spec_obj._baseline_noise_std = output_parameters["baseline_noise_std"]
 
         if load_settings:
             # Load settings into the mass spectrum object
@@ -217,16 +233,29 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
                 mass_spec_obj, scan_index=scan_index, time_index=time_index
             )
 
-        if load_raw:
-            self.load_raw_data(mass_spec_obj, scan_index=scan_index)
-
         if load_molecular_formula:
             if not auto_process:
                 raise ValueError(
                     "Can only add molecular formula if the mass spectrum has been processed"
                 )
             else:
+                # Attach formulas to the centroid's peaks before any profile
+                # conversion below, so to_profile() carries them over for free
+                # (it reuses these same peak objects, it doesn't rebuild them).
                 self.add_molecular_formula(mass_spec_obj, dataframe)
+
+        if load_raw and not force_centroid:
+            raw_arrays = self.load_raw_data(scan_index=scan_index)
+            if raw_arrays is not None:
+                peak_profile_indices = self.load_peak_profile_indices(
+                    scan_index=scan_index
+                )
+                mass_spec_obj = mass_spec_obj.to_profile(
+                    raw_arrays["mz"],
+                    raw_arrays["abundance"],
+                    mz_cal_profile=raw_arrays["mz_cal"],
+                    peak_profile_indices=peak_profile_indices,
+                )
 
         return mass_spec_obj
 
