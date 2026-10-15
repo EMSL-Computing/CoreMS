@@ -1053,7 +1053,31 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 eic_mz = mf_dict[mf_id].mz
             df_mf_single["_eic_mz"] = eic_mz
             df_mf_list.append(df_mf_single)
-        df_mf = pd.concat(df_mf_list)
+        # An all-NA object column next to a float makes concat warn, and a
+        # future pandas can change that float's dtype. Drop those empty
+        # entries. An all-NA object column next to an int id does not warn;
+        # dropping it turns the id into float64 (None, 2 -> nan, 2.0).
+        float_value_cols = set()
+        for frame in df_mf_list:
+            if len(frame) == 0:
+                continue
+            for col in frame.columns:
+                values = frame[col]
+                if values.notna().any() and pd.api.types.is_float_dtype(values):
+                    float_value_cols.add(col)
+        cleaned_frames = []
+        for frame in df_mf_list:
+            if len(frame) == 0:
+                continue
+            empty_float_cols = [
+                col
+                for col in frame.columns
+                if col in float_value_cols and frame[col].isna().all()
+            ]
+            if empty_float_cols:
+                frame = frame.drop(columns=empty_float_cols)
+            cleaned_frames.append(frame)
+        df_mf = pd.concat(cleaned_frames)
 
         # rename _area to area and id to mf_id
         df_mf = df_mf.rename(
@@ -2990,7 +3014,10 @@ class LCMSCollection(LCMSCollectionCalculations):
     def cluster_feature_dictionary(self):
         """Generates a dictionary with clusters for keys and mass feature IDs as entries"""
         df = self.mass_features_dataframe
-        cluster_dict = df.groupby('cluster').apply(lambda x: x.index.tolist()).to_dict()
+        cluster_dict = {
+            cluster: list(ids)
+            for cluster, ids in df.groupby('cluster').groups.items()
+        }
         return cluster_dict
     
     def get_eics_for_cluster(self, cluster_id):
