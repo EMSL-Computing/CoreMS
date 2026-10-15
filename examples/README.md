@@ -91,8 +91,6 @@ Process multiple LC-MS samples as a collection for cross-sample comparison:
 **Data Format:** Thermo `.raw` files  
 **Recommended For:** Multi-sample metabolomics studies, comparative analyses, LC-MS users
 
-`spawn_pool_collection.py` runs that same workflow on a folder of Thermo `.raw` files with more than one core. Set `DATA_FOLDER` at the top of the file, then run it. On Linux, set `PYTHONNET_RUNTIME=coreclr` before starting Python. Leave that variable unset on macOS.
-
 ---
 
 ### 6. Mass_Recalibration_Tutorial.ipynb
