@@ -7,6 +7,7 @@ unlabelled files, ms_unprocessed column labels, and that the HDF5 reader
 module imports without a .NET/pythonnet runtime.
 """
 
+import copy
 import json
 import subprocess
 import sys
@@ -207,7 +208,7 @@ def test_peak_indices_fallback_without_stored_indices(tmp_path):
     h5path = export_single(ms, tmp_path / "spec", profile_dtype="f8")
 
     with h5py.File(h5path, "a") as handle:
-        del handle[str(ms.scan_number)]["peak_profile_indices"]
+        del handle[str(ms.scan_number)]["peak_profile_indices_0"]
 
     with ReadCoreMSHDF_MassSpectrum(str(h5path)) as reader:
         ms2 = reader.get_mass_spectrum(load_raw=True, load_molecular_formula=False)
@@ -220,6 +221,133 @@ def test_peak_indices_fallback_without_stored_indices(tmp_path):
         np.testing.assert_allclose(reloaded.area, orig.area, rtol=0.05)
 
 
+def test_fallback_handles_descending_profile(tmp_path):
+    """The fallback search must work on a descending profile too (e.g. a
+    frequency-derived spectrum's m/z = A/f runs high to low), not just the
+    ascending case a plain np.searchsorted call would assume.
+    """
+    ms = make_profile_ms(centers=((300.1, 1e6), (450.2, 5e5)))
+    h5path = export_single(ms, tmp_path / "spec", profile_dtype="f8")
+
+    with ReadCoreMSHDF_MassSpectrum(str(h5path)) as reader:
+        centroid = reader.get_mass_spectrum(
+            load_raw=False, load_molecular_formula=False, force_centroid=True
+        )
+        raw = reader.load_raw_data(scan_index=0)
+
+    # Same physical data, just enumerated high-to-low instead of low-to-high.
+    mz_desc = np.ascontiguousarray(raw["mz"][::-1])
+    abundance_desc = np.ascontiguousarray(raw["abundance"][::-1])
+
+    original_by_mz = sorted(ms.mspeaks, key=lambda p: p.mz_exp)
+    profile = centroid.to_profile(mz_desc, abundance_desc)
+    reloaded_by_mz = sorted(profile.mspeaks, key=lambda p: p.mz_exp)
+
+    assert len(original_by_mz) == len(reloaded_by_mz)
+    for orig, reloaded in zip(original_by_mz, reloaded_by_mz):
+        np.testing.assert_allclose(reloaded.mz_exp, orig.mz_exp, rtol=1e-6)
+        np.testing.assert_allclose(reloaded.area, orig.area, rtol=0.05)
+
+
+def test_fallback_uses_calibrated_profile_when_peak_calibrated(tmp_path):
+    """When a peak carries its own mz_cal, the fallback search must look it
+    up against mz_cal_profile (what mspeak.mz_exp actually resolves to),
+    not against the uncalibrated profile -- a mismatched array/value pair
+    would land the search somewhere else in the spectrum entirely.
+    """
+    ms = make_profile_ms(centers=((300.1, 1e6), (450.2, 5e5)))
+    h5path = export_single(ms, tmp_path / "spec", profile_dtype="f8")
+
+    with ReadCoreMSHDF_MassSpectrum(str(h5path)) as reader:
+        centroid = reader.get_mass_spectrum(
+            load_raw=False, load_molecular_formula=False, force_centroid=True
+        )
+        raw = reader.load_raw_data(scan_index=0)
+
+    # Doubling (not a uniform shift) moves calibrated values well outside
+    # where they'd fall if searched against the *uncalibrated* array --
+    # a uniform additive/ppm shift would still land near the right index
+    # on either array and couldn't tell correct from mismatched.
+    mz_cal_profile = raw["mz"] * 2.0
+    for mspeak in centroid.mspeaks:
+        mspeak.mz_cal = mspeak.mz_exp * 2.0
+
+    original_by_mz = sorted(ms.mspeaks, key=lambda p: p.mz_exp)
+    profile = centroid.to_profile(raw["mz"], raw["abundance"], mz_cal_profile=mz_cal_profile)
+    reloaded_by_cal = sorted(profile.mspeaks, key=lambda p: p.mz_cal)
+
+    assert len(original_by_mz) == len(reloaded_by_cal)
+    for orig, reloaded in zip(original_by_mz, reloaded_by_cal):
+        np.testing.assert_allclose(reloaded.mz_cal, orig.mz_exp * 2.0, rtol=1e-6)
+        # apex found via the calibrated pairing, read back in the
+        # uncalibrated array, must land on the real (unscaled) peak.
+        np.testing.assert_allclose(
+            raw["mz"][reloaded.peak_apex_index], orig.mz_exp, rtol=1e-4
+        )
+        np.testing.assert_allclose(reloaded.area, orig.area, rtol=0.05)
+
+
+def test_peak_profile_indices_versioned_by_reprocessing(tmp_path):
+    """peak_profile_indices is stored per peak-table version: reprocessing
+    (same peak count, different peaks) and re-exporting into the same scan
+    group must not leave the reader seeing the first version's indices.
+    """
+    ms = make_profile_ms(centers=((300.1, 1e6), (450.2, 5e5)))
+    out_path = tmp_path / "spec"
+    HighResMassSpecExport(str(out_path), ms).to_hdf(profile_dtype="f8")
+    h5path = out_path.with_suffix(".hdf5")
+
+    reprocessed = copy.deepcopy(ms)
+    for mspeak in reprocessed.mspeaks:
+        mspeak.peak_left_index += 2
+        mspeak.peak_apex_index += 2
+        mspeak.peak_right_index += 2
+
+    HighResMassSpecExport(str(out_path), reprocessed).to_hdf(profile_dtype="f8")
+
+    with h5py.File(h5path, "r") as handle:
+        group = handle[str(ms.scan_number)]
+        assert "peak_profile_indices_0" in group
+        assert "peak_profile_indices_1" in group
+
+    with ReadCoreMSHDF_MassSpectrum(str(h5path)) as reader:
+        latest = reader.load_peak_profile_indices(scan_index=0, time_index=-1)
+        first = reader.load_peak_profile_indices(scan_index=0, time_index=0)
+
+    expected_latest = np.array(
+        [
+            (p.peak_left_index, p.peak_apex_index, p.peak_right_index)
+            for p in reprocessed.mspeaks
+        ]
+    )
+    expected_first = np.array(
+        [(p.peak_left_index, p.peak_apex_index, p.peak_right_index) for p in ms.mspeaks]
+    )
+    np.testing.assert_array_equal(latest, expected_latest)
+    np.testing.assert_array_equal(first, expected_first)
+
+
+def test_to_profile_transfers_peak_ownership(tmp_path):
+    """to_profile() moves the peaks: the source centroid must be left with
+    none afterwards, not sharing them with the returned profile.
+    """
+    ms = make_profile_ms(centers=((300.1, 1e6), (450.2, 5e5)))
+    h5path = export_single(ms, tmp_path / "spec")
+
+    with ReadCoreMSHDF_MassSpectrum(str(h5path)) as reader:
+        centroid = reader.get_mass_spectrum(
+            load_raw=False, load_molecular_formula=False, force_centroid=True
+        )
+        n_peaks_before = len(centroid.mspeaks)
+        raw = reader.load_raw_data(scan_index=0)
+        profile = centroid.to_profile(raw["mz"], raw["abundance"])
+
+    assert n_peaks_before > 0
+    assert len(profile.mspeaks) == n_peaks_before
+    assert len(centroid.mspeaks) == 0
+    assert len(centroid._mspeaks) == 0
+
+
 # ---------------------------------------------------------------------------
 # Calibration
 # ---------------------------------------------------------------------------
@@ -230,6 +358,7 @@ def test_calibrated_profile_round_trip_no_double_calibration(tmp_path):
     # Simulate a profile-level calibration: a small constant ppm shift.
     shift_ppm = 2.0
     ms.mz_cal_profile = ms._mz_exp * (1 + shift_ppm * 1e-6)
+    ms.is_calibrated = True
 
     h5path = export_single(ms, tmp_path / "spec", profile_dtype="f8")
 
@@ -254,6 +383,32 @@ def test_uncalibrated_profile_has_no_mz_cal_row(tmp_path):
     with h5py.File(h5path, "r") as handle:
         row_labels = json.loads(handle[str(ms.scan_number)]["raw_ms"].attrs["row_labels"])
     assert row_labels == ["mz", "abundance"]
+
+    with ReadCoreMSHDF_MassSpectrum(str(h5path)) as reader:
+        ms2 = reader.get_mass_spectrum(load_raw=True, load_molecular_formula=False)
+    assert ms2.is_calibrated is False
+
+
+def test_calibration_object_created_but_not_calibrated_round_trips_false(tmp_path):
+    """MzDomainCalibration.__init__ sets mz_cal_profile before any
+    calibration has actually run, so mz_cal_profile alone is not a signal
+    the spectrum is calibrated. A spectrum in that state (calibration
+    object created, calibration never run) must round-trip with
+    is_calibrated False and no "mz_cal" row -- not infer calibration from
+    the (stale/placeholder) array being merely present.
+    """
+    ms = make_profile_ms()
+    ms.mz_cal_profile = ms._mz_exp.copy()  # the pre-populated placeholder
+    assert ms.is_calibrated is False
+
+    h5path = export_single(ms, tmp_path / "spec")
+
+    with h5py.File(h5path, "r") as handle:
+        raw_ms = handle[str(ms.scan_number)]["raw_ms"]
+        row_labels = json.loads(raw_ms.attrs["row_labels"])
+        is_calibrated_attr = raw_ms.attrs["is_calibrated"]
+    assert row_labels == ["mz", "abundance"]
+    assert bool(is_calibrated_attr) is False
 
     with ReadCoreMSHDF_MassSpectrum(str(h5path)) as reader:
         ms2 = reader.get_mass_spectrum(load_raw=True, load_molecular_formula=False)
@@ -288,6 +443,35 @@ def test_legacy_unlabelled_file_reads_correct_values(tmp_path):
 
     np.testing.assert_allclose(ms2.mz_exp_profile, ms._mz_exp)
     np.testing.assert_allclose(ms2.abundance_profile, ms.abundance_profile)
+
+
+def test_processed_version_numbering_skips_legacy_collision(tmp_path):
+    """A legacy file can already have a processed table keyed "1" (the old
+    off-by-one: pre-fix code counted "raw_ms" as an occupied numbering slot,
+    so the first real write landed at "1" instead of "0"). Appending to such
+    a file must number the next write by one past the highest existing
+    numeric key, not by counting numeric keys -- counting would also give
+    "1" here and collide with (overwrite, or raise trying to recreate) the
+    existing one.
+    """
+    ms = make_profile_ms()
+    out_path = tmp_path / "spec"
+    h5path = out_path.with_suffix(".hdf5")
+    export = HighResMassSpecExport(str(out_path), ms)
+
+    with h5py.File(h5path, "w") as handle:
+        group = handle.create_group(str(ms.scan_number))
+        group.create_dataset("raw_ms", data=np.zeros((2, 10)))
+        array_results = np.array(export.list_dict_to_list(ms, is_hdf5=True))
+        group.create_dataset("1", data=array_results)
+
+    with h5py.File(h5path, "a") as handle:
+        export.add_mass_spectrum_to_hdf5(handle, ms, str(ms.scan_number))
+
+    with h5py.File(h5path, "r") as handle:
+        keys = set(handle[str(ms.scan_number)].keys())
+    assert "1" in keys  # untouched, not overwritten
+    assert "2" in keys  # new write, not a collision with "1"
 
 
 # ---------------------------------------------------------------------------

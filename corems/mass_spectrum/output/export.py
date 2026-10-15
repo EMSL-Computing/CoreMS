@@ -473,13 +473,15 @@ class HighResMassSpecExport(Thread):
             # If there is raw data (from profile data) save it
             if not mass_spectrum.is_centroid and export_raw:
                 # "mz" is always the experimental (uncalibrated) profile; a
-                # separate "mz_cal" row is added only when a profile-level
-                # calibrated m/z array has actually been set (peak-level-only
-                # calibration, via MSPeak.mz_cal, doesn't populate it).
+                # separate "mz_cal" row is added only when the spectrum is
+                # actually calibrated. mz_cal_profile alone isn't enough to
+                # tell: MzDomainCalibration.__init__ pre-populates it before
+                # any calibration has run, so a never-calibrated spectrum
+                # can still have a (stale/placeholder) mz_cal_profile.
                 row_labels = ["mz", "abundance"]
                 rows = [np.asarray(mass_spectrum._mz_exp), np.asarray(mass_spectrum.abundance_profile)]
                 mz_cal_profile = mass_spectrum.mz_cal_profile
-                if mz_cal_profile is not None:
+                if mass_spectrum.is_calibrated and mz_cal_profile is not None:
                     row_labels.append("mz_cal")
                     rows.append(np.asarray(mz_cal_profile))
 
@@ -492,23 +494,9 @@ class HighResMassSpecExport(Thread):
                     **hdf5_dataset_kwargs(mz_abun_array.shape, compression=compression),
                 )
                 raw_ms_dataset.attrs["row_labels"] = json.dumps(row_labels)
-
-                # Per-peak (left, apex, right) indices into the profile arrays
-                # above, in mspeaks order, so a reloaded centroid-with-profile
-                # mass spectrum doesn't need to re-derive peak boundaries from
-                # the peak table's row position (which isn't a profile index).
-                peak_indices = np.array(
-                    [
-                        (mspeak.peak_left_index, mspeak.peak_apex_index, mspeak.peak_right_index)
-                        for mspeak in mass_spectrum.mspeaks
-                    ],
-                    dtype=np.int32,
-                ).reshape(-1, 3)
-                scan_group.create_dataset(
-                    "peak_profile_indices",
-                    data=peak_indices,
-                    **hdf5_dataset_kwargs(peak_indices.shape, compression=compression),
-                )
+                # Recorded independently of whether an "mz_cal" row was
+                # written, so a reader can trust this over row presence.
+                raw_ms_dataset.attrs["is_calibrated"] = bool(mass_spectrum.is_calibrated)
 
                 # Add metadata to the raw_ms dataset when it exists
                 raw_ms_dataset.attrs["MassSpecAttrs"] = json.dumps(dict_ms_attrs)
@@ -535,11 +523,37 @@ class HighResMassSpecExport(Thread):
         else:
             scan_group = hdf_handle.get(group_key)
 
-        # if there is not processed data len = 0, otherwise len() will return next index
-        # Only count numeric keys: "raw_ms" and "peak_profile_indices" are not
-        # processed-data indices (get_time_index_to_pull also only considers
-        # numeric keys, for the same reason).
-        index_processed_data = str(len([k for k in scan_group.keys() if k.isdigit()]))
+        # Next processed-data index: one past the highest existing numeric
+        # key, or 0 if there are none. "raw_ms" and "peak_profile_indices_*"
+        # are not processed-data indices (get_time_index_to_pull also only
+        # considers numeric keys, for the same reason). Using the max rather
+        # than a count matters for a legacy file that already has "raw_ms"
+        # and "1" (an old off-by-one: pre-fix code counted "raw_ms" as an
+        # occupied slot) -- counting numeric keys would give "1" again and
+        # collide with the existing one; max+1 gives "2".
+        numeric_keys = [int(k) for k in scan_group.keys() if k.isdigit()]
+        index_processed_data = str(max(numeric_keys) + 1) if numeric_keys else "0"
+
+        # Per-peak (left, apex, right) indices into the profile arrays above,
+        # in mspeaks order, so a reloaded centroid-with-profile mass
+        # spectrum doesn't need to re-derive peak boundaries from the peak
+        # table's row position (which isn't a profile index). Written once
+        # per peak-table version (same suffix as the processed-data index
+        # below), since the profile itself (raw_ms) doesn't change across
+        # reprocessing but the picked peaks do.
+        if not mass_spectrum.is_centroid and export_raw:
+            peak_indices = np.array(
+                [
+                    (mspeak.peak_left_index, mspeak.peak_apex_index, mspeak.peak_right_index)
+                    for mspeak in mass_spectrum.mspeaks
+                ],
+                dtype=np.int32,
+            ).reshape(-1, 3)
+            scan_group.create_dataset(
+                f"peak_profile_indices_{index_processed_data}",
+                data=peak_indices,
+                **hdf5_dataset_kwargs(peak_indices.shape, compression=compression),
+            )
 
         timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
 

@@ -29,7 +29,7 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
     Methods
     -------
     * load_raw_data(scan_index=0). Read a scan's stored profile arrays, if present.
-    * load_peak_profile_indices(scan_index=0). Read a scan's stored per-peak profile indices, if present.
+    * load_peak_profile_indices(scan_index=0, time_index=-1). Read a scan's stored per-peak profile indices for a given peak-table version, if present.
     * get_mass_spectrum(scan_number=0, time_index=-1, auto_process=True, load_settings=True, load_raw=True, load_molecular_formula=True, force_centroid=False). Get a mass spectrum object.
     * load_settings(mass_spectrum, scan_index=0, time_index=-1). Load settings into the mass spectrum object.
     * get_dataframe(scan_index=0, time_index=-1). Get a pandas DataFrame representing the mass spectrum.
@@ -75,9 +75,11 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         Returns
         -------
         dict or None
-            ``{"mz": ..., "abundance": ..., "mz_cal": ... or None}`` (the
-            experimental m/z, abundance, and calibrated m/z if stored), or
-            None if the scan has no ``raw_ms`` dataset (a centroid-only file).
+            ``{"mz": ..., "abundance": ..., "mz_cal": ... or None,
+            "is_calibrated": bool}`` (the experimental m/z, abundance,
+            calibrated m/z if stored, and whether the spectrum is actually
+            calibrated), or None if the scan has no ``raw_ms`` dataset (a
+            centroid-only file).
 
         Notes
         -----
@@ -86,6 +88,10 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         that attribute existed have no ``row_labels`` and are read back in
         the legacy ``[abundance, mz]`` order every earlier CoreMS version
         wrote, so old files keep loading exactly as they did before.
+
+        ``is_calibrated`` is read from the ``raw_ms`` ``is_calibrated``
+        attribute, trusted over row presence; files written before that
+        attribute existed fall back to whether an ``"mz_cal"`` row exists.
         """
         scan_label = self.scans[scan_index]
         raw_ms_group = self.h5pydata[scan_label]
@@ -101,10 +107,18 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         mz_profile = data[row_labels.index("mz")]
         abundance_profile = data[row_labels.index("abundance")]
         mz_cal_profile = data[row_labels.index("mz_cal")] if "mz_cal" in row_labels else None
+        is_calibrated = bool(
+            raw_ms_dataset.attrs.get("is_calibrated", "mz_cal" in row_labels)
+        )
 
-        return {"mz": mz_profile, "abundance": abundance_profile, "mz_cal": mz_cal_profile}
+        return {
+            "mz": mz_profile,
+            "abundance": abundance_profile,
+            "mz_cal": mz_cal_profile,
+            "is_calibrated": is_calibrated,
+        }
 
-    def load_peak_profile_indices(self, scan_index=0):
+    def load_peak_profile_indices(self, scan_index=0, time_index=-1):
         """
         Read the stored per-peak profile indices for a scan, if present.
 
@@ -112,20 +126,29 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         ----------
         scan_index : int, optional
             The index of the scan to load the indices from. Default is 0.
+        time_index : int, optional
+            Which peak-table version to load the indices for (same meaning
+            as elsewhere: resolved via ``get_time_index_to_pull``). Peak
+            tables are versioned ("0", "1", ...) as a scan is reprocessed,
+            and the indices are stored per version alongside each one, since
+            the picked peaks (unlike the profile itself) differ by version.
+            Default is -1 (the latest).
 
         Returns
         -------
         numpy.ndarray or None
             Array of shape ``(n_peaks, 3)`` of ``(left, apex, right)``
             indices into the scan's profile arrays, in the same order as the
-            scan's peak table, or None if not stored (file predates this
-            feature).
+            peak-table version requested, or None if not stored (file
+            predates this feature, or this version predates it).
         """
         scan_label = self.scans[scan_index]
         scan_group = self.h5pydata[scan_label]
-        if "peak_profile_indices" not in scan_group:
+        index_to_pull = self.get_time_index_to_pull(scan_label, time_index)
+        key = f"peak_profile_indices_{index_to_pull}"
+        if key not in scan_group:
             return None
-        return scan_group["peak_profile_indices"][()]
+        return scan_group[key][()]
 
     def get_mass_spectrum(
         self,
@@ -224,8 +247,14 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
             # stored noise stats. Put the stored values back so a reloaded
             # spectrum's noise stats match what was exported, same as every
             # other MassSpecAttrs field already restored via output_parameters.
-            mass_spec_obj._baseline_noise = output_parameters["baseline_noise"]
-            mass_spec_obj._baseline_noise_std = output_parameters["baseline_noise_std"]
+            # Fall back to the just-recomputed value if the stored one is
+            # somehow missing, rather than erroring or overwriting with None.
+            mass_spec_obj._baseline_noise = output_parameters.get(
+                "baseline_noise", mass_spec_obj._baseline_noise
+            )
+            mass_spec_obj._baseline_noise_std = output_parameters.get(
+                "baseline_noise_std", mass_spec_obj._baseline_noise_std
+            )
 
         if load_settings:
             # Load settings into the mass spectrum object
@@ -248,13 +277,14 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
             raw_arrays = self.load_raw_data(scan_index=scan_index)
             if raw_arrays is not None:
                 peak_profile_indices = self.load_peak_profile_indices(
-                    scan_index=scan_index
+                    scan_index=scan_index, time_index=time_index
                 )
                 mass_spec_obj = mass_spec_obj.to_profile(
                     raw_arrays["mz"],
                     raw_arrays["abundance"],
                     mz_cal_profile=raw_arrays["mz_cal"],
                     peak_profile_indices=peak_profile_indices,
+                    is_calibrated=raw_arrays["is_calibrated"],
                 )
 
         return mass_spec_obj
