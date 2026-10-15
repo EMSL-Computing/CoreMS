@@ -1,4 +1,6 @@
+import math
 import time
+from itertools import product
 
 import numpy as np
 import pandas as pd
@@ -1578,6 +1580,99 @@ class PHCalculations:
         return a + idx_unq / idx_unq_mag
 
     @staticmethod
+    def _greedy_keep_mask(all_values, tol, relative):
+        """Rows to keep, highest sort_by first.
+
+        ``all_values`` is aligned to a frame already sorted by ``sort_by``
+        descending. A later row is dropped when a kept row passes every
+        dimension. Relative limits use the kept row. Values are compared
+        as float32. No pair matrix is built.
+        """
+        values = [np.asarray(col, dtype=np.float32) for col in all_values]
+        n = len(values[0]) if values else 0
+        keep = np.ones(n, dtype=bool)
+        if n == 0 or any(float(t) < 0 for t in tol):
+            return keep
+        n_dims = len(values)
+        grid = {}
+        loose = []
+
+        def bin_index(raw, tol_d, rel):
+            fv = np.float32(raw)
+            if float(tol_d) == 0.0:
+                if fv == 0:
+                    fv = np.float32(0.0)
+                return int(np.asarray(fv).view(np.int32))
+            if (not rel) and float(tol_d) > 0.0:
+                return int(math.floor(float(fv) / float(tol_d)))
+            if rel and 0.0 < float(tol_d) < 1.0 and float(fv) > 0.0:
+                return int(math.floor(math.log(float(fv)) / math.log(1.0 + float(tol_d))))
+            return None
+
+        def query_bins(raw, tol_d, rel):
+            key = bin_index(raw, tol_d, rel)
+            if key is None:
+                return None
+            if float(tol_d) == 0.0:
+                return (key,)
+            fv = float(np.float32(raw))
+            if not rel:
+                width = float(tol_d)
+                lo = int(math.floor((fv - width) / width)) - 1
+                hi = int(math.floor((fv + width) / width)) + 1
+                return range(lo, hi + 1)
+            log_width = math.log(1.0 + float(tol_d))
+            lo_v = fv / (1.0 + float(tol_d))
+            hi_v = fv / (1.0 - float(tol_d))
+            if lo_v <= 0.0:
+                return None
+            lo = int(math.floor(math.log(lo_v) / log_width)) - 1
+            hi = int(math.floor(math.log(hi_v) / log_width)) + 1
+            return range(lo, hi + 1)
+
+        def claims(parent_i, child_i):
+            for d in range(n_dims):
+                pv = values[d][parent_i]
+                cv = values[d][child_i]
+                if not np.isfinite(pv) or not np.isfinite(cv):
+                    return False
+                diff = np.float32(np.abs(np.float32(cv) - np.float32(pv)))
+                if relative[d]:
+                    limit = np.float32(np.float32(tol[d]) * np.float32(pv))
+                else:
+                    limit = np.float32(tol[d])
+                if diff > limit:
+                    return False
+            return True
+
+        for i in range(n):
+            if not all(np.isfinite(values[d][i]) for d in range(n_dims)):
+                continue
+            bins = [
+                query_bins(values[d][i], tol[d], relative[d]) for d in range(n_dims)
+            ]
+            if any(bucket is None for bucket in bins):
+                search = list(loose)
+                for bucket in grid.values():
+                    search.extend(bucket)
+            else:
+                search = []
+                for combo in product(*bins):
+                    search.extend(grid.get(combo, ()))
+                search.extend(loose)
+            if any(claims(parent_i, i) for parent_i in search):
+                keep[i] = False
+                continue
+            keys = [
+                bin_index(values[d][i], tol[d], relative[d]) for d in range(n_dims)
+            ]
+            if any(key is None for key in keys):
+                loose.append(i)
+            else:
+                grid.setdefault(tuple(keys), []).append(i)
+        return keep
+
+    @staticmethod
     def roll_up_dataframe(
         df: pd.DataFrame,
         sort_by: str,
@@ -1600,12 +1695,12 @@ class PHCalculations:
         tol : list
             A list of tolerances for each dimension. The length of the list must match the number of dimensions.
             The tolerances can be relative (as a fraction of the maximum value in that dimension) or absolute (in the units of that dimension).
-            If relative is True, the tolerance will be multiplied by the maximum value in that dimension.
-            If relative is False, the tolerance will be used as is.
+            If relative is True, a kept row claims a later row when the absolute difference is at most tol times the kept row's value.
+            If relative is False, the absolute difference must be at most tol.
         relative : list
             A list of booleans indicating whether the tolerance for each dimension is relative (True) or absolute (False).
         memory_opt_threshold : int, optional
-            Minimum number of rows to trigger memory-optimized processing. Default is 10000.
+            Accepted for compatibility. Ignored. Every frame uses the same greedy search. Default is 10000.
 
         Returns
         -------
@@ -1646,221 +1741,13 @@ class PHCalculations:
         # Pre-compute all values arrays
         all_values = [df[dim].values for dim in dims]
 
-        # Choose processing method based on dataframe size
-        if len(df) >= memory_opt_threshold:
-            # Memory-optimized approach for large dataframes
-            distances = PHCalculations._compute_distances_memory_optimized(
-                all_values, tol, relative
-            )
-        else:
-            # Faster approach for smaller dataframes
-            distances = PHCalculations._compute_distances_original(
-                all_values, tol, relative
-            )
-
-        # Process pairs with original logic but memory optimizations
-        distances = distances.tocoo()
-        pairs = np.stack((distances.row, distances.col), axis=1)
-        pairs_df = pd.DataFrame(pairs, columns=["parent", "child"]).set_index("parent")
-        del distances, pairs  # Free memory immediately
-
-        to_drop = []
-        while not pairs_df.empty:
-            # Find root_parents and their children (original logic preserved)
-            root_parents = np.setdiff1d(
-                np.unique(pairs_df.index.values), np.unique(pairs_df.child.values)
-            )
-            children_of_roots = pairs_df.loc[root_parents, "child"].unique()
-            to_drop.extend(children_of_roots)  # Use extend instead of append
-
-            # Remove root_children as possible parents from pairs_df for next iteration
-            pairs_df = pairs_df.drop(index=children_of_roots, errors="ignore")
-            pairs_df = pairs_df.reset_index().set_index("child")
-            # Remove root_children as possible children from pairs_df for next iteration
-            pairs_df = pairs_df.drop(index=children_of_roots)
-
-            # Prepare for next iteration
-            pairs_df = pairs_df.reset_index().set_index("parent")
-
-        # Convert to numpy array for efficient dropping
-        to_drop = np.array(to_drop)
-
-        # Drop mass features that are not cluster parents
-        df_sub = df.drop(index=to_drop)
+        keep = PHCalculations._greedy_keep_mask(all_values, tol, relative)
+        df_sub = df.iloc[np.flatnonzero(keep)]
 
         # Set index back to og_index and only keep original columns
         df_sub = df_sub.set_index(og_index).sort_index()[og_columns]
 
         return df_sub
-
-    @staticmethod
-    def _compute_distances_original(all_values, tol, relative):
-        """Original distance computation method for smaller datasets.
-
-        This method computes the pairwise distances between features in the dataset
-        using a straightforward approach. It is suitable for smaller datasets where
-        memory usage is not a primary concern.
-
-        Parameters
-        ----------
-        all_values : list of :obj:`~numpy.array`
-            List of arrays containing the values for each dimension.
-        tol : list of float
-            List of tolerances for each dimension.
-        relative : list of bool
-            List of booleans indicating whether the tolerance for each dimension is relative (True) or absolute (False).
-
-        Returns
-        -------
-        :obj:`~scipy.sparse.coo_matrix`
-            Sparse matrix indicating pairwise distances within tolerances.
-        """
-        # Compute inter-feature distances with memory optimization
-        distances = None
-        for i in range(len(all_values)):
-            values = all_values[i]
-            # Use single precision if possible to reduce memory
-            tree = KDTree(values.reshape(-1, 1).astype(np.float32))
-
-            max_tol = tol[i]
-            if relative[i] is True:
-                max_tol = tol[i] * values.max()
-
-            # Compute sparse distance matrix with smaller chunks if memory is an issue
-            sdm = tree.sparse_distance_matrix(tree, max_tol, output_type="coo_matrix")
-
-            # Only consider forward case, exclude diagonal
-            sdm = sparse.triu(sdm, k=1)
-
-            # Process relative distances more efficiently
-            if relative[i] is True:
-                # Vectorized computation without creating intermediate arrays
-                row_values = values[sdm.row]
-                valid_idx = sdm.data <= tol[i] * row_values
-
-                # Reconstruct sparse matrix more efficiently
-                sdm = sparse.coo_matrix(
-                    (
-                        np.ones(valid_idx.sum(), dtype=np.uint8),
-                        (sdm.row[valid_idx], sdm.col[valid_idx]),
-                    ),
-                    shape=(len(values), len(values)),
-                )
-            else:
-                # Cast as binary matrix with smaller data type
-                sdm.data = np.ones(len(sdm.data), dtype=np.uint8)
-
-            # Stack distances with memory-efficient multiplication
-            if distances is None:
-                distances = sdm
-            else:
-                # Use in-place operations where possible
-                distances = distances.multiply(sdm)
-                del sdm  # Free memory immediately
-
-        return distances
-
-    @staticmethod
-    def _compute_distances_memory_optimized(all_values, tol, relative):
-        """Memory-optimized distance computation for large datasets.
-
-        This method computes the pairwise distances between features in the dataset
-        using a more memory-efficient approach. It is suitable for larger datasets
-        where memory usage is a primary concern.
-
-        Parameters
-        ----------
-        all_values : list of :obj:`~numpy.array`
-            List of arrays containing the values for each dimension.
-        tol : list of float
-            List of tolerances for each dimension.
-        relative : list of bool
-            List of booleans indicating whether the tolerance for each dimension is relative (True) or absolute (False).
-
-        Returns
-        -------
-        :obj:`~scipy.sparse.coo_matrix`
-            Sparse matrix indicating pairwise distances within tolerances.
-        """
-        # Compute distance matrix for first dimension (full matrix as before)
-        values_0 = all_values[0].astype(np.float32)
-        tree_0 = KDTree(values_0.reshape(-1, 1))
-
-        max_tol_0 = tol[0]
-        if relative[0] is True:
-            max_tol_0 = tol[0] * values_0.max()
-
-        # Compute sparse distance matrix for first dimension
-        distances = tree_0.sparse_distance_matrix(
-            tree_0, max_tol_0, output_type="coo_matrix"
-        )
-        distances = sparse.triu(distances, k=1)
-
-        # Process relative distances for first dimension
-        if relative[0] is True:
-            row_values = values_0[distances.row]
-            valid_idx = distances.data <= tol[0] * row_values
-            distances = sparse.coo_matrix(
-                (
-                    np.ones(valid_idx.sum(), dtype=np.uint8),
-                    (distances.row[valid_idx], distances.col[valid_idx]),
-                ),
-                shape=(len(values_0), len(values_0)),
-            )
-        else:
-            distances.data = np.ones(len(distances.data), dtype=np.uint8)
-
-        # For remaining dimensions, work only on chunks defined by first dimension pairs
-        if len(all_values) > 1:
-            distances_coo = distances.tocoo()
-            valid_pairs = []
-
-            # Process each pair from first dimension
-            for idx in range(len(distances_coo.data)):
-                i, j = distances_coo.row[idx], distances_coo.col[idx]
-                is_valid_pair = True
-
-                # Check remaining dimensions for this specific pair
-                for dim_idx in range(1, len(all_values)):
-                    values = all_values[dim_idx]
-                    val_i, val_j = values[i], values[j]
-
-                    max_tol = tol[dim_idx]
-                    if relative[dim_idx] is True:
-                        max_tol = tol[dim_idx] * values.max()
-
-                    distance_ij = abs(val_i - val_j)
-
-                    # Check if this pair satisfies the tolerance for this dimension
-                    if relative[dim_idx] is True:
-                        if distance_ij > tol[dim_idx] * val_i:
-                            is_valid_pair = False
-                            break
-                    else:
-                        if distance_ij > max_tol:
-                            is_valid_pair = False
-                            break
-
-                if is_valid_pair:
-                    valid_pairs.append((i, j))
-
-            # Rebuild distances matrix with only valid pairs
-            if valid_pairs:
-                valid_pairs = np.array(valid_pairs)
-                distances = sparse.coo_matrix(
-                    (
-                        np.ones(len(valid_pairs), dtype=np.uint8),
-                        (valid_pairs[:, 0], valid_pairs[:, 1]),
-                    ),
-                    shape=(len(values_0), len(values_0)),
-                )
-            else:
-                # No valid pairs found
-                distances = sparse.coo_matrix(
-                    (len(values_0), len(values_0)), dtype=np.uint8
-                )
-
-        return distances
 
     def sparse_upper_star(self, idx, V):
         """Sparse implementation of an upper star filtration.
