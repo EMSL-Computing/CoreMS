@@ -3602,7 +3602,9 @@ class LCMSCollectionCalculations:
         Notes
         -----
         - Summary DataFrame is automatically stored in cluster_summary_dataframe property
-        - Includes both regular and induced (gap-filled) mass features when available
+        - Includes both regular and induced (gap-filled) mass features when available.
+          ``group_consensus_features`` does not use this m/z median for ion-role
+          geometry; that median is detected features only.
         - Used by plotting methods: plot_consensus_mz_features, plot_mz_features_per_cluster
         - Sample count (sample_id_nunique) indicates cluster prevalence across samples
         - Filters applied by consensus_min_sample_fraction affect which clusters appear
@@ -3748,8 +3750,11 @@ class LCMSCollectionCalculations:
         ``LCMSBase.find_c13_mass_features`` remains available for single-file
         workflows; do not treat both as authoritative in the same pipeline.
 
-        Must run after ``add_consensus_mass_features()``. Height matrix prefers
-        gap-filled (induced) apex intensities when present; missing entries are 0.
+        Must run after ``add_consensus_mass_features()``. The m/z median used for
+        isotope and adduct spacing is calculated from detected features only.
+        Gap-filled m/z values stay on the induced rows and do not enter that
+        median. The height matrix still includes gap-filled apex intensities
+        when present; missing entries are 0.
 
         Returns
         -------
@@ -3771,6 +3776,7 @@ class LCMSCollectionCalculations:
             HEIGHT_COL,
             FeatureGroupParams,
             build_height_matrix_from_features,
+            detected_cluster_mz_median,
             group_features_arrays,
             normalize_ms_polarity,
         )
@@ -3823,7 +3829,8 @@ class LCMSCollectionCalculations:
         )
 
         cluster_ids = summary.index.to_numpy()
-        mz = summary["mz_median"].to_numpy(dtype=float)
+        # Gap-filled apex m/z is not part of ion-role geometry.
+        mz = detected_cluster_mz_median(self.mass_features_dataframe, cluster_ids)
         if "scan_time_aligned_median" not in summary.columns:
             raise ValueError(
                 "cluster summary missing scan_time_aligned_median; "
@@ -5349,10 +5356,35 @@ class LCMSCollectionCalculations:
             # need to set drop_if_fail to false for induced features as they will fail
             self[obj_idx].add_peak_metrics(induced_features = True)
             
-        self[obj_idx].integrate_mass_features(drop_if_fail = False, induced_features = True)
+        # The duplicate scan only deletes keys from mass_features. Induced ids
+        # are strings such as c12_0_i, so that scan does not remove them.
+        self[obj_idx].integrate_mass_features(
+            drop_if_fail=False, induced_features=True, drop_duplicates=False
+        )
 
         if not inplace:
             return self[obj_idx].induced_mass_features
+
+    def _missing_sample_ids_by_cluster(self, mfdf, cluster_ids):
+        """Sample ids with no feature row for each cluster, in sample-id order.
+
+        Includes samples that have no mass features. Lookup matches numpy
+        integers and integral floats to the cluster key.
+        """
+        all_sample_ids = list(range(len(self.samples)))
+        if mfdf is None or len(mfdf) == 0:
+            present_by_cluster = pd.Series(dtype=object)
+        else:
+            present_by_cluster = mfdf.groupby("cluster", sort=False)["sample_id"].agg(
+                lambda ids: set(ids.to_numpy())
+            )
+        missing = []
+        for cluster_id in cluster_ids:
+            present = present_by_cluster.get(cluster_id, ())
+            missing.append(
+                [sample_id for sample_id in all_sample_ids if sample_id not in present]
+            )
+        return missing
     
     def fill_missing_cluster_features(self):
         """
@@ -5434,23 +5466,20 @@ class LCMSCollectionCalculations:
         if len(missingdf) == 0:
             return
 
-        # Find which samples are missing for each cluster
-        # Use range(sample_ct) to include all samples, even those with no mass features
-        all_sample_ids = list(range(sample_ct))
-        missing_samples_list = []
-        for c in missingdf.cluster.to_numpy():
-            cludf = mfdf[mfdf.cluster == c]
-            missing = [x for x in all_sample_ids if x not in cludf.sample_id.unique()]
-            missing_samples_list.append(missing)
-        missingdf['missing_samples'] = missing_samples_list
+        # One groupby. Sample ids stay in collection order, including samples
+        # that have no mass features.
+        missingdf['missing_samples'] = self._missing_sample_ids_by_cluster(
+            mfdf, missingdf.cluster.to_numpy()
+        )
         
         # Calculate expanded search windows for expand_on_miss option
         mz_clu_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
         rt_clu_tol = self.parameters.lcms_collection.consensus_rt_tol
         missingdf['mz_max_allowed'] = missingdf.mz_max + mz_clu_tol * missingdf.mz_max
         missingdf['mz_min_allowed'] = missingdf.mz_min - mz_clu_tol * missingdf.mz_min
-        missingdf['sta_max_allowed'] = missingdf.scan_time_aligned_max + rt_clu_tol * missingdf.scan_time_aligned_max
-        missingdf['sta_min_allowed'] = missingdf.scan_time_aligned_min - rt_clu_tol * missingdf.scan_time_aligned_min
+        # consensus_rt_tol is an absolute tolerance in minutes, same as clustering.
+        missingdf['sta_max_allowed'] = missingdf.scan_time_aligned_max + rt_clu_tol
+        missingdf['sta_min_allowed'] = missingdf.scan_time_aligned_min - rt_clu_tol
 
         # Compute cluster dictionary once to avoid recomputing for each sample
         cluster_dict = self.cluster_feature_dictionary
@@ -5707,23 +5736,20 @@ class LCMSCollectionCalculations:
             missingdf = missingdf[missingdf.sample_id_nunique != sample_ct]
             
             if len(missingdf) > 0:
-                # Find which samples are missing for each cluster
-                # Use range(sample_ct) to include all samples, even those with no mass features
-                all_sample_ids = list(range(sample_ct))
-                missing_samples_list = []
-                for c in missingdf.cluster.to_numpy():
-                    cludf = mfdf[mfdf.cluster == c]
-                    missing = [x for x in all_sample_ids if x not in cludf.sample_id.unique()]
-                    missing_samples_list.append(missing)
-                missingdf['missing_samples'] = missing_samples_list
+                # One groupby. Sample ids stay in collection order, including samples
+                # that have no mass features.
+                missingdf['missing_samples'] = self._missing_sample_ids_by_cluster(
+                    mfdf, missingdf.cluster.to_numpy()
+                )
                 
                 # Calculate expanded search windows
                 mz_clu_tol = self.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
                 rt_clu_tol = self.parameters.lcms_collection.consensus_rt_tol
                 missingdf['mz_max_allowed'] = missingdf.mz_max + mz_clu_tol * missingdf.mz_max
                 missingdf['mz_min_allowed'] = missingdf.mz_min - mz_clu_tol * missingdf.mz_min
-                missingdf['sta_max_allowed'] = missingdf.scan_time_aligned_max + rt_clu_tol * missingdf.scan_time_aligned_max
-                missingdf['sta_min_allowed'] = missingdf.scan_time_aligned_min - rt_clu_tol * missingdf.scan_time_aligned_min
+                # consensus_rt_tol is an absolute tolerance in minutes, same as clustering.
+                missingdf['sta_max_allowed'] = missingdf.scan_time_aligned_max + rt_clu_tol
+                missingdf['sta_min_allowed'] = missingdf.scan_time_aligned_min - rt_clu_tol
                 
                 runtime_params['missingdf'] = missingdf
                 runtime_params['cluster_dict'] = self.cluster_feature_dictionary

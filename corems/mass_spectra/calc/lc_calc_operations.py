@@ -180,24 +180,29 @@ class GapFillOperation(SampleOperation):
     windows for clusters that are present in other samples but missing from
     this sample.
     
-    Uses time range filtering for efficient data loading - only loads the 
-    retention time windows where gaps need to be filled, plus a buffer 
-    (controlled by eic_buffer_time parameter) for complete EIC extraction. 
-    Multiple time ranges are automatically merged if they overlap.
-    
+    The operation merges each gap's retention-time bounds, including the
+    expanded bounds when expand_on_miss is set and eic_buffer_time, and
+    passes that range to load_raw_data. load_raw_data forwards the range
+    into get_ms_raw with the sample's full scan table. The Thermo and mzML
+    readers ignore the range and read every scan in the table. Scattered
+    gaps merge into one window that covers the run, so the range does not
+    shrink a typical read. After the load, the search keeps MS1 points
+    inside the gap m/z and retention-time bounds.
+
     Parameters
     ----------
     name : str
         Operation name
     expand_on_miss : bool, optional
-        If True, expands search window when no peak is found. Default is False.
+        If True, a miss is searched again with the m/z window widened by
+        consensus_mz_tol_ppm and the retention-time window widened by
+        consensus_rt_tol minutes. Taken from gap_fill_expand_on_miss,
+        which defaults to True.
         
     Notes
     -----
     Requires that add_consensus_mass_features() has been run on the collection.
     This operation loads raw MS1 data which will be available for subsequent operations.
-    Time range filtering significantly reduces memory usage and loading time for
-    large datasets with sparse gaps.
     """
     
     @property
@@ -261,7 +266,7 @@ class GapFillOperation(SampleOperation):
         # This ensures we capture the full chromatographic peak beyond cluster bounds
         buffer_rt = collection[sample_id].parameters.lc_ms.eic_buffer_time
         
-        # Calculate time ranges for efficient loading with buffer for EIC extraction
+        # Windows passed to the loader. Thermo and mzML still read the full scan table.
         time_ranges = []
         
         for _, row in sampledf.iterrows():
@@ -290,7 +295,7 @@ class GapFillOperation(SampleOperation):
                     current_min, current_max = rt_min, rt_max
             merged_ranges.append((current_min, current_max))
 
-        # Load raw data for this sample with time range filtering
+        # time_range is forwarded to get_ms_raw; Thermo and mzML ignore it.
         collection.load_raw_data(sample_id, 1, time_range=merged_ranges)
         
         # Get MS1 data
@@ -381,25 +386,18 @@ class GapFillOperation(SampleOperation):
             induced_mass_features[peak.id] = peak
             cluster_dict[clusters[i]] += [set_ids[i]]
         
-        # Integrate mass features (don't fail on bad integration)
+        # Integrate mass features (don't fail on bad integration).
+        # m/z, intensity, and retention time are already on the feature from the
+        # targeted search. Representative selection reads mass_features_dataframe
+        # only, so a gap-filled feature is never the cluster representative and
+        # does not get a processed MS1 spectrum here.
         collection[sample_id].induced_mass_features = induced_mass_features
-        collection[sample_id].integrate_mass_features(drop_if_fail=False, induced_features=True)
-        
-        # Add MS1 spectra and peak metrics to successfully detected induced features
-        # Only process features that were successfully detected (apex_scan != -99)
-        # This is critical for having m/z values in the pivot table for gap-filled features
-        successful_induced = {k: v for k, v in induced_mass_features.items() if v.apex_scan != -99}
-        
-        if len(successful_induced) > 0:
-            # Use the already-loaded raw data (use_parser=False) for efficiency
-            collection[sample_id].add_associated_ms1(
-                auto_process=True,
-                use_parser=False,
-                spectrum_mode=None,
-                induced_features=True
-            )
-        
-        # Return the induced features (some may have been filtered out)
+        # The duplicate scan only deletes keys from mass_features. Induced ids
+        # are strings such as c12_0_i, so that scan does not remove them.
+        collection[sample_id].integrate_mass_features(
+            drop_if_fail=False, induced_features=True, drop_duplicates=False
+        )
+
         return collection[sample_id].induced_mass_features
         
     def collect_results(self, sample_id, result, collection):

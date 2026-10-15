@@ -328,6 +328,40 @@ def test_lcms_collection_consensus_features(lcms_collection):
     for cluster_id in cluster_summary.index:
         assert cluster_id in cluster_dict
 
+    # Missing-sample lists keep sample-id order and include samples with no features.
+    from corems.mass_spectra.calc.lc_calc_operations import GapFillOperation
+
+    runtime = lcms_collection._prepare_pipeline_runtime_params(
+        [GapFillOperation(name="gap")]
+    )
+    missingdf = runtime["missingdf"]
+    assert len(missingdf) > 0
+    mfdf = lcms_collection.mass_features_dataframe
+    all_sample_ids = list(range(len(lcms_collection)))
+    for cluster_id, missing_ids in zip(
+        missingdf.cluster.to_numpy(), missingdf["missing_samples"]
+    ):
+        present = set(mfdf.loc[mfdf.cluster == cluster_id, "sample_id"].unique())
+        expected = [i for i in all_sample_ids if i not in present]
+        assert list(missing_ids) == expected
+        assert 2 in missing_ids
+    # A missed window widens by consensus_rt_tol minutes, and m/z by ppm.
+    rt_tol = lcms_collection.parameters.lcms_collection.consensus_rt_tol
+    mz_tol = lcms_collection.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
+    assert np.allclose(
+        missingdf["sta_max_allowed"], missingdf["scan_time_aligned_max"] + rt_tol
+    )
+    assert np.allclose(
+        missingdf["sta_min_allowed"], missingdf["scan_time_aligned_min"] - rt_tol
+    )
+    assert np.allclose(
+        missingdf["mz_max_allowed"], missingdf["mz_max"] + mz_tol * missingdf["mz_max"]
+    )
+    assert np.allclose(
+        missingdf["mz_min_allowed"], missingdf["mz_min"] - mz_tol * missingdf["mz_min"]
+    )
+    assert lcms_collection.parameters.lcms_collection.gap_fill_expand_on_miss is True
+
 
 def test_lcms_collection_gap_filling(lcms_collection):
     """Test gap filling to create induced mass features."""
@@ -385,6 +419,15 @@ def test_lcms_collection_gap_filling(lcms_collection):
     
     # Sample 3 should have induced features (started with 0, all 50 clusters are missing)
     assert sample_3_induced == 50, "Sample 3 should have 50 induced mass features (one for each cluster)"
+
+    # Gap-filled rows are not representative candidates. Selection reads
+    # mass_features_dataframe only, which is why gap fill does not process an
+    # MS1 spectrum for each induced apex.
+    reps = lcms_collection.get_representative_mass_features_for_all_clusters()
+    induced_ids = set(induced_df.index.astype(str))
+    regular_ids = set(lcms_collection.mass_features_dataframe.index.astype(str))
+    assert induced_ids.isdisjoint(regular_ids)
+    assert set(reps["coll_mf_id"].astype(str)).issubset(regular_ids)
 
     # Induced feature *objects* are always cleared after gap-fill (memory).
     for i in range(len(lcms_collection)):
