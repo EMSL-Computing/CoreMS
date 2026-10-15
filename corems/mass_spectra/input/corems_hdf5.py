@@ -25,7 +25,6 @@ from corems.mass_spectra.factory.chromat_data import EIC_Data
 from corems.mass_spectra.input.parserbase import SpectraParserInterface
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
 from corems.molecular_id.factory.spectrum_search_results import SpectrumSearchResults
-from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 from corems.mass_spectra.input.mzml import MZMLSpectraParser
 
 
@@ -884,11 +883,18 @@ class ReadCoreMSHDFMassSpectra(
                 raise ValueError(
                     "Raw file path not found in HDF5 file attributes, cannot instantiate original parser."
                 )
-            
+
         # Set the raw file path on the mass_spectra object so the parser knows where to find the raw file
         mass_spectra.raw_file_location = raw_file_path
 
         if og_parser_type == "ImportMassSpectraThermoMSFileReader":
+            # Imported lazily: rawFileReader pulls in pythonnet (`clr`), which
+            # needs a .NET/Mono runtime. Only reopening a Thermo .raw file
+            # needs it; reading an HDF5 file of any other origin must not.
+            from corems.mass_spectra.input.rawFileReader import (
+                ImportMassSpectraThermoMSFileReader,
+            )
+
             # Check that the parser can be instantiated with the raw file path
             parser_class = ImportMassSpectraThermoMSFileReader
         elif og_parser_type == "MZMLSpectraParser":
@@ -939,6 +945,11 @@ class ReadCoreMSHDFMassSpectra(
             
             # Instantiate the original parser
             if og_parser_type == "ImportMassSpectraThermoMSFileReader":
+                # Lazy import; see add_original_parser for why.
+                from corems.mass_spectra.input.rawFileReader import (
+                    ImportMassSpectraThermoMSFileReader,
+                )
+
                 parser = ImportMassSpectraThermoMSFileReader(raw_file_path)
             elif og_parser_type == "MZMLSpectraParser":
                 parser = MZMLSpectraParser(raw_file_path)
