@@ -28,8 +28,9 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
     Methods
     -------
-    * load_raw_data(mass_spectrum, scan_index=0) Load raw data into the mass spectrum object.
-    * get_mass_spectrum(scan_number=0, time_index=-1, auto_process=True, load_settings=True, load_raw=True).Get a mass spectrum object.
+    * load_raw_data(scan_index=0). Read a scan's stored profile arrays, if present.
+    * load_peak_profile_indices(scan_index=0). Read a scan's stored per-peak profile indices, if present.
+    * get_mass_spectrum(scan_number=0, time_index=-1, auto_process=True, load_settings=True, load_raw=True, load_molecular_formula=True, force_centroid=False). Get a mass spectrum object.
     * load_settings(mass_spectrum, scan_index=0, time_index=-1). Load settings into the mass spectrum object.
     * get_dataframe(scan_index=0, time_index=-1). Get a pandas DataFrame representing the mass spectrum.
     * get_time_index_to_pull(scan_label, time_index). Get the time index to pull from the HDF5 file.
@@ -62,29 +63,69 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
     def __exit__(self, *args):
         self.close()
 
-    def load_raw_data(self, mass_spectrum, scan_index=0):
+    def load_raw_data(self, scan_index=0):
         """
-        Load raw data into the mass spectrum object.
+        Read the stored profile arrays for a scan, if present.
 
         Parameters
         ----------
-        mass_spectrum : MassSpecCentroid
-            The mass spectrum object to load the raw data into.
         scan_index : int, optional
             The index of the scan to load the raw data from. Default is 0.
+
+        Returns
+        -------
+        dict or None
+            ``{"mz": ..., "abundance": ..., "mz_cal": ... or None}`` (the
+            experimental m/z, abundance, and calibrated m/z if stored), or
+            None if the scan has no ``raw_ms`` dataset (a centroid-only file).
+
+        Notes
+        -----
+        ``raw_ms`` rows are ordered per its ``row_labels`` attribute (JSON
+        list of ``"mz"``/``"abundance"``/``"mz_cal"``). Files written before
+        that attribute existed have no ``row_labels`` and are read back in
+        the legacy ``[abundance, mz]`` order every earlier CoreMS version
+        wrote, so old files keep loading exactly as they did before.
         """
-
         scan_label = self.scans[scan_index]
+        raw_ms_group = self.h5pydata[scan_label]
 
-        # Check if the "raw_ms" dataset exists and has data
-        if "raw_ms" in self.h5pydata[scan_label] and self.h5pydata[scan_label]["raw_ms"].shape is not None:
-            mz_profile = self.h5pydata[scan_label]["raw_ms"][0]
+        if "raw_ms" not in raw_ms_group or raw_ms_group["raw_ms"].shape is None:
+            return None
 
-            abundance_profile = self.h5pydata[scan_label]["raw_ms"][1]
+        raw_ms_dataset = raw_ms_group["raw_ms"]
+        row_labels_json = raw_ms_dataset.attrs.get("row_labels")
+        row_labels = json.loads(row_labels_json) if row_labels_json else ["abundance", "mz"]
 
-            mass_spectrum.mz_exp_profile = mz_profile
+        data = raw_ms_dataset[()]
+        mz_profile = data[row_labels.index("mz")]
+        abundance_profile = data[row_labels.index("abundance")]
+        mz_cal_profile = data[row_labels.index("mz_cal")] if "mz_cal" in row_labels else None
 
-            mass_spectrum.abundance_profile = abundance_profile
+        return {"mz": mz_profile, "abundance": abundance_profile, "mz_cal": mz_cal_profile}
+
+    def load_peak_profile_indices(self, scan_index=0):
+        """
+        Read the stored per-peak profile indices for a scan, if present.
+
+        Parameters
+        ----------
+        scan_index : int, optional
+            The index of the scan to load the indices from. Default is 0.
+
+        Returns
+        -------
+        numpy.ndarray or None
+            Array of shape ``(n_peaks, 3)`` of ``(left, apex, right)``
+            indices into the scan's profile arrays, in the same order as the
+            scan's peak table, or None if not stored (file predates this
+            feature).
+        """
+        scan_label = self.scans[scan_index]
+        scan_group = self.h5pydata[scan_label]
+        if "peak_profile_indices" not in scan_group:
+            return None
+        return scan_group["peak_profile_indices"][()]
 
     def get_mass_spectrum(
         self,
@@ -287,8 +328,10 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
             The time index to pull.
         """
 
+        # Only numeric keys are processed-data indices; "raw_ms" and
+        # "peak_profile_indices" (when present) are not.
         time_data = sorted(
-            [(i, int(i)) for i in self.h5pydata[scan_label].keys() if i != "raw_ms"],
+            [(i, int(i)) for i in self.h5pydata[scan_label].keys() if i.isdigit()],
             key=lambda m: m[1],
         )
 

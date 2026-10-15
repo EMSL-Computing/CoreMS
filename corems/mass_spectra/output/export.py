@@ -1640,11 +1640,19 @@ class LCMSExport(HighResMassSpectraExport):
                         if str(k) in ms_unprocessed_group and overwrite:
                             del ms_unprocessed_group[str(k)]
                         array = np.array(v)
-                        ms_unprocessed_group.create_dataset(str(k), data=array)
+                        column_labels = list(v.columns) if hasattr(v, "columns") else ["scan", "mz", "intensity"]
+                        ms_dset = ms_unprocessed_group.create_dataset(
+                            str(k), data=array, **hdf5_dataset_kwargs(array.shape, compression=compression)
+                        )
+                        ms_dset.attrs["column_labels"] = json.dumps(column_labels)
 
             # Add LCMS mass features to hdf5 file
-            self._save_mass_features_to_hdf5(hdf_handle, group_name="mass_features", overwrite=overwrite)
-            self._save_mass_features_to_hdf5(hdf_handle, group_name="induced_mass_features", overwrite=overwrite)
+            self._save_mass_features_to_hdf5(
+                hdf_handle, group_name="mass_features", overwrite=overwrite, compression=compression
+            )
+            self._save_mass_features_to_hdf5(
+                hdf_handle, group_name="induced_mass_features", overwrite=overwrite, compression=compression
+            )
 
             # Add EIC data to hdf5 file
             export_eics = self.mass_spectra.parameters.lc_ms.export_eics

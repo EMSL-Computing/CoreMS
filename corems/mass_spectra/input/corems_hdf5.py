@@ -352,10 +352,15 @@ class ReadCoreMSHDFMassSpectra(
         dict_group_load = self.h5pydata["ms_unprocessed"]
         dict_group_keys = dict_group_load.keys()
         for k in dict_group_keys:
-            ms_up_int = dict_group_load[k][:]
-            ms_unprocessed[int(k)] = pd.DataFrame(
-                ms_up_int, columns=["scan", "mz", "intensity"]
+            dataset = dict_group_load[k]
+            ms_up_int = dataset[:]
+            column_labels_json = dataset.attrs.get("column_labels")
+            column_labels = (
+                json.loads(column_labels_json)
+                if column_labels_json
+                else ["scan", "mz", "intensity"]
             )
+            ms_unprocessed[int(k)] = pd.DataFrame(ms_up_int, columns=column_labels)
         return ms_unprocessed
 
     def get_scan_df(self, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None) -> pd.DataFrame:

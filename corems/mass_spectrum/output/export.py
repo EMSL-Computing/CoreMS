@@ -8,7 +8,7 @@ from threading import Thread
 
 import h5py
 import numpy as np
-from numpy import nan as NaN, empty
+from numpy import nan as NaN
 from pandas import DataFrame
 
 from corems.encapsulation.constant import Atoms, Labels #Labels is accessed in the eval() function
@@ -472,15 +472,44 @@ class HighResMassSpecExport(Thread):
 
             # If there is raw data (from profile data) save it
             if not mass_spectrum.is_centroid and export_raw:
-                mz_abun_array = empty(shape=(2, len(mass_spectrum.abundance_profile)), dtype=np.float32)
+                # "mz" is always the experimental (uncalibrated) profile; a
+                # separate "mz_cal" row is added only when a profile-level
+                # calibrated m/z array has actually been set (peak-level-only
+                # calibration, via MSPeak.mz_cal, doesn't populate it).
+                row_labels = ["mz", "abundance"]
+                rows = [np.asarray(mass_spectrum._mz_exp), np.asarray(mass_spectrum.abundance_profile)]
+                mz_cal_profile = mass_spectrum.mz_cal_profile
+                if mz_cal_profile is not None:
+                    row_labels.append("mz_cal")
+                    rows.append(np.asarray(mz_cal_profile))
 
-                mz_abun_array[0] = mass_spectrum.abundance_profile
-                mz_abun_array[1] = mass_spectrum.mz_exp_profile
+                mz_abun_array = np.array(rows, dtype=profile_dtype)
 
                 raw_ms_dataset = scan_group.create_dataset(
-                    "raw_ms", data=mz_abun_array, dtype="f4", compression="gzip", compression_opts=9, chunks=True, shuffle=True, fletcher32=True
+                    "raw_ms",
+                    data=mz_abun_array,
+                    dtype=profile_dtype,
+                    **hdf5_dataset_kwargs(mz_abun_array.shape, compression=compression),
                 )
-                
+                raw_ms_dataset.attrs["row_labels"] = json.dumps(row_labels)
+
+                # Per-peak (left, apex, right) indices into the profile arrays
+                # above, in mspeaks order, so a reloaded centroid-with-profile
+                # mass spectrum doesn't need to re-derive peak boundaries from
+                # the peak table's row position (which isn't a profile index).
+                peak_indices = np.array(
+                    [
+                        (mspeak.peak_left_index, mspeak.peak_apex_index, mspeak.peak_right_index)
+                        for mspeak in mass_spectrum.mspeaks
+                    ],
+                    dtype=np.int32,
+                ).reshape(-1, 3)
+                scan_group.create_dataset(
+                    "peak_profile_indices",
+                    data=peak_indices,
+                    **hdf5_dataset_kwargs(peak_indices.shape, compression=compression),
+                )
+
                 # Add metadata to the raw_ms dataset when it exists
                 raw_ms_dataset.attrs["MassSpecAttrs"] = json.dumps(dict_ms_attrs)
 
@@ -507,21 +536,26 @@ class HighResMassSpecExport(Thread):
             scan_group = hdf_handle.get(group_key)
 
         # if there is not processed data len = 0, otherwise len() will return next index
-        index_processed_data = str(len(scan_group.keys()))
+        # Only count numeric keys: "raw_ms" and "peak_profile_indices" are not
+        # processed-data indices (get_time_index_to_pull also only considers
+        # numeric keys, for the same reason).
+        index_processed_data = str(len([k for k in scan_group.keys() if k.isdigit()]))
 
         timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
 
         # Convert list_results to numpy array and optimize data types
         array_results = np.array(list_results)
-        
+
         # Apply data type optimization for numeric columns
         if array_results.dtype == np.float64:
             array_results = array_results.astype(np.float32)
         elif array_results.dtype == np.int64:
             array_results = array_results.astype(np.int32)
-        
+
         processed_dset = scan_group.create_dataset(
-            index_processed_data, data=array_results, compression="gzip", compression_opts=9, chunks=True, shuffle=True, fletcher32=True
+            index_processed_data,
+            data=array_results,
+            **hdf5_dataset_kwargs(array_results.shape, compression=compression),
         )
 
         processed_dset.attrs["date_utc"] = timenow
