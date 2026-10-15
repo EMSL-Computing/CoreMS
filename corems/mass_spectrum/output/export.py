@@ -17,6 +17,53 @@ from corems.encapsulation.output.parameter_to_json import _dumps_toml
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 
 
+def hdf5_dataset_kwargs(shape, compression=4, vlen_str=False):
+    """Build ``h5py.Group.create_dataset`` filter kwargs for a compression choice.
+
+    Centralizes the HDF5 writers' compression choice (one helper used by every
+    ``create_dataset`` call on the mass spectrum / LC-MS export path) and the
+    filter exceptions h5py enforces: it refuses chunk/filter options on scalar
+    (``shape == ()``) or zero-length datasets, and the fletcher32 checksum
+    filter gains nothing (and h5py can reject it) on variable-length string
+    datasets.
+
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the data about to be written.
+    compression : int, str or None, optional
+        A gzip level 0-9, ``"lzf"``, or ``None``/``"none"`` for no
+        compression. Default is 4.
+    vlen_str : bool, optional
+        True when the dataset's dtype is a variable-length string
+        (``h5py.string_dtype()``); skips the shuffle/fletcher32 filters that
+        don't apply to vlen data. Default is False.
+
+    Returns
+    -------
+    dict
+        Keyword arguments to splat into ``create_dataset`` (besides ``data``
+        and ``dtype``).
+    """
+    if not shape or 0 in shape:
+        return {}
+
+    kwargs = {"chunks": True}
+
+    if compression not in (None, "none"):
+        if compression == "lzf":
+            kwargs["compression"] = "lzf"
+        else:
+            kwargs["compression"] = "gzip"
+            kwargs["compression_opts"] = int(compression)
+
+    if not vlen_str:
+        kwargs["shuffle"] = True
+        kwargs["fletcher32"] = True
+
+    return kwargs
+
+
 class HighResMassSpecExport(Thread):
     """A class for exporting high-resolution mass spectra.
 
@@ -363,6 +410,8 @@ class HighResMassSpecExport(Thread):
         group_key,
         mass_spectra_group=None,
         export_raw=True,
+        compression=4,
+        profile_dtype="f4",
     ):
         """Adds the mass spectrum data to an HDF5 file.
 
@@ -379,6 +428,12 @@ class HighResMassSpecExport(Thread):
         export_raw : bool, optional
             Whether to export the raw data. Defaults to True.
             If False, only the processed data (peaks) is exported (essentially centroided data).
+        compression : int, str or None, optional
+            Compression for the written datasets: a gzip level 0-9, ``"lzf"``,
+            or ``None``/``"none"``. Default is 4.
+        profile_dtype : str, optional
+            dtype used for the stored profile m/z/abundance arrays
+            (``"f4"`` or ``"f8"``). Default is ``"f4"``.
         """
         if mass_spectra_group is None:
             # Check if the file has the necessary attributes and add them if not
@@ -494,12 +549,26 @@ class HighResMassSpecExport(Thread):
             separators=(",", ": "),
         )
 
-    def to_hdf(self):
-        """Exports the mass spectrum data to an HDF5 file."""
+    def to_hdf(self, compression=4, profile_dtype="f4"):
+        """Exports the mass spectrum data to an HDF5 file.
+
+        Parameters
+        ----------
+        compression : int, str or None, optional
+            Compression for the written datasets: a gzip level 0-9,
+            ``"lzf"``, or ``None``/``"none"``. Default is 4.
+        profile_dtype : str, optional
+            dtype used for the stored profile m/z/abundance arrays
+            (``"f4"`` or ``"f8"``). Default is ``"f4"``.
+        """
 
         with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
             self.add_mass_spectrum_to_hdf5(
-                hdf_handle, self.mass_spectrum, str(self.mass_spectrum.scan_number)
+                hdf_handle,
+                self.mass_spectrum,
+                str(self.mass_spectrum.scan_number),
+                compression=compression,
+                profile_dtype=profile_dtype,
             )
 
     def parameters_to_toml(self):

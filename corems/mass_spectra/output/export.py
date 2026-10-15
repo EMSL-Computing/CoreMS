@@ -24,7 +24,7 @@ from corems.encapsulation.output.parameter_to_json import (
     dump_lcms_collection_settings_json,
     dump_lcms_collection_settings_toml,
 )
-from corems.mass_spectrum.output.export import HighResMassSpecExport
+from corems.mass_spectrum.output.export import HighResMassSpecExport, hdf5_dataset_kwargs
 from corems.molecular_formula.calc.MolecularFormulaCalc import MolecularFormulaCalc
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.molecular_id.calc.SpectralSimilarity import methods_name
@@ -1003,7 +1003,7 @@ class HighResMassSpectraExport(HighResMassSpecExport):
             dict_ms_attrs, sort_keys=False, indent=4, separators=(",", ": ")
         )
 
-    def to_hdf(self, overwrite=False, export_raw=True):
+    def to_hdf(self, overwrite=False, export_raw=True, compression=4, profile_dtype="f4"):
         """Export the data to an HDF5 file.
 
         Parameters
@@ -1012,6 +1012,12 @@ class HighResMassSpectraExport(HighResMassSpecExport):
             Whether to overwrite the output file. Default is False.
         export_raw : bool, optional
             Whether to export the raw mass spectra data. Default is True.
+        compression : int, str or None, optional
+            Compression for the written datasets: a gzip level 0-9,
+            ``"lzf"``, or ``None``/``"none"``. Default is 4.
+        profile_dtype : str, optional
+            dtype used for the stored profile m/z/abundance arrays
+            (``"f4"`` or ``"f8"``). Default is ``"f4"``.
         """
         if overwrite:
             if self.output_file.with_suffix(".hdf5").exists():
@@ -1059,7 +1065,13 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 group_key = str(int(mass_spectrum.scan_number))
 
                 self.add_mass_spectrum_to_hdf5(
-                    hdf_handle, mass_spectrum, group_key, mass_spectra_group, export_raw
+                    hdf_handle,
+                    mass_spectrum,
+                    group_key,
+                    mass_spectra_group,
+                    export_raw,
+                    compression=compression,
+                    profile_dtype=profile_dtype,
                 )
 
 
@@ -1372,11 +1384,13 @@ class LCMSExport(HighResMassSpectraExport):
                 )
 
     @staticmethod
-    def _save_mass_features_dict_to_hdf5(mass_features_dict, mass_features_group, overwrite=False):
+    def _save_mass_features_dict_to_hdf5(
+        mass_features_dict, mass_features_group, overwrite=False, compression=4
+    ):
         """Save a dictionary of mass features to an HDF5 group.
-        
+
         This is a helper method that can be reused by different export classes.
-        
+
         Parameters
         ----------
         mass_features_dict : dict
@@ -1385,6 +1399,9 @@ class LCMSExport(HighResMassSpectraExport):
             The HDF5 group to save the mass features to.
         overwrite : bool, optional
             Whether to overwrite existing mass features. Default is False.
+        compression : int, str or None, optional
+            Compression for the written datasets: a gzip level 0-9,
+            ``"lzf"``, or ``None``/``"none"``. Default is 4.
         """
 
         # Create group for each mass feature, with key as the mass feature id
@@ -1410,7 +1427,9 @@ class LCMSExport(HighResMassSpectraExport):
                                     if array.dtype == np.int64:
                                         array = array.astype(np.int32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
+                                        str(k2),
+                                        data=array,
+                                        **hdf5_dataset_kwargs(array.shape, compression=compression),
                                     )
                                 elif k2 == "_half_height_width":
                                     array = np.array(v2)
@@ -1418,7 +1437,9 @@ class LCMSExport(HighResMassSpectraExport):
                                     if array.dtype == np.float64:
                                         array = array.astype(np.float32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
+                                        str(k2),
+                                        data=array,
+                                        **hdf5_dataset_kwargs(array.shape, compression=compression),
                                     )
                                 elif k2 == "_ms_deconvoluted_idx":
                                     array = np.array(v2)
@@ -1426,7 +1447,9 @@ class LCMSExport(HighResMassSpectraExport):
                                     if array.dtype == np.int64:
                                         array = array.astype(np.int32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
+                                        str(k2),
+                                        data=array,
+                                        **hdf5_dataset_kwargs(array.shape, compression=compression),
                                     )
                                 elif k2 == "associated_mass_features_deconvoluted":
                                     array = np.array(v2)
@@ -1434,7 +1457,9 @@ class LCMSExport(HighResMassSpectraExport):
                                     if array.dtype == np.int64:
                                         array = array.astype(np.int32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
+                                        str(k2),
+                                        data=array,
+                                        **hdf5_dataset_kwargs(array.shape, compression=compression),
                                     )
                                 elif k2 == "_noise_score":
                                     array = np.array(v2)
@@ -1442,7 +1467,9 @@ class LCMSExport(HighResMassSpectraExport):
                                     if array.dtype == np.float64:
                                         array = array.astype(np.float32)
                                     mass_features_group[str(k)].create_dataset(
-                                        str(k2), data=array, compression="gzip", compression_opts=9, chunks=True
+                                        str(k2),
+                                        data=array,
+                                        **hdf5_dataset_kwargs(array.shape, compression=compression),
                                     )
                                 elif (
                                     isinstance(v2, int)
@@ -1461,12 +1488,12 @@ class LCMSExport(HighResMassSpectraExport):
                                     mass_features_group[str(k)].attrs[str(k2)] = v2
     
     @staticmethod
-    def _save_eics_dict_to_hdf5(eics_dict, eics_group, overwrite=False):
+    def _save_eics_dict_to_hdf5(eics_dict, eics_group, overwrite=False, compression=4):
         """Save a dictionary of EICs to an HDF5 group.
-        
+
         This is a static helper method that can be reused by different export classes
         to save EIC data in a consistent format.
-        
+
         Parameters
         ----------
         eics_dict : dict
@@ -1475,6 +1502,9 @@ class LCMSExport(HighResMassSpectraExport):
             The HDF5 group to save the EICs to.
         overwrite : bool, optional
             Whether to overwrite existing EICs. Default is False.
+        compression : int, str or None, optional
+            Compression for the written datasets: a gzip level 0-9,
+            ``"lzf"``, or ``None``/``"none"``. Default is 4.
         """
         for mz, eic_data in eics_dict.items():
             mz_str = str(mz)
@@ -1497,11 +1527,22 @@ class LCMSExport(HighResMassSpectraExport):
                             # Convert Unicode strings to UTF-8 encoded strings
                             string_data = [str(item) for item in array]
                             string_dtype = h5py.string_dtype(encoding='utf-8')
-                            eic_grp.create_dataset(str(attr_name), data=string_data, dtype=string_dtype, compression="gzip", compression_opts=9, chunks=True)
+                            eic_grp.create_dataset(
+                                str(attr_name),
+                                data=string_data,
+                                dtype=string_dtype,
+                                **hdf5_dataset_kwargs(array.shape, compression=compression, vlen_str=True),
+                            )
                             continue
-                        eic_grp.create_dataset(str(attr_name), data=array, compression="gzip", compression_opts=9, chunks=True)
+                        eic_grp.create_dataset(
+                            str(attr_name),
+                            data=array,
+                            **hdf5_dataset_kwargs(array.shape, compression=compression),
+                        )
     
-    def _save_mass_features_to_hdf5(self, hdf_handle, group_name = "mass_features", overwrite=False):
+    def _save_mass_features_to_hdf5(
+        self, hdf_handle, group_name = "mass_features", overwrite=False, compression=4
+    ):
         """Save the mass features to the HDF5 file.
 
         Parameters
@@ -1512,6 +1553,9 @@ class LCMSExport(HighResMassSpectraExport):
             The name of the group to save the mass features to. Default is 'mass_features'.
         overwrite : bool, optional
             Whether to overwrite the group if it exists. Default is False.
+        compression : int, str or None, optional
+            Compression for the written datasets: a gzip level 0-9,
+            ``"lzf"``, or ``None``/``"none"``. Default is 4.
         """
         # Determine which mass features to save based on group_name
         if group_name == "induced_mass_features":
@@ -1530,7 +1574,9 @@ class LCMSExport(HighResMassSpectraExport):
             mass_features_group = hdf_handle.get(group_name)
         
         # Use the static helper method to save the mass features
-        self._save_mass_features_dict_to_hdf5(mass_features_dict, mass_features_group, overwrite)
+        self._save_mass_features_dict_to_hdf5(
+            mass_features_dict, mass_features_group, overwrite, compression=compression
+        )
 
     def to_hdf(self, overwrite=False, save_parameters=True, parameter_format="toml"):
         """Export the data to an HDF5.
@@ -1552,9 +1598,16 @@ class LCMSExport(HighResMassSpectraExport):
         export_profile_spectra = (
             self.mass_spectra.parameters.lc_ms.export_profile_spectra
         )
+        compression = self.mass_spectra.parameters.lc_ms.hdf5_compression
+        profile_dtype = self.mass_spectra.parameters.lc_ms.hdf5_profile_dtype
 
         # Write the mass spectra data to the hdf5 file
-        super().to_hdf(overwrite=overwrite, export_raw=export_profile_spectra)
+        super().to_hdf(
+            overwrite=overwrite,
+            export_raw=export_profile_spectra,
+            compression=compression,
+            profile_dtype=profile_dtype,
+        )
 
         # Write scan info, ms_unprocessed, mass features, eics, and ms2_search results to the hdf5 file
         with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
@@ -1567,7 +1620,9 @@ class LCMSExport(HighResMassSpectraExport):
                     array = np.array(list(v.values()))
                     if array.dtype.str[0:2] == "<U":
                         array = array.astype("S")
-                    scan_info_group.create_dataset(k, data=array)
+                    scan_info_group.create_dataset(
+                        k, data=array, **hdf5_dataset_kwargs(array.shape, compression=compression)
+                    )
 
             # Add ms_unprocessed to hdf5 file
             export_unprocessed_ms1 = (
@@ -1602,7 +1657,9 @@ class LCMSExport(HighResMassSpectraExport):
                     eic_group = hdf_handle.get("eics")
 
                 # Use the static helper method to save the EICs
-                self._save_eics_dict_to_hdf5(self.mass_spectra.eics, eic_group, overwrite)
+                self._save_eics_dict_to_hdf5(
+                    self.mass_spectra.eics, eic_group, overwrite, compression=compression
+                )
 
             # Add ms2_search results to hdf5 file (parameterized)
             if len(self.mass_spectra.spectral_search_results) > 0:
@@ -1643,7 +1700,9 @@ class LCMSExport(HighResMassSpectraExport):
                                     if array.dtype.str[0:2] == "<U":
                                         array = array.astype("S")
                                     spectral_search_results[str(k)][str(k2)].create_dataset(
-                                        str(k3), data=array
+                                        str(k3),
+                                        data=array,
+                                        **hdf5_dataset_kwargs(array.shape, compression=compression),
                                     )
 
             # Save parameters as separate json
