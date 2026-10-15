@@ -2141,7 +2141,10 @@ class PHCalculations:
                 self.mass_features = {}
                 return
         else:
-            threshold = self.parameters.lc_ms.ph_inten_min_rel * data.intensity.max()
+            threshold = max(
+                self.parameters.lc_ms.ph_inten_min_rel * data.intensity.max(),
+                self.parameters.lc_ms.ph_inten_min_abs,
+            )
             persistence_threshold = (
                 self.parameters.lc_ms.ph_persis_min_rel * data.intensity.max()
             )
@@ -2469,7 +2472,10 @@ class PHCalculations:
         else:
             # Normal mode with threshold
             max_intensity = data_with_time["intensity"].max()
-            threshold = self.parameters.lc_ms.ph_inten_min_rel * max_intensity
+            threshold = max(
+                self.parameters.lc_ms.ph_inten_min_rel * max_intensity,
+                self.parameters.lc_ms.ph_inten_min_abs,
+            )
             valid_mask = data_with_time["intensity"].notna() & (data_with_time["intensity"] > threshold)
             required_cols = ["mz", "intensity", "scan", "scan_time"]
             data_thres = data_with_time.loc[valid_mask, required_cols].copy()
