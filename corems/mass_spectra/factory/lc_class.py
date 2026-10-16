@@ -44,6 +44,39 @@ def _paths_equal(left, right):
         return False
 
 
+def _drop_all_na_float_columns(frames):
+    """Drop all-NA columns that another frame stores as float.
+
+    An all-NA object column next to a float makes ``concat`` warn, and a
+    future pandas can change that float's dtype. Leaving the column out keeps
+    the float dtype and fills the missing rows with NA. An all-NA object
+    column next to an int is kept. Dropping that column turns the id into
+    float64 (None, 2 -> nan, 2.0). Empty frames are returned unchanged.
+    """
+    float_value_cols = set()
+    for frame in frames:
+        if len(frame) == 0:
+            continue
+        for col in frame.columns:
+            values = frame[col]
+            if values.notna().any() and pd.api.types.is_float_dtype(values):
+                float_value_cols.add(col)
+    cleaned = []
+    for frame in frames:
+        if len(frame) == 0:
+            cleaned.append(frame)
+            continue
+        empty_float_cols = [
+            col
+            for col in frame.columns
+            if col in float_value_cols and frame[col].isna().all()
+        ]
+        if empty_float_cols:
+            frame = frame.drop(columns=empty_float_cols)
+        cleaned.append(frame)
+    return cleaned
+
+
 class MassSpectraBase:
     """Base class for mass spectra objects.
 
@@ -1155,30 +1188,10 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 eic_mz = mf_dict[mf_id].mz
             df_mf_single["_eic_mz"] = eic_mz
             df_mf_list.append(df_mf_single)
-        # An all-NA object column next to a float makes concat warn, and a
-        # future pandas can change that float's dtype. Drop those empty
-        # entries. An all-NA object column next to an int id does not warn;
-        # dropping it turns the id into float64 (None, 2 -> nan, 2.0).
-        float_value_cols = set()
-        for frame in df_mf_list:
-            if len(frame) == 0:
-                continue
-            for col in frame.columns:
-                values = frame[col]
-                if values.notna().any() and pd.api.types.is_float_dtype(values):
-                    float_value_cols.add(col)
-        cleaned_frames = []
-        for frame in df_mf_list:
-            if len(frame) == 0:
-                continue
-            empty_float_cols = [
-                col
-                for col in frame.columns
-                if col in float_value_cols and frame[col].isna().all()
-            ]
-            if empty_float_cols:
-                frame = frame.drop(columns=empty_float_cols)
-            cleaned_frames.append(frame)
+        # Same rule as collection concat: drop all-NA float columns only.
+        cleaned_frames = _drop_all_na_float_columns(
+            [frame for frame in df_mf_list if len(frame) > 0]
+        )
         df_mf = pd.concat(cleaned_frames)
 
         # rename _area to area and id to mf_id
@@ -2177,7 +2190,10 @@ class LCMSCollection(LCMSCollectionCalculations):
                 self._combined_mass_features = None
             return
 
-        combined_mass_features = pd.concat(mf_df_list)
+        # A sample of gap-fill misses stores area as all-NA object. A sample
+        # with a measured area stores it as float. Concat warns on pandas 2
+        # and can change that float's dtype. Drop the empty column first.
+        combined_mass_features = pd.concat(_drop_all_na_float_columns(mf_df_list))
         # Ensure sample_id and cluster columns have integer dtypes where possible
         if "sample_id" in combined_mass_features.columns:
             try:
