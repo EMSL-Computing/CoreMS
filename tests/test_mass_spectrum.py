@@ -3,7 +3,14 @@ from types import SimpleNamespace
 
 from numpy import allclose, arange, array, copy, isfinite, isnan
 
+from corems.encapsulation.factory.parameters import MSParameters
 from corems.mass_spectrum.calc.PeakPicking import PeakPicking
+from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
+from corems.mass_spectrum.input.numpyArray import (
+    ms_from_array_centroid,
+    ms_from_array_profile,
+)
+from corems.mass_spectrum.output.export import HighResMassSpecExport
 
 # Tests for adpodization methods
 def test_hamming(bruker_transient):
@@ -79,6 +86,60 @@ def test_minima(bruker_transient, mass_spectrum_ftms):
     mass_spectrum_obj.process_mass_spec()
     assert mass_spectrum_obj.settings.noise_threshold_method == "minima"
     assert len(mass_spectrum_obj) != len(mass_spectrum_ftms)
+
+
+def _reload_noise_threshold_method(mass_spectrum, out_path):
+    """Write a spectrum and return the noise method stored in the file."""
+    HighResMassSpecExport(out_path, mass_spectrum, output_type="hdf5").save()
+    parser = ReadCoreMSHDF_MassSpectrum(out_path.with_suffix(".hdf5"))
+    try:
+        loaded = parser.get_mass_spectrum(load_molecular_formula=False)
+    finally:
+        parser.close()
+    return loaded.settings.noise_threshold_method
+
+
+def test_noise_threshold_method_by_format(tmp_path):
+    """by_format stays unset until use, then the concrete method can be read back."""
+    assert MSParameters(use_defaults=True).mass_spectrum.noise_threshold_method == "by_format"
+    assert "by_format" in MSParameters(use_defaults=True).mass_spectrum.noise_threshold_methods_implemented
+
+    profile_abundance = [
+        1, 1, 1, 1, 2, 5, 20, 80, 200, 500, 1000, 500, 200, 80, 20, 5, 2, 1, 1, 1, 1,
+    ]
+    profile_mz = [200 + i * 0.05 for i in range(len(profile_abundance))]
+    profile = ms_from_array_profile(
+        profile_mz, profile_abundance, "by-format-profile", auto_process=False
+    )
+    profile.parameters = MSParameters(use_defaults=True)
+    assert profile.settings.noise_threshold_method == "by_format"
+    profile.process_mass_spec()
+    assert profile.settings.noise_threshold_method == "log"
+    assert _reload_noise_threshold_method(profile, tmp_path / "by-format-profile") == "log"
+
+    profile.settings.noise_threshold_method = "relative_abundance"
+    assert profile._resolve_noise_threshold_method() == "relative_abundance"
+
+    mz = [200.0, 200.1, 200.2]
+    abundance = [1.0, 1000.0, 1.0]
+    centroid = ms_from_array_centroid(
+        mz,
+        abundance,
+        [1.0, 1.0, 1.0],
+        [10.0, 10.0, 10.0],
+        "by-format-centroid",
+        auto_process=False,
+    )
+    centroid.parameters = MSParameters(use_defaults=True)
+    assert centroid.settings.noise_threshold_method == "by_format"
+    centroid.process_mass_spec()
+    assert centroid.settings.noise_threshold_method == "relative_abundance"
+    assert len(centroid) == 1
+    assert centroid[0].mz_exp == 200.1
+    assert (
+        _reload_noise_threshold_method(centroid, tmp_path / "by-format-centroid")
+        == "relative_abundance"
+    )
 
 # Tests for peak filtering methods
 def test_mass_spectrum_filtering(mass_spectrum_ftms):

@@ -600,6 +600,7 @@ class PeakPicking:
 
         intes = array(intes).astype(float)
 
+        self._resolve_noise_threshold_method()
         noise_threshold_method = self.settings.noise_threshold_method
 
         if noise_threshold_method == "minima":

@@ -120,7 +120,8 @@ def test_import_corems_hdf5():
     assert round(mass_spectrum[0].mz_exp,3) == 576.075
     assert mass_spectrum[0][0].string == 'C25 H20 O16'
     assert mass_spectrum.to_dataframe().shape == (20, 26)
-    assert mass_spectrum.settings.noise_threshold_method == 'log'
+    # Saved under the legacy field name. The current noise_threshold_method is not in this file.
+    assert mass_spectrum.settings.threshold_method == "signal_noise"
     assert len(mass_spectrum) == 20
 
     # Import unprocessed mass spectrum, check that the mass spectrum is loaded correctly

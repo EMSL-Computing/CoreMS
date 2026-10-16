@@ -288,13 +288,13 @@ class LiquidChromatographSetting:
         Default is {"noise_score_max": {"value": 0.8, "operator": ">="},"noise_score_min": {"value": 0.5, "operator": ">="}},
     peak_picking_method : str, optional
         Peak picking method to use. See implemented_peak_picking_methods for options.
-        Default is 'auto', which selects persistent homology when all scans
+        Default is 'by_format', which selects persistent homology when all scans
         at the requested MS level are profile and centroided persistent
         homology when all are centroid, then stores the concrete method on
         this setting so saved parameters record what was used.
     implemented_peak_picking_methods : tuple, optional
         Peak picking methods that can be implemented.
-        Default is ('auto', 'persistent homology', 'centroided_persistent_homology').
+        Default is ('by_format', 'persistent homology', 'centroided_persistent_homology').
     ph_smooth_it : int, optional
         Number of iterations to use for smoothing prior to finding mass features.
         Used only for "persistent homology" peak picking method.
@@ -430,9 +430,9 @@ class LiquidChromatographSetting:
     mass_feature_attribute_filter_dict: Dict = dataclasses.field(default_factory=dict)
 
     # Parameters used for 2D peak picking
-    peak_picking_method: str = "auto"
+    peak_picking_method: str = "by_format"
     implemented_peak_picking_methods: tuple = (
-        "auto",
+        "by_format",
         "persistent homology",
         "centroided_persistent_homology",
     )
@@ -564,9 +564,12 @@ class MassSpectrumSetting:
     Attributes
     ----------
     noise_threshold_method : str, optional
-        Method for detecting noise threshold. Default is 'log'.
+        Method for detecting noise threshold. Default is 'by_format', which
+        selects 'log' for a profile spectrum and 'relative_abundance' for
+        a centroid spectrum, then stores that concrete method on this
+        setting so saved parameters record what was used.
     noise_threshold_methods_implemented : tuple, optional
-        Methods for detected noise threshold that can be implemented. Default is ('minima', 'signal_noise', 'relative_abundance', 'absolute_abundance', 'log').
+        Methods for detected noise threshold that can be implemented. Default is ('by_format', 'minima', 'signal_noise', 'relative_abundance', 'absolute_abundance', 'log').
     noise_threshold_min_std : int, optional
         Minumum value for noise thresholding when using 'minima' noise threshold method. Default is 6.
     noise_threshold_min_s2n : float, optional
@@ -612,9 +615,10 @@ class MassSpectrumSetting:
         If True, print verbose processing information. Default is True.
     """
 
-    noise_threshold_method: str = "log"
+    noise_threshold_method: str = "by_format"
 
     noise_threshold_methods_implemented: tuple = (
+        "by_format",
         "minima",
         "signal_noise",
         "relative_abundance",

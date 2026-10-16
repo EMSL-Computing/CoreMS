@@ -393,8 +393,30 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             self._abundance *= 0
             self._mz_exp *= 0
 
+    def _resolve_noise_threshold_method(self):
+        """Resolve ``by_format`` and store the concrete noise-threshold method.
+
+        Profile spectra use ``log``. Centroid spectra use
+        ``relative_abundance``. An explicit method is left unchanged.
+        ``by_format`` is replaced on this spectrum's settings so saved
+        parameters record what was used.
+
+        Returns
+        -------
+        str
+            Concrete noise-threshold method.
+        """
+        method = self.settings.noise_threshold_method
+        if method != "by_format":
+            return method
+        resolved = "relative_abundance" if self.is_centroid else "log"
+        self.settings.noise_threshold_method = resolved
+        return resolved
+
     def cal_noise_threshold(self):
         """Calculate the noise threshold of the mass spectrum."""
+
+        self._resolve_noise_threshold_method()
 
         if self.label == Labels.simulated_profile:
             self._baseline_noise, self._baseline_noise_std = 0.1, 1
