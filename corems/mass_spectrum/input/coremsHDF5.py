@@ -256,12 +256,6 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
                 "baseline_noise_std", mass_spec_obj._baseline_noise_std
             )
 
-            # Restore each peak's own calibration (independent of
-            # load_molecular_formula) before any profile conversion below,
-            # so to_profile()'s fallback search can tell a calibrated peak
-            # from an uncalibrated one.
-            self.restore_peak_calibration(mass_spec_obj, dataframe)
-
         if load_settings:
             # Load settings into the mass spectrum object
             self.load_settings(
@@ -277,7 +271,14 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
                 # Attach formulas to the centroid's peaks before any profile
                 # conversion below, so to_profile() carries them over for free
                 # (it reuses these same peak objects, it doesn't rebuild them).
+                # Also before calibration restore: this matches the uncalibrated
+                # "m/z" column, and MSPeak.mz_exp returns mz_cal once that is set.
                 self.add_molecular_formula(mass_spec_obj, dataframe)
+
+        if auto_process:
+            # After formula attachment, before to_profile(). The fallback
+            # peak-index search needs a calibrated peak's mz_cal already set.
+            self.restore_peak_calibration(mass_spec_obj, dataframe)
 
         if load_raw and not force_centroid:
             raw_arrays = self.load_raw_data(scan_index=scan_index)

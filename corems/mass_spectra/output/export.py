@@ -1599,7 +1599,14 @@ class LCMSExport(HighResMassSpectraExport):
             mass_features_dict, mass_features_group, overwrite, compression=compression
         )
 
-    def to_hdf(self, overwrite=False, save_parameters=True, parameter_format="toml"):
+    def to_hdf(
+        self,
+        overwrite=False,
+        save_parameters=True,
+        parameter_format="toml",
+        compression=DEFAULT_HDF5_COMPRESSION,
+        profile_dtype="f4",
+    ):
         """Export the data to an HDF5.
 
         Parameters
@@ -1610,6 +1617,14 @@ class LCMSExport(HighResMassSpectraExport):
             Whether to save the parameters as a separate json or toml file. Default is True.
         parameter_format : str, optional
             The format to save the parameters in. Default is 'toml'.
+        compression : int, str or None, optional
+            Compression for the written datasets: a gzip level 0-9,
+            ``"lzf"``, or ``None``/``"none"``. Default is 4. ``"lzf"`` is
+            h5py's own filter, not a standard HDF5 one -- it needs h5py (or
+            a tool with the lzf plugin) to read the result back.
+        profile_dtype : str, optional
+            dtype used for the stored profile m/z and abundance arrays
+            (``"f4"`` or ``"f8"``). Default is ``"f4"``.
 
         Raises
         ------
@@ -1619,8 +1634,6 @@ class LCMSExport(HighResMassSpectraExport):
         export_profile_spectra = (
             self.mass_spectra.parameters.lc_ms.export_profile_spectra
         )
-        compression = self.mass_spectra.parameters.lc_ms.hdf5_compression
-        profile_dtype = self.mass_spectra.parameters.lc_ms.hdf5_profile_dtype
 
         # Write the mass spectra data to the hdf5 file
         super().to_hdf(

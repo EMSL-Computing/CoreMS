@@ -2,13 +2,9 @@
 
 from corems.encapsulation import nist_atoms
 
-# gzip level used by default for HDF5 datasets written on the mass
-# spectrum / LC-MS export path (corems.mass_spectrum.output.export's
-# hdf5_dataset_kwargs, LiquidChromatographSetting.hdf5_compression, and
-# every to_hdf()). Single source so there's one place to change it; this
-# module is a safe import target for both (export.py -> MassSpectrumClasses
-# -> encapsulation.factory.parameters -> processingSetting would be
-# circular if processingSetting imported export.py directly instead).
+# Default gzip level for HDF5 datasets on the mass spectrum and LC-MS
+# export path. Callers pass it as the compression argument of
+# hdf5_dataset_kwargs and to_hdf().
 DEFAULT_HDF5_COMPRESSION = 4
 
 

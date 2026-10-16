@@ -5,7 +5,7 @@ import dataclasses
 import os
 from typing import List, Dict
 
-from corems.encapsulation.constant import Atoms, DEFAULT_HDF5_COMPRESSION, Labels
+from corems.encapsulation.constant import Atoms, Labels
 
 # Field metadata: omit from JSON/TOML parameter export (in-memory back-compat only).
 LEGACY_PARAMETER = "legacy"
@@ -383,17 +383,6 @@ class LiquidChromatographSetting:
         for each mass feature (if available). If False, export all mass spectra.
         This parameter reduces HDF5 file size by excluding non-feature spectra.
         Default is False (backwards compatible - exports all spectra).
-    hdf5_compression : int, str or None, optional
-        Compression used for HDF5 datasets written by ``to_hdf``: a gzip level
-        0-9, ``"lzf"``, or ``None``/``"none"`` for no compression.
-        Default is 4 (gzip level 9 was slow for large profile arrays).
-        ``"lzf"`` is h5py's own filter, not a standard HDF5 one -- a file
-        written with it needs h5py (or a tool with the lzf plugin) to read
-        the compressed datasets back; gzip is the portable choice.
-    hdf5_profile_dtype : str, optional
-        Numpy/h5py dtype string used to store profile m/z and abundance
-        arrays in ``raw_ms``. ``"f4"`` (float32, current size) or ``"f8"``
-        (float64, more precision). Default is ``"f4"``.
     verbose_processing : bool, optional
         If True, print verbose processing information.
         Default is True.
@@ -476,8 +465,6 @@ class LiquidChromatographSetting:
     export_eics: bool = True
     export_unprocessed_ms1: bool = False
     export_only_relevant_mass_spectra: bool = False
-    hdf5_compression: int | str | None = DEFAULT_HDF5_COMPRESSION
-    hdf5_profile_dtype: str = "f4"
 
     # Parameters used for verbose processing
     verbose_processing: bool = True

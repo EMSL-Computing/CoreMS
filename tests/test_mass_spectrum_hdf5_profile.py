@@ -17,11 +17,13 @@ import h5py
 import numpy as np
 import pytest
 
+from corems.encapsulation.factory.parameters import MSParameters
 from corems.mass_spectrum.factory.MassSpectrumClasses import (
     MassSpecCentroid,
     MassSpecProfile,
 )
 from corems.mass_spectrum.input.coremsHDF5 import ReadCoreMSHDF_MassSpectrum
+from corems.mass_spectrum.input.massList import ReadCoremsMasslist
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
 from corems.mass_spectrum.output.export import HighResMassSpecExport, hdf5_dataset_kwargs
 from corems.mass_spectra.factory.lc_class import LCMSBase, MassSpectraBase
@@ -419,7 +421,10 @@ def test_calibrated_profile_round_trip_no_double_calibration(tmp_path):
     assert row_labels == ["mz", "abundance", "mz_cal"]
 
     with ReadCoreMSHDF_MassSpectrum(str(h5path)) as reader:
-        ms2 = reader.get_mass_spectrum(load_raw=True, load_molecular_formula=False)
+        # Defaults include load_molecular_formula=True. Formula attachment
+        # matches the uncalibrated "m/z" column; restoring mz_cal first makes
+        # MassSpectrum.mz_exp return the calibrated value and the lookup raises.
+        ms2 = reader.get_mass_spectrum()
 
     assert ms2.is_calibrated is True
     np.testing.assert_allclose(ms2.mz_exp_profile, ms.mz_cal_profile)
@@ -436,6 +441,30 @@ def test_calibrated_profile_round_trip_no_double_calibration(tmp_path):
         assert reloaded.mz_cal is not None
         np.testing.assert_allclose(reloaded.mz_cal, orig.mz_cal, rtol=1e-6)
         np.testing.assert_allclose(reloaded.mz_exp, orig.mz_exp, rtol=1e-6)
+
+    # Same order bug on the CoreMS CSV reader, which shares restore + formula attachment.
+    # The reader peak-picks during MassSpecCentroid(), so the threshold has to
+    # be set on MSParameters before that call. Restore it afterward.
+    csv_path = tmp_path / "peaks"
+    HighResMassSpecExport(str(csv_path), ms, output_type="csv").to_csv(write_metadata=False)
+    ms_settings = MSParameters.mass_spectrum
+    previous_method = ms_settings.noise_threshold_method
+    previous_absolute = ms_settings.noise_threshold_absolute_abundance
+    ms_settings.noise_threshold_method = "absolute_abundance"
+    ms_settings.noise_threshold_absolute_abundance = 0
+    try:
+        listed = ReadCoremsMasslist(csv_path.with_suffix(".csv")).get_mass_spectrum(
+            loadSettings=False
+        )
+    finally:
+        ms_settings.noise_threshold_method = previous_method
+        ms_settings.noise_threshold_absolute_abundance = previous_absolute
+    listed_by_mz = sorted(listed.mspeaks, key=lambda p: p._mz_exp)
+    assert len(listed_by_mz) == len(original_peaks_by_mz)
+    for orig, reloaded in zip(original_peaks_by_mz, listed_by_mz):
+        assert reloaded.mz_cal is not None
+        np.testing.assert_allclose(reloaded.mz_cal, orig.mz_cal, rtol=1e-5)
+        np.testing.assert_allclose(reloaded._mz_exp, orig._mz_exp, rtol=1e-5)
 
 
 def test_restore_peak_calibration_skips_nan_cell(tmp_path):

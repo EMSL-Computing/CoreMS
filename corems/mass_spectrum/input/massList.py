@@ -85,8 +85,10 @@ class ReadCoremsMasslist(MassListBaseClass):
             self.load_settings(mass_spec_obj, output_parameters)
 
         if auto_process:
-            self.restore_peak_calibration(mass_spec_obj, dataframe)
+            # Formulas first. add_molecular_formula matches the uncalibrated
+            # "m/z" column against mz_exp, which returns mz_cal once restored.
             self.add_molecular_formula(mass_spec_obj, dataframe)
+            self.restore_peak_calibration(mass_spec_obj, dataframe)
 
         return mass_spec_obj
 
