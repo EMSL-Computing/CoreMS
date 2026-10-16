@@ -66,6 +66,8 @@ class NoiseThresholdCalc:
             (min_mz, max_mz), (noise_threshold, noise_threshold)
         """
 
+        self._resolve_noise_threshold_method()
+
         if self.is_centroid:
             x = min(self.mz_exp), max((self.mz_exp))
 

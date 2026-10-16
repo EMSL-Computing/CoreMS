@@ -564,9 +564,12 @@ class MassSpectrumSetting:
     Attributes
     ----------
     noise_threshold_method : str, optional
-        Method for detecting noise threshold. Default is 'log'.
+        Method for detecting noise threshold. Default is 'auto', which
+        selects 'log' for a profile spectrum and 'relative_abundance' for
+        a centroid spectrum, then stores that concrete method on this
+        setting so saved parameters record what was used.
     noise_threshold_methods_implemented : tuple, optional
-        Methods for detected noise threshold that can be implemented. Default is ('minima', 'signal_noise', 'relative_abundance', 'absolute_abundance', 'log').
+        Methods for detected noise threshold that can be implemented. Default is ('auto', 'minima', 'signal_noise', 'relative_abundance', 'absolute_abundance', 'log').
     noise_threshold_min_std : int, optional
         Minumum value for noise thresholding when using 'minima' noise threshold method. Default is 6.
     noise_threshold_min_s2n : float, optional
@@ -612,9 +615,10 @@ class MassSpectrumSetting:
         If True, print verbose processing information. Default is True.
     """
 
-    noise_threshold_method: str = "log"
+    noise_threshold_method: str = "auto"
 
     noise_threshold_methods_implemented: tuple = (
+        "auto",
         "minima",
         "signal_noise",
         "relative_abundance",

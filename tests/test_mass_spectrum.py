@@ -3,7 +3,12 @@ from types import SimpleNamespace
 
 from numpy import allclose, arange, array, copy, isfinite, isnan
 
+from corems.encapsulation.factory.parameters import MSParameters
 from corems.mass_spectrum.calc.PeakPicking import PeakPicking
+from corems.mass_spectrum.input.numpyArray import (
+    ms_from_array_centroid,
+    ms_from_array_profile,
+)
 
 # Tests for adpodization methods
 def test_hamming(bruker_transient):
@@ -79,6 +84,39 @@ def test_minima(bruker_transient, mass_spectrum_ftms):
     mass_spectrum_obj.process_mass_spec()
     assert mass_spectrum_obj.settings.noise_threshold_method == "minima"
     assert len(mass_spectrum_obj) != len(mass_spectrum_ftms)
+
+
+def test_noise_threshold_method_auto():
+    """auto stays unset until use, then locks to log or relative abundance."""
+    assert MSParameters(use_defaults=True).mass_spectrum.noise_threshold_method == "auto"
+    assert "auto" in MSParameters(use_defaults=True).mass_spectrum.noise_threshold_methods_implemented
+
+    mz = [200.0, 200.1, 200.2]
+    abundance = [1.0, 1000.0, 1.0]
+
+    profile = ms_from_array_profile(mz, abundance, "auto-profile", auto_process=False)
+    profile.parameters = MSParameters(use_defaults=True)
+    assert profile.settings.noise_threshold_method == "auto"
+    profile.cal_noise_threshold()
+    assert profile.settings.noise_threshold_method == "log"
+
+    profile.settings.noise_threshold_method = "relative_abundance"
+    assert profile._resolve_noise_threshold_method() == "relative_abundance"
+
+    centroid = ms_from_array_centroid(
+        mz,
+        abundance,
+        [1.0, 1.0, 1.0],
+        [10.0, 10.0, 10.0],
+        "auto-centroid",
+        auto_process=False,
+    )
+    centroid.parameters = MSParameters(use_defaults=True)
+    assert centroid.settings.noise_threshold_method == "auto"
+    centroid.process_mass_spec()
+    assert centroid.settings.noise_threshold_method == "relative_abundance"
+    assert len(centroid) == 1
+    assert centroid[0].mz_exp == 200.1
 
 # Tests for peak filtering methods
 def test_mass_spectrum_filtering(mass_spectrum_ftms):
