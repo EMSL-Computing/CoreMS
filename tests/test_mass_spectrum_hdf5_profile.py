@@ -29,7 +29,9 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.mass_spectra.output.export import HighResMassSpectraExport, LCMSExport
 
 
-def make_profile_ms(dataname="mwe", polarity=-1, scan_number=0, centers=((300.1, 1e6),)):
+def make_profile_ms(
+    dataname="mwe", polarity=-1, scan_number=0, centers=((300.1, 1e6),), n_points=60_000
+):
     """Synthetic profile spectrum with well-separated, well-sampled Gaussian peaks.
 
     Peak sigma (0.05) spans several grid points (grid spacing ~0.01) so the
@@ -41,7 +43,7 @@ def make_profile_ms(dataname="mwe", polarity=-1, scan_number=0, centers=((300.1,
     until it runs into the next peak or the array edge, overstating peak
     width/area in a way real (noisy) data wouldn't.
     """
-    mz = np.linspace(200.0, 800.0, 60_000)
+    mz = np.linspace(200.0, 800.0, n_points)
     abundance = 10.0 + np.random.default_rng(0).normal(0, 1e-6, size=mz.shape)
     for centre, height in centers:
         abundance += height * np.exp(-0.5 * ((mz - centre) / 0.05) ** 2)
@@ -327,6 +329,51 @@ def test_peak_profile_indices_versioned_by_reprocessing(tmp_path):
     np.testing.assert_array_equal(first, expected_first)
 
 
+def test_appended_different_length_profile_falls_back_cleanly(tmp_path):
+    """raw_ms is only ever written on a scan group's first creation; if a
+    later version's mass spectrum has a different-length profile (e.g. a
+    reprocessing from different raw data), its peak_profile_indices must
+    not be written at all -- those indices wouldn't line up with the one
+    stored (unchanged) raw_ms. Reload of that version must still work,
+    falling back to the search instead of using stale/invalid indices.
+    """
+    ms = make_profile_ms(centers=((300.1, 1e6), (450.2, 5e5)))
+    out_path = tmp_path / "spec"
+    HighResMassSpecExport(str(out_path), ms).to_hdf(profile_dtype="f8")
+    h5path = out_path.with_suffix(".hdf5")
+
+    # Same scan_number, same peak centers, but a different-length profile --
+    # as if the scan were reprocessed from raw data sampled differently.
+    different_length = make_profile_ms(
+        scan_number=ms.scan_number,
+        centers=((300.1, 1e6), (450.2, 5e5)),
+        n_points=45_000,
+    )
+    HighResMassSpecExport(str(out_path), different_length).to_hdf(profile_dtype="f8")
+
+    with h5py.File(h5path, "r") as handle:
+        group = handle[str(ms.scan_number)]
+        assert "raw_ms" in group
+        assert group["raw_ms"].shape[-1] == len(ms._mz_exp)  # unchanged, first version's length
+        assert "peak_profile_indices_0" in group
+        assert "peak_profile_indices_1" not in group  # skipped: length mismatch
+
+    with ReadCoreMSHDF_MassSpectrum(str(h5path)) as reader:
+        reloaded = reader.get_mass_spectrum(
+            time_index=-1, load_raw=True, load_molecular_formula=False
+        )
+
+    # Falls back cleanly: still a profile (raw_ms exists), with peaks found
+    # via the search against the one stored (first-version) profile, at the
+    # *second* version's peak m/z values (what was actually reprocessed).
+    assert isinstance(reloaded, MassSpecProfile)
+    reloaded_by_mz = sorted(reloaded.mspeaks, key=lambda p: p.mz_exp)
+    expected_by_mz = sorted(different_length.mspeaks, key=lambda p: p.mz_exp)
+    assert len(reloaded_by_mz) == len(expected_by_mz)
+    for reloaded_peak, expected_peak in zip(reloaded_by_mz, expected_by_mz):
+        np.testing.assert_allclose(reloaded_peak.mz_exp, expected_peak.mz_exp, rtol=1e-6)
+
+
 def test_to_profile_transfers_peak_ownership(tmp_path):
     """to_profile() moves the peaks: the source centroid must be left with
     none afterwards, not sharing them with the returned profile.
@@ -354,11 +401,16 @@ def test_to_profile_transfers_peak_ownership(tmp_path):
 
 
 def test_calibrated_profile_round_trip_no_double_calibration(tmp_path):
-    ms = make_profile_ms()
-    # Simulate a profile-level calibration: a small constant ppm shift.
+    ms = make_profile_ms(centers=((300.1, 1e6), (450.2, 5e5)))
+    # Simulate a real calibration run: both the profile and each peak get
+    # the same constant ppm shift (a real MzDomainCalibration calibrates
+    # the whole spectrum, not just the profile).
     shift_ppm = 2.0
     ms.mz_cal_profile = ms._mz_exp * (1 + shift_ppm * 1e-6)
     ms.is_calibrated = True
+    original_peaks_by_mz = sorted(ms.mspeaks, key=lambda p: p._mz_exp)
+    for mspeak in original_peaks_by_mz:
+        mspeak.mz_cal = mspeak._mz_exp * (1 + shift_ppm * 1e-6)
 
     h5path = export_single(ms, tmp_path / "spec", profile_dtype="f8")
 
@@ -374,6 +426,16 @@ def test_calibrated_profile_round_trip_no_double_calibration(tmp_path):
     # Not double-applied: the calibrated profile is exactly what was stored,
     # not calibration-of-the-calibration.
     np.testing.assert_allclose(np.asarray(ms2.mz_exp_profile), ms._mz_exp * (1 + shift_ppm * 1e-6))
+
+    # Peaks must come back calibrated too -- the profile being is_calibrated
+    # while every peak's own mz_cal silently stayed None would leave the
+    # profile and its peaks disagreeing about calibration.
+    reloaded_peaks_by_mz = sorted(ms2.mspeaks, key=lambda p: p._mz_exp)
+    assert len(reloaded_peaks_by_mz) == len(original_peaks_by_mz)
+    for orig, reloaded in zip(original_peaks_by_mz, reloaded_peaks_by_mz):
+        assert reloaded.mz_cal is not None
+        np.testing.assert_allclose(reloaded.mz_cal, orig.mz_cal, rtol=1e-6)
+        np.testing.assert_allclose(reloaded.mz_exp, orig.mz_exp, rtol=1e-6)
 
 
 def test_uncalibrated_profile_has_no_mz_cal_row(tmp_path):

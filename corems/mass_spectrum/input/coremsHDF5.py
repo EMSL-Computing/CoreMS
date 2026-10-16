@@ -256,6 +256,12 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
                 "baseline_noise_std", mass_spec_obj._baseline_noise_std
             )
 
+            # Restore each peak's own calibration (independent of
+            # load_molecular_formula) before any profile conversion below,
+            # so to_profile()'s fallback search can tell a calibrated peak
+            # from an uncalibrated one.
+            self.restore_peak_calibration(mass_spec_obj, dataframe)
+
         if load_settings:
             # Load settings into the mass spectrum object
             self.load_settings(

@@ -1768,17 +1768,24 @@ class MassSpecCentroid(MassSpecBase):
         peak_profile_indices : array_like of shape (n_peaks, 3), optional
             Per-peak ``(left, apex, right)`` indices into
             ``mz_profile``/``abundance_profile``, in the same order as
-            ``self.mspeaks``. When omitted (or its length doesn't match
-            ``self.mspeaks``), each peak's bounds are estimated instead:
-            the apex starts at the nearest profile index to the peak's own
-            m/z (its calibrated m/z against ``mz_cal_profile`` if the peak
-            is calibrated, else its experimental m/z against ``mz_profile``
-            -- either array may run ascending or descending), the left/right
-            bounds are then the neighboring local minima from that starting
-            point, and the apex is finally set to the actual local maximum
-            between those two bounds -- not the initial nearest-index
-            estimate, which can be off by a few points from the quadratic-fit
-            interpolation the original picking used.
+            ``self.mspeaks``. Ignored entirely if its length doesn't match
+            ``self.mspeaks``. Otherwise checked per peak -- a stored triple
+            is only trusted when ``0 <= left <= apex <= right < len(mz_profile)``
+            -- since a file can carry indices from before a later
+            reprocessing changed the profile length (the writer skips
+            storing new ones when that happens, but an older file may still
+            have a stale set from before this check existed). When omitted,
+            or for any one peak whose stored triple fails that check, that
+            peak's bounds are estimated instead: the apex starts at the
+            nearest profile index to the peak's own m/z (its calibrated m/z
+            against ``mz_cal_profile`` if the peak is calibrated, else its
+            experimental m/z against ``mz_profile`` -- either array may run
+            ascending or descending), the left/right bounds are then the
+            neighboring local minima from that starting point, and the apex
+            is finally set to the actual local maximum between those two
+            bounds -- not the initial nearest-index estimate, which can be
+            off by a few points from the quadratic-fit interpolation the
+            original picking used.
         is_calibrated : bool, optional
             Whether the stored m/z is calibrated. Sets ``is_calibrated`` on
             the returned spectrum directly; ``mz_cal_profile`` is applied
@@ -1846,8 +1853,20 @@ class MassSpecCentroid(MassSpecBase):
 
         for i, mspeak in enumerate(new_obj.mspeaks):
             mspeak._ms_parent = new_obj
+
+            stored = None
             if peak_profile_indices is not None:
                 left, apex, right = (int(v) for v in peak_profile_indices[i])
+                # Stored indices can predate a later reprocessing with a
+                # different-length profile (the writer skips storing them
+                # when that happens, but an older file may still have a
+                # stale set); only trust them if they're a sane bound into
+                # *this* profile, else fall back to the search below.
+                if 0 <= left <= apex <= right < n:
+                    stored = (left, apex, right)
+
+            if stored is not None:
+                left, apex, right = stored
             else:
                 if mspeak.mz_cal is not None and mz_cal_arr is not None:
                     search_profile, search_value = mz_cal_arr, mspeak.mz_cal

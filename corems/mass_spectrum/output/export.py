@@ -11,13 +11,13 @@ import numpy as np
 from numpy import nan as NaN
 from pandas import DataFrame
 
-from corems.encapsulation.constant import Atoms, Labels #Labels is accessed in the eval() function
+from corems.encapsulation.constant import Atoms, DEFAULT_HDF5_COMPRESSION, Labels #Labels is accessed in the eval() function
 from corems.encapsulation.output import parameter_to_dict
 from corems.encapsulation.output.parameter_to_json import _dumps_toml
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
 
 
-def hdf5_dataset_kwargs(shape, compression=4, vlen_str=False):
+def hdf5_dataset_kwargs(shape, compression=DEFAULT_HDF5_COMPRESSION, vlen_str=False):
     """Build ``h5py.Group.create_dataset`` filter kwargs for a compression choice.
 
     Centralizes the HDF5 writers' compression choice (one helper used by every
@@ -410,7 +410,7 @@ class HighResMassSpecExport(Thread):
         group_key,
         mass_spectra_group=None,
         export_raw=True,
-        compression=4,
+        compression=DEFAULT_HDF5_COMPRESSION,
         profile_dtype="f4",
     ):
         """Adds the mass spectrum data to an HDF5 file.
@@ -540,8 +540,19 @@ class HighResMassSpecExport(Thread):
         # table's row position (which isn't a profile index). Written once
         # per peak-table version (same suffix as the processed-data index
         # below), since the profile itself (raw_ms) doesn't change across
-        # reprocessing but the picked peaks do.
-        if not mass_spectrum.is_centroid and export_raw:
+        # reprocessing but the picked peaks do -- except raw_ms itself is
+        # only ever written on the group's first creation (just above), so
+        # if *this* mass_spectrum's profile is a different length (e.g. a
+        # later reprocessing that re-picked over different raw data), these
+        # indices would point into a profile that was never stored. Skip
+        # writing them in that case; the reader falls back to a search.
+        existing_raw_ms = scan_group.get("raw_ms")
+        if (
+            not mass_spectrum.is_centroid
+            and export_raw
+            and existing_raw_ms is not None
+            and existing_raw_ms.shape[-1] == len(mass_spectrum.abundance_profile)
+        ):
             peak_indices = np.array(
                 [
                     (mspeak.peak_left_index, mspeak.peak_apex_index, mspeak.peak_right_index)
@@ -597,7 +608,7 @@ class HighResMassSpecExport(Thread):
             separators=(",", ": "),
         )
 
-    def to_hdf(self, compression=4, profile_dtype="f4"):
+    def to_hdf(self, compression=DEFAULT_HDF5_COMPRESSION, profile_dtype="f4"):
         """Exports the mass spectrum data to an HDF5 file.
 
         Parameters

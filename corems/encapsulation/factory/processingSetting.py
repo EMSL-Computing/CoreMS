@@ -5,7 +5,7 @@ import dataclasses
 import os
 from typing import List, Dict
 
-from corems.encapsulation.constant import Atoms, Labels
+from corems.encapsulation.constant import Atoms, DEFAULT_HDF5_COMPRESSION, Labels
 
 # Field metadata: omit from JSON/TOML parameter export (in-memory back-compat only).
 LEGACY_PARAMETER = "legacy"
@@ -473,7 +473,7 @@ class LiquidChromatographSetting:
     export_eics: bool = True
     export_unprocessed_ms1: bool = False
     export_only_relevant_mass_spectra: bool = False
-    hdf5_compression: int | str | None = 4
+    hdf5_compression: int | str | None = DEFAULT_HDF5_COMPRESSION
     hdf5_profile_dtype: str = "f4"
 
     # Parameters used for verbose processing

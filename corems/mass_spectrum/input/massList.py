@@ -85,9 +85,52 @@ class ReadCoremsMasslist(MassListBaseClass):
             self.load_settings(mass_spec_obj, output_parameters)
 
         if auto_process:
+            self.restore_peak_calibration(mass_spec_obj, dataframe)
             self.add_molecular_formula(mass_spec_obj, dataframe)
 
         return mass_spec_obj
+
+    def restore_peak_calibration(self, mass_spec_obj, dataframe):
+        """Restore each peak's ``mz_cal`` from the stored "Calibrated m/z" column.
+
+        The peak table always stores both the uncalibrated "m/z" and the
+        (possibly calibrated) "Calibrated m/z", but ``MassSpecCentroid`` is
+        built only from "m/z" -- so without this, a reloaded peak loses its
+        own calibration even when the spectrum it came from had been
+        calibrated. Only peaks whose "Calibrated m/z" actually differs from
+        "m/z" are touched; an unmatched or never-calibrated peak's ``mz_cal``
+        is left as ``None``, same as before this method existed.
+
+        Parameters
+        ----------
+        mass_spec_obj : MassSpecCentroid
+            The mass spectrum object whose peaks' ``mz_cal`` to restore.
+        dataframe : pandas.DataFrame
+            The processed mass list data, with column names already
+            translated via ``header_translate`` (same dataframe passed to
+            ``add_molecular_formula``).
+        """
+        if "Calibrated m/z" not in dataframe.columns:
+            return
+
+        # Matches peaks by m/z value rather than row position, same approach
+        # add_molecular_formula uses -- safe against any reordering between
+        # the dataframe and mass_spec_obj.mspeaks.
+        mass_spec_mz_exp_list = list(mass_spec_obj.mz_exp)
+
+        for _, row in dataframe.iterrows():
+            mz_cal = row["Calibrated m/z"]
+            if mz_cal is None:
+                continue
+            mz_exp = float(row[Labels.mz])
+            mz_cal = float(mz_cal)
+            if mz_cal == mz_exp:
+                continue
+            try:
+                ms_peak_index = mass_spec_mz_exp_list.index(mz_exp)
+            except ValueError:
+                continue
+            mass_spec_obj[ms_peak_index].mz_cal = mz_cal
 
     def add_molecular_formula(self, mass_spec_obj, dataframe):
         """

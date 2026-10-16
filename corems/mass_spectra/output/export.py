@@ -24,6 +24,7 @@ from corems.encapsulation.output.parameter_to_json import (
     dump_lcms_collection_settings_json,
     dump_lcms_collection_settings_toml,
 )
+from corems.encapsulation.constant import DEFAULT_HDF5_COMPRESSION
 from corems.mass_spectrum.output.export import HighResMassSpecExport, hdf5_dataset_kwargs
 from corems.molecular_formula.calc.MolecularFormulaCalc import MolecularFormulaCalc
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
@@ -1003,7 +1004,13 @@ class HighResMassSpectraExport(HighResMassSpecExport):
             dict_ms_attrs, sort_keys=False, indent=4, separators=(",", ": ")
         )
 
-    def to_hdf(self, overwrite=False, export_raw=True, compression=4, profile_dtype="f4"):
+    def to_hdf(
+        self,
+        overwrite=False,
+        export_raw=True,
+        compression=DEFAULT_HDF5_COMPRESSION,
+        profile_dtype="f4",
+    ):
         """Export the data to an HDF5 file.
 
         Parameters
@@ -1385,7 +1392,7 @@ class LCMSExport(HighResMassSpectraExport):
 
     @staticmethod
     def _save_mass_features_dict_to_hdf5(
-        mass_features_dict, mass_features_group, overwrite=False, compression=4
+        mass_features_dict, mass_features_group, overwrite=False, compression=DEFAULT_HDF5_COMPRESSION
     ):
         """Save a dictionary of mass features to an HDF5 group.
 
@@ -1488,7 +1495,9 @@ class LCMSExport(HighResMassSpectraExport):
                                     mass_features_group[str(k)].attrs[str(k2)] = v2
     
     @staticmethod
-    def _save_eics_dict_to_hdf5(eics_dict, eics_group, overwrite=False, compression=4):
+    def _save_eics_dict_to_hdf5(
+        eics_dict, eics_group, overwrite=False, compression=DEFAULT_HDF5_COMPRESSION
+    ):
         """Save a dictionary of EICs to an HDF5 group.
 
         This is a static helper method that can be reused by different export classes
@@ -1541,7 +1550,11 @@ class LCMSExport(HighResMassSpectraExport):
                         )
     
     def _save_mass_features_to_hdf5(
-        self, hdf_handle, group_name = "mass_features", overwrite=False, compression=4
+        self,
+        hdf_handle,
+        group_name = "mass_features",
+        overwrite=False,
+        compression=DEFAULT_HDF5_COMPRESSION,
     ):
         """Save the mass features to the HDF5 file.
 
