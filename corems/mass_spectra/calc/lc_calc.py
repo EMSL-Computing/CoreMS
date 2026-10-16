@@ -420,13 +420,13 @@ class LCCalculations:
         str
             Concrete method: ``persistent homology`` or
             ``centroided_persistent_homology``. If the stored method is
-            ``auto``, it is chosen from scan formats (all profile or all
+            ``by_format``, it is chosen from scan formats (all profile or all
             centroid).
 
         Raises
         ------
         ValueError
-            If the method is not implemented, ``auto`` cannot be resolved
+            If the method is not implemented, ``by_format`` cannot be resolved
             (empty, mixed, or unknown formats), or an explicit method does
             not match the scan formats at ``ms_level``.
         """
@@ -434,10 +434,10 @@ class LCCalculations:
         msx_scan_df = self.scan_df[self.scan_df["ms_level"] == ms_level]
         values = list(msx_scan_df["ms_format"])
 
-        if method == "auto":
+        if method == "by_format":
             if len(values) == 0:
                 raise ValueError(
-                    "Cannot auto-detect peak picking method: no scans found "
+                    "Cannot resolve by_format peak picking: no scans found "
                     "for the requested MS level."
                 )
             if all(v == "profile" for v in values):
@@ -446,7 +446,7 @@ class LCCalculations:
                 return "centroided_persistent_homology"
             found = sorted({str(v) for v in values})
             raise ValueError(
-                "Cannot auto-detect peak picking method: MS scans are mixed "
+                "Cannot resolve by_format peak picking: MS scans are mixed "
                 f"or unknown format (found {found}). Set peak_picking_method "
                 "explicitly to 'persistent homology' or "
                 "'centroided_persistent_homology'."
@@ -478,10 +478,10 @@ class LCCalculations:
 
         Wrapper that dispatches to a 2D peak picking implementation.
 
-        If ``parameters.lc_ms.peak_picking_method`` is ``auto``, the method is
+        If ``parameters.lc_ms.peak_picking_method`` is ``by_format``, the method is
         chosen from ``scan_df.ms_format`` at the requested MS level (all
         profile → persistent homology; all centroid → centroided persistent
-        homology). A successful auto resolve overwrites
+        homology). A successful resolve overwrites
         ``peak_picking_method`` with the concrete method so saved parameters
         record what was used.
 
@@ -523,7 +523,7 @@ class LCCalculations:
         ------
         ValueError
             If no MS level data is found on the object.
-            If ``auto`` cannot resolve a method (empty, mixed, or unknown
+            If ``by_format`` cannot resolve a method (empty, mixed, or unknown
             ``ms_format`` values at the requested MS level).
             If persistent homology peak picking is attempted on non-profile mode data.
             If centroided persistent homology is attempted on non-centroid mode data.
@@ -549,7 +549,7 @@ class LCCalculations:
         
         requested_method = self.parameters.lc_ms.peak_picking_method
         pp_method = self._resolve_lcms_peak_picking_method(ms_level=ms_level)
-        if requested_method == "auto":
+        if requested_method == "by_format":
             self.parameters.lc_ms.peak_picking_method = pp_method
 
         if targeted_search:

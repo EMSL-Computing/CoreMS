@@ -338,7 +338,7 @@ def test_lcms_metabolomics_targeted_search(tmp_path, lcms_obj):
 class _PeakPickHost(LCCalculations):
     """Minimal LCCalculations host; real pickers are mocked."""
 
-    def __init__(self, ms_formats, method="auto", ms_level=1):
+    def __init__(self, ms_formats, method="by_format", ms_level=1):
         self.parameters = LCMSParameters(use_defaults=True)
         self.parameters.lc_ms.peak_picking_method = method
         self.scan_df = pd.DataFrame(
@@ -352,14 +352,14 @@ class _PeakPickHost(LCCalculations):
         self.cluster_mass_features = MagicMock()
 
 
-def test_lcms_peak_picking_auto_resolve():
-    assert LiquidChromatographSetting().peak_picking_method == "auto"
-    assert LCMSParameters(use_defaults=True).lc_ms.peak_picking_method == "auto"
-    assert "auto" in LiquidChromatographSetting().implemented_peak_picking_methods
+def test_lcms_peak_picking_by_format_resolve():
+    assert LiquidChromatographSetting().peak_picking_method == "by_format"
+    assert LCMSParameters(use_defaults=True).lc_ms.peak_picking_method == "by_format"
+    assert "by_format" in LiquidChromatographSetting().implemented_peak_picking_methods
 
     ok = [
-        ("auto", ["profile", "profile"], "persistent homology"),
-        ("auto", ["centroid"], "centroided_persistent_homology"),
+        ("by_format", ["profile", "profile"], "persistent homology"),
+        ("by_format", ["centroid"], "centroided_persistent_homology"),
         ("persistent homology", ["profile"], "persistent homology"),
         ("centroided_persistent_homology", ["centroid"], "centroided_persistent_homology"),
     ]
@@ -368,11 +368,11 @@ def test_lcms_peak_picking_auto_resolve():
         assert host._resolve_lcms_peak_picking_method() == expected
 
     errors = [
-        ("auto", [], "auto-detect"),
-        ("auto", ["profile", "centroid"], "auto-detect"),
-        ("auto", ["profile", None], "auto-detect"),
-        ("auto", [None], "auto-detect"),
-        ("auto", ["unknown"], "auto-detect"),
+        ("by_format", [], "by_format"),
+        ("by_format", ["profile", "centroid"], "by_format"),
+        ("by_format", ["profile", None], "by_format"),
+        ("by_format", [None], "by_format"),
+        ("by_format", ["unknown"], "by_format"),
         ("not-a-method", ["profile"], "not implemented"),
         ("persistent homology", ["centroid"], "not profile mode"),
         ("centroided_persistent_homology", ["profile"], "not centroid mode"),
@@ -383,14 +383,14 @@ def test_lcms_peak_picking_auto_resolve():
             host._resolve_lcms_peak_picking_method()
 
 
-def test_lcms_peak_picking_auto_lock():
-    profile = _PeakPickHost(["profile"], method="auto")
+def test_lcms_peak_picking_by_format_lock():
+    profile = _PeakPickHost(["profile"], method="by_format")
     profile.find_mass_features()
     profile.find_mass_features_ph.assert_called_once()
     profile.find_mass_features_ph_centroid.assert_not_called()
     assert profile.parameters.lc_ms.peak_picking_method == "persistent homology"
 
-    centroid = _PeakPickHost(["centroid"], method="auto")
+    centroid = _PeakPickHost(["centroid"], method="by_format")
     centroid.find_mass_features()
     centroid.find_mass_features_ph_centroid.assert_called_once()
     centroid.find_mass_features_ph.assert_not_called()
@@ -399,12 +399,12 @@ def test_lcms_peak_picking_auto_lock():
         == "centroided_persistent_homology"
     )
 
-    mixed = _PeakPickHost(["profile", "centroid"], method="auto")
-    with pytest.raises(ValueError, match="auto-detect"):
+    mixed = _PeakPickHost(["profile", "centroid"], method="by_format")
+    with pytest.raises(ValueError, match="by_format"):
         mixed.find_mass_features()
     mixed.find_mass_features_ph.assert_not_called()
     mixed.find_mass_features_ph_centroid.assert_not_called()
-    assert mixed.parameters.lc_ms.peak_picking_method == "auto"
+    assert mixed.parameters.lc_ms.peak_picking_method == "by_format"
 
     mismatch = _PeakPickHost(["centroid"], method="persistent homology")
     with pytest.raises(ValueError, match="not profile mode"):

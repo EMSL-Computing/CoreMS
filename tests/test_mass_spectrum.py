@@ -99,23 +99,23 @@ def _reload_noise_threshold_method(mass_spectrum, out_path):
     return loaded.settings.noise_threshold_method
 
 
-def test_noise_threshold_method_auto(tmp_path):
-    """auto stays unset until use, then the concrete method can be read back."""
-    assert MSParameters(use_defaults=True).mass_spectrum.noise_threshold_method == "auto"
-    assert "auto" in MSParameters(use_defaults=True).mass_spectrum.noise_threshold_methods_implemented
+def test_noise_threshold_method_by_format(tmp_path):
+    """by_format stays unset until use, then the concrete method can be read back."""
+    assert MSParameters(use_defaults=True).mass_spectrum.noise_threshold_method == "by_format"
+    assert "by_format" in MSParameters(use_defaults=True).mass_spectrum.noise_threshold_methods_implemented
 
     profile_abundance = [
         1, 1, 1, 1, 2, 5, 20, 80, 200, 500, 1000, 500, 200, 80, 20, 5, 2, 1, 1, 1, 1,
     ]
     profile_mz = [200 + i * 0.05 for i in range(len(profile_abundance))]
     profile = ms_from_array_profile(
-        profile_mz, profile_abundance, "auto-profile", auto_process=False
+        profile_mz, profile_abundance, "by-format-profile", auto_process=False
     )
     profile.parameters = MSParameters(use_defaults=True)
-    assert profile.settings.noise_threshold_method == "auto"
+    assert profile.settings.noise_threshold_method == "by_format"
     profile.process_mass_spec()
     assert profile.settings.noise_threshold_method == "log"
-    assert _reload_noise_threshold_method(profile, tmp_path / "auto-profile") == "log"
+    assert _reload_noise_threshold_method(profile, tmp_path / "by-format-profile") == "log"
 
     profile.settings.noise_threshold_method = "relative_abundance"
     assert profile._resolve_noise_threshold_method() == "relative_abundance"
@@ -127,17 +127,17 @@ def test_noise_threshold_method_auto(tmp_path):
         abundance,
         [1.0, 1.0, 1.0],
         [10.0, 10.0, 10.0],
-        "auto-centroid",
+        "by-format-centroid",
         auto_process=False,
     )
     centroid.parameters = MSParameters(use_defaults=True)
-    assert centroid.settings.noise_threshold_method == "auto"
+    assert centroid.settings.noise_threshold_method == "by_format"
     centroid.process_mass_spec()
     assert centroid.settings.noise_threshold_method == "relative_abundance"
     assert len(centroid) == 1
     assert centroid[0].mz_exp == 200.1
     assert (
-        _reload_noise_threshold_method(centroid, tmp_path / "auto-centroid")
+        _reload_noise_threshold_method(centroid, tmp_path / "by-format-centroid")
         == "relative_abundance"
     )
 

@@ -378,11 +378,11 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             self._mz_exp *= 0
 
     def _resolve_noise_threshold_method(self):
-        """Resolve ``auto`` and store the concrete noise-threshold method.
+        """Resolve ``by_format`` and store the concrete noise-threshold method.
 
         Profile spectra use ``log``. Centroid spectra use
         ``relative_abundance``. An explicit method is left unchanged.
-        ``auto`` is replaced on this spectrum's settings so saved
+        ``by_format`` is replaced on this spectrum's settings so saved
         parameters record what was used.
 
         Returns
@@ -391,7 +391,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             Concrete noise-threshold method.
         """
         method = self.settings.noise_threshold_method
-        if method != "auto":
+        if method != "by_format":
             return method
         resolved = "relative_abundance" if self.is_centroid else "log"
         self.settings.noise_threshold_method = resolved
