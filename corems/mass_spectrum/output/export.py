@@ -8,13 +8,63 @@ from threading import Thread
 
 import h5py
 import numpy as np
-from numpy import nan as NaN, empty
+from numpy import nan as NaN
 from pandas import DataFrame
 
-from corems.encapsulation.constant import Atoms, Labels #Labels is accessed in the eval() function
+from corems.encapsulation.constant import Atoms, DEFAULT_HDF5_COMPRESSION, Labels #Labels is accessed in the eval() function
 from corems.encapsulation.output import parameter_to_dict
 from corems.encapsulation.output.parameter_to_json import _dumps_toml
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
+
+
+def hdf5_dataset_kwargs(shape, compression=DEFAULT_HDF5_COMPRESSION, vlen_str=False):
+    """Build ``h5py.Group.create_dataset`` filter kwargs for a compression choice.
+
+    Centralizes the HDF5 writers' compression choice (one helper used by every
+    ``create_dataset`` call on the mass spectrum / LC-MS export path) and the
+    filter exceptions h5py enforces: it refuses chunk/filter options on scalar
+    (``shape == ()``) or zero-length datasets, and the fletcher32 checksum
+    filter gains nothing (and h5py can reject it) on variable-length string
+    datasets.
+
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the data about to be written.
+    compression : int, str or None, optional
+        A gzip level 0-9, ``"lzf"``, or ``None``/``"none"`` for no
+        compression. Default is 4. ``"lzf"`` is h5py's own filter, not part
+        of core HDF5 -- a file written with it needs h5py (or another tool
+        with the lzf plugin available) to read the compressed datasets
+        back; gzip is the portable choice across other HDF5 tools.
+    vlen_str : bool, optional
+        True when the dataset's dtype is a variable-length string
+        (``h5py.string_dtype()``); skips the shuffle/fletcher32 filters that
+        don't apply to vlen data. Default is False.
+
+    Returns
+    -------
+    dict
+        Keyword arguments to splat into ``create_dataset`` (besides ``data``
+        and ``dtype``).
+    """
+    if not shape or 0 in shape:
+        return {}
+
+    kwargs = {"chunks": True}
+
+    if compression not in (None, "none"):
+        if compression == "lzf":
+            kwargs["compression"] = "lzf"
+        else:
+            kwargs["compression"] = "gzip"
+            kwargs["compression_opts"] = int(compression)
+
+    if not vlen_str:
+        kwargs["shuffle"] = True
+        kwargs["fletcher32"] = True
+
+    return kwargs
 
 
 class HighResMassSpecExport(Thread):
@@ -363,6 +413,8 @@ class HighResMassSpecExport(Thread):
         group_key,
         mass_spectra_group=None,
         export_raw=True,
+        compression=DEFAULT_HDF5_COMPRESSION,
+        profile_dtype="f4",
     ):
         """Adds the mass spectrum data to an HDF5 file.
 
@@ -379,6 +431,14 @@ class HighResMassSpecExport(Thread):
         export_raw : bool, optional
             Whether to export the raw data. Defaults to True.
             If False, only the processed data (peaks) is exported (essentially centroided data).
+        compression : int, str or None, optional
+            Compression for the written datasets: a gzip level 0-9, ``"lzf"``,
+            or ``None``/``"none"``. Default is 4. ``"lzf"`` is h5py's own
+            filter, not a standard HDF5 one -- it needs h5py (or a tool
+            with the lzf plugin) to read the result back.
+        profile_dtype : str, optional
+            dtype used for the stored profile m/z/abundance arrays
+            (``"f4"`` or ``"f8"``). Default is ``"f4"``.
         """
         if mass_spectra_group is None:
             # Check if the file has the necessary attributes and add them if not
@@ -417,15 +477,32 @@ class HighResMassSpecExport(Thread):
 
             # If there is raw data (from profile data) save it
             if not mass_spectrum.is_centroid and export_raw:
-                mz_abun_array = empty(shape=(2, len(mass_spectrum.abundance_profile)), dtype=np.float32)
+                # "mz" is always the experimental (uncalibrated) profile; a
+                # separate "mz_cal" row is added only when the spectrum is
+                # actually calibrated. mz_cal_profile alone isn't enough to
+                # tell: MzDomainCalibration.__init__ pre-populates it before
+                # any calibration has run, so a never-calibrated spectrum
+                # can still have a (stale/placeholder) mz_cal_profile.
+                row_labels = ["mz", "abundance"]
+                rows = [np.asarray(mass_spectrum._mz_exp), np.asarray(mass_spectrum.abundance_profile)]
+                mz_cal_profile = mass_spectrum.mz_cal_profile
+                if mass_spectrum.is_calibrated and mz_cal_profile is not None:
+                    row_labels.append("mz_cal")
+                    rows.append(np.asarray(mz_cal_profile))
 
-                mz_abun_array[0] = mass_spectrum.abundance_profile
-                mz_abun_array[1] = mass_spectrum.mz_exp_profile
+                mz_abun_array = np.array(rows, dtype=profile_dtype)
 
                 raw_ms_dataset = scan_group.create_dataset(
-                    "raw_ms", data=mz_abun_array, dtype="f4", compression="gzip", compression_opts=9, chunks=True, shuffle=True, fletcher32=True
+                    "raw_ms",
+                    data=mz_abun_array,
+                    dtype=profile_dtype,
+                    **hdf5_dataset_kwargs(mz_abun_array.shape, compression=compression),
                 )
-                
+                raw_ms_dataset.attrs["row_labels"] = json.dumps(row_labels)
+                # Recorded independently of whether an "mz_cal" row was
+                # written, so a reader can trust this over row presence.
+                raw_ms_dataset.attrs["is_calibrated"] = bool(mass_spectrum.is_calibrated)
+
                 # Add metadata to the raw_ms dataset when it exists
                 raw_ms_dataset.attrs["MassSpecAttrs"] = json.dumps(dict_ms_attrs)
 
@@ -451,22 +528,64 @@ class HighResMassSpecExport(Thread):
         else:
             scan_group = hdf_handle.get(group_key)
 
-        # if there is not processed data len = 0, otherwise len() will return next index
-        index_processed_data = str(len(scan_group.keys()))
+        # Next processed-data index: one past the highest existing numeric
+        # key, or 0 if there are none. "raw_ms" and "peak_profile_indices_*"
+        # are not processed-data indices (get_time_index_to_pull also only
+        # considers numeric keys, for the same reason). Using the max rather
+        # than a count matters for a legacy file that already has "raw_ms"
+        # and "1" (an old off-by-one: pre-fix code counted "raw_ms" as an
+        # occupied slot) -- counting numeric keys would give "1" again and
+        # collide with the existing one; max+1 gives "2".
+        numeric_keys = [int(k) for k in scan_group.keys() if k.isdigit()]
+        index_processed_data = str(max(numeric_keys) + 1) if numeric_keys else "0"
+
+        # Per-peak (left, apex, right) indices into the profile arrays above,
+        # in mspeaks order, so a reloaded centroid-with-profile mass
+        # spectrum doesn't need to re-derive peak boundaries from the peak
+        # table's row position (which isn't a profile index). Written once
+        # per peak-table version (same suffix as the processed-data index
+        # below), since the profile itself (raw_ms) doesn't change across
+        # reprocessing but the picked peaks do -- except raw_ms itself is
+        # only ever written on the group's first creation (just above), so
+        # if *this* mass_spectrum's profile is a different length (e.g. a
+        # later reprocessing that re-picked over different raw data), these
+        # indices would point into a profile that was never stored. Skip
+        # writing them in that case; the reader falls back to a search.
+        existing_raw_ms = scan_group.get("raw_ms")
+        if (
+            not mass_spectrum.is_centroid
+            and export_raw
+            and existing_raw_ms is not None
+            and existing_raw_ms.shape[-1] == len(mass_spectrum.abundance_profile)
+        ):
+            peak_indices = np.array(
+                [
+                    (mspeak.peak_left_index, mspeak.peak_apex_index, mspeak.peak_right_index)
+                    for mspeak in mass_spectrum.mspeaks
+                ],
+                dtype=np.int32,
+            ).reshape(-1, 3)
+            scan_group.create_dataset(
+                f"peak_profile_indices_{index_processed_data}",
+                data=peak_indices,
+                **hdf5_dataset_kwargs(peak_indices.shape, compression=compression),
+            )
 
         timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
 
         # Convert list_results to numpy array and optimize data types
         array_results = np.array(list_results)
-        
+
         # Apply data type optimization for numeric columns
         if array_results.dtype == np.float64:
             array_results = array_results.astype(np.float32)
         elif array_results.dtype == np.int64:
             array_results = array_results.astype(np.int32)
-        
+
         processed_dset = scan_group.create_dataset(
-            index_processed_data, data=array_results, compression="gzip", compression_opts=9, chunks=True, shuffle=True, fletcher32=True
+            index_processed_data,
+            data=array_results,
+            **hdf5_dataset_kwargs(array_results.shape, compression=compression),
         )
 
         processed_dset.attrs["date_utc"] = timenow
@@ -494,12 +613,28 @@ class HighResMassSpecExport(Thread):
             separators=(",", ": "),
         )
 
-    def to_hdf(self):
-        """Exports the mass spectrum data to an HDF5 file."""
+    def to_hdf(self, compression=DEFAULT_HDF5_COMPRESSION, profile_dtype="f4"):
+        """Exports the mass spectrum data to an HDF5 file.
+
+        Parameters
+        ----------
+        compression : int, str or None, optional
+            Compression for the written datasets: a gzip level 0-9,
+            ``"lzf"``, or ``None``/``"none"``. Default is 4. ``"lzf"`` is
+            h5py's own filter, not a standard HDF5 one -- it needs h5py (or
+            a tool with the lzf plugin) to read the result back.
+        profile_dtype : str, optional
+            dtype used for the stored profile m/z/abundance arrays
+            (``"f4"`` or ``"f8"``). Default is ``"f4"``.
+        """
 
         with h5py.File(self.output_file.with_suffix(".hdf5"), "a") as hdf_handle:
             self.add_mass_spectrum_to_hdf5(
-                hdf_handle, self.mass_spectrum, str(self.mass_spectrum.scan_number)
+                hdf_handle,
+                self.mass_spectrum,
+                str(self.mass_spectrum.scan_number),
+                compression=compression,
+                profile_dtype=profile_dtype,
             )
 
     def parameters_to_toml(self):

@@ -2,6 +2,11 @@
 
 from corems.encapsulation import nist_atoms
 
+# Default gzip level for HDF5 datasets on the mass spectrum and LC-MS
+# export path. Callers pass it as the compression argument of
+# hdf5_dataset_kwargs and to_hdf().
+DEFAULT_HDF5_COMPRESSION = 4
+
 
 class Labels:  # pragma: no cover
     """Class for Labels used in CoreMS

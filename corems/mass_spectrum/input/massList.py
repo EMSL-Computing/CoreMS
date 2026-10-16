@@ -85,9 +85,65 @@ class ReadCoremsMasslist(MassListBaseClass):
             self.load_settings(mass_spec_obj, output_parameters)
 
         if auto_process:
+            # Formulas first. add_molecular_formula matches the uncalibrated
+            # "m/z" column against mz_exp, which returns mz_cal once restored.
             self.add_molecular_formula(mass_spec_obj, dataframe)
+            self.restore_peak_calibration(mass_spec_obj, dataframe)
 
         return mass_spec_obj
+
+    def restore_peak_calibration(self, mass_spec_obj, dataframe):
+        """Restore each peak's ``mz_cal`` from the stored "Calibrated m/z" column.
+
+        The peak table always stores both the uncalibrated "m/z" and the
+        (possibly calibrated) "Calibrated m/z", but ``MassSpecCentroid`` is
+        built only from "m/z" -- so without this, a reloaded peak loses its
+        own calibration even when the spectrum it came from had been
+        calibrated. Only peaks whose "Calibrated m/z" actually differs from
+        "m/z" are touched; an unmatched or never-calibrated peak's ``mz_cal``
+        is left as ``None``, same as before this method existed.
+
+        Parameters
+        ----------
+        mass_spec_obj : MassSpecCentroid
+            The mass spectrum object whose peaks' ``mz_cal`` to restore.
+        dataframe : pandas.DataFrame
+            The processed mass list data, with column names already
+            translated via ``header_translate`` (same dataframe passed to
+            ``add_molecular_formula``).
+        """
+        if "Calibrated m/z" not in dataframe.columns:
+            return
+
+        mz_exp_col = dataframe[Labels.mz].astype(float)
+        mz_cal_col = dataframe["Calibrated m/z"]
+
+        # A missing "Calibrated m/z" cell is NaN (pandas' representation of
+        # missing data), not None -- and NaN is truthy in Python, so letting
+        # it through would set mz_cal to NaN, and MSPeak.mz_exp
+        # (`self.mz_cal if self.mz_cal else self._mz_exp`) would then return
+        # NaN instead of correctly falling back to the uncalibrated value.
+        # pd.isna() catches it; `is None` would not.
+        present = ~pd.isna(mz_cal_col)
+        mz_cal_col = mz_cal_col.astype(float)
+        differs = present & (mz_cal_col != mz_exp_col)
+        if not differs.any():
+            return
+
+        # Built once -- O(n_peaks) -- and only applied to the rows that
+        # actually differ, instead of a per-row list.index() lookup inside
+        # the loop (quadratic in peak count for a large peak list). Matches
+        # peaks by m/z value rather than row position, same approach
+        # add_molecular_formula uses -- safe against any reordering between
+        # the dataframe and mass_spec_obj.mspeaks. Exact-match only, same as
+        # before.
+        mz_to_index = {mz: i for i, mz in enumerate(mass_spec_obj.mz_exp)}
+
+        for mz_exp, mz_cal in zip(mz_exp_col[differs], mz_cal_col[differs]):
+            ms_peak_index = mz_to_index.get(mz_exp)
+            if ms_peak_index is None:
+                continue
+            mass_spec_obj[ms_peak_index].mz_cal = mz_cal
 
     def add_molecular_formula(self, mass_spec_obj, dataframe):
         """
