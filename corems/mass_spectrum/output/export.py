@@ -33,7 +33,10 @@ def hdf5_dataset_kwargs(shape, compression=DEFAULT_HDF5_COMPRESSION, vlen_str=Fa
         Shape of the data about to be written.
     compression : int, str or None, optional
         A gzip level 0-9, ``"lzf"``, or ``None``/``"none"`` for no
-        compression. Default is 4.
+        compression. Default is 4. ``"lzf"`` is h5py's own filter, not part
+        of core HDF5 -- a file written with it needs h5py (or another tool
+        with the lzf plugin available) to read the compressed datasets
+        back; gzip is the portable choice across other HDF5 tools.
     vlen_str : bool, optional
         True when the dataset's dtype is a variable-length string
         (``h5py.string_dtype()``); skips the shuffle/fletcher32 filters that
@@ -430,7 +433,9 @@ class HighResMassSpecExport(Thread):
             If False, only the processed data (peaks) is exported (essentially centroided data).
         compression : int, str or None, optional
             Compression for the written datasets: a gzip level 0-9, ``"lzf"``,
-            or ``None``/``"none"``. Default is 4.
+            or ``None``/``"none"``. Default is 4. ``"lzf"`` is h5py's own
+            filter, not a standard HDF5 one -- it needs h5py (or a tool
+            with the lzf plugin) to read the result back.
         profile_dtype : str, optional
             dtype used for the stored profile m/z/abundance arrays
             (``"f4"`` or ``"f8"``). Default is ``"f4"``.
@@ -615,7 +620,9 @@ class HighResMassSpecExport(Thread):
         ----------
         compression : int, str or None, optional
             Compression for the written datasets: a gzip level 0-9,
-            ``"lzf"``, or ``None``/``"none"``. Default is 4.
+            ``"lzf"``, or ``None``/``"none"``. Default is 4. ``"lzf"`` is
+            h5py's own filter, not a standard HDF5 one -- it needs h5py (or
+            a tool with the lzf plugin) to read the result back.
         profile_dtype : str, optional
             dtype used for the stored profile m/z/abundance arrays
             (``"f4"`` or ``"f8"``). Default is ``"f4"``.

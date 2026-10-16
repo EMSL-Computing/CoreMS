@@ -113,22 +113,33 @@ class ReadCoremsMasslist(MassListBaseClass):
         if "Calibrated m/z" not in dataframe.columns:
             return
 
-        # Matches peaks by m/z value rather than row position, same approach
-        # add_molecular_formula uses -- safe against any reordering between
-        # the dataframe and mass_spec_obj.mspeaks.
-        mass_spec_mz_exp_list = list(mass_spec_obj.mz_exp)
+        mz_exp_col = dataframe[Labels.mz].astype(float)
+        mz_cal_col = dataframe["Calibrated m/z"]
 
-        for _, row in dataframe.iterrows():
-            mz_cal = row["Calibrated m/z"]
-            if mz_cal is None:
-                continue
-            mz_exp = float(row[Labels.mz])
-            mz_cal = float(mz_cal)
-            if mz_cal == mz_exp:
-                continue
-            try:
-                ms_peak_index = mass_spec_mz_exp_list.index(mz_exp)
-            except ValueError:
+        # A missing "Calibrated m/z" cell is NaN (pandas' representation of
+        # missing data), not None -- and NaN is truthy in Python, so letting
+        # it through would set mz_cal to NaN, and MSPeak.mz_exp
+        # (`self.mz_cal if self.mz_cal else self._mz_exp`) would then return
+        # NaN instead of correctly falling back to the uncalibrated value.
+        # pd.isna() catches it; `is None` would not.
+        present = ~pd.isna(mz_cal_col)
+        mz_cal_col = mz_cal_col.astype(float)
+        differs = present & (mz_cal_col != mz_exp_col)
+        if not differs.any():
+            return
+
+        # Built once -- O(n_peaks) -- and only applied to the rows that
+        # actually differ, instead of a per-row list.index() lookup inside
+        # the loop (quadratic in peak count for a large peak list). Matches
+        # peaks by m/z value rather than row position, same approach
+        # add_molecular_formula uses -- safe against any reordering between
+        # the dataframe and mass_spec_obj.mspeaks. Exact-match only, same as
+        # before.
+        mz_to_index = {mz: i for i, mz in enumerate(mass_spec_obj.mz_exp)}
+
+        for mz_exp, mz_cal in zip(mz_exp_col[differs], mz_cal_col[differs]):
+            ms_peak_index = mz_to_index.get(mz_exp)
+            if ms_peak_index is None:
                 continue
             mass_spec_obj[ms_peak_index].mz_cal = mz_cal
 

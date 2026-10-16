@@ -438,6 +438,57 @@ def test_calibrated_profile_round_trip_no_double_calibration(tmp_path):
         np.testing.assert_allclose(reloaded.mz_exp, orig.mz_exp, rtol=1e-6)
 
 
+def test_restore_peak_calibration_skips_nan_cell(tmp_path):
+    """A blank "Calibrated m/z" cell arrives as NaN (pandas' representation
+    of missing data), not None. Letting it through would set mz_cal to NaN,
+    and NaN is truthy in Python, so MSPeak.mz_exp
+    (`self.mz_cal if self.mz_cal else self._mz_exp`) would wrongly return
+    NaN instead of falling back to the uncalibrated value.
+    """
+    ms = make_profile_ms(centers=((300.1, 1e6), (450.2, 5e5)))
+    shift_ppm = 2.0
+    for mspeak in ms.mspeaks:
+        mspeak.mz_cal = mspeak._mz_exp * (1 + shift_ppm * 1e-6)
+
+    h5path = export_single(ms, tmp_path / "spec", profile_dtype="f8")
+
+    with ReadCoreMSHDF_MassSpectrum(str(h5path)) as reader:
+        scan_index = reader.scans.index(str(ms.scan_number))
+        dataframe = reader.get_dataframe(scan_index)
+        dataframe.rename(columns=reader.parameters.header_translate, inplace=True)
+        dataframe["m/z"] = dataframe["m/z"].astype(float)
+        dataframe["Calibrated m/z"] = dataframe["Calibrated m/z"].astype(float)
+
+        # Build the centroid the same way get_mass_spectrum does, but call
+        # restore_peak_calibration ourselves afterward (rather than through
+        # get_mass_spectrum, which would restore the real calibration before
+        # we get a chance to blank a cell) so we can inject a missing value.
+        polarity = dataframe["Ion Charge"].iloc[0]
+        output_parameters = reader.get_output_parameters(polarity, scan_index=scan_index)
+        centroid = MassSpecCentroid(
+            dataframe.to_dict(orient="list"), output_parameters, auto_process=False
+        )
+        centroid.settings.noise_threshold_method = "absolute_abundance"
+        centroid.settings.noise_threshold_absolute_abundance = 0
+        centroid.process_mass_spec()
+
+        target_mz_exp = float(dataframe["m/z"].iloc[0])
+        dataframe.loc[dataframe.index[0], "Calibrated m/z"] = np.nan
+
+        reader.restore_peak_calibration(centroid, dataframe)
+
+    mz_to_index = {float(p._mz_exp): i for i, p in enumerate(centroid.mspeaks)}
+    target_peak = centroid.mspeaks[mz_to_index[target_mz_exp]]
+    assert target_peak.mz_cal is None
+    assert not np.isnan(target_peak.mz_exp)
+    np.testing.assert_allclose(target_peak.mz_exp, target_mz_exp)
+
+    # The other (not blanked) genuinely-calibrated peaks must still be
+    # restored -- the NaN handling must not suppress real calibration.
+    calibrated_count = sum(1 for p in centroid.mspeaks if p.mz_cal is not None)
+    assert calibrated_count == len(centroid.mspeaks) - 1
+
+
 def test_uncalibrated_profile_has_no_mz_cal_row(tmp_path):
     ms = make_profile_ms()
     h5path = export_single(ms, tmp_path / "spec")

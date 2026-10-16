@@ -387,6 +387,9 @@ class LiquidChromatographSetting:
         Compression used for HDF5 datasets written by ``to_hdf``: a gzip level
         0-9, ``"lzf"``, or ``None``/``"none"`` for no compression.
         Default is 4 (gzip level 9 was slow for large profile arrays).
+        ``"lzf"`` is h5py's own filter, not a standard HDF5 one -- a file
+        written with it needs h5py (or a tool with the lzf plugin) to read
+        the compressed datasets back; gzip is the portable choice.
     hdf5_profile_dtype : str, optional
         Numpy/h5py dtype string used to store profile m/z and abundance
         arrays in ``raw_ms``. ``"f4"`` (float32, current size) or ``"f8"``

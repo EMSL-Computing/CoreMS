@@ -1021,7 +1021,9 @@ class HighResMassSpectraExport(HighResMassSpecExport):
             Whether to export the raw mass spectra data. Default is True.
         compression : int, str or None, optional
             Compression for the written datasets: a gzip level 0-9,
-            ``"lzf"``, or ``None``/``"none"``. Default is 4.
+            ``"lzf"``, or ``None``/``"none"``. Default is 4. ``"lzf"`` is
+            h5py's own filter, not a standard HDF5 one -- it needs h5py (or
+            a tool with the lzf plugin) to read the result back.
         profile_dtype : str, optional
             dtype used for the stored profile m/z/abundance arrays
             (``"f4"`` or ``"f8"``). Default is ``"f4"``.
@@ -1408,7 +1410,9 @@ class LCMSExport(HighResMassSpectraExport):
             Whether to overwrite existing mass features. Default is False.
         compression : int, str or None, optional
             Compression for the written datasets: a gzip level 0-9,
-            ``"lzf"``, or ``None``/``"none"``. Default is 4.
+            ``"lzf"``, or ``None``/``"none"``. Default is 4. ``"lzf"`` is
+            h5py's own filter, not a standard HDF5 one -- it needs h5py (or
+            a tool with the lzf plugin) to read the result back.
         """
 
         # Create group for each mass feature, with key as the mass feature id
@@ -1513,7 +1517,9 @@ class LCMSExport(HighResMassSpectraExport):
             Whether to overwrite existing EICs. Default is False.
         compression : int, str or None, optional
             Compression for the written datasets: a gzip level 0-9,
-            ``"lzf"``, or ``None``/``"none"``. Default is 4.
+            ``"lzf"``, or ``None``/``"none"``. Default is 4. ``"lzf"`` is
+            h5py's own filter, not a standard HDF5 one -- it needs h5py (or
+            a tool with the lzf plugin) to read the result back.
         """
         for mz, eic_data in eics_dict.items():
             mz_str = str(mz)
@@ -1568,7 +1574,9 @@ class LCMSExport(HighResMassSpectraExport):
             Whether to overwrite the group if it exists. Default is False.
         compression : int, str or None, optional
             Compression for the written datasets: a gzip level 0-9,
-            ``"lzf"``, or ``None``/``"none"``. Default is 4.
+            ``"lzf"``, or ``None``/``"none"``. Default is 4. ``"lzf"`` is
+            h5py's own filter, not a standard HDF5 one -- it needs h5py (or
+            a tool with the lzf plugin) to read the result back.
         """
         # Determine which mass features to save based on group_name
         if group_name == "induced_mass_features":
