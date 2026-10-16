@@ -1359,3 +1359,80 @@ def test_get_eic_data_for_mz_tolerance_lookup():
     # Prefer non-null _eic_mz over mz
     row_with_eic = pd.Series({"_eic_mz": query_mz, "mz": 999.0})
     assert LCMSCollectionCalculations._resolve_eic_query_mz(row_with_eic) == query_mz
+
+
+def test_combine_induced_features_keeps_float_area():
+    """A miss sample's all-NA area must not change a measured area's dtype."""
+    import warnings
+    from pathlib import Path
+
+    from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
+    from corems.mass_spectra.factory.lc_class import LCMSBase, LCMSCollection
+
+    file_location = Path(__file__).resolve().parents[1] / "pyproject.toml"
+
+    def _sample(name, specs):
+        obj = LCMSBase(file_location, sample_name=name)
+        for spec in specs:
+            feat = LCMSMassFeature(
+                obj,
+                mz=spec.get("mz", np.nan),
+                retention_time=spec.get("rt", np.nan),
+                intensity=spec.get("intensity", np.nan),
+                apex_scan=spec.get("apex", -99),
+                persistence=np.nan,
+                id=spec["id"],
+            )
+            if "area" in spec:
+                feat._area = spec["area"]
+            if "start" in spec:
+                feat.start_scan = spec["start"]
+                feat.final_scan = spec["final"]
+            if "mono" in spec:
+                feat.monoisotopic_mf_id = spec["mono"]
+            obj.induced_mass_features[spec["id"]] = feat
+        return obj
+
+    hit = _sample(
+        "hit",
+        [{"id": "c1_0_i", "mz": 200.0, "rt": 1.2, "intensity": 10.0, "apex": 5,
+          "area": 5.0, "start": 4, "final": 6, "mono": 7}],
+    )
+    miss = _sample(
+        "miss",
+        [
+            {"id": "c1_0_i"},
+            {"id": "c2_0_i"},
+        ],
+    )
+    collection = LCMSCollection(
+        collection_location=".",
+        manifest={
+            "hit": {"batch": 1, "order": 1, "collection_id": 0},
+            "miss": {"batch": 1, "order": 2, "collection_id": 1},
+        },
+    )
+    collection._lcms["hit"] = hit
+    collection._lcms["miss"] = miss
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        collection._combine_mass_features(induced_features=True)
+
+    assert not any(
+        issubclass(item.category, FutureWarning) and "all-NA" in str(item.message)
+        for item in caught
+    )
+    combined = collection.induced_mass_features_dataframe
+    assert combined["area"].dtype == np.dtype("float64")
+    assert combined.loc["0_c1_0_i", "area"] == pytest.approx(5.0)
+    assert pd.isna(combined.loc["1_c1_0_i", "area"])
+    assert pd.isna(combined.loc["1_c2_0_i", "area"])
+    mono = combined["monoisotopic_mf_id"]
+    assert mono.dtype == object
+    hit_mono = mono.loc["0_c1_0_i"]
+    assert isinstance(hit_mono, (int, np.integer))
+    assert not isinstance(hit_mono, (float, np.floating))
+    assert int(hit_mono) == 7
+    assert pd.isna(mono.loc["1_c1_0_i"])
+    assert combined.loc["0_c1_0_i", "start_scan"] == 4
