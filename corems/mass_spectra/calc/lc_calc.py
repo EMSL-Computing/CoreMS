@@ -4,7 +4,7 @@ from itertools import product
 
 import numpy as np
 import pandas as pd
-import warnings, scipy, multiprocessing
+import warnings, scipy
 
 if not hasattr(np, 'trapezoid'):  # numpy < 2.0
     np.trapezoid = np.trapz
@@ -18,6 +18,7 @@ from tqdm import tqdm
 
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 from corems.encapsulation.plot_utils import _finalize_plot
+from corems.encapsulation.spawn_pool import spawn_pool
 from corems.mass_spectra.calc import SignalProcessing as sp
 from corems.mass_spectra.factory.chromat_data import EIC_Data
 from corems.mass_spectrum.input.numpyArray import ms_from_array_profile
@@ -4478,15 +4479,12 @@ class LCMSCollectionCalculations:
                                                   ms2_scan_filter=ms2_scan_filter)
         else:
             # Parallel processing
-            import multiprocessing
             from tqdm import tqdm
             
             if self.parameters.lcms_collection.cores > len(sample_mf_map):
                 ncores = len(sample_mf_map)
             else:
                 ncores = self.parameters.lcms_collection.cores
-            
-            pool = multiprocessing.Pool(ncores)
             
             # Build arguments list for starmap
             args_list = [
@@ -4496,9 +4494,8 @@ class LCMSCollectionCalculations:
             ]
             
             # Execute in parallel
-            mp_result = pool.starmap(self._reload_sample_mass_features, args_list)
-            pool.close()
-            pool.join()
+            with spawn_pool(ncores) as pool:
+                mp_result = pool.starmap(self._reload_sample_mass_features, args_list)
             
             # Collect results back into samples
             for i, sample_id in enumerate(tqdm(sample_mf_map.keys(), desc="Collecting reloaded mass features", unit="sample")):
@@ -5412,11 +5409,11 @@ class LCMSCollectionCalculations:
                 ncores = len(self)
             else:
                 ncores = self.parameters.lcms_collection.cores
-            pool = multiprocessing.Pool(ncores)
-            mp_result = pool.starmap(
-                self._search_for_targeted_mass_features_in_sample, 
-                [(x, missingdf, cluster_dict, expand_on_miss, False) for x in range(sample_ct)]
-            )
+            with spawn_pool(ncores) as pool:
+                mp_result = pool.starmap(
+                    self._search_for_targeted_mass_features_in_sample, 
+                    [(x, missingdf, cluster_dict, expand_on_miss, False) for x in range(sample_ct)]
+                )
 
             for i in tqdm(range(sample_ct), desc="Collecting gap-filled features", unit="sample"):
                 self[i].induced_mass_features = mp_result[i]
@@ -5536,14 +5533,10 @@ class LCMSCollectionCalculations:
                         results_by_operation[op_name][sample_id] = result
         else:
             # Parallel processing
-            import multiprocessing
-            
             if self.parameters.lcms_collection.cores > sample_ct:
                 ncores = sample_ct
             else:
                 ncores = self.parameters.lcms_collection.cores
-            
-            pool = multiprocessing.Pool(ncores)
             
             # Build arguments for each sample
             args_list = [
@@ -5554,45 +5547,43 @@ class LCMSCollectionCalculations:
             # Execute in parallel with progress tracking
             results_by_operation = {op.name: {} for op in operations}
             
-            if show_progress:
-                from tqdm import tqdm
-                import time
-                
-                # Use starmap_async for parallel execution with progress tracking
-                async_result = pool.starmap_async(self._execute_sample_pipeline, args_list)
-                
-                # Poll for completion and update progress bar
-                print(description)
-                pbar = tqdm(
-                    total=sample_ct, 
-                    desc="",
-                    unit="sample", 
-                    position=0,
-                    leave=True,
-                    dynamic_ncols=True
-                )
-                prev_completed = 0
-                while not async_result.ready():
-                    # Get number of completed tasks by checking remaining
-                    completed = sample_ct - async_result._number_left
-                    if completed > prev_completed:
-                        pbar.update(completed - prev_completed)
-                        prev_completed = completed
-                    time.sleep(0.5)  # Poll every 500ms to avoid spam
-                
-                # Final update to 100%
-                if prev_completed < sample_ct:
-                    pbar.update(sample_ct - prev_completed)
-                pbar.close()
-                
-                # Get all results
-                mp_results = async_result.get()
-            else:
-                # Execute without progress
-                mp_results = pool.starmap(self._execute_sample_pipeline, args_list)
-            
-            pool.close()
-            pool.join()
+            with spawn_pool(ncores) as pool:
+                if show_progress:
+                    from tqdm import tqdm
+                    import time
+                    
+                    # Use starmap_async for parallel execution with progress tracking
+                    async_result = pool.starmap_async(self._execute_sample_pipeline, args_list)
+                    
+                    # Poll for completion and update progress bar
+                    print(description)
+                    pbar = tqdm(
+                        total=sample_ct, 
+                        desc="",
+                        unit="sample", 
+                        position=0,
+                        leave=True,
+                        dynamic_ncols=True
+                    )
+                    prev_completed = 0
+                    while not async_result.ready():
+                        # Get number of completed tasks by checking remaining
+                        completed = sample_ct - async_result._number_left
+                        if completed > prev_completed:
+                            pbar.update(completed - prev_completed)
+                            prev_completed = completed
+                        time.sleep(0.5)  # Poll every 500ms to avoid spam
+                    
+                    # Final update to 100%
+                    if prev_completed < sample_ct:
+                        pbar.update(sample_ct - prev_completed)
+                    pbar.close()
+                    
+                    # Get all results
+                    mp_results = async_result.get()
+                else:
+                    # Execute without progress
+                    mp_results = pool.starmap(self._execute_sample_pipeline, args_list)
             
             # Collect results back into collection
             for result in mp_results:

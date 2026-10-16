@@ -6,7 +6,6 @@ import cProfile
 import io
 import itertools
 import json
-import multiprocessing
 import pstats
 from copy import deepcopy
 from typing import Dict
@@ -17,6 +16,7 @@ from tqdm import tqdm
 
 from corems import chunks, timeit
 from corems.encapsulation.constant import Atoms
+from corems.encapsulation.spawn_pool import spawn_pool
 from corems.encapsulation.factory.parameters import MSParameters
 from corems.encapsulation.factory.processingSetting import (
     MolecularLookupDictSettings,
@@ -447,13 +447,11 @@ class MolecularCombinations:
                 worker_args = [
                     (chunk, settings.url_database) for chunk in list_insert_chunks
                 ]
-                p = multiprocessing.Pool(settings.db_jobs)
-                for class_list in tqdm(
-                        p.imap_unordered(insert_database_worker, worker_args), disable= not verbose
-                        ):
-                    pass
-                p.close()
-                p.join()
+                with spawn_pool(settings.db_jobs) as p:
+                    for class_list in tqdm(
+                            p.imap_unordered(insert_database_worker, worker_args), disable= not verbose
+                            ):
+                        pass
 
         return classes_list
 

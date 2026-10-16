@@ -7,7 +7,6 @@ Assumes that ms1 are collected in profile mode, persistent homology not applicab
 import sys
 
 sys.path.append("./")
-from multiprocessing import Pool
 from pathlib import Path
 import datetime
 import tomlkit
@@ -16,6 +15,7 @@ import warnings
 import pandas as pd
 import time
 
+from corems.encapsulation.spawn_pool import spawn_pool
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.mass_spectra.input.mzml import MZMLSpectraParser
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
@@ -682,7 +682,6 @@ def run_lipid_workflow(
             )
             mz_dicts.append(mz_dict)
     elif cores > 1:
-        pool = Pool(cores)
         args = [
             (
                 str(file_in),
@@ -694,9 +693,8 @@ def run_lipid_workflow(
             )
             for file_in, file_out in list(zip(files_list, out_paths_list))
         ]
-        mz_dicts = pool.starmap(run_lipid_sp_ms1, args)
-        pool.close()
-        pool.join()
+        with spawn_pool(cores) as pool:
+            mz_dicts = pool.starmap(run_lipid_sp_ms1, args)
     
     # Skip ms2 spectral search for now, will add back once we have an improved MetabRefLCInterface method
     """
