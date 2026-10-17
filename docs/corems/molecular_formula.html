@@ -48,12 +48,181 @@
                     <h1 class="modulename">
 <a href="./../corems.html">corems</a><wbr>.molecular_formula    </h1>
 
-                
+                        <div class="docstring"><p>Molecular formula objects and related calculations.</p>
+
+<p>This package defines molecular formula types used throughout CoreMS
+(for example after molecular formula search) and calculations such as
+exact mass, double-bond equivalent, and assignment confidence.</p>
+
+<p><strong>Confidence score</strong></p>
+
+<p>When a formula is attached to a mass spectral peak (and isotopologues have
+been evaluated during search), CoreMS provides a composite <strong>confidence
+score</strong> that ranks candidates. Public properties on
+<code>MolecularFormula</code>
+(<code>~<a href="molecular_formula/factory/MolecularFormulaFactory.html#MolecularFormula">corems.molecular_formula.factory.MolecularFormulaFactory.MolecularFormula</a></code>)
+are:</p>
+
+<ul>
+<li><code>mz_error_score</code> — mass accuracy of the monoisotopic peak (Gaussian
+score from the ppm error).</li>
+<li><code>average_mz_error_score</code> — mean mass-accuracy score over the mono peak
+and expected isotopologue peaks (missing expected isotopologues score 0).</li>
+<li><code>isotopologue_similarity</code> — agreement between expected and observed
+isotopologue abundance patterns (Manhattan-based similarity).</li>
+<li><code>confidence_score</code> — weighted sum of the formula-level mass-error term
+and the isotopologue similarity term.</li>
+</ul>
+
+<p><strong>Composite score</strong></p>
+
+<pre><code>CS = (w_err * m_err) + (w_iso * m_iso)
+</code></pre>
+
+<p>where:</p>
+
+<ul>
+<li><code>m_err</code> is <code>average_mz_error_score</code></li>
+<li><code>m_iso</code> is <code>isotopologue_similarity</code></li>
+<li><code>w_err</code> is <code>molecular_search_settings.mz_error_score_weight</code>
+(default <strong>0.6</strong>)</li>
+<li><code>w_iso</code> is <code>molecular_search_settings.isotopologue_score_weight</code>
+(default <strong>0.4</strong>)</li>
+</ul>
+
+<p><strong>Mass-error term (per peak)</strong></p>
+
+<p>For a single peak, <code>mz_error_score</code> is a Gaussian score of the assignment
+error <code>delta</code> (ppm) about a mean of zero (calibrated spectrum assumed):</p>
+
+<pre><code>m = exp( -(delta ** 2) / (2 * (sigma ** 2)) )
+</code></pre>
+
+<p>The width <code>sigma</code> is the peak's <code>predicted_std</code> when set (for example from
+resolving-power / mass-error prediction). If unset, CoreMS uses a fallback
+of <strong>1.66</strong> ppm. Formula-level <code>average_mz_error_score</code> averages this score
+over the monoisotopic assignment and each expected isotopologue peak.</p>
+
+<p><strong>Isotopologue term</strong></p>
+
+<p><code>isotopologue_similarity</code> compares sum-normalized theoretical and
+observed abundances for the mono peak plus expected isotopologues. Missing
+expected partners are treated as near-zero abundance. If no isotopologues
+are expected (or none were computed), the similarity is <strong>0</strong>.</p>
+
+<p><strong>Interpretation</strong></p>
+
+<p>Scores are typically in about [0, 1], with higher values preferred.
+When <code>score_method</code> is <code>"prob_score"</code>, ranking uses this composite
+confidence score. Isotopologue detection during search
+(<code>find_isotopologues=True</code>) is required for a meaningful
+<code>isotopologue_similarity</code> contribution.</p>
+
+<p><strong>Literature</strong></p>
+
+<p>The confidence score formulation and its use for ranking formula
+candidates are described in Dewey, Corilo, Kew, and Boiteau,
+<em>Analytical Chemistry</em> <strong>2025</strong>, <em>97</em>, 13031–13039
+(https://doi.org/10.1021/acs.analchem.4c06826).</p>
+
+<p><strong>See also</strong></p>
+
+<ul>
+<li><code>MolecularFormula.confidence_score</code></li>
+<li><code>MolecularFormula.mz_error_score</code></li>
+<li><code>MolecularFormula.average_mz_error_score</code></li>
+<li><code>MolecularFormula.isotopologue_similarity</code></li>
+<li>Settings: <code>mz_error_score_weight</code>, <code>isotopologue_score_weight</code></li>
+</ul>
+</div>
+
                         <input id="mod-molecular_formula-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-molecular_formula-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">1</span></a>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="sd">&quot;&quot;&quot;Molecular formula objects and related calculations.</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a>
+</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="sd">This package defines molecular formula types used throughout CoreMS</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="sd">(for example after molecular formula search) and calculations such as</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="sd">exact mass, double-bond equivalent, and assignment confidence.</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="sd">**Confidence score**</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="sd">When a formula is attached to a mass spectral peak (and isotopologues have</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="sd">been evaluated during search), CoreMS provides a composite **confidence</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="sd">score** that ranks candidates. Public properties on</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="sd">``MolecularFormula``</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="sd">(:class:`~corems.molecular_formula.factory.MolecularFormulaFactory.MolecularFormula`)</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="sd">are:</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a><span class="sd">- ``mz_error_score`` — mass accuracy of the monoisotopic peak (Gaussian</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="sd">  score from the ppm error).</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="sd">- ``average_mz_error_score`` — mean mass-accuracy score over the mono peak</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a><span class="sd">  and expected isotopologue peaks (missing expected isotopologues score 0).</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="sd">- ``isotopologue_similarity`` — agreement between expected and observed</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="sd">  isotopologue abundance patterns (Manhattan-based similarity).</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a><span class="sd">- ``confidence_score`` — weighted sum of the formula-level mass-error term</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a><span class="sd">  and the isotopologue similarity term.</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a><span class="sd">**Composite score**</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="sd">```</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="sd">CS = (w_err * m_err) + (w_iso * m_iso)</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="sd">```</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a><span class="sd">where:</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a><span class="sd">- ``m_err`` is ``average_mz_error_score``</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a><span class="sd">- ``m_iso`` is ``isotopologue_similarity``</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a><span class="sd">- ``w_err`` is ``molecular_search_settings.mz_error_score_weight``</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a><span class="sd">  (default **0.6**)</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a><span class="sd">- ``w_iso`` is ``molecular_search_settings.isotopologue_score_weight``</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a><span class="sd">  (default **0.4**)</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="sd">**Mass-error term (per peak)**</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="sd">For a single peak, ``mz_error_score`` is a Gaussian score of the assignment</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="sd">error ``delta`` (ppm) about a mean of zero (calibrated spectrum assumed):</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">```</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a><span class="sd">m = exp( -(delta ** 2) / (2 * (sigma ** 2)) )</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a><span class="sd">```</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a><span class="sd">The width ``sigma`` is the peak&#39;s ``predicted_std`` when set (for example from</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a><span class="sd">resolving-power / mass-error prediction). If unset, CoreMS uses a fallback</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a><span class="sd">of **1.66** ppm. Formula-level ``average_mz_error_score`` averages this score</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a><span class="sd">over the monoisotopic assignment and each expected isotopologue peak.</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a><span class="sd">**Isotopologue term**</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>
+</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a><span class="sd">``isotopologue_similarity`` compares sum-normalized theoretical and</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a><span class="sd">observed abundances for the mono peak plus expected isotopologues. Missing</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a><span class="sd">expected partners are treated as near-zero abundance. If no isotopologues</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a><span class="sd">are expected (or none were computed), the similarity is **0**.</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>
+</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a><span class="sd">**Interpretation**</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a>
+</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a><span class="sd">Scores are typically in about [0, 1], with higher values preferred.</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a><span class="sd">When ``score_method`` is ``&quot;prob_score&quot;``, ranking uses this composite</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a><span class="sd">confidence score. Isotopologue detection during search</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a><span class="sd">(``find_isotopologues=True``) is required for a meaningful</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a><span class="sd">``isotopologue_similarity`` contribution.</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>
+</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a><span class="sd">**Literature**</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a>
+</span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a><span class="sd">The confidence score formulation and its use for ranking formula</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a><span class="sd">candidates are described in Dewey, Corilo, Kew, and Boiteau,</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a><span class="sd">*Analytical Chemistry* **2025**, *97*, 13031–13039</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos">74</span></a><span class="sd">(https://doi.org/10.1021/acs.analchem.4c06826).</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a>
+</span><span id="L-76"><a href="#L-76"><span class="linenos">76</span></a><span class="sd">**See also**</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos">77</span></a>
+</span><span id="L-78"><a href="#L-78"><span class="linenos">78</span></a><span class="sd">- ``MolecularFormula.confidence_score``</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos">79</span></a><span class="sd">- ``MolecularFormula.mz_error_score``</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos">80</span></a><span class="sd">- ``MolecularFormula.average_mz_error_score``</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos">81</span></a><span class="sd">- ``MolecularFormula.isotopologue_similarity``</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos">82</span></a><span class="sd">- Settings: ``mz_error_score_weight``, ``isotopologue_score_weight``</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos">83</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span></pre></div>
 
 
