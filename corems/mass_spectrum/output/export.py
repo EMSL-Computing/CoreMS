@@ -11,7 +11,12 @@ import numpy as np
 from numpy import nan as NaN
 from pandas import DataFrame
 
-from corems.encapsulation.constant import Atoms, DEFAULT_HDF5_COMPRESSION, Labels #Labels is accessed in the eval() function
+# Labels is referenced only inside eval() below. Ruff cannot see that use.
+from corems.encapsulation.constant import (
+    Atoms,
+    DEFAULT_HDF5_COMPRESSION,
+    Labels,  # noqa: F401
+)
 from corems.encapsulation.output import parameter_to_dict
 from corems.encapsulation.output.parameter_to_json import _dumps_toml
 from corems.mass_spectrum.factory.MassSpectrumClasses import MassSpecfromFreq
