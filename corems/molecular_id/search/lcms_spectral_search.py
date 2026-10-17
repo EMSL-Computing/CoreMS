@@ -316,9 +316,7 @@ class LCMSSpectralSearch:
                             "ref_ion_type": ion_types,
                         }
                         # Add database name, if present
-                        db_name = [
-                            fe_lib[x].get("database_name") for x in match_inds
-                        ]
+                        db_name = [fe_lib[x].get("database_name") for x in match_inds]
                         if db_name is not None:
                             overall_results_dict[scan_oi][precursor_mz].update(
                                 {"database_name": db_name}
@@ -399,7 +397,7 @@ class LCMSSpectralSearch:
                 for mass_feature_id in self.mass_features.keys():
                     self.mass_features[mass_feature_id].ms2_similarity_results = []
                 results_to_associate = self.spectral_search_results
-            
+
             for mass_feature_id, mass_feature in self.mass_features.items():
                 scan_ids = mass_feature.ms2_scan_numbers
                 for ms2_scan_id in scan_ids:

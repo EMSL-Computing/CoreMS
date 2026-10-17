@@ -264,10 +264,9 @@ class MassListBaseClass:
                 "Abundance",
                 "Resolving Power",
                 "Frequency",
-                "S/N"
-                ]
+                "S/N",
+            ]
 
-        
             clean_data = []
             with self.file_location.open() as maglabfile:
                 for i in maglabfile.readlines()[8:-1]:
@@ -299,7 +298,6 @@ class MassListBaseClass:
             The mass spectrum object to apply the settings to.
 
         """
-        import json
         import warnings
 
         settings_file_path = self.file_location.with_suffix(".json")
@@ -345,7 +343,6 @@ class MassListBaseClass:
             A dictionary containing the output parameters.
 
         """
-        from copy import deepcopy
 
         output_parameters = default_parameters(self.file_location)
 
@@ -413,7 +410,7 @@ class MassListBaseClass:
         found_label = set()
 
         for label in header_labels:
-            if not label in self._expected_columns:
+            if label not in self._expected_columns:
                 user_column_name = self.parameters.header_translate.get(label)
                 if user_column_name in self._expected_columns:
                     found_label.add(user_column_name)

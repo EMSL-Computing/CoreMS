@@ -262,7 +262,7 @@ class HighResMassSpecExport(Thread):
             self.mass_spectrum, additional_columns=additional_columns
         )
         df = DataFrame(dict_data_list, columns=columns)
-        df.attrs['name'] = self.output_file
+        df.attrs["name"] = self.output_file
         return df
 
     def write_settings(self, output_path, mass_spectrum):
@@ -489,7 +489,10 @@ class HighResMassSpecExport(Thread):
                 # any calibration has run, so a never-calibrated spectrum
                 # can still have a (stale/placeholder) mz_cal_profile.
                 row_labels = ["mz", "abundance"]
-                rows = [np.asarray(mass_spectrum._mz_exp), np.asarray(mass_spectrum.abundance_profile)]
+                rows = [
+                    np.asarray(mass_spectrum._mz_exp),
+                    np.asarray(mass_spectrum.abundance_profile),
+                ]
                 mz_cal_profile = mass_spectrum.mz_cal_profile
                 if mass_spectrum.is_calibrated and mz_cal_profile is not None:
                     row_labels.append("mz_cal")
@@ -506,7 +509,9 @@ class HighResMassSpecExport(Thread):
                 raw_ms_dataset.attrs["row_labels"] = json.dumps(row_labels)
                 # Recorded independently of whether an "mz_cal" row was
                 # written, so a reader can trust this over row presence.
-                raw_ms_dataset.attrs["is_calibrated"] = bool(mass_spectrum.is_calibrated)
+                raw_ms_dataset.attrs["is_calibrated"] = bool(
+                    mass_spectrum.is_calibrated
+                )
 
                 # Add metadata to the raw_ms dataset when it exists
                 raw_ms_dataset.attrs["MassSpecAttrs"] = json.dumps(dict_ms_attrs)
@@ -521,7 +526,7 @@ class HighResMassSpecExport(Thread):
             else:
                 # For centroided data, store metadata directly on the scan group
                 scan_group.attrs["MassSpecAttrs"] = json.dumps(dict_ms_attrs)
-                
+
                 if isinstance(mass_spectrum, MassSpecfromFreq):
                     scan_group.attrs["TransientSetting"] = json.dumps(
                         setting_dicts.get("TransientSetting"),
@@ -565,7 +570,11 @@ class HighResMassSpecExport(Thread):
         ):
             peak_indices = np.array(
                 [
-                    (mspeak.peak_left_index, mspeak.peak_apex_index, mspeak.peak_right_index)
+                    (
+                        mspeak.peak_left_index,
+                        mspeak.peak_apex_index,
+                        mspeak.peak_right_index,
+                    )
                     for mspeak in mass_spectrum.mspeaks
                 ],
                 dtype=np.int32,

@@ -396,7 +396,7 @@ class MetabRefInterface(SpectralDatabaseInterface):
 class GCMSLibraryInterface(SpectralDatabaseInterface):
     """
     Interface to bundled GCMS spectral libraries in MSP format.
-    
+
     Loads GCMS compound library and FAMES calibration library from local MSP files.
     Default files are bundled with CoreMS, but can be overridden via environment variables.
     """
@@ -406,19 +406,17 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
         Initialize instance.
         """
         super().__init__(key=None)
-        
+
         # Local data file paths
         from pathlib import Path
-        
+
         # Default to bundled data files
         data_dir = Path(__file__).parent.parent / "data"
         self.gcms_library_file = os.getenv(
-            "GCMS_LIBRARY_PATH", 
-            str(data_dir / "PNNLMetV20191015.msp")
+            "GCMS_LIBRARY_PATH", str(data_dir / "PNNLMetV20191015.msp")
         )
         self.fames_library_file = os.getenv(
-            "FAMES_LIBRARY_PATH",
-            str(data_dir / "FAMES_REF.msp")
+            "FAMES_LIBRARY_PATH", str(data_dir / "FAMES_REF.msp")
         )
 
         self.__init_format_map__()
@@ -432,13 +430,13 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
         # Define format workflows
         self.format_map = {
             "json": lambda x, normalize, fe_kwargs: x,
-            "dict": lambda x,
-            normalize,
-            fe_kwargs: self._to_LowResolutionEICompound_dict(x, normalize),
-            "sql": lambda x,
-            normalize,
-            fe_kwargs: self._LowResolutionEICompound_dict_to_sqlite(
+            "dict": lambda x, normalize, fe_kwargs: (
                 self._to_LowResolutionEICompound_dict(x, normalize)
+            ),
+            "sql": lambda x, normalize, fe_kwargs: (
+                self._LowResolutionEICompound_dict_to_sqlite(
+                    self._to_LowResolutionEICompound_dict(x, normalize)
+                )
             ),
         }
 
@@ -482,10 +480,10 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
         """
         # Load from local MSP file
         library_data = self._load_msp_file(self.gcms_library_file, normalize)
-        
+
         # Init format function
         format_func = self._get_format_func(format)
-        
+
         # Apply format conversion
         return format_func(library_data, normalize, {})
 
@@ -508,72 +506,74 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
         """
         # Load from local MSP file
         library_data = self._load_msp_file(self.fames_library_file, normalize)
-        
+
         # Init format function
         format_func = self._get_format_func(format)
-        
+
         # Apply format conversion
         return format_func(library_data, normalize, {})
-    
+
     def _load_msp_file(self, file_path, normalize=False):
         """
         Load and parse MSP file into format compatible with existing pipeline.
-        
+
         Parameters
         ----------
         file_path : str
             Path to MSP file
         normalize : bool
             Normalize spectra
-            
+
         Returns
         -------
         list of dict
             Library data in format compatible with _to_LowResolutionEICompound_dict
         """
         from pathlib import Path
-        
+
         file_path = Path(file_path)
         if not file_path.exists():
             raise FileNotFoundError(
                 f"Library file not found: {file_path}. "
                 f"Set GCMS_LIBRARY_PATH or FAMES_LIBRARY_PATH environment variable to specify location."
             )
-        
+
         # Parse MSP file
         spectra = []
         spectrum = {}
         peaks = []
-        
-        with open(file_path, 'r') as f:
+
+        with open(file_path, "r") as f:
             for line in f:
                 line = line.strip()
-                
+
                 # Empty line marks end of spectrum
                 if not line:
                     if spectrum and peaks:
                         # Convert peaks to the format expected by downstream code
                         # Format: "(mz,abundance)(mz,abundance)..."
-                        peak_str = "".join([f"({int(mz)},{int(abun)})" for mz, abun in peaks])
-                        spectrum['mz'] = peak_str
+                        peak_str = "".join(
+                            [f"({int(mz)},{int(abun)})" for mz, abun in peaks]
+                        )
+                        spectrum["mz"] = peak_str
                         spectra.append(spectrum)
                     spectrum = {}
                     peaks = []
                     continue
-                
+
                 # Check if line contains peak data (starts with digit)
                 if line and line[0].isdigit():
                     parts = line.split()
                     if len(parts) >= 2:
                         peaks.append((float(parts[0]), float(parts[1])))
                     continue
-                
+
                 # Handle metadata fields
                 if ":" in line:
                     key, value = line.split(":", 1)
                     key = key.strip().lower()
                     value = value.strip()
-                    
+
                     # Map MSP fields to expected format
                     field_mapping = {
                         "name": "molecule_name",
@@ -583,9 +583,9 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
                         "ri": "ri",
                         "comment": "comments",
                         "num peaks": "peak_count",
-                        "derivative": "derivative"
+                        "derivative": "derivative",
                     }
-                    
+
                     # Metadata fields that go into the metadata dict
                     metadata_fields = {
                         "inchikey": "inchikey",
@@ -595,9 +595,9 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
                         "chebi": "chebi",
                         "kegg": "kegg",
                         "refmet": "refmet",
-                        "iupac_name": "iupac_name"
+                        "iupac_name": "iupac_name",
                     }
-                    
+
                     if key in field_mapping:
                         mapped_key = field_mapping[key]
                         # Convert numeric fields
@@ -620,13 +620,13 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
                     else:
                         # Keep unmapped fields
                         spectrum[key] = value
-        
+
         # Add last spectrum if file doesn't end with blank line
         if spectrum and peaks:
             peak_str = "".join([f"({int(mz)},{int(abun)})" for mz, abun in peaks])
-            spectrum['mz'] = peak_str
+            spectrum["mz"] = peak_str
             spectra.append(spectrum)
-        
+
         return spectra
 
     def _to_LowResolutionEICompound_dict(self, metabref_lib, normalize=False):
@@ -792,11 +792,19 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
                 # Only create metadata entry if we have required fields and valid data
                 # Filter to only include fields that Metadatar model supports
                 supported_metadata_fields = [
-                    'cas', 'inchikey', 'inchi', 'chebi', 'smiles', 
-                    'kegg', 'iupac_name', 'traditional_name', 'common_name'
+                    "cas",
+                    "inchikey",
+                    "inchi",
+                    "chebi",
+                    "smiles",
+                    "kegg",
+                    "iupac_name",
+                    "traditional_name",
+                    "common_name",
                 ]
                 filtered_metadata = {
-                    k: v for k, v in metadata.items() 
+                    k: v
+                    for k, v in metadata.items()
                     if k in supported_metadata_fields and v
                 }
                 # Inchikey is required by the database model
@@ -815,7 +823,7 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
 class MetabRefGCInterface(GCMSLibraryInterface):
     """
     DEPRECATED: Use GCMSLibraryInterface instead.
-    
+
     This interface is maintained for backward compatibility only.
     MetabRef API has been discontinued as of 2026.
     """
@@ -828,7 +836,7 @@ class MetabRefGCInterface(GCMSLibraryInterface):
             "MetabRefGCInterface is deprecated. Use GCMSLibraryInterface instead. "
             "MetabRef API has been discontinued; all data now loads from bundled local MSP files.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         super().__init__()
 
@@ -1334,36 +1342,36 @@ class MSPInterface(SpectralDatabaseInterface):
                     df[column] = pd.to_numeric(df[column], errors="raise")
                 except:
                     pass
-        
+
         # Standardize spectra ID column name
         # Check for common variations and create a standard 'spectra_id' column
-        spectra_id_variants = ['spectrum_id', 'gnps_spectra_id']
+        spectra_id_variants = ["spectrum_id", "gnps_spectra_id"]
         for variant in spectra_id_variants:
-            if variant in df.columns and 'spectra_id' not in df.columns:
-                df['spectra_id'] = df[variant]
+            if variant in df.columns and "spectra_id" not in df.columns:
+                df["spectra_id"] = df[variant]
                 break
-        
+
         # If no spectra_id column exists after checking variants, create one with sequential IDs
-        if 'spectra_id' not in df.columns:
-            df['spectra_id'] = [f"spectrum_{i:06d}" for i in range(len(df))]
-        
+        if "spectra_id" not in df.columns:
+            df["spectra_id"] = [f"spectrum_{i:06d}" for i in range(len(df))]
+
         # Standardize compound name column
         # Ensure 'compound_name' column exists, using 'name' field
-        if 'name' in df.columns and 'compound_name' not in df.columns:
-            df['compound_name'] = df['name']
-        elif 'compound_name' not in df.columns:
+        if "name" in df.columns and "compound_name" not in df.columns:
+            df["compound_name"] = df["name"]
+        elif "compound_name" not in df.columns:
             warnings.warn(
                 "MSP file does not contain 'name' or 'compound_name' field. "
                 "Compound names will be set to 'Unknown'. This may affect plot labels and annotations.",
-                UserWarning
+                UserWarning,
             )
-            df['compound_name'] = 'Unknown'
-        
+            df["compound_name"] = "Unknown"
+
         return df
 
     def _to_df(self, input_dataframe, normalize=True):
         """
-        Convert MSP-derived library to FlashEntropy library. 
+        Convert MSP-derived library to FlashEntropy library.
 
         Parameters
         ----------
@@ -1407,11 +1415,11 @@ class MSPInterface(SpectralDatabaseInterface):
 
                 # Add spectrum to library
                 lib.append(spectrum)
-            
+
             # Convert to DataFrame
             df = pd.DataFrame(lib)
             return df
-    
+
     def _to_flashentropy(self, input_dataframe, normalize=True, fe_kwargs={}):
         """
         Convert MSP-derived library to FlashEntropy library.
@@ -1486,7 +1494,7 @@ class MSPInterface(SpectralDatabaseInterface):
         fe_search = self._build_flash_entropy_index(fe_lib, fe_kwargs=fe_kwargs)
 
         return fe_search
-    
+
     def _check_msp_compatibility(self):
         """
         Check if the MSP file is compatible with the get_metabolomics_spectra_library method and provide feedback if it is not.
@@ -1511,7 +1519,7 @@ class MSPInterface(SpectralDatabaseInterface):
 
         # Check if the MSP file contains the required columns for metabolite metadata
         # either formula or molecular_formula, not null
-        
+
         if (
             "formula" not in self._data_frame.columns
             and "molecular_formula" not in self._data_frame.columns
@@ -1673,19 +1681,19 @@ class MSPInterface(SpectralDatabaseInterface):
                 "kegg_id": "kegg",
                 "refmet_name": "common_name",
                 "molecular_formula": "formula",
-                "gnps_spectra_id":"id",
+                "gnps_spectra_id": "id",
                 "precursormz": "precursor_mz",
-                "precursortype":"ion_type"
+                "precursortype": "ion_type",
             }
         db_df.rename(columns=metabolite_metadata_mapping, inplace=True)
-        
+
         # Create molecular_data_id from the specified field
         if molecular_id_field not in db_df.columns:
             raise ValueError(
                 f"Specified molecular_id_field '{molecular_id_field}' not found in MSP data. "
                 f"Available columns: {', '.join(db_df.columns)}"
             )
-        
+
         fe_kwargs = _resolve_fe_kwargs(settings=settings, fe_kwargs=fe_kwargs)
 
         if not db_df[molecular_id_field].notnull().all():
@@ -1693,10 +1701,10 @@ class MSPInterface(SpectralDatabaseInterface):
                 f"Specified molecular_id_field '{molecular_id_field}' contains null values. "
                 f"All entries must have non-null values for the molecular ID field."
             )
-        
+
         # Use the specified field as the molecular ID
         db_df["molecular_data_id"] = db_df[molecular_id_field].astype(str)
-        
+
         # Ensure 'id' field exists for spectra identification
         # If not present, create from spectra_id or use a sequential index
         if "id" not in db_df.columns:
@@ -1726,13 +1734,13 @@ class MSPInterface(SpectralDatabaseInterface):
         ].copy()
 
         # Make unique and recast the id column for metabolite metadata
-        metabolite_metadata_df.drop_duplicates(subset=["molecular_data_id"], inplace=True)
+        metabolite_metadata_df.drop_duplicates(
+            subset=["molecular_data_id"], inplace=True
+        )
         metabolite_metadata_df["id"] = metabolite_metadata_df["molecular_data_id"]
 
         # Convert to a dictionary using the molecular_data_id as the key
-        metabolite_metadata_dict = metabolite_metadata_df.to_dict(
-            orient="records"
-        )
+        metabolite_metadata_dict = metabolite_metadata_df.to_dict(orient="records")
         metabolite_metadata_dict = {
             v["id"]: self._dict_to_dataclass(v, MetaboliteMetadata)
             for v in metabolite_metadata_dict
@@ -1890,7 +1898,9 @@ class SpectraverseMS2Interface(SpectralDatabaseInterface):
                 if "=" in line and not line[0].isdigit():
                     key, value = line.split("=", 1)
                     headers[key.strip().upper()] = value.strip()
-                elif line[0].isdigit() or (line[0] == "-" and len(line) > 1 and line[1].isdigit()):
+                elif line[0].isdigit() or (
+                    line[0] == "-" and len(line) > 1 and line[1].isdigit()
+                ):
                     parts = line.split()
                     if len(parts) >= 2:
                         peaks.append([float(parts[0]), float(parts[1])])
@@ -1991,7 +2001,10 @@ class SpectraverseMS2Interface(SpectralDatabaseInterface):
         return self._build_flash_entropy_index(fe_lib, fe_kwargs=fe_kwargs)
 
     def _check_spectraverse_compatibility(self):
-        if "polarity" not in self._data_frame.columns and "ionmode" not in self._data_frame.columns:
+        if (
+            "polarity" not in self._data_frame.columns
+            and "ionmode" not in self._data_frame.columns
+        ):
             raise ValueError(
                 "Neither 'polarity' nor 'ionmode' columns found in Spectraverse data."
             )
@@ -2095,7 +2108,9 @@ class SpectraverseMS2Interface(SpectralDatabaseInterface):
         metabolite_metadata_df = db_df[
             db_df.columns[db_df.columns.isin(metabolite_metadata_keys)]
         ].copy()
-        metabolite_metadata_df.drop_duplicates(subset=["molecular_data_id"], inplace=True)
+        metabolite_metadata_df.drop_duplicates(
+            subset=["molecular_data_id"], inplace=True
+        )
         metabolite_metadata_df["id"] = metabolite_metadata_df["molecular_data_id"]
         metabolite_metadata_dict = {
             v["id"]: self._dict_to_dataclass(v, MetaboliteMetadata)
