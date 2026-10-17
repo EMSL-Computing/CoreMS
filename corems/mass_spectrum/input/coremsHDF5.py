@@ -101,16 +101,12 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
 
         raw_ms_dataset = raw_ms_group["raw_ms"]
         row_labels_json = raw_ms_dataset.attrs.get("row_labels")
-        row_labels = (
-            json.loads(row_labels_json) if row_labels_json else ["abundance", "mz"]
-        )
+        row_labels = json.loads(row_labels_json) if row_labels_json else ["abundance", "mz"]
 
         data = raw_ms_dataset[()]
         mz_profile = data[row_labels.index("mz")]
         abundance_profile = data[row_labels.index("abundance")]
-        mz_cal_profile = (
-            data[row_labels.index("mz_cal")] if "mz_cal" in row_labels else None
-        )
+        mz_cal_profile = data[row_labels.index("mz_cal")] if "mz_cal" in row_labels else None
         is_calibrated = bool(
             raw_ms_dataset.attrs.get("is_calibrated", "mz_cal" in row_labels)
         )
@@ -511,22 +507,15 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
         {'key1': 'value1', 'key2': 'value2'}
         """
         scan_label = self.scans[scan_index]
-
+        
         # First try to get from raw_ms dataset attributes (backward compatibility)
-        if (
-            "raw_ms" in self.h5pydata[scan_label]
-            and attr_group in self.h5pydata[scan_label]["raw_ms"].attrs
-        ):
+        if "raw_ms" in self.h5pydata[scan_label] and attr_group in self.h5pydata[scan_label]["raw_ms"].attrs:
             try:
-                return json.loads(
-                    self.h5pydata[scan_label]["raw_ms"].attrs[attr_group]
-                )[attr_str]
+                return json.loads(self.h5pydata[scan_label]["raw_ms"].attrs[attr_group])[attr_str]
             except KeyError:
                 attr_str = attr_str.replace("baseline", "baselise")
-                return json.loads(
-                    self.h5pydata[scan_label]["raw_ms"].attrs[attr_group]
-                )[attr_str]
-
+                return json.loads(self.h5pydata[scan_label]["raw_ms"].attrs[attr_group])[attr_str]
+        
         # If not found in raw_ms, try to get from scan group attributes (new format)
         elif attr_group in self.h5pydata[scan_label].attrs:
             try:
@@ -534,11 +523,9 @@ class ReadCoreMSHDF_MassSpectrum(ReadCoremsMasslist):
             except KeyError:
                 attr_str = attr_str.replace("baseline", "baselise")
                 return json.loads(self.h5pydata[scan_label].attrs[attr_group])[attr_str]
-
+        
         else:
-            raise KeyError(
-                f"Attribute group '{attr_group}' not found in either raw_ms dataset or scan group for scan {scan_label}"
-            )
+            raise KeyError(f"Attribute group '{attr_group}' not found in either raw_ms dataset or scan group for scan {scan_label}")
 
     def get_output_parameters(self, polarity, scan_index=0):
         """

@@ -25,7 +25,9 @@ def _toml_value(value):
     """
     if isinstance(value, dict):
         return {
-            key: _toml_value(item) for key, item in value.items() if item is not None
+            key: _toml_value(item)
+            for key, item in value.items()
+            if item is not None
         }
     if isinstance(value, tuple):
         return tuple(_toml_array_item(item) for item in value)
@@ -164,6 +166,7 @@ def dump_all_settings_toml(filename="SettingsCoreMS.toml", file_path=None):
         "w",
         encoding="utf8",
     ) as outfile:
+        import re
 
         output = _dumps_toml(data_dict_all)
         outfile.write(output)
@@ -191,6 +194,7 @@ def dump_ms_settings_toml(filename="SettingsCoreMS.toml", file_path=None):
         "w",
         encoding="utf8",
     ) as outfile:
+        import re
 
         # pretty print
         output = _dumps_toml(data_dict)

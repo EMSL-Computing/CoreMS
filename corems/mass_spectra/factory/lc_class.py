@@ -3,13 +3,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import warnings
+import multiprocessing
 
 import matplotlib.pyplot as plt
 
-from corems.encapsulation.factory.parameters import (
-    LCMSParameters,
-    LCMSCollectionParameters,
-)
+from corems.encapsulation.factory.parameters import LCMSParameters, LCMSCollectionParameters
 from corems.encapsulation.plot_utils import _finalize_plot
 from corems.mass_spectra.calc.lc_calc import (
     LCCalculations,
@@ -18,10 +16,7 @@ from corems.mass_spectra.calc.lc_calc import (
     find_closest,
 )
 from corems.molecular_id.search.lcms_spectral_search import LCMSSpectralSearch
-from corems.mass_spectrum.input.numpyArray import (
-    ms_from_array_profile,
-    ms_from_array_centroid,
-)
+from corems.mass_spectrum.input.numpyArray import ms_from_array_profile, ms_from_array_centroid
 from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
 
 
@@ -268,12 +263,8 @@ class MassSpectraBase:
     @property
     def raw_file_location(self):
         """Returns the file_location unless the _raw_file_location is not None."""
-        return (
-            self._raw_file_location
-            if self._raw_file_location is not None
-            else self.file_location
-        )
-
+        return self._raw_file_location if self._raw_file_location is not None else self.file_location   
+    
     @raw_file_location.setter
     def raw_file_location(self, value):
         self._raw_file_location = value
@@ -405,21 +396,17 @@ class MassSpectraBase:
             # Use batch function to get all mass spectra at once
             if spectrum_mode is None:
                 # get spectrum mode from _scan_info for each scan
-                spectrum_modes = [
-                    self.scan_df.loc[scan, "ms_format"] for scan in scan_list
-                ]
-                spectrum_mode_batch = (
-                    spectrum_modes[0] if len(set(spectrum_modes)) == 1 else None
-                )
+                spectrum_modes = [self.scan_df.loc[scan, "ms_format"] for scan in scan_list]
+                spectrum_mode_batch = spectrum_modes[0] if len(set(spectrum_modes)) == 1 else None
             else:
                 spectrum_mode_batch = spectrum_mode
-
+            
             ms_list = self.spectra_parser.get_mass_spectra_from_scan_list(
                 scan_list=scan_list,
                 spectrum_mode=spectrum_mode_batch,
                 auto_process=False,
             )
-
+            
             # Process each mass spectrum
             for i, scan in enumerate(scan_list):
                 ms = ms_list[i] if i < len(ms_list) else None
@@ -439,7 +426,7 @@ class MassSpectraBase:
                     spectrum_mode_scan = self.scan_df.loc[scan, "ms_format"]
                 else:
                     spectrum_mode_scan = spectrum_mode
-
+                
                 my_ms_df = ms_df.loc[scan]
                 if spectrum_mode_scan == "profile":
                     # Check this - it might be better to use the MassSpectrumProfile class to instantiate the mass spectrum
@@ -451,12 +438,12 @@ class MassSpectraBase:
                         auto_process=False,
                     )
                 else:
-                    ms = ms_from_array_centroid(
-                        mz=my_ms_df.mz,
-                        abundance=my_ms_df.intensity,
-                        rp=[np.nan] * len(my_ms_df.mz),
-                        s2n=[np.nan] * len(my_ms_df.mz),
-                        dataname=self.file_location,
+                   ms = ms_from_array_centroid(
+                        mz = my_ms_df.mz,
+                        abundance = my_ms_df.intensity,
+                        rp = [np.nan] * len(my_ms_df.mz),
+                        s2n = [np.nan] * len(my_ms_df.mz),
+                        dataname = self.file_location,
                         polarity=polarity,
                         auto_process=False,
                     )
@@ -501,7 +488,7 @@ class MassSpectraBase:
         """
         scan_df = pd.DataFrame.from_dict(self._scan_info)
         return scan_df
-
+        
     @property
     def ms(self):
         """
@@ -509,6 +496,7 @@ class MassSpectraBase:
         """
         return self._ms
 
+    
     @scan_df.setter
     def scan_df(self, df):
         """
@@ -633,25 +621,25 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
     def get_eic_mz_for_mass_feature(self, mf_mz, tolerance=0.0001):
         """Get the EIC dictionary key (m/z) that best matches a mass feature's m/z.
-
+        
         Finds the closest EIC m/z key within the specified tolerance.
-
+        
         Parameters
         ----------
         mf_mz : float
             The m/z value of the mass feature to match.
         tolerance : float, optional
             Maximum m/z difference for matching. Default is 0.0001 Da.
-
+            
         Returns
         -------
         float or None
             The EIC dictionary key (m/z) of the closest matching EIC,
             or None if no EIC is within tolerance.
         """
-        if not hasattr(self, "eics") or not self.eics:
+        if not hasattr(self, 'eics') or not self.eics:
             return None
-
+        
         best_eic_mz = None
         best_diff = tolerance
         for eic_mz in self.eics.keys():
@@ -660,14 +648,14 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 best_diff = diff
                 best_eic_mz = eic_mz
         return best_eic_mz
-
+    
     def associate_eics_with_mass_features(self, tolerance=0.0001, induced=False):
         """Associate EICs with mass features using tolerance-based m/z matching.
-
+        
         Associates EIC_Data objects from self.eics with mass features by finding
         the closest EIC within the specified m/z tolerance. This is more robust
         than exact matching which can fail due to floating point precision issues.
-
+        
         Parameters
         ----------
         tolerance : float, optional
@@ -675,7 +663,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         induced : bool, optional
             If True, associates EICs with induced_mass_features instead of mass_features.
             Default is False.
-
+            
         Notes
         -----
         For each mass feature, this method finds the EIC with the closest m/z value
@@ -684,7 +672,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         """
         # Select which mass features dictionary to use
         mf_dict = self.induced_mass_features if induced else self.mass_features
-
+        
         # Use the _eic_mz attribute on each mass_feature to find the closest matching EIC
         for idx in mf_dict.keys():
             mf_mz = mf_dict[idx]._eic_mz
@@ -735,15 +723,15 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
     def _filter_ms2_scans_by_integration_bounds(self, mf_dict=None):
         """Filter MS2 scans to only include those within integration bounds.
-
+        
         Removes MS2 scan numbers that fall outside the start_scan to final_scan range
         for each mass feature. This should be called after integration sets the bounds.
-
+        
         Parameters
         ----------
         mf_dict : dict, optional
             Dictionary of mass features to filter. If None, uses self.mass_features.
-
+            
         Returns
         -------
         int
@@ -751,49 +739,44 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         """
         if mf_dict is None:
             mf_dict = self.mass_features
-
+        
         total_removed = 0
-
+        
         for mf_id, mf in mf_dict.items():
             # Only filter if integration bounds are set and MS2 scans exist
-            if (
-                hasattr(mf, "start_scan")
-                and hasattr(mf, "final_scan")
-                and mf.start_scan is not None
-                and mf.final_scan is not None
-                and mf.ms2_scan_numbers is not None
-                and len(mf.ms2_scan_numbers) > 0
-            ):
+            if (hasattr(mf, 'start_scan') and hasattr(mf, 'final_scan') and 
+                mf.start_scan is not None and mf.final_scan is not None and
+                mf.ms2_scan_numbers is not None and len(mf.ms2_scan_numbers) > 0):
+                
                 # Filter scan numbers to only those within bounds
                 original_count = len(mf.ms2_scan_numbers)
                 mf.ms2_scan_numbers = [
-                    scan
-                    for scan in mf.ms2_scan_numbers
+                    scan for scan in mf.ms2_scan_numbers 
                     if mf.start_scan <= scan <= mf.final_scan
                 ]
                 removed = original_count - len(mf.ms2_scan_numbers)
                 total_removed += removed
-
+        
         return total_removed
-
+    
     def _find_ms2_scans_for_mass_features(self, mf_ids=None, scan_filter=None):
         """Find MS2 scans associated with mass features.
-
+        
         This helper method finds MS2 scans that match mass features based on RT and m/z tolerances.
         It updates the ms2_scan_numbers attribute on each mass feature.
-
+        
         Parameters
         ----------
         mf_ids : list of int, optional
             List of mass feature IDs to find MS2 for. If None, finds for all mass features.
         scan_filter : str, optional
             Filter string for MS2 scans (e.g., 'hcd'). Default is None.
-
+            
         Returns
         -------
         list
             List of unique MS2 scan numbers found across all mass features.
-
+            
         Raises
         ------
         ValueError
@@ -802,26 +785,26 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         # Get mass features to process
         if mf_ids is None:
             mf_ids = list(self.mass_features.keys())
-
+        
         # Get mass features dataframe
         mf_df = self.mass_features_to_df()
         mf_df = mf_df.loc[mf_ids].copy()
-
+        
         # Find ms2 scans that have a precursor m/z value
         ms2_scans = self.scan_df[self.scan_df.ms_level == 2]
         ms2_scans = ms2_scans[~ms2_scans.precursor_mz.isna()]
         ms2_scans = ms2_scans[ms2_scans.tic > 0]
-
+        
         if len(ms2_scans) == 0:
             raise ValueError("No DDA scans found in dataset")
-
+        
         if scan_filter is not None:
             ms2_scans = ms2_scans[ms2_scans.scan_text.str.contains(scan_filter)]
-
+        
         # Get tolerances from parameters
         time_tol = self.parameters.lc_ms.ms2_dda_rt_tolerance
         mz_tol = self.parameters.lc_ms.ms2_dda_mz_tolerance
-
+        
         # For each mass feature, find the ms2 scans that are within the roi scan time and mz range
         dda_scans = []
         for i, row in mf_df.iterrows():
@@ -839,25 +822,19 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             if scan_list:
                 # Filter scans by integration bounds if they exist
                 mf = self.mass_features[i]
-                if (
-                    hasattr(mf, "start_scan")
-                    and hasattr(mf, "final_scan")
-                    and mf.start_scan is not None
-                    and mf.final_scan is not None
-                ):
+                if (hasattr(mf, 'start_scan') and hasattr(mf, 'final_scan') and 
+                    mf.start_scan is not None and mf.final_scan is not None):
                     # Only keep scans within integration bounds
-                    scan_list = [
-                        s for s in scan_list if mf.start_scan <= s <= mf.final_scan
-                    ]
-
+                    scan_list = [s for s in scan_list if mf.start_scan <= s <= mf.final_scan]
+                
                 if scan_list:  # Only add if there are still scans after filtering
-                    self.mass_features[i].ms2_scan_numbers = scan_list + list(
-                        self.mass_features[i].ms2_scan_numbers
+                    self.mass_features[i].ms2_scan_numbers = (
+                        scan_list + list(self.mass_features[i].ms2_scan_numbers)
                     )
                     dda_scans.extend(scan_list)
-
+        
         return list(set(dda_scans))
-
+    
     def add_associated_ms2_dda(
         self,
         auto_process=True,
@@ -905,7 +882,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         # Find MS2 scans for all mass features
         dda_scans = self._find_ms2_scans_for_mass_features(scan_filter=scan_filter)
-
+        
         # Load MS2 spectra
         self.add_mass_spectra(
             scan_list=dda_scans,
@@ -914,7 +891,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             use_parser=use_parser,
             ms_params=ms_params,
         )
-
+        
         # Associate appropriate _ms attribute to appropriate mass feature's ms2_mass_spectra attribute
         for mf_id in self.mass_features:
             if self.mass_features[mf_id].ms2_scan_numbers is not None:
@@ -925,11 +902,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                         ]
 
     def add_associated_ms1(
-        self,
-        auto_process=True,
-        use_parser=True,
-        spectrum_mode=None,
-        induced_features=False,
+        self, auto_process=True, use_parser=True, spectrum_mode=None, induced_features=False
     ):
         """Add MS1 spectra associated with mass features to the dataset.
 
@@ -959,25 +932,23 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             raise ValueError(
                 "mass_features not set, must run find_mass_features() first"
             )
-
+            
         if induced_features:
             mf_dict = self.induced_mass_features
         else:
             mf_dict = self.mass_features
 
         scans_to_average = self.parameters.lc_ms.ms1_scans_to_average
-
+        
         ## sketchy work around for induced mass features
         scan_list = [
-            int(mf_dict[x].apex_scan)
-            for x in mf_dict
-            if int(mf_dict[x].apex_scan) != -99
+            int(mf_dict[x].apex_scan) for x in mf_dict if int(mf_dict[x].apex_scan) != -99
         ]
 
         if scans_to_average == 1:
             # Add to LCMSobj
             self.add_mass_spectra(
-                scan_list=scan_list,
+                scan_list = scan_list,
                 auto_process=auto_process,
                 use_parser=use_parser,
                 spectrum_mode=spectrum_mode,
@@ -1072,12 +1043,12 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         for k in mf_dict.keys():
             ## another induced feature work around
             if mf_dict[k].apex_scan != -99:
-                mf_dict[k].mass_spectrum = self._ms[mf_dict[k].apex_scan]
+                mf_dict[k].mass_spectrum = self._ms[
+                    mf_dict[k].apex_scan
+                ]
                 mf_dict[k].update_mz()
 
-    def mass_features_to_df(
-        self, induced_features=False, drop_na_cols=False, include_cols=None
-    ):
+    def mass_features_to_df(self, induced_features=False, drop_na_cols=False, include_cols=None):
         """Returns a pandas dataframe summarizing the mass features.
 
         The dataframe contains the following columns: mf_id, mz, _eic_mz, apex_scan,
@@ -1102,7 +1073,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         Raises
         --------
         ValueError
-            If the sample provided doesn't contain the mass feature data.
+            If the sample provided doesn't contain the mass feature data.        
 
         Returns
         --------
@@ -1148,12 +1119,12 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             mf_dict = self.induced_mass_features
         else:
             mf_dict = self.mass_features
-
+        
         if len(mf_dict) == 0:
             # Return an empty dataframe with the expected structure
             # This allows collection processing to continue even if some samples have no features
             return pd.DataFrame()
-
+            
         cols_in_df = [
             "id",
             "apex_scan",
@@ -1174,19 +1145,21 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             "isotopologue_type",
             "mass_spectrum_deconvoluted_parent",
             "ms2_scan_numbers",
-            "type",
+            "type"
         ]
 
         df_mf_list = []
         for mf_id in mf_dict.keys():
             # Find cols_in_df that are in single_mf
-            df_keys = list(set(cols_in_df).intersection(mf_dict[mf_id].__dir__()))
+            df_keys = list(
+                set(cols_in_df).intersection(mf_dict[mf_id].__dir__())
+            )
             dict_mf = {}
             # Get the values for each key in df_keys from the mass feature object
             for key in df_keys:
                 value = getattr(mf_dict[mf_id], key)
                 # Wrap list/array values in a list so pandas treats them as single cell values
-                if key == "ms2_scan_numbers" and isinstance(value, (list, np.ndarray)):
+                if key == 'ms2_scan_numbers' and isinstance(value, (list, np.ndarray)):
                     dict_mf[key] = [value]
                 else:
                     dict_mf[key] = value
@@ -1203,7 +1176,9 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                     )
                 )
             if mf_dict[mf_id]._half_height_width is not None:
-                dict_mf["half_height_width"] = mf_dict[mf_id].half_height_width
+                dict_mf["half_height_width"] = mf_dict[
+                    mf_id
+                ].half_height_width
             # Check if EIC for mass feature is set
             df_mf_single = pd.DataFrame(dict_mf, index=[mf_id])
             df_mf_single["mz"] = mf_dict[mf_id].mz
@@ -1223,7 +1198,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         df_mf = df_mf.rename(
             columns={
                 "id": "mf_id",
-                "retention_time": "scan_time",
+                "retention_time": "scan_time",            
             }
         )
 
@@ -1262,18 +1237,16 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         # reset index to mf_id
         df_mf = df_mf.set_index("mf_id")
         df_mf.index.name = "mf_id"
-
-        if "half_height_width" in df_mf.columns:
-            df_mf["half_height_width"] = df_mf["half_height_width"].astype("float64")
-        if "tailing_factor" in df_mf.columns:
-            df_mf["tailing_factor"] = df_mf["tailing_factor"].astype("float64")
-        if "dispersity_index" in df_mf.columns:
-            df_mf["dispersity_index"] = df_mf["dispersity_index"].astype("float64")
-        if "normalized_dispersity_index" in df_mf.columns:
-            df_mf["normalized_dispersity_index"] = df_mf[
-                "normalized_dispersity_index"
-            ].astype("float64")
-
+        
+        if 'half_height_width' in df_mf.columns:
+            df_mf["half_height_width"] = df_mf["half_height_width"].astype('float64')
+        if 'tailing_factor' in df_mf.columns:
+            df_mf["tailing_factor"] = df_mf["tailing_factor"].astype('float64')
+        if 'dispersity_index' in df_mf.columns:
+            df_mf["dispersity_index"] = df_mf["dispersity_index"].astype('float64')
+        if 'normalized_dispersity_index' in df_mf.columns:
+            df_mf["normalized_dispersity_index"] = df_mf["normalized_dispersity_index"].astype('float64')
+        
         # Filter columns if include_cols is specified
         if include_cols is not None:
             # Ensure include_cols is a list
@@ -1282,11 +1255,11 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             # Keep only requested columns that exist in the dataframe
             available_cols = [col for col in include_cols if col in df_mf.columns]
             df_mf = df_mf[available_cols]
-
+        
         # Drop columns that are entirely NA if requested
         if drop_na_cols:
-            df_mf = df_mf.dropna(axis=1, how="all")
-
+            df_mf = df_mf.dropna(axis=1, how='all')
+        
         return df_mf
 
     def to_mgf(
@@ -1433,9 +1406,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
 
         return annot_ms1_df_full
 
-    def mass_features_ms2_annot_to_df(
-        self, molecular_metadata=None, suppress_warnings=False
-    ):
+    def mass_features_ms2_annot_to_df(self, molecular_metadata=None, suppress_warnings=False):
         """Returns a pandas dataframe summarizing the MS2 annotations for the mass features in the dataset.
 
         Parameters
@@ -1508,7 +1479,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         return_fig=False,
         path=None,
     ):
-        """Returns a figure displaying
+        """Returns a figure displaying 
             (1) thresholded, unprocessed data
             (2) the m/z features
             (3) which m/z features are associated with MS2 spectra
@@ -1566,37 +1537,35 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             mf_df = self.mass_features_to_df()
 
             # Check if ms2_spectrum is set, raise error if not
-            if "ms2_spectrum" not in mf_df.columns:
-                raise ValueError(
-                    "ms2_spectrum not set, must run add_associated_ms2_dda() first"
+            if 'ms2_spectrum' not in mf_df.columns:
+                raise ValueError(                
+                    "ms2_spectrum not set, must run add_associated_ms2_dda() first"            
                 )
-
+    
         ## threshold and grid unprocessed data
         df = self._ms_unprocessed[1].copy()
-        df = df.dropna(subset=["intensity"]).reset_index(drop=True)
+        df = df.dropna(subset=['intensity']).reset_index(drop = True)
         threshold = ph_int_min_thresh * df.intensity.max()
-        df_thres = df[df["intensity"] > threshold].reset_index(drop=True).copy()
+        df_thres = df[df["intensity"] > threshold].reset_index(drop = True).copy()
         df = self.grid_data(df_thres)
-
+    
         ## format unprocessed data for plotting
-        df = df.merge(self.scan_df[["scan", "scan_time"]], on="scan")
+        df = df.merge(self.scan_df[['scan', 'scan_time']], on = 'scan')
         mz_grid = np.arange(0, np.max(df.mz), binsize)
         mz_data = np.array(df.mz)
-        df["mz_bin"] = find_closest(mz_grid, mz_data)
-        df["ab_bin"] = df.groupby(["mz_bin", "scan_time"]).intensity.transform(sum)
-        unproc_df = df[["scan_time", "mz_bin", "ab_bin"]].drop_duplicates(
-            ignore_index=True
-        )
+        df['mz_bin'] = find_closest(mz_grid, mz_data)
+        df['ab_bin'] = df.groupby(['mz_bin', 'scan_time']).intensity.transform(sum)
+        unproc_df = df[['scan_time', 'mz_bin', 'ab_bin']].drop_duplicates(ignore_index = True)
 
         ## generate figure
         fig = plt.figure()
         plt.scatter(
             unproc_df.scan_time,
-            unproc_df.mz_bin * binsize,
-            c=unproc_df.ab_bin / np.max(unproc_df.ab_bin),
-            alpha=unproc_df.ab_bin / np.max(unproc_df.ab_bin),
-            cmap="Greys_r",
-            s=1,
+            unproc_df.mz_bin*binsize,
+            c = unproc_df.ab_bin/np.max(unproc_df.ab_bin),
+            alpha = unproc_df.ab_bin/np.max(unproc_df.ab_bin), 
+            cmap = 'Greys_r',
+            s = 1
         )
 
         if mf_plot:
@@ -1604,43 +1573,49 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
                 plt.scatter(
                     mf_df[mf_df.ms2_spectrum.isna()].scan_time,
                     mf_df[mf_df.ms2_spectrum.isna()].mz,
-                    c="c",
-                    s=4,
-                    label="M/Z features without MS2",
+                    c = 'c',
+                    s = 4,
+                    label = 'M/Z features without MS2'
                 )
             else:
-                plt.scatter(mf_df.scan_time, mf_df.mz, c="c", s=4, label="M/Z features")
+                plt.scatter(
+                    mf_df.scan_time,
+                    mf_df.mz,
+                    c = 'c',
+                    s = 4,
+                    label = 'M/Z features'
+                )
 
-        if ms2_plot:
+        if ms2_plot: 
             plt.scatter(
                 mf_df[~mf_df.ms2_spectrum.isna()].scan_time,
                 mf_df[~mf_df.ms2_spectrum.isna()].mz,
-                c="r",
-                s=2,
-                label="M/Z features with MS2",
+                c = 'r',
+                s = 2,
+                label = 'M/Z features with MS2'
             )
 
         if mf_plot == True or ms2_plot == True:
-            plt.legend(loc="lower center", bbox_to_anchor=(0.5, -0.25), ncol=2)
-        plt.xlabel("Scan time")
-        plt.ylabel("m/z")
+            plt.legend(loc = 'lower center', bbox_to_anchor = (0.5, -0.25), ncol = 2)
+        plt.xlabel('Scan time')
+        plt.ylabel('m/z')
         plt.ylim(0, np.ceil(np.max(df.mz)))
         plt.xlim(0, np.ceil(np.max(df.scan_time)))
-        plt.title("Composite Feature Map")
+        plt.title('Composite Feature Map')
 
         return _finalize_plot(fig, return_fig=return_fig, path=path)
-
+            
     def search_for_targeted_mass_features_batch(
-        self,
-        ms1df,
-        mz_mins,
-        mz_maxs,
-        st_mins,
-        st_maxs,
-        set_ids,
-        obj_idx=0,
-        st_aligned=False,
-    ):
+            self,
+            ms1df,
+            mz_mins,
+            mz_maxs,
+            st_mins,
+            st_maxs,
+            set_ids,
+            obj_idx=0,
+            st_aligned=False
+            ):
         """
         Returns multiple LCMSMassFeatures from a specific sample within specific mass and time ranges.
         Sorts m/z once and binary-searches each window. The selected row is the
@@ -1677,13 +1652,11 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         """
         # Validate inputs
         n_features = len(mz_mins)
-        if not all(
-            len(arr) == n_features for arr in [mz_maxs, st_mins, st_maxs, set_ids]
-        ):
+        if not all(len(arr) == n_features for arr in [mz_maxs, st_mins, st_maxs, set_ids]):
             raise ValueError("All input arrays must have the same length")
 
         # Validate scan time column
-        time_col = "scan_time_aligned" if st_aligned else "scan_time"
+        time_col = 'scan_time_aligned' if st_aligned else 'scan_time'
         if time_col not in ms1df.columns:
             raise ValueError(f"{time_col} not contained in ms1df")
 
@@ -1762,8 +1735,16 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         return results
 
     def search_for_targeted_mass_feature(
-        self, ms1df, mz_min, mz_max, st_min, st_max, set_id, obj_idx=0, st_aligned=False
-    ):
+            self,
+            ms1df, 
+            mz_min,
+            mz_max, 
+            st_min, 
+            st_max,
+            set_id,
+            obj_idx = 0,
+            st_aligned = False
+            ):
         """
         Returns an LCMSMassFeature from a specific sample within a specific mass and time range. Returns an empty
         LCMSMassFeature if no satisfactory peak is found in the given window.
@@ -1791,7 +1772,7 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         Returns
         --------
         LCMSMassFeature
-            Object from ChromaPeak that contains data on selected MS1 peak. If no peak is found, will contain missing
+            Object from ChromaPeak that contains data on selected MS1 peak. If no peak is found, will contain missing 
             information and list the apex scan value as -99.
 
         Raises
@@ -1808,9 +1789,10 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
             np.array([st_max]),
             [set_id],
             obj_idx=obj_idx,
-            st_aligned=st_aligned,
+            st_aligned=st_aligned
         )
         return results[set_id]
+
 
     def __len__(self):
         """
@@ -2018,10 +2000,9 @@ class LCMSBase(MassSpectraBase, LCCalculations, PHCalculations, LCMSSpectralSear
         """
         self._tic_list = np.array(tic_list)
 
-
 class LCMSCollection(LCMSCollectionCalculations):
     """A class representing a collection of liquid chromatography-mass spectrometry (LC-MS) runs.
-    These runs can be from the same or different samples, but must be from the same instrument and have the same parameters
+    These runs can be from the same or different samples, but must be from the same instrument and have the same parameters 
     for the initial processing steps.  The LCMS objects are stored in an ordered dictionary with the sample name as the key.
 
     Parameters
@@ -2039,7 +2020,12 @@ class LCMSCollection(LCMSCollectionCalculations):
     #TODO KRH: add docstrings
     """
 
-    def __init__(self, collection_location, manifest, collection_parser=None):
+    def __init__(
+            self,
+            collection_location,
+            manifest,
+            collection_parser=None
+    ):
         self.collection_location = collection_location
         self._manifest_dict = manifest
         self.collection_parser = collection_parser
@@ -2052,9 +2038,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         self.consensus_mass_features = {}
         self._parameters = LCMSCollectionParameters()
         self.isotopes_dropped = False
-        self._mass_features_locked = (
-            False  # Prevents rebuilding mass_features_dataframe from samples
-        )
+        self._mass_features_locked = False  # Prevents rebuilding mass_features_dataframe from samples
         # Consensus feature grouping labels (isotopes + z=1 adducts);
         # index = cluster. Not tracer/enriched labeling.
         self.feature_group_dataframe = None
@@ -2079,62 +2063,53 @@ class LCMSCollection(LCMSCollectionCalculations):
         samp_name = self.samples[index]
         self._lcms[samp_name]
         return self._lcms[samp_name]
-
+    
     def __len__(self):
         return len(self.samples)
-
-    def _prepare_lcms_mass_features_for_combination(
-        self, lcms_obj, induced_features=False
-    ):
+    
+    def _prepare_lcms_mass_features_for_combination(self, lcms_obj, induced_features = False):
         """
         Prepares the mass features in the LCMS objects in the collection for combination.
-        """
+        """        
         if induced_features:
-            mf_df = lcms_obj.mass_features_to_df(induced_features=True)
+            mf_df = lcms_obj.mass_features_to_df(induced_features = True)
         # Check if lcms_obj has attribute light_mf_df
         elif hasattr(lcms_obj, "light_mf_df"):
             mf_df = lcms_obj.light_mf_df
         else:
             mf_df = lcms_obj.mass_features_to_df()
-
+        
         # If dataframe is empty, add minimal required columns and return
         if len(mf_df) == 0:
-
+            import pandas as pd
             mf_df["sample_name"] = []
             mf_df["sample_id"] = []
             mf_df["coll_mf_id"] = []
             mf_df["mf_id"] = []
-            mf_df[
-                "_eic_mz"
-            ] = []  # Include _eic_mz for consistency with non-empty dataframes
+            mf_df["_eic_mz"] = []  # Include _eic_mz for consistency with non-empty dataframes
             if induced_features:
                 mf_df["cluster"] = []
             return mf_df
-
+        
         # Remove index
         mf_df = mf_df.reset_index(drop=False)
         # Add sample name and sample id to the dataframe
         mf_df["sample_name"] = lcms_obj.sample_name
         # Ensure sample_id is stored as an integer to avoid float indices later
         try:
-            mf_df["sample_id"] = int(
-                self.manifest[lcms_obj.sample_name]["collection_id"]
-            )
+            mf_df["sample_id"] = int(self.manifest[lcms_obj.sample_name]["collection_id"])
         except Exception:
             mf_df["sample_id"] = self.manifest[lcms_obj.sample_name]["collection_id"]
-        mf_df["coll_mf_id"] = (
-            mf_df["sample_id"].astype(str) + "_" + mf_df["mf_id"].astype(str)
-        )
+        mf_df["coll_mf_id"] = mf_df["sample_id"].astype(str) + "_" + mf_df["mf_id"].astype(str)
 
         # For induced features, extract cluster from mf_id (format: c{cluster}_{index}_i)
         # and add as a column since cluster_index attribute may not be set on the object
         if induced_features:
-
             def extract_cluster(mf_id):
                 # mf_id format: c{cluster}_{index}_i
                 # Example: c123_5_i -> cluster 123
-                if isinstance(mf_id, str) and mf_id.startswith("c") and "_i" in mf_id:
-                    parts = mf_id.split("_")
+                if isinstance(mf_id, str) and mf_id.startswith('c') and '_i' in mf_id:
+                    parts = mf_id.split('_')
                     if len(parts) >= 2:
                         cluster_str = parts[0][1:]  # Remove 'c' prefix
                         try:
@@ -2142,25 +2117,25 @@ class LCMSCollection(LCMSCollectionCalculations):
                         except ValueError:
                             return None
                 return None
-
-            mf_df["cluster"] = mf_df["mf_id"].apply(extract_cluster)
+            
+            mf_df['cluster'] = mf_df['mf_id'].apply(extract_cluster)
 
         # Check if scan_df has scan_time_aligned and add to mf_df if so
         if "scan_time_aligned" in lcms_obj.scan_df.columns:
             scan_df = lcms_obj.scan_df[["scan", "scan_time_aligned"]].copy()
             scan_df = scan_df.rename(columns={"scan": "apex_scan"})
             mf_df = mf_df.merge(scan_df, on="apex_scan")
-
+        
         return mf_df
-
-    def _combine_mass_features(self, induced_features=False):
+       
+    def _combine_mass_features(self, induced_features = False):
         """
         Concatenates the mass features from all the LCMS objects in the collection.
 
         Returns
         --------
         None, sets the _combined_mass_features or _combined_induced_mass_feature attribute.
-
+        
         Notes
         -----
         If _mass_features_locked is True (e.g., when only representative features are loaded),
@@ -2168,7 +2143,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         the full collection-level dataframe. Induced features are always rebuilt since they
         are created during processing.
         """
-
+        
         # Skip rebuilding regular mass features if locked (preserves full dataframe)
         if not induced_features and self._mass_features_locked:
             return
@@ -2176,46 +2151,39 @@ class LCMSCollection(LCMSCollectionCalculations):
         ## TODO: See why this function runs slower on multiprocessing,
         ## especially for induced features
         ## has only been considered so far on ~20 samples
-        #        if self.parameters.lcms_collection.cores == 1:
-        #            # Prepare mass features for combination sequentially
-        #            mf_df_list = []
-        #            for lcms_obj in self:
-        #                mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj, induced_features)
-        #                mf_df_list.append(mf_df)
+#        if self.parameters.lcms_collection.cores == 1:
+#            # Prepare mass features for combination sequentially
+#            mf_df_list = []
+#            for lcms_obj in self:
+#                mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj, induced_features)
+#                mf_df_list.append(mf_df)
 
-        #        if self.parameters.lcms_collection.cores > 1:
-        #            # Parallelize the mass feature preparation
-        #            if self.parameters.lcms_collection.cores > len(self):
-        #                ncores = len(self)
-        #            else:
-        #                ncores = self.parameters.lcms_collection.cores
-        #            pool = multiprocessing.Pool(ncores)
-        #            mf_df_list = pool.starmap(
-        #                self._prepare_lcms_mass_features_for_combination,
-        #                [(lcms_obj, induced_features) for lcms_obj in self]
-        #            )
+#        if self.parameters.lcms_collection.cores > 1:
+#            # Parallelize the mass feature preparation
+#            if self.parameters.lcms_collection.cores > len(self):
+#                ncores = len(self)
+#            else:
+#                ncores = self.parameters.lcms_collection.cores
+#            pool = multiprocessing.Pool(ncores)
+#            mf_df_list = pool.starmap(
+#                self._prepare_lcms_mass_features_for_combination, 
+#                [(lcms_obj, induced_features) for lcms_obj in self]
+#            )
 
         # Prepare mass features for combination sequentially
         mf_df_list = []
         for lcms_obj in self:
             # Skip samples with no induced mass features if processing induced features
             if induced_features:
-                if (
-                    not hasattr(lcms_obj, "induced_mass_features")
-                    or len(lcms_obj.induced_mass_features) == 0
-                ):
+                if not hasattr(lcms_obj, 'induced_mass_features') or len(lcms_obj.induced_mass_features) == 0:
                     continue
-            mf_df = self._prepare_lcms_mass_features_for_combination(
-                lcms_obj, induced_features
-            )
+            mf_df = self._prepare_lcms_mass_features_for_combination(lcms_obj, induced_features)
             mf_df_list.append(mf_df)
 
         # If no mass features were collected (e.g., no induced features exist), return early
         if len(mf_df_list) == 0:
             # Add a warning here, not sure how one might reach this state, clearly saying if they are induced features or not
-            warnings.warn(
-                "No mass features found to combine in the collection.", UserWarning
-            )
+            warnings.warn("No mass features found to combine in the collection.", UserWarning)
             if induced_features:
                 self._combined_induced_mass_features = None
             else:
@@ -2229,38 +2197,22 @@ class LCMSCollection(LCMSCollectionCalculations):
         # Ensure sample_id and cluster columns have integer dtypes where possible
         if "sample_id" in combined_mass_features.columns:
             try:
-                combined_mass_features["sample_id"] = combined_mass_features[
-                    "sample_id"
-                ].astype(int)
+                combined_mass_features["sample_id"] = combined_mass_features["sample_id"].astype(int)
             except Exception:
                 combined_mass_features["sample_id"] = pd.to_numeric(
                     combined_mass_features["sample_id"], errors="coerce"
                 ).astype("Int64")
         if "cluster" in combined_mass_features.columns:
             try:
-                combined_mass_features["cluster"] = combined_mass_features[
-                    "cluster"
-                ].astype(int)
+                combined_mass_features["cluster"] = combined_mass_features["cluster"].astype(int)
             except Exception:
                 combined_mass_features["cluster"] = pd.to_numeric(
                     combined_mass_features["cluster"], errors="coerce"
                 ).astype("Int64")
         # Move coll_mf_id, sample_name, sample_id, and mf_id to front
         cols = combined_mass_features.columns.tolist()
-        top_cols = [
-            "coll_mf_id",
-            "sample_name",
-            "sample_id",
-            "mf_id",
-            "mz",
-            "scan_time_aligned",
-            "cluster",
-        ]
-        cols = [
-            x
-            for x in top_cols + [col for col in cols if col not in top_cols]
-            if x in cols
-        ]
+        top_cols = ["coll_mf_id", "sample_name", "sample_id", "mf_id", "mz", "scan_time_aligned", "cluster"]
+        cols = [x for x in top_cols + [col for col in cols if col not in top_cols] if x in cols]
         combined_mass_features = combined_mass_features[cols]
         # Make coll_mf_id the index
         combined_mass_features = combined_mass_features.set_index("coll_mf_id")
@@ -2269,9 +2221,9 @@ class LCMSCollection(LCMSCollectionCalculations):
         else:
             self._combined_mass_features = combined_mass_features
 
-    def _check_mass_features_df(self, induced_features=False):
+    def _check_mass_features_df(self, induced_features = False):
         """Checks if the mass features dataframe has expected columns.  If not, adds them.
-
+        
         Returns
         --------
         pandas.DataFrame
@@ -2279,11 +2231,11 @@ class LCMSCollection(LCMSCollectionCalculations):
 
         Notes
         ------
-        If scan_time_aligned is not in the _combined_mass_features or
+        If scan_time_aligned is not in the _combined_mass_features or 
         _combined_induced_mass_features, tries to add it.
 
         """
-
+        
         if induced_features:
             cmf_df = self._combined_induced_mass_features
         else:
@@ -2296,9 +2248,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         if cmf_df is not None and "scan_time_aligned" not in cmf_df.columns:
             cmb_mf = cmf_df.copy()
             cmb_mf = cmb_mf.reset_index(drop=False)
-            lcms_aligned = [
-                True for x in self if "scan_time_aligned" in x.scan_df.columns
-            ]
+            lcms_aligned = [True for x in self if "scan_time_aligned" in x.scan_df.columns]
             if len(lcms_aligned) == len(self):
                 # Add scan_time_aligned to combined_mass_features dataframe
                 scan_time_aligned_list = []
@@ -2308,22 +2258,16 @@ class LCMSCollection(LCMSCollectionCalculations):
                     scan_time_aligned_list.append(scan_time_df_i)
                 scan_time_aligned_df = pd.concat(scan_time_aligned_list)
                 # Rename scan to apex_scan
-                scan_time_aligned_df = scan_time_aligned_df.rename(
-                    columns={"scan": "apex_scan"}
-                )
-                cmb_mf_merged = cmb_mf.merge(
-                    scan_time_aligned_df, on=["apex_scan", "sample_name"]
-                )
+                scan_time_aligned_df = scan_time_aligned_df.rename(columns={"scan": "apex_scan"})
+                cmb_mf_merged = cmb_mf.merge(scan_time_aligned_df, on=["apex_scan", "sample_name"])
                 cmb_mf_merged = cmb_mf_merged.set_index("coll_mf_id")
                 # Merge scan_time_aligned_df with combined_mass_features on apex_scan and sample_name
                 if induced_features:
                     self._combined_induced_mass_features = cmb_mf_merged
                 else:
                     self._combined_mass_features = cmb_mf_merged
-
-    def plot_tics(
-        self, ms_level=1, type="raw", plot_legend=False, return_fig=False, path=None
-    ):
+    
+    def plot_tics(self, ms_level=1, type="raw", plot_legend=False, return_fig=False, path=None):
         """Plots the TICs for all the LCMS objects in the collection.
 
         Parameters
@@ -2365,26 +2309,12 @@ class LCMSCollection(LCMSCollectionCalculations):
                 if plot_type == "corrected":
                     # Check that scan_time_aligned is key in scan_df
                     if "scan_time_aligned" not in scan_df.columns:
-                        raise ValueError(
-                            f"scan_time_aligned not found in scan_df for {lcms_obj.sample_name}"
-                        )
+                        raise ValueError(f"scan_time_aligned not found in scan_df for {lcms_obj.sample_name}")
                     else:
-                        ax.plot(
-                            scan_df.scan_time_aligned,
-                            scan_df.tic,
-                            label=lcms_obj.sample_name,
-                            c=c,
-                            linewidth=0.3,
-                        )
+                        ax.plot(scan_df.scan_time_aligned, scan_df.tic, label=lcms_obj.sample_name, c=c, linewidth=0.3)
                 elif plot_type == "raw":
-                    ax.plot(
-                        scan_df.scan_time,
-                        scan_df.tic,
-                        label=lcms_obj.sample_name,
-                        c=c,
-                        linewidth=0.3,
-                    )
-            ax.set_xlabel("Retention Time (min," + f" {plot_type})")
+                    ax.plot(scan_df.scan_time, scan_df.tic, label=lcms_obj.sample_name, c=c, linewidth=0.3)
+            ax.set_xlabel("Retention Time (min," + f" {plot_type})" )
             ax.set_ylabel("TIC")
             if plot_legend:
                 ax.legend()
@@ -2416,17 +2346,9 @@ class LCMSCollection(LCMSCollectionCalculations):
             c = next(colors)
             scan_df = lcms_obj.scan_df
             if "scan_time_aligned" not in scan_df.columns:
-                raise ValueError(
-                    f"scan_time_aligned not found in scan_df for {lcms_obj.sample_name}"
-                )
-            scan_df["time_diff"] = scan_df.scan_time - scan_df.scan_time_aligned
-            ax.plot(
-                scan_df.scan_time_aligned,
-                scan_df.time_diff,
-                label=lcms_obj.sample_name,
-                c=c,
-                linewidth=0.3,
-            )
+                raise ValueError(f"scan_time_aligned not found in scan_df for {lcms_obj.sample_name}")
+            scan_df['time_diff'] = scan_df.scan_time - scan_df.scan_time_aligned
+            ax.plot(scan_df.scan_time_aligned, scan_df.time_diff, label=lcms_obj.sample_name, c=c, linewidth=0.3)
 
         ax.set_xlabel("Aligned Retention Time (min)")
         ax.set_ylabel("Time Difference (min)")
@@ -2442,19 +2364,17 @@ class LCMSCollection(LCMSCollectionCalculations):
         cmb_monos = cmb_mf_df[cmb_mf_df.monoisotopic_mf_id == cmb_mf_df.mf_id]
         cmb_nomonos = cmb_mf_df[cmb_mf_df.monoisotopic_mf_id.isnull()]
         # Keep deconvoluted parent or if no deconvoluted parent
-        cmb_decon_parent = cmb_mf_df[
-            cmb_mf_df.mass_spectrum_deconvoluted_parent
-            | cmb_mf_df.monoisotopic_mf_id.isnull()
-        ]
+        cmb_decon_parent = cmb_mf_df[cmb_mf_df.mass_spectrum_deconvoluted_parent | cmb_mf_df.monoisotopic_mf_id.isnull()]
 
         cmb_mf_df2 = pd.concat([cmb_monos, cmb_nomonos, cmb_decon_parent])
-        cmb_mf_df2 = cmb_mf_df2[~cmb_mf_df2.index.duplicated(keep="first")]
+        cmb_mf_df2 = cmb_mf_df2[~cmb_mf_df2.index.duplicated(keep='first')]
         self.isotopes_dropped = True
         self._combined_mass_features = cmb_mf_df2
+    
 
-    def load_raw_data(self, sample_idx: int, ms_level=1, time_range=None) -> None:
+    def load_raw_data(self, sample_idx: int, ms_level = 1, time_range = None) -> None:
         """Load raw data for a specific sample index in the collection.
-
+        
         Parameters
         -----------
         sample_idx : int
@@ -2464,7 +2384,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         time_range : tuple or list of tuples, optional
             Retention time range(s) to load. Can be a single tuple (min, max) or
             a list of tuples for multiple ranges. If None, loads all data. Defaults to None.
-
+            
         Raises
         -------
         IndexError
@@ -2483,9 +2403,7 @@ class LCMSCollection(LCMSCollectionCalculations):
 
         # Check that the sample does not already have raw data loaded
         if ms_level in self[sample_idx]._ms_unprocessed:
-            raise ValueError(
-                f"Raw data for MS{ms_level} already loaded for sample index {sample_idx}. Drop data first if you want to reload it."
-            )
+            raise ValueError(f"Raw data for MS{ms_level} already loaded for sample index {sample_idx}. Drop data first if you want to reload it.")
 
         # Check the parser class. The spectra_parser property opens a reader.
         if getattr(self[sample_idx], "spectra_parser_class", None) is None:
@@ -2499,7 +2417,9 @@ class LCMSCollection(LCMSCollectionCalculations):
         # Get raw data for the specified MS level using the appropriate method
         if parser_class_name == "ImportMassSpectraThermoMSFileReader":
             self[sample_idx]._ms_unprocessed[ms_level] = parser.get_ms_raw(
-                spectra=f"ms{ms_level}", scan_df=scan_df, time_range=time_range
+                spectra=f"ms{ms_level}",
+                scan_df=scan_df,
+                time_range=time_range
             )[f"ms{ms_level}"]
 
         elif parser_class_name == "MZMLSpectraParser":
@@ -2508,15 +2428,15 @@ class LCMSCollection(LCMSCollectionCalculations):
                 spectra=f"ms{ms_level}",
                 scan_df=scan_df,
                 data=data,
-                time_range=time_range,
-            )[f"ms{ms_level}"]
+                time_range=time_range
+                )[f"ms{ms_level}"]
 
         elif parser_class_name == "ReadCoreMSHDFMassSpectra":
             raise ValueError(
                 "ReadCoreMSHDFMassSpectra does not have a method to load raw data. Need to instantiate the original parser to access the raw data."
             )
 
-    def drop_raw_data(self, sample_idx: int, ms_level=1) -> None:
+    def drop_raw_data(self, sample_idx: int, ms_level = 1) -> None:
         """Drop raw data for a specific sample index in the collection.
 
         Parameters
@@ -2542,55 +2462,53 @@ class LCMSCollection(LCMSCollectionCalculations):
 
         # Check that the sample has raw data loaded
         if ms_level not in self[sample_idx]._ms_unprocessed:
-            raise ValueError(
-                f"No raw data for MS{ms_level} found for sample index {sample_idx}. Load data first if you want to drop it."
-            )
+            raise ValueError(f"No raw data for MS{ms_level} found for sample index {sample_idx}. Load data first if you want to drop it.")
 
         # Drop the raw data
         del self[sample_idx]._ms_unprocessed[ms_level]
 
     def update_raw_file_locations(self, new_raw_folder):
         """Update the raw file locations for all LCMS objects in the collection.
-
+        
         This method updates the path to the original raw data files (.raw, .mzML, etc.)
         that were used to create the processed HDF5 files stored in .corems folders.
-
+        
         Parameters
         -----------
         new_raw_folder : str or Path
             The new folder location containing the raw data files (.raw, .mzML, etc.).
             The method will look for raw files with the same base name as each sample.
-
+            
         Raises
         -------
         FileNotFoundError
             If the new raw folder does not exist.
         FileNotFoundError
             If a raw file for a sample is not found in the new folder.
-
+            
         Returns
         --------
         None, but updates the raw_file_location for each LCMS object in the collection.
-
+        
         Examples
         --------
         If raw files were moved from /old/path/ to /new/path/:
         >>> lcms_collection.update_raw_file_locations("/new/path/")
         """
         from pathlib import Path
-
+        
         if isinstance(new_raw_folder, str):
             new_raw_folder = Path(new_raw_folder)
-
+        
         if not new_raw_folder.exists():
             raise FileNotFoundError(f"Raw data folder does not exist: {new_raw_folder}")
-
+        
         # Common raw file extensions
-        raw_extensions = [".raw", ".mzML", ".mzml"]
-
+        raw_extensions = ['.raw', '.mzML', '.mzml']
+        
         for sample_name in self.samples:
             lcms_obj = self._lcms[sample_name]
-
+            
             # Try to find the raw file with common extensions
             new_raw_file = None
             for ext in raw_extensions:
@@ -2598,18 +2516,18 @@ class LCMSCollection(LCMSCollectionCalculations):
                 if candidate.exists():
                     new_raw_file = candidate
                     break
-
+            
             if new_raw_file is None:
                 raise FileNotFoundError(
                     f"Raw file for sample '{sample_name}' not found in {new_raw_folder}. "
                     f"Tried extensions: {', '.join(raw_extensions)}"
                 )
-
+            
             # Update the raw file location and set flag that raw files have been relocated
             lcms_obj.raw_file_location = new_raw_file
         self.raw_files_relocated = True
 
-    def collection_pivot_table(self, attribute="coll_mf_id", verbose=True):
+    def collection_pivot_table(self, attribute = 'coll_mf_id', verbose = True):
         """Generate a pivot table of all regular and induced mass features in
         a collection. Default attribute presented is the mass feature ID, also
         prints a list of other available attributes.
@@ -2628,52 +2546,47 @@ class LCMSCollection(LCMSCollectionCalculations):
         pd.DataFrame
             A DataFrame that displays one given attribute across all clusters
             and samples in a collection
-
+        
         """
-
+        
         mf_pivot = self.mass_features_dataframe.copy()
-        mf_pivot.reset_index(inplace=True)
-
+        mf_pivot.reset_index(inplace = True)
+        
         # Only include induced mass features if gap-filling has been performed
         if self.induced_mass_features_dataframe is not None:
             imf_pivot = self.induced_mass_features_dataframe.copy()
-            imf_pivot.reset_index(inplace=True)
+            imf_pivot.reset_index(inplace = True)
             # Cluster column extracted from mf_id in _prepare_lcms_mass_features_for_combination
-            mf_pivot = pd.concat([mf_pivot, imf_pivot], axis=0)
-            mf_pivot.reset_index(drop=True, inplace=True)
+            mf_pivot = pd.concat([mf_pivot, imf_pivot], axis = 0)
+            mf_pivot.reset_index(drop = True, inplace = True)
         else:
             imf_pivot = None
-
-        mf_pivot["cluster"] = mf_pivot["cluster"].astype(int)
+            
+        mf_pivot['cluster'] = mf_pivot['cluster'].astype(int)
 
         if verbose:
             print(
-                "Attributes available for pivot table:\n",
-                [
-                    x
-                    for x in mf_pivot.columns
-                    if x
-                    not in ["cluster", "sample_name", "mf_id", "partition_idx", "idx"]
-                ],
+                'Attributes available for pivot table:\n',
+                [x for x in mf_pivot.columns if x not in ['cluster', 'sample_name', 'mf_id', 'partition_idx', 'idx']]
             )
             if imf_pivot is not None:
                 print(
-                    "\nAttributes that have no value for induced mass features:\n",
-                    imf_pivot.columns[imf_pivot.isna().all()].tolist(),
+                    '\nAttributes that have no value for induced mass features:\n',
+                    imf_pivot.columns[imf_pivot.isna().all()].tolist()            
                 )
-
+        
         # Create pivot table and reindex to include all samples (even those with no features)
-        pivot = mf_pivot.pivot(index="cluster", columns="sample_name", values=attribute)
-
+        pivot = mf_pivot.pivot(index = 'cluster', columns = 'sample_name', values = attribute)
+        
         # Reindex columns to include all samples in the collection
         all_samples = self.samples
         pivot = pivot.reindex(columns=all_samples)
-
+        
         return pivot
 
     def cluster_representatives_table(self):
         """Generate a table of representative mass features from each consensus cluster.
-
+        
         This method returns a DataFrame containing all attributes for the
         representative mass feature from each consensus cluster. The representative
         is selected using the same logic as process_consensus_features().
@@ -2681,68 +2594,64 @@ class LCMSCollection(LCMSCollectionCalculations):
         Returns
         --------
         pd.DataFrame
-            A DataFrame with one row per cluster containing all attributes for
+            A DataFrame with one row per cluster containing all attributes for 
             each cluster's representative mass feature. Includes:
             - cluster: cluster ID (as a column for easy joining)
             - polarity: ionization polarity from the collection
             - n_samples_detected: number of samples where the cluster was detected
             - All other mass feature attributes from the representative
-
+            
         Notes
         -----
         The representative metric used is determined by
         self.parameters.lcms_collection.consensus_representative_metric and
         is the same metric used by process_consensus_features() for consistency.
-        Common options include 'intensity' (highest intensity) or
+        Common options include 'intensity' (highest intensity) or 
         'intensity_prefer_ms2' (highest intensity with preference for MS2 data).
         """
-
+        
         mf_df = self.mass_features_dataframe.copy()
-        mf_df.reset_index(inplace=True)
-
+        mf_df.reset_index(inplace = True)
+        
         # Include induced mass features if they exist (from gap-filling)
         if self.induced_mass_features_dataframe is not None:
             imf_df = self.induced_mass_features_dataframe.copy()
-            imf_df.reset_index(inplace=True)
+            imf_df.reset_index(inplace = True)
             # Cluster column extracted from mf_id in _prepare_lcms_mass_features_for_combination
-            mf_df = pd.concat([mf_df, imf_df], axis=0)
-            mf_df.reset_index(drop=True, inplace=True)
-        mf_df["cluster"] = mf_df["cluster"].astype(int)
-
+            mf_df = pd.concat([mf_df, imf_df], axis = 0)
+            mf_df.reset_index(drop = True, inplace = True)
+        mf_df['cluster'] = mf_df['cluster'].astype(int)
+        
         # Calculate number of samples per cluster
-        cluster_sample_counts = (
-            mf_df.groupby("cluster")["sample_id"].nunique().to_dict()
-        )
-
+        cluster_sample_counts = mf_df.groupby('cluster')['sample_id'].nunique().to_dict()
+        
         # Use the same representative selection logic as process_consensus_features
         # This uses the configured representative_metric from parameters
         representatives = self.get_representative_mass_features_for_all_clusters()
-
+        
         # Get the coll_mf_ids of the representatives
-        representative_ids = representatives["coll_mf_id"].tolist()
-
+        representative_ids = representatives['coll_mf_id'].tolist()
+        
         # Filter mf_df to only include representative features
         consensus_report = mf_df[mf_df.coll_mf_id.isin(representative_ids)].copy()
-
+        
         # Add polarity (get from first sample in collection)
         if len(self) > 0:
             polarity = self[0].polarity
         else:
-            polarity = "unknown"
-        consensus_report["polarity"] = polarity
-
+            polarity = 'unknown'
+        consensus_report['polarity'] = polarity
+        
         # Add number of samples detected
-        consensus_report["n_samples_detected"] = consensus_report["cluster"].map(
-            cluster_sample_counts
-        )
-
+        consensus_report['n_samples_detected'] = consensus_report['cluster'].map(cluster_sample_counts)
+        
         # Reorder columns to put cluster at the front
         cols = consensus_report.columns.tolist()
-        if "cluster" in cols:
-            cols.remove("cluster")
-            cols = ["cluster"] + cols
+        if 'cluster' in cols:
+            cols.remove('cluster')
+            cols = ['cluster'] + cols
             consensus_report = consensus_report[cols]
-
+        
         # Do not present a single preferred ion_type; possible_ion_types holds
         # all residual-tied candidates (same policy as cluster_summary).
         if "ion_type" in consensus_report.columns:
@@ -2761,7 +2670,7 @@ class LCMSCollection(LCMSCollectionCalculations):
             consensus_report = consensus_report.drop(columns=["ion_type"])
 
         # Sort by cluster and return with cluster as a regular column
-        return consensus_report.sort_values(by="cluster")
+        return consensus_report.sort_values(by='cluster')
 
     def to_mgf(
         self,
@@ -2842,14 +2751,17 @@ class LCMSCollection(LCMSCollectionCalculations):
         )
 
     def feature_annotations_table(
-        self, molecular_metadata=None, drop_unannotated=False, report_best_only=False
-    ):
+            self, 
+            molecular_metadata=None, 
+            drop_unannotated=False,
+            report_best_only=False
+            ):
         """Generate a comprehensive annotation table for all loaded mass features across samples.
-
-        This method consolidates MS1 molecular formula assignments and MS2 spectral
+        
+        This method consolidates MS1 molecular formula assignments and MS2 spectral 
         search results for all mass features across all samples in the collection.
         Only includes representative mass features (one per cluster per sample).
-
+        
         Parameters
         ----------
         molecular_metadata : dict, optional
@@ -2857,13 +2769,13 @@ class LCMSCollection(LCMSCollectionCalculations):
             Required for including molecular metadata in MS2 annotations.
             Default is None.
         drop_unannotated : bool, optional
-            If True, drops rows where all annotation columns (everything except
+            If True, drops rows where all annotation columns (everything except 
             cluster, MS2 Spectrum, and representative_sample) are NaN.
             Default is False.
         report_best_only : bool, optional
             If True, only includes the best MS2 annotation per mass feature based on confidence score.
             Default is False, which includes all MS2 annotations for each mass feature.
-
+        
         Returns
         -------
         pd.DataFrame
@@ -2878,12 +2790,12 @@ class LCMSCollection(LCMSCollectionCalculations):
             - MS2 annotations (if ms2_spectral_search was run):
               ``Library Molecular Formula``, ``Library Ion Formula``,
               ``Entropy Similarity``, ``name``, etc.
-
+        
         Notes
         -----
         This method uses the standard LCMSMetabolomicsExport.to_report() workflow
         for each sample, then consolidates all results and adds cluster information.
-
+        
         Only mass features that are loaded in each sample's mass_features dict
         are included (typically the representative features if load_representatives
         was used in process_consensus_features).
@@ -2894,7 +2806,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         are not mistaken for MS1 formula assignments. When MS1 and MS2 match
         (same ion formula), the library formula columns are cleared on that
         row to avoid repeating the MS1 values.
-
+        
         Raises
         ------
         ValueError
@@ -2905,86 +2817,67 @@ class LCMSCollection(LCMSCollectionCalculations):
         """
         from corems.mass_spectra.output.export import LCMSMetabolomicsExport
         import warnings
-
+        
         # Check if representative features have been loaded
         # Count samples with mass features loaded
         samples_with_features = sum(
-            1
-            for lcms_obj in self
-            if hasattr(lcms_obj, "mass_features") and len(lcms_obj.mass_features) > 0
+            1 for lcms_obj in self 
+            if hasattr(lcms_obj, 'mass_features') and len(lcms_obj.mass_features) > 0
         )
-
+        
         if samples_with_features == 0:
             raise ValueError(
                 "No representative mass features have been loaded into individual samples. "
                 "Call process_consensus_features() with load_representatives=True before "
                 "calling feature_annotations_table()."
             )
-
+        
         # Collect reports from all samples
         all_sample_reports = []
         has_any_ms2_annotations = False
-
+        
         for sample_id, lcms_obj in enumerate(self):
             # Skip samples with no loaded mass features
-            if (
-                not hasattr(lcms_obj, "mass_features")
-                or len(lcms_obj.mass_features) == 0
-            ):
+            if not hasattr(lcms_obj, 'mass_features') or len(lcms_obj.mass_features) == 0:
                 continue
-
+            
             sample_name = self.samples[sample_id]
-
+            
             # Create exporter and generate report using standard workflow
             # Suppress individual warnings - we'll warn at collection level if needed
             exporter = LCMSMetabolomicsExport("temp", lcms_obj)
-            sample_report = exporter.to_report(
-                molecular_metadata=molecular_metadata, suppress_warnings=True
-            )
-
+            sample_report = exporter.to_report(molecular_metadata=molecular_metadata, suppress_warnings=True)
+            
             # Check if this sample has any MS2 annotations
-            ms2_cols = [
-                col
-                for col in sample_report.columns
-                if "Entropy Similarity" in col or "spectral_similarity" in col.lower()
-            ]
+            ms2_cols = [col for col in sample_report.columns if 'Entropy Similarity' in col or 'spectral_similarity' in col.lower()]
             if ms2_cols and sample_report[ms2_cols].notna().any().any():
                 has_any_ms2_annotations = True
-
+            
             # Add sample information
-            sample_report["representative_sample"] = sample_name
-            sample_report["sample_id"] = sample_id
-
+            sample_report['representative_sample'] = sample_name
+            sample_report['sample_id'] = sample_id
+            
             # Get cluster information from the mass_features_dataframe
             # Build coll_mf_id for each row to look up cluster
-            sample_report["coll_mf_id"] = (
-                sample_report["sample_id"].astype(str)
-                + "_"
-                + sample_report["Mass Feature ID"].astype(str)
-            )
-
+            sample_report['coll_mf_id'] = sample_report['sample_id'].astype(str) + "_" + sample_report['Mass Feature ID'].astype(str)
+            
             # Get cluster from mass_features_dataframe
-            if (
-                self.mass_features_dataframe is not None
-                and "cluster" in self.mass_features_dataframe.columns
-            ):
+            if self.mass_features_dataframe is not None and 'cluster' in self.mass_features_dataframe.columns:
                 mf_df = self.mass_features_dataframe.reset_index()
-                cluster_lookup = mf_df.set_index("coll_mf_id")["cluster"].to_dict()
-                sample_report["cluster"] = sample_report["coll_mf_id"].map(
-                    cluster_lookup
-                )
+                cluster_lookup = mf_df.set_index('coll_mf_id')['cluster'].to_dict()
+                sample_report['cluster'] = sample_report['coll_mf_id'].map(cluster_lookup)
             else:
-                sample_report["cluster"] = None
-
+                sample_report['cluster'] = None
+            
             # Drop temporary coll_mf_id column
-            sample_report = sample_report.drop(columns=["coll_mf_id"])
-
+            sample_report = sample_report.drop(columns=['coll_mf_id'])
+            
             all_sample_reports.append(sample_report)
-
+        
         # Combine all sample reports
         if len(all_sample_reports) == 0:
             raise ValueError("No samples with loaded mass features found in collection")
-
+        
         collection_report = pd.concat(all_sample_reports, ignore_index=True)
 
         # Feature-group constrain: drop consensus isotopes; filter library ion types
@@ -3048,11 +2941,7 @@ class LCMSCollection(LCMSCollectionCalculations):
             merge_possible_ion_types,
         )
 
-        if (
-            labels is not None
-            and len(labels)
-            and "cluster" in collection_report.columns
-        ):
+        if labels is not None and len(labels) and "cluster" in collection_report.columns:
             gcols = [c for c in GROUP_COLUMNS if c in labels.columns]
             grouping = labels[gcols].copy().reset_index()
             first = grouping.columns[0]
@@ -3077,14 +2966,14 @@ class LCMSCollection(LCMSCollectionCalculations):
                         collection_report.at[i, "possible_ion_types"] = filled
             if "ion_type" in collection_report.columns:
                 collection_report = collection_report.drop(columns=["ion_type"])
-
+        
         # Warn only if NO samples in the collection have MS2 annotations
         if not has_any_ms2_annotations:
             warnings.warn(
                 "No MS2 annotations found across any samples in collection, were MS2 spectra added and searched against a database?",
                 UserWarning,
             )
-
+        
         # Reorder columns to match specified order
         group_front = [
             c
@@ -3098,30 +2987,30 @@ class LCMSCollection(LCMSCollectionCalculations):
             if c in collection_report.columns
         ]
         desired_cols = [
-            "cluster",
+            'cluster',
             *group_front,
-            "Isotopologue Type",
-            "Is Largest Ion after Deconvolution",
-            "MS2 Spectrum",
-            "Calculated m/z",
-            "m/z Error (ppm)",
-            "m/z Error Score",
-            "Isotopologue Similarity",
-            "Confidence Score",
-            "Ion Formula",
-            "Molecular Formula",
-            "Library Ion Formula",
-            "Library Ion Type",
-            "Library Molecular Formula",
-            "inchikey",
-            "name",
-            "ref_ms_id",
-            "Entropy Similarity",
-            "Library mzs in Query (fraction)",
-            "Spectra with Annotation (n)",
-            "representative_sample",
+            'Isotopologue Type',
+            'Is Largest Ion after Deconvolution',
+            'MS2 Spectrum',
+            'Calculated m/z',
+            'm/z Error (ppm)',
+            'm/z Error Score',
+            'Isotopologue Similarity',
+            'Confidence Score',
+            'Ion Formula',
+            'Molecular Formula',
+            'Library Ion Formula',
+            'Library Ion Type',
+            'Library Molecular Formula',
+            'inchikey',
+            'name',
+            'ref_ms_id',
+            'Entropy Similarity',
+            'Library mzs in Query (fraction)',
+            'Spectra with Annotation (n)',
+            'representative_sample'
         ]
-
+        
         leading = [c for c in desired_cols if c in collection_report.columns]
         rest = [c for c in collection_report.columns if c not in leading]
         collection_report = collection_report[leading + rest]
@@ -3131,50 +3020,42 @@ class LCMSCollection(LCMSCollectionCalculations):
             if c == "cluster" or collection_report[c].notna().any()
         ]
         collection_report = collection_report[nonempty]
-
+        
         # Optionally drop rows without any annotations
         if drop_unannotated:
             # Columns to exclude from the "all NA" check
-            exclude_cols = ["cluster", "MS2 Spectrum", "representative_sample"]
+            exclude_cols = ['cluster', 'MS2 Spectrum', 'representative_sample']
             # Get annotation columns (everything except the excluded ones)
-            annot_cols = [
-                col for col in collection_report.columns if col not in exclude_cols
-            ]
+            annot_cols = [col for col in collection_report.columns if col not in exclude_cols]
             # Keep rows where at least one annotation column is not NA
             if len(annot_cols) > 0:
-                collection_report = collection_report[
-                    collection_report[annot_cols].notna().any(axis=1)
-                ]
-
+                collection_report = collection_report[collection_report[annot_cols].notna().any(axis=1)]
+        
         # Sort by cluster, then by annotation quality (only columns that remain)
-        sort_cols = ["cluster"]
+        sort_cols = ['cluster']
         sort_asc = [True]
-        if "Entropy Similarity" in collection_report.columns:
-            sort_cols.append("Entropy Similarity")
+        if 'Entropy Similarity' in collection_report.columns:
+            sort_cols.append('Entropy Similarity')
             sort_asc.append(False)
-        if "Confidence Score" in collection_report.columns:
-            sort_cols.append("Confidence Score")
+        if 'Confidence Score' in collection_report.columns:
+            sort_cols.append('Confidence Score')
             sort_asc.append(False)
         collection_report = collection_report.sort_values(
             by=sort_cols, ascending=sort_asc
         )
-
+        
         if report_best_only:
             # Keep only the best annotation per cluster based on the first annotation column available
-            if "Entropy Similarity" in collection_report.columns:
-                best_annot_col = "Entropy Similarity"
-            elif "Confidence Score" in collection_report.columns:
-                best_annot_col = "Confidence Score"
+            if 'Entropy Similarity' in collection_report.columns:
+                best_annot_col = 'Entropy Similarity'
+            elif 'Confidence Score' in collection_report.columns:
+                best_annot_col = 'Confidence Score'
             else:
                 best_annot_col = None
-
+            
             if best_annot_col is not None:
-                collection_report = collection_report.sort_values(
-                    by=["cluster", best_annot_col], ascending=[True, False]
-                )
-                collection_report = collection_report.drop_duplicates(
-                    subset=["cluster"], keep="first"
-                )
+                collection_report = collection_report.sort_values(by=['cluster', best_annot_col], ascending=[True, False])
+                collection_report = collection_report.drop_duplicates(subset=['cluster'], keep='first')
 
         return collection_report
 
@@ -3184,7 +3065,7 @@ class LCMSCollection(LCMSCollectionCalculations):
         LCMSCollectionParameters : The parameters used for the LCMS collection.
         """
         return self._parameters
-
+    
     @parameters.setter
     def parameters(self, paramsinstance):
         """
@@ -3196,7 +3077,7 @@ class LCMSCollection(LCMSCollectionCalculations):
             The parameters used for the LC-MS analysis.
         """
         self._parameters = paramsinstance
-
+    
     @property
     def mass_features_dataframe(self):
         self._check_mass_features_df()
@@ -3207,10 +3088,8 @@ class LCMSCollection(LCMSCollectionCalculations):
         # Check that the dataframe has the expected columns
         expected_cols = ["sample_name", "sample_id", "mz", "scan_time"]
         if not all([col in df.columns for col in expected_cols]):
-            raise ValueError(
-                f"Expected columns not found in dataframe: {expected_cols}"
-            )
-
+            raise ValueError(f"Expected columns not found in dataframe: {expected_cols}")
+        
         # Check that coll_mf_id is the index and it is unique
         if df.index.name != "coll_mf_id":
             raise ValueError("coll_mf_id must be the index of the dataframe")
@@ -3220,11 +3099,8 @@ class LCMSCollection(LCMSCollectionCalculations):
 
     @property
     def induced_mass_features_dataframe(self):
-        self._check_mass_features_df(induced_features=True)
-        if (
-            self._combined_induced_mass_features is not None
-            and len(self._combined_induced_mass_features) > 0
-        ):
+        self._check_mass_features_df(induced_features = True)
+        if self._combined_induced_mass_features is not None and len(self._combined_induced_mass_features) > 0:
             # The cluster column is extracted from mf_id in _prepare_lcms_mass_features_for_combination
             # mf_id format for induced features: c{cluster}_{index}_i
             pass
@@ -3235,32 +3111,30 @@ class LCMSCollection(LCMSCollectionCalculations):
         # Check that the dataframe has the expected columns
         expected_cols = ["sample_name", "sample_id", "mz", "scan_time"]
         if not all([col in df.columns for col in expected_cols]):
-            raise ValueError(
-                f"Expected columns not found in dataframe: {expected_cols}"
-            )
-
+            raise ValueError(f"Expected columns not found in dataframe: {expected_cols}")
+        
         # Check that coll_mf_id is the index and it is unique
         if df.index.name != "coll_mf_id":
             raise ValueError("coll_mf_id must be the index of the dataframe")
         if not df.index.is_unique:
             raise ValueError("coll_mf_id must be unique")
-        self._combined_induced_mass_features = df
-
+        self._combined_induced_mass_features = df    
+    
     @property
     def cluster_summary_dataframe(self):
         return self.summarize_clusters()
-
+    
     @property
     def samples(self):
         manifest_df = self.manifest_dataframe
         # order by batch, then by order
-        manifest_df = manifest_df.sort_values(by=["batch", "order"])
+        manifest_df = manifest_df.sort_values(by=['batch', 'order'])
         return manifest_df.index.tolist()
-
+    
     @property
     def manifest(self):
         return self._manifest_dict
-
+    
     @property
     def manifest_dataframe(self):
         return pd.DataFrame(self._manifest_dict).T
@@ -3269,7 +3143,7 @@ class LCMSCollection(LCMSCollectionCalculations):
     def raw_files(self):
         """Returns a list of raw files in the collection."""
         return [x.raw_file_location for x in self]
-
+    
     @property
     def rt_alignments(self):
         """Returns a dictionary of retention time alignments for the collection."""
@@ -3277,76 +3151,72 @@ class LCMSCollection(LCMSCollectionCalculations):
             _rt_alignments = {}
             # Construct a dictionary of aligned retention times (stored on each LCMS object within the collection, not the collection itself)
             for i, lcms_obj in enumerate(self):
-                aligned_times = [
-                    x
-                    for k, x in sorted(lcms_obj._scan_info["scan_time_aligned"].items())
-                ]
+                aligned_times = [x for k, x in sorted(lcms_obj._scan_info["scan_time_aligned"].items())]
                 _rt_alignments[i] = aligned_times
             return _rt_alignments
         else:
             return None
-
+    
     @property
     def cluster_feature_dictionary(self):
         """Generates a dictionary with clusters for keys and mass feature IDs as entries"""
         df = self.mass_features_dataframe
         cluster_dict = {
-            cluster: list(ids) for cluster, ids in df.groupby("cluster").groups.items()
+            cluster: list(ids)
+            for cluster, ids in df.groupby('cluster').groups.items()
         }
         return cluster_dict
-
+    
     def get_eics_for_cluster(self, cluster_id):
         """
         Retrieve all EICs for mass features in a specific cluster across all samples.
-
+        
         Returns a dictionary mapping sample names to EIC_Data objects for the given cluster.
         Useful for visualizing and comparing chromatographic peaks across samples.
-
+        
         Parameters
         ----------
         cluster_id : int
             The cluster ID to retrieve EICs for
-
+            
         Returns
         -------
         dict
             Dictionary with structure: {sample_name: EIC_Data object}
             Only includes samples where the EIC was loaded.
-
+            
         Examples
         --------
         >>> # Load EICs first
         >>> collection.process_consensus_features(gather_eics=True, ...)
-        >>>
+        >>> 
         >>> # Get all EICs for cluster 5
         >>> eics = collection.get_eics_for_cluster(5)
         >>> for sample_name, eic_data in eics.items():
         ...     print(f"{sample_name}: {len(eic_data.scans)} scans")
-
+        
         Notes
         -----
         Requires that EICs have been loaded using gather_eics=True in
         process_consensus_features() or manually loaded via LoadEICsOperation.
         """
         eics_by_sample = {}
-
+        
         # Iterate through all samples
         for sample_id, sample in enumerate(self):
             sample_name = self.samples[sample_id]
-
+            
             # Check if sample has EICs loaded
-            if not hasattr(sample, "eics") or not sample.eics:
+            if not hasattr(sample, 'eics') or not sample.eics:
                 continue
-
+            
             # Find mass features in this cluster for this sample
             # Check both regular and induced mass features
-            for mf in list(sample.mass_features.values()) + list(
-                sample.induced_mass_features.values()
-            ):
-                if hasattr(mf, "cluster_index") and mf.cluster_index == cluster_id:
+            for mf in list(sample.mass_features.values()) + list(sample.induced_mass_features.values()):
+                if hasattr(mf, 'cluster_index') and mf.cluster_index == cluster_id:
                     # Get the EIC for this mass feature's m/z
                     if mf.mz in sample.eics:
                         eics_by_sample[sample_name] = sample.eics[mf.mz]
                         break  # Found the EIC for this sample, move to next sample
-
+        
         return eics_by_sample

@@ -433,14 +433,12 @@ class ICRMassPeak(_MSPeak):
     def __init__(self, *args, ms_parent=None, exp_freq=None):
         super().__init__(*args, exp_freq=exp_freq, ms_parent=ms_parent)
 
-    def resolving_power_calc(
-        self, B, T, apodization_method: str = None
-    ):  # , kaiser_beta: float = None):
+    def resolving_power_calc(self, B, T, apodization_method: str = None):#, kaiser_beta: float = None):
         """Calculate the theoretical resolving power of the peak.
-
+        
         Note this presumes magntiude mode Fourier transform and fundamental frequency detection.
         If you are doing aFT/eFT, or 2nd harmonic detection, you should adjust the B or T values accordingly.
-        Note that the window function corrections are an approximation and may not be 100% accurate.
+        Note that the window function corrections are an approximation and may not be 100% accurate. 
         Encourage you to use with caution and/or re-do the derivation independently and update....
 
         Parameters
@@ -457,7 +455,7 @@ class ICRMassPeak(_MSPeak):
         -------
         float
             Theoretical resolving power of the peak, with magnitude mode Fourier transform and fundamental frequency detection.
-
+        
 
         References
         ----------
@@ -479,23 +477,17 @@ class ICRMassPeak(_MSPeak):
         elif apodization_method == "Hamming":
             CF = 0.685
         elif apodization_method == "Hanning":
-            CF = 0.618
+            CF = 0.618 
         elif apodization_method == "Blackman":
             CF = 0.530
         elif apodization_method == "Full-Sine":
             CF = 0.736
-        elif (
-            apodization_method == "Half-Sine"
-            or apodization_method == "Kaiser"
-            or apodization_method == "Half-Kaiser"
-        ):
-            raise ValueError(
-                f"Apodization method {apodization_method} not supported yet"
-            )
+        elif apodization_method == "Half-Sine" or apodization_method == "Kaiser" or apodization_method == "Half-Kaiser":
+            raise ValueError(f"Apodization method {apodization_method} not supported yet")
         else:
             raise ValueError(f"Unknown window function: {apodization_method}")
-
-        """ # This was placeholder code, not sure these CF and equations are correct.
+        
+        ''' # This was placeholder code, not sure these CF and equations are correct.
         elif apodization_method == "Half-Sine":
             CF = 0.85  # Approximate value
         elif apodization_method == "Kaiser":
@@ -509,15 +501,13 @@ class ICRMassPeak(_MSPeak):
                 CF = (1.3975 / (kaiser_beta + 0.5)) * k_half
             else:
                 raise ValueError("Beta parameter is required for Half-Kaiser window")
-        """
+        '''
 
         # Adjusted resolving power after applying the window function
         RP_windowed = RP_unwindowed * CF
         return RP_windowed
 
-    def set_calc_resolving_power(
-        self, B: float, T: float, apodization_method: str = None
-    ):
+    def set_calc_resolving_power(self, B: float, T: float, apodization_method: str = None):
         """Set the resolving power of the peak to the calculated one."""
         self.resolving_power = self.resolving_power_calc(B, T, apodization_method)
 

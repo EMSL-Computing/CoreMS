@@ -185,7 +185,7 @@ class MolecularNetwork(NetworkVisualizeMixin):
             if non_entropy_thresholds:
                 entropy_threshold_low = min(non_entropy_thresholds) / 2
             else:
-                entropy_threshold_low = 0.25  # Placeholder that won't be used if no additional similarities are computed
+                entropy_threshold_low = 0.25 # Placeholder that won't be used if no additional similarities are computed
 
         self.fe_lib = fe_lib
         self.search_type = search_type
@@ -321,18 +321,14 @@ class MolecularNetwork(NetworkVisualizeMixin):
             If *lcms_collection* does not expose representative lookup or
             sample indexing (not an ``LCMSCollection``-like object).
         """
-        if not hasattr(
-            lcms_collection, "get_representative_mass_features_for_all_clusters"
-        ):
+        if not hasattr(lcms_collection, "get_representative_mass_features_for_all_clusters"):
             raise AttributeError(
                 "lcms_collection must provide get_representative_mass_features_for_all_clusters "
                 "(expected an LCMSCollection)."
             )
 
-        representatives = (
-            lcms_collection.get_representative_mass_features_for_all_clusters(
-                representative_metric=representative_metric
-            )
+        representatives = lcms_collection.get_representative_mass_features_for_all_clusters(
+            representative_metric=representative_metric
         )
         if cluster_ids is not None:
             representatives = representatives[
@@ -412,7 +408,9 @@ class MolecularNetwork(NetworkVisualizeMixin):
         except (TypeError, ValueError):
             return None
 
-    def _update_matrices(self, new_scores: dict[str, dict[tuple[str, str], float]]):
+    def _update_matrices(
+        self, new_scores: dict[str, dict[tuple[str, str], float]]
+    ):
         """Write new similarity scores into the appropriate SimilarityMatrix."""
         for metric, pairs in new_scores.items():
             mat = self.similarity_matrices.get(metric)
@@ -530,9 +528,7 @@ class MolecularNetwork(NetworkVisualizeMixin):
             has not been called).
         """
         if not self._all_query_spectra:
-            raise RuntimeError(
-                "No queries prepared. Call run_query_vs_query_only() or query_vs_library() first."
-            )
+            raise RuntimeError("No queries prepared. Call run_query_vs_query_only() or query_vs_library() first.")
 
         if fe_kwargs is None and self._settings is not None:
             fe_kwargs = self._settings.as_fe_kwargs()
@@ -577,9 +573,7 @@ class MolecularNetwork(NetworkVisualizeMixin):
             If stage 1 has not been completed or if ``self.fe_lib`` is ``None``.
         """
         if not self.stage_query_query_done:
-            raise RuntimeError(
-                "query-vs-query stage must be run before query-vs-library stage."
-            )
+            raise RuntimeError("query-vs-query stage must be run before query-vs-library stage.")
         if self.fe_lib is None:
             raise RuntimeError(
                 "query-vs-library stage requires a reference FE library (fe_lib). "
@@ -635,9 +629,7 @@ class MolecularNetwork(NetworkVisualizeMixin):
             If stage 2 has not been completed.
         """
         if not self.stage_query_library_done:
-            raise RuntimeError(
-                "query-vs-library stage must be run before library-vs-library stage."
-            )
+            raise RuntimeError("query-vs-library stage must be run before library-vs-library stage.")
 
         matched_lib_indices: list[int] = sorted(
             {
@@ -957,7 +949,9 @@ class MolecularNetwork(NetworkVisualizeMixin):
         neighbors.sort(key=lambda x: x[1], reverse=True)
         return neighbors
 
-    def get_network_stats(self, metric: str = "entropy_similarity") -> dict[str, Any]:
+    def get_network_stats(
+        self, metric: str = "entropy_similarity"
+    ) -> dict[str, Any]:
         """Return basic network statistics for *metric*.
 
         Parameters
@@ -1078,17 +1072,15 @@ class MolecularNetwork(NetworkVisualizeMixin):
 
         # Recreate empty similarity matrices for each metric
         all_metrics = list(self.similarity_matrices.keys())
-        self.similarity_matrices = {
-            m: SimilarityMatrix(metric_name=m) for m in all_metrics
-        }
+        self.similarity_matrices = {m: SimilarityMatrix(metric_name=m) for m in all_metrics}
 
         # Drop any cached clustering artifacts tied to previous query results.
         self._network_clusters = {}
 
     def __repr__(self) -> str:
-        n_nodes = sum(
-            mat.n_spectra for mat in self.similarity_matrices.values()
-        ) // max(1, len(self.similarity_matrices))
+        n_nodes = sum(mat.n_spectra for mat in self.similarity_matrices.values()) // max(
+            1, len(self.similarity_matrices)
+        )
         metrics = list(self.similarity_matrices.keys())
         return (
             f"MolecularNetwork(search_type='{self.search_type}', "

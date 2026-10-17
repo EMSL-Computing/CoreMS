@@ -1,3 +1,5 @@
+
+
 from corems.encapsulation import nist_atoms
 
 # Default gzip level for HDF5 datasets on the mass spectrum and LC-MS
@@ -247,193 +249,192 @@ class Atoms:  # pragma: no cover
         "Bi": (3, 1, 5),
     }
 
-
 ION_TYPE_DICT = {
-    "M+": {
+    'M+': {
         "add": {},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M]+": {
+    '[M]+': {
         "add": {},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "protonated": {
-        "add": {"H": 1},
+    'protonated': {
+        "add": {'H': 1},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+H]+": {
-        "add": {"H": 1},
+    '[M+H]+': {
+        "add": {'H': 1},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+2H]2+": {
-        "add": {"H": 2},
+    '[M+2H]2+': {
+        "add": {'H': 2},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+3H]3+": {
-        "add": {"H": 3},
+    '[M+3H]3+': {
+        "add": {'H': 3},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+NH4]+": {
-        "add": {"N": 1, "H": 4},
+    '[M+NH4]+': {
+        "add": {'N': 1, 'H': 4},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+Na]+": {
-        "add": {"Na": 1},
+    '[M+Na]+': {
+        "add": {'Na': 1},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+K]+": {
-        "add": {"K": 1},
+    '[M+K]+': {
+        "add": {'K': 1},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+2Na]2+": {
-        "add": {"Na": 2},
+    '[M+2Na]2+': {
+        "add": {'Na': 2},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+H+Na]2+": {
-        "add": {"H": 1, "Na": 1},
+    '[M+H+Na]2+': {
+        "add": {'H': 1, 'Na': 1},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+H+K]2+": {
-        "add": {"H": 1, "K": 1},
+    '[M+H+K]2+': {
+        "add": {'H': 1, 'K': 1},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+2Na+Cl]+": {
-        "add": {"Na": 2, "Cl": 1},
+    '[M+2Na+Cl]+': {
+        "add": {'Na': 2, 'Cl': 1},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+2Na-H]+": {
-        "add": {"Na": 2},
-        "sub": {"H": 1},
-        "polarity": "positive",
+    '[M+2Na-H]+': {
+        "add": {'Na': 2},
+        "sub": {'H': 1},
+        "polarity": 'positive',
     },
-    "[M-H+2Na]+": {
-        "add": {"Na": 2},
-        "sub": {"H": 1},
-        "polarity": "positive",
+    '[M-H+2Na]+': {
+        "add": {'Na': 2},
+        "sub": {'H': 1},
+        "polarity": 'positive',
     },
-    "[M+C2H3Na2O2]+": {
-        "add": {"C": 2, "H": 3, "Na": 2, "O": 2},
+    '[M+C2H3Na2O2]+': {
+        "add": {'C': 2, 'H': 3, 'Na': 2, 'O': 2},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+C4H10N3]+": {
-        "add": {"C": 4, "H": 10, "N": 3},
+    '[M+C4H10N3]+': {
+        "add": {'C': 4, 'H': 10, 'N': 3},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+NH4+ACN]+": {
-        "add": {"C": 2, "H": 7, "N": 2},
+    '[M+NH4+ACN]+': {
+        "add": {'C': 2, 'H': 7, 'N': 2},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+H-H2O]+": {
+    '[M+H-H2O]+': {
         "add": {},
-        "sub": {"H": 1, "O": 1},
-        "polarity": "positive",
+        "sub": {'H': 1, 'O': 1},
+        "polarity": 'positive',
     },
-    "[M+H-2H2O]+": {
+    '[M+H-2H2O]+': {
         "add": {},
-        "sub": {"H": 3, "O": 2},
-        "polarity": "positive",
+        "sub": {'H': 3, 'O': 2},
+        "polarity": 'positive',
     },
-    "[M+H-NH3]+": {
+    '[M+H-NH3]+': {
         "add": {},
-        "sub": {"N": 1, "H": 2},
-        "polarity": "positive",
+        "sub": {'N': 1, 'H': 2},
+        "polarity": 'positive',
     },
-    "[M+2H-NH3]2+": {
+    '[M+2H-NH3]2+': {
         "add": {},
-        "sub": {"N": 1, "H": 1},
-        "polarity": "positive",
+        "sub": {'N': 1, 'H': 1},
+        "polarity": 'positive',
     },
-    "[M+2H-H2O]2+": {
+    '[M+2H-H2O]2+': {
         "add": {},
-        "sub": {"O": 1},
-        "polarity": "positive",
+        "sub": {'O': 1},
+        "polarity": 'positive',
     },
-    "[M+NH4-H2O]+": {
-        "add": {"N": 1, "H": 2},
+    '[M+NH4-H2O]+': {
+        "add": {'N': 1, 'H': 2},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "[M+H+H2O]+": {
-        "add": {"H": 3, "O": 1},
+    '[M+H+H2O]+': {
+        "add": {'H': 3, 'O': 1},
         "sub": {},
-        "polarity": "positive",
+        "polarity": 'positive',
     },
-    "de-protonated": {
+    'de-protonated': {
         "add": {},
-        "sub": {"H": 1},
-        "polarity": "negative",
+        "sub": {'H': 1},
+        "polarity": 'negative',
     },
-    "[M-H]-": {
+    '[M-H]-': {
         "add": {},
-        "sub": {"H": 1},
-        "polarity": "negative",
+        "sub": {'H': 1},
+        "polarity": 'negative',
     },
-    "[M-2H]2-": {
+    '[M-2H]2-': {
         "add": {},
-        "sub": {"H": 2},
-        "polarity": "negative",
+        "sub": {'H': 2},
+        "polarity": 'negative',
     },
-    "[M-H-H2O]-": {
+    '[M-H-H2O]-': {
         "add": {},
-        "sub": {"H": 3, "O": 1},
-        "polarity": "negative",
+        "sub": {'H': 3, 'O': 1},
+        "polarity": 'negative',
     },
-    "[M-H+H2O]-": {
-        "add": {"H": 1, "O": 1},
+    '[M-H+H2O]-': {
+        "add": {'H': 1, 'O': 1},
         "sub": {},
-        "polarity": "negative",
+        "polarity": 'negative',
     },
-    "[M+Cl]-": {
-        "add": {"Cl": 1},
+    '[M+Cl]-': {
+        "add": {'Cl': 1},
         "sub": {},
-        "polarity": "negative",
+        "polarity": 'negative',
     },
-    "[M+HCOO]-": {
-        "add": {"C": 1, "H": 1, "O": 2},
+    '[M+HCOO]-': {
+        "add": {'C': 1, 'H': 1, 'O': 2},
         "sub": {},
-        "polarity": "negative",
+        "polarity": 'negative',
     },
-    "[M+CH3COO]-": {
-        "add": {"C": 2, "H": 3, "O": 2},
+    '[M+CH3COO]-': {
+        "add": {'C': 2, 'H': 3, 'O': 2},
         "sub": {},
-        "polarity": "negative",
+        "polarity": 'negative',
     },
-    "[M+2NaAc+Cl]-": {
-        "add": {"Na": 2, "C": 2, "H": 3, "O": 2, "Cl": 1},
+    '[M+2NaAc+Cl]-': {
+        "add": {'Na': 2, 'C': 2, 'H': 3, 'O': 2, 'Cl': 1},
         "sub": {},
-        "polarity": "negative",
+        "polarity": 'negative',
     },
-    "[M+K-2H]-": {
-        "add": {"K": 1},
-        "sub": {"H": 2},
-        "polarity": "negative",
+    '[M+K-2H]-': {
+        "add": {'K': 1},
+        "sub": {'H': 2},
+        "polarity": 'negative',
     },
-    "[M+Na-2H]-": {
-        "add": {"Na": 1},
-        "sub": {"H": 2},
-        "polarity": "negative",
+    '[M+Na-2H]-': {
+        "add": {'Na': 1},
+        "sub": {'H': 2},
+        "polarity": 'negative',
     },
 }
 
 ADDUCT_ALIASES = {
-    "[M+HCOOH-H]-": "[M+HCOO]-",
-    "[M+CH3COOH-H]-": "[M+CH3COO]-",
-    "[M+FA-H]-": "[M+HCOO]-",
-    "[M+AcOH-H]-": "[M+CH3COO]-",
+    '[M+HCOOH-H]-': '[M+HCOO]-',
+    '[M+CH3COOH-H]-': '[M+CH3COO]-',
+    '[M+FA-H]-': '[M+HCOO]-',
+    '[M+AcOH-H]-': '[M+CH3COO]-',
 }

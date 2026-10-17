@@ -1,8 +1,8 @@
 from corems.encapsulation.factory.parameters import (
     MSParameters,
     GCMSParameters,
-    LCMSParameters,
-)
+    LCMSParameters
+    )
 from corems.encapsulation.factory.processingSetting import settings_to_export_dict
 
 
@@ -17,9 +17,7 @@ def get_dict_all_default_data():
         "MassSpectrum": settings_to_export_dict(ms_params.mass_spectrum),
         "MassSpecPeak": settings_to_export_dict(ms_params.ms_peak),
         "DataInput": settings_to_export_dict(ms_params.data_input),
-        "SpectralSimilaritySearch": settings_to_export_dict(
-            ms_params.spectral_similarity_search
-        ),
+        "SpectralSimilaritySearch": settings_to_export_dict(ms_params.spectral_similarity_search),
         "MolecularSearch": settings_to_export_dict(gcms_params.molecular_search),
         "GasChromatograph": settings_to_export_dict(gcms_params.gc_ms),
     }
@@ -86,9 +84,7 @@ def get_dict_data_ms(mass_spec):
         "MassSpectrum": settings_to_export_dict(ms_params.mass_spectrum),
         "MassSpecPeak": settings_to_export_dict(ms_params.ms_peak),
         "DataInput": settings_to_export_dict(ms_params.data_input),
-        "SpectralSimilaritySearch": settings_to_export_dict(
-            ms_params.spectral_similarity_search
-        ),
+        "SpectralSimilaritySearch": settings_to_export_dict(ms_params.spectral_similarity_search),
     }
 
 
@@ -102,9 +98,7 @@ def get_dict_ms_default_data():
         "MassSpectrum": settings_to_export_dict(ms_params.mass_spectrum),
         "MassSpecPeak": settings_to_export_dict(ms_params.ms_peak),
         "DataInput": settings_to_export_dict(ms_params.data_input),
-        "SpectralSimilaritySearch": settings_to_export_dict(
-            ms_params.spectral_similarity_search
-        ),
+        "SpectralSimilaritySearch": settings_to_export_dict(ms_params.spectral_similarity_search),
     }
 
 
@@ -152,7 +146,7 @@ def get_dict_data_lcms_collection(lcms_collection):
 def get_dict_lcms_collection_default_data():
     """Return a dictionary with all default parameters for LCMS Collection"""
     from corems.encapsulation.factory.processingSetting import LCMSCollectionSettings
-
+    
     default_params = LCMSCollectionSettings()
 
     output_dict = {}

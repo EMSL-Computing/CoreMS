@@ -139,12 +139,8 @@ class NetworkVisualizeMixin:
             if query_edges.empty:
                 return pd.DataFrame(columns=["id1", "id2", "score"])
 
-            lib_from_id1 = query_edges.loc[
-                ~query_edges["id1"].isin(query_id_set), "id1"
-            ]
-            lib_from_id2 = query_edges.loc[
-                ~query_edges["id2"].isin(query_id_set), "id2"
-            ]
+            lib_from_id1 = query_edges.loc[~query_edges["id1"].isin(query_id_set), "id1"]
+            lib_from_id2 = query_edges.loc[~query_edges["id2"].isin(query_id_set), "id2"]
             query_connected_libs = set(pd.concat([lib_from_id1, lib_from_id2]).tolist())
 
             ll_mask = (
@@ -154,9 +150,7 @@ class NetworkVisualizeMixin:
                 & edges["id2"].isin(query_connected_libs)
             )
 
-            edges = pd.concat(
-                [query_edges, edges[ll_mask]], ignore_index=True
-            ).drop_duplicates()
+            edges = pd.concat([query_edges, edges[ll_mask]], ignore_index=True).drop_duplicates()
 
         return edges
 
@@ -215,9 +209,7 @@ class NetworkVisualizeMixin:
             if len(communities) <= 1:
                 return [set(graph.nodes)]
 
-            sorted_communities = sorted(
-                communities, key=lambda c: (-len(c), min(str(n) for n in c))
-            )
+            sorted_communities = sorted(communities, key=lambda c: (-len(c), min(str(n) for n in c)))
             out: list[set] = []
 
             for community in sorted_communities:
@@ -228,9 +220,7 @@ class NetworkVisualizeMixin:
 
                 sub = graph.subgraph(community_set).copy()
                 if sparsify_top_k > 0:
-                    sub = self._sparsify_top_k_edges(
-                        sub, weight_attr=weight_attr, top_k=sparsify_top_k
-                    )
+                    sub = self._sparsify_top_k_edges(sub, weight_attr=weight_attr, top_k=sparsify_top_k)
 
                 if sub.number_of_edges() == 0:
                     out.append(community_set)
@@ -255,9 +245,7 @@ class NetworkVisualizeMixin:
         return sorted(normalized, key=lambda c: (-len(c), min(str(n) for n in c)))
 
     @staticmethod
-    def _compute_hierarchical_layout(
-        G, communities: list[set], *, weight_attr: str, seed: int
-    ):
+    def _compute_hierarchical_layout(G, communities: list[set], *, weight_attr: str, seed: int):
         """Compute two-level (community + local) weighted spring layout."""
         nx = _import_networkx()
         if G.number_of_nodes() == 0:
@@ -443,11 +431,7 @@ class NetworkVisualizeMixin:
             if nodes_to_remove:
                 G.remove_nodes_from(nodes_to_remove)
 
-        if (
-            drop_nodes_without_query_connection
-            and G.number_of_nodes() > 0
-            and query_id_set
-        ):
+        if drop_nodes_without_query_connection and G.number_of_nodes() > 0 and query_id_set:
             query_nodes_in_graph = [n for n in query_id_set if G.has_node(n)]
             if query_nodes_in_graph:
                 keep_nodes = set(query_nodes_in_graph)
@@ -561,9 +545,7 @@ class NetworkVisualizeMixin:
         )
 
         if max_nodes is not None and not edges.empty:
-            degree = (
-                pd.concat([edges["id1"], edges["id2"]]).value_counts().head(max_nodes)
-            )
+            degree = pd.concat([edges["id1"], edges["id2"]]).value_counts().head(max_nodes)
             top_nodes = set(degree.index)
             edges = edges[edges["id1"].isin(top_nodes) & edges["id2"].isin(top_nodes)]
 
@@ -574,14 +556,9 @@ class NetworkVisualizeMixin:
         query_id_set = set(self._all_query_ids)
 
         if not edges.empty:
-            node_ids = (
-                pd.concat([edges["id1"], edges["id2"]]).drop_duplicates().tolist()
-            )
+            node_ids = pd.concat([edges["id1"], edges["id2"]]).drop_duplicates().tolist()
             for node_id in node_ids:
-                G.add_node(
-                    node_id,
-                    node_type=("query" if node_id in query_id_set else "library"),
-                )
+                G.add_node(node_id, node_type=("query" if node_id in query_id_set else "library"))
             for row in edges.itertuples(index=False):
                 G.add_edge(row.id1, row.id2, score=float(row.score))
 
@@ -670,8 +647,7 @@ class NetworkVisualizeMixin:
                     "score": float(data.get("score", 0.0)),
                     "cluster_id_1": node_to_cluster.get(u_s),
                     "cluster_id_2": node_to_cluster.get(v_s),
-                    "intra_cluster": node_to_cluster.get(u_s)
-                    == node_to_cluster.get(v_s),
+                    "intra_cluster": node_to_cluster.get(u_s) == node_to_cluster.get(v_s),
                 }
             )
 
@@ -742,9 +718,7 @@ class NetworkVisualizeMixin:
         else:
             cache.pop(metric, None)
 
-    def save_network_clusters(
-        self, output_dir: str, metric: str, run_id: str | None = None
-    ) -> dict[str, str]:
+    def save_network_clusters(self, output_dir: str, metric: str, run_id: str | None = None) -> dict[str, str]:
         """Persist computed cluster artifacts to CSV files.
 
         Files written include node, community, edge, layout, and manifest CSVs.
@@ -794,40 +768,24 @@ class NetworkVisualizeMixin:
 
         node_export_df = artifact["node_table"].copy()
         if "node_id" in node_export_df.columns:
-            node_export_df["node_id"] = (
-                node_export_df["node_id"]
-                .astype(str)
-                .map(
-                    lambda node_id: self._export_cluster_node_id(node_id, query_id_set)
-                )
+            node_export_df["node_id"] = node_export_df["node_id"].astype(str).map(
+                lambda node_id: self._export_cluster_node_id(node_id, query_id_set)
             )
 
         edge_export_df = artifact["edge_table"].copy()
         if "id1" in edge_export_df.columns:
-            edge_export_df["id1"] = (
-                edge_export_df["id1"]
-                .astype(str)
-                .map(
-                    lambda node_id: self._export_cluster_node_id(node_id, query_id_set)
-                )
+            edge_export_df["id1"] = edge_export_df["id1"].astype(str).map(
+                lambda node_id: self._export_cluster_node_id(node_id, query_id_set)
             )
         if "id2" in edge_export_df.columns:
-            edge_export_df["id2"] = (
-                edge_export_df["id2"]
-                .astype(str)
-                .map(
-                    lambda node_id: self._export_cluster_node_id(node_id, query_id_set)
-                )
+            edge_export_df["id2"] = edge_export_df["id2"].astype(str).map(
+                lambda node_id: self._export_cluster_node_id(node_id, query_id_set)
             )
 
         layout_export_df = artifact["layout_table"].copy()
         if "node_id" in layout_export_df.columns:
-            layout_export_df["node_id"] = (
-                layout_export_df["node_id"]
-                .astype(str)
-                .map(
-                    lambda node_id: self._export_cluster_node_id(node_id, query_id_set)
-                )
+            layout_export_df["node_id"] = layout_export_df["node_id"].astype(str).map(
+                lambda node_id: self._export_cluster_node_id(node_id, query_id_set)
             )
 
         node_export_df.to_csv(node_path, index=False)
@@ -841,9 +799,7 @@ class NetworkVisualizeMixin:
                     "schema_version": artifact.get("schema_version", 1),
                     "metric": metric,
                     "run_id": run_id or "",
-                    "params_json": json.dumps(
-                        artifact.get("params", {}), sort_keys=True
-                    ),
+                    "params_json": json.dumps(artifact.get("params", {}), sort_keys=True),
                 }
             ]
         ).to_csv(manifest_path, index=False)
@@ -856,9 +812,7 @@ class NetworkVisualizeMixin:
             "manifest": str(manifest_path),
         }
 
-    def load_network_clusters(
-        self, output_dir: str, metric: str, run_id: str | None = None
-    ) -> dict[str, Any]:
+    def load_network_clusters(self, output_dir: str, metric: str, run_id: str | None = None) -> dict[str, Any]:
         """Load cluster artifacts from CSV files into in-memory cache.
 
         Parameters
@@ -891,11 +845,7 @@ class NetworkVisualizeMixin:
         manifest_path = out_dir / f"{prefix}_manifest.csv"
         layout_path = out_dir / f"{prefix}_layout.csv"
 
-        if (
-            not node_path.exists()
-            or not community_path.exists()
-            or not edge_path.exists()
-        ):
+        if not node_path.exists() or not community_path.exists() or not edge_path.exists():
             raise FileNotFoundError(
                 f"Missing cluster artifact files for metric '{metric}' in '{output_dir}'."
             )
@@ -908,9 +858,7 @@ class NetworkVisualizeMixin:
                 schema_version = int(mdf.iloc[0].get("schema_version", 1))
                 params_json = mdf.iloc[0].get("params_json", "{}")
                 try:
-                    params = (
-                        json.loads(params_json) if isinstance(params_json, str) else {}
-                    )
+                    params = json.loads(params_json) if isinstance(params_json, str) else {}
                 except (json.JSONDecodeError, TypeError, ValueError):
                     params = {}
 
@@ -921,9 +869,7 @@ class NetworkVisualizeMixin:
             "node_table": pd.read_csv(node_path),
             "community_table": pd.read_csv(community_path),
             "edge_table": pd.read_csv(edge_path),
-            "layout_table": pd.read_csv(layout_path)
-            if layout_path.exists()
-            else pd.DataFrame(columns=["node_id", "x", "y"]),
+            "layout_table": pd.read_csv(layout_path) if layout_path.exists() else pd.DataFrame(columns=["node_id", "x", "y"]),
         }
 
         self._ensure_cluster_cache()[metric] = artifact
@@ -998,9 +944,7 @@ class NetworkVisualizeMixin:
             edges = edges[edges["score"] >= score_threshold]
 
         if max_nodes is not None and not edges.empty:
-            degree = (
-                pd.concat([edges["id1"], edges["id2"]]).value_counts().head(max_nodes)
-            )
+            degree = pd.concat([edges["id1"], edges["id2"]]).value_counts().head(max_nodes)
             top_nodes = set(degree.index)
             edges = edges[edges["id1"].isin(top_nodes) & edges["id2"].isin(top_nodes)]
 
@@ -1016,17 +960,11 @@ class NetworkVisualizeMixin:
         query_id_set = set(self._all_query_ids)
 
         if not edges.empty:
-            node_ids = (
-                pd.concat([edges["id1"], edges["id2"]]).drop_duplicates().tolist()
-            )
+            node_ids = pd.concat([edges["id1"], edges["id2"]]).drop_duplicates().tolist()
 
             for node_id in node_ids:
                 node_kind = "query" if node_id in query_id_set else "library"
-                lib_record = (
-                    self._library_record_for_node(node_id)
-                    if node_kind == "library"
-                    else None
-                )
+                lib_record = self._library_record_for_node(node_id) if node_kind == "library" else None
 
                 label = (
                     self._resolve_library_label(
@@ -1046,9 +984,7 @@ class NetworkVisualizeMixin:
                 if node_kind == "library" and lib_record and library_node_attrs:
                     for field in library_node_attrs:
                         if field in lib_record:
-                            attrs[field] = self._as_node_attr_value(
-                                lib_record.get(field)
-                            )
+                            attrs[field] = self._as_node_attr_value(lib_record.get(field))
 
                 if metadata:
                     attrs.update(metadata.get(node_id, {}))
@@ -1080,11 +1016,7 @@ class NetworkVisualizeMixin:
                 G.nodes[node]["viz_border_size"] = 0
 
         community_groups: list[set] = []
-        if (
-            not bypass_clustering
-            and artifact is not None
-            and not artifact["node_table"].empty
-        ):
+        if not bypass_clustering and artifact is not None and not artifact["node_table"].empty:
             node_table = artifact["node_table"].set_index("node_id")
             for node in list(G.nodes):
                 node_s = str(node)
@@ -1094,9 +1026,7 @@ class NetworkVisualizeMixin:
                 G.nodes[node]["community_id"] = row.get("cluster_id")
                 G.nodes[node]["community_level"] = int(row.get("community_level", 0))
                 G.nodes[node]["community_size"] = int(row.get("community_size", 1))
-                G.nodes[node]["query_count_in_community"] = int(
-                    row.get("query_count_in_community", 0)
-                )
+                G.nodes[node]["query_count_in_community"] = int(row.get("query_count_in_community", 0))
 
             by_cluster = node_table.reset_index().groupby("cluster_id")["node_id"]
             community_groups = [set(group.tolist()) for _, group in by_cluster]
@@ -1152,9 +1082,7 @@ class NetworkVisualizeMixin:
                     weight="score",
                     k=2.0 / max(G.number_of_nodes() ** 0.5, 1),
                 )
-                layout = {
-                    str(n): {"x": float(x), "y": float(y)} for n, (x, y) in pos.items()
-                }
+                layout = {str(n): {"x": float(x), "y": float(y)} for n, (x, y) in pos.items()}
 
         return G, layout, palette, float(score_threshold)
 
@@ -1438,9 +1366,7 @@ class NetworkVisualizeMixin:
 
         cache = self._ensure_cluster_cache()
         artifact = cache.get(metric)
-        clustered_mode = (
-            not bypass_clustering and artifact is not None and G.number_of_nodes() > 0
-        )
+        clustered_mode = not bypass_clustering and artifact is not None and G.number_of_nodes() > 0
         write_kwargs: dict = {
             "layout": layout,
             "node_color": "community_id" if clustered_mode else "node_type",
@@ -1468,9 +1394,7 @@ class NetworkVisualizeMixin:
         return str(out)
 
     @staticmethod
-    def _display_network_html_in_notebook(
-        html_path: Path, *, height: int = 650
-    ) -> None:
+    def _display_network_html_in_notebook(html_path: Path, *, height: int = 650) -> None:
         """Embed a written Sigma HTML file in a Jupyter notebook output cell.
 
         Uses a base64 data-URI iframe so the notebook remains portable (no

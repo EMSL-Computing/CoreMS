@@ -65,7 +65,7 @@ class MassDeconvolution:
         return eic_dict
 
     def hc(self, X, Y, max_rt_distance=0.025):
-        from scipy.cluster.hierarchy import linkage
+        from scipy.cluster.hierarchy import dendrogram, linkage
         from scipy.cluster.hierarchy import fcluster
         # from matplotlib import pyplot as plt
 

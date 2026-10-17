@@ -104,7 +104,9 @@ class SearchMolecularFormulas:
         self.mass_spectrum_obj = mass_spectrum_obj
 
         # Catch in-place usedAtoms mutations after settings construction
-        validate_used_atoms_keys(mass_spectrum_obj.molecular_search_settings.usedAtoms)
+        validate_used_atoms_keys(
+            mass_spectrum_obj.molecular_search_settings.usedAtoms
+        )
 
         if not sql_db:
             self.sql_db = MolForm_SQL(
@@ -403,9 +405,9 @@ class SearchMolecularFormulas:
     def run_worker_mass_spectrum(self):
         """Run the molecular formula search on the mass spectrum object."""
         self.run_molecular_formula(
-            self.mass_spectrum_obj.sort_by_abundance(),
-            print_time=self.mass_spectrum_obj.molecular_search_settings.verbose_processing,
-        )
+            self.mass_spectrum_obj.sort_by_abundance(), 
+            print_time=self.mass_spectrum_obj.molecular_search_settings.verbose_processing
+            )
 
     def run_worker_ms_peaks(self, ms_peaks):
         """Run the molecular formula search on the given list of mass spectrum peaks.
@@ -417,7 +419,7 @@ class SearchMolecularFormulas:
         """
         self.run_molecular_formula(
             ms_peaks,
-            print_time=self.mass_spectrum_obj.molecular_search_settings.verbose_processing,
+            print_time=self.mass_spectrum_obj.molecular_search_settings.verbose_processing
         )
 
     @staticmethod
@@ -502,8 +504,8 @@ class SearchMolecularFormulas:
         ms_peaks : list of MSPeak
             The list of mass spectrum peaks.
         **kwargs
-            Additional keyword arguments.
-            Most notably, print_time, which is a boolean flag to indicate whether to print the time
+            Additional keyword arguments. 
+            Most notably, print_time, which is a boolean flag to indicate whether to print the time 
             and passed to the timeit decorator.
         """
         settings = self.mass_spectrum_obj.molecular_search_settings
@@ -525,7 +527,9 @@ class SearchMolecularFormulas:
                 f"(got {polarity_raw!r})."
             ) from exc
         if polarity == 0:
-            raise ValueError("Mass spectrum polarity must be non-zero (+1 or -1).")
+            raise ValueError(
+                "Mass spectrum polarity must be non-zero (+1 or -1)."
+            )
         # Multi-charge formula search: expand absolute min..max (default 1..1).
         # Does not rewrite MSPeak.polarity (remains ±1).
         search_charges = self.ion_charges_for_search(
@@ -543,7 +547,8 @@ class SearchMolecularFormulas:
 
         # check database for all possible molecular formula combinations based on the setting passed to self.mass_spectrum_obj.molecular_search_settings
         classes = MolecularCombinations(self.sql_db).runworker(
-            settings, print_time=settings.verbose_processing
+            settings,
+            print_time=settings.verbose_processing
         )
 
         def apply_job(job):
@@ -1046,7 +1051,7 @@ class SearchMolecularFormulasLC:
         Search a list of mass spectra against a list of candidate formulas with a given ion type, charge, and optional adduct_atom.
     * bulk_run_molecular_formula_search().
         Run the molecular formula search on the given list of mass spectra.
-        Pulls the settings from the LCMSBase object to set ion type and charge to search for.
+        Pulls the settings from the LCMSBase object to set ion type and charge to search for. 
     * run_mass_feature_search().
         Run the molecular formula search on mass features.
         Calls bulk_run_molecular_formula_search() with specified mass spectra and mass peaks.
@@ -1072,9 +1077,7 @@ class SearchMolecularFormulasLC:
 
         if not sql_db:
             self.sql_db = MolForm_SQL(
-                url=self.lcms_obj.parameters.mass_spectrum[
-                    "ms1"
-                ].molecular_search.url_database
+                url=self.lcms_obj.parameters.mass_spectrum['ms1'].molecular_search.url_database
             )
 
         else:
@@ -1126,9 +1129,7 @@ class SearchMolecularFormulasLC:
                 adduct_atom=adduct_atom,
             )
 
-    def bulk_run_molecular_formula_search(
-        self, mass_spectrum_list, ms_peaks_list, mass_spectrum_setting_key="ms1"
-    ):
+    def bulk_run_molecular_formula_search(self, mass_spectrum_list, ms_peaks_list, mass_spectrum_setting_key='ms1'):
         """Run the molecular formula search on the given list of mass spectra.
 
         Uses ``min_ion_charge`` / ``max_ion_charge`` from molecular search settings
@@ -1151,9 +1152,7 @@ class SearchMolecularFormulasLC:
 
         # Check that the length of the mass spectrum list and the ms_peaks list are the same
         if len(mass_spectrum_list) != len(ms_peaks_list):
-            raise ValueError(
-                "The length of the mass spectrum list and the ms_peaks list must be the same"
-            )
+            raise ValueError("The length of the mass spectrum list and the ms_peaks list must be the same")
 
         mol_settings = self.lcms_obj.parameters.mass_spectrum[
             mass_spectrum_setting_key
@@ -1176,11 +1175,11 @@ class SearchMolecularFormulasLC:
 
         # check database for all possible molecular formula combinations based on the setting passed to self.mass_spectrum_obj.molecular_search_settings
         classes = MolecularCombinations(self.sql_db).runworker(
-            mol_settings, print_time=mol_settings.verbose_processing
+            mol_settings,
+            print_time=mol_settings.verbose_processing
         )
 
         try:
-
             def apply_job(job):
                 self.search_spectra_against_candidates(
                     mass_spectrum_list=mass_spectrum_list,
@@ -1218,22 +1217,17 @@ class SearchMolecularFormulasLC:
         for scan in scan_list:
             mf_df_scan = mass_features_df[mass_features_df.apex_scan == scan]
             peaks_to_search = [
-                self.lcms_obj.mass_features[x].ms1_peak
-                for x in mf_df_scan.index.tolist()
+                self.lcms_obj.mass_features[x].ms1_peak for x in mf_df_scan.index.tolist()
             ]
             ms_peaks.append(peaks_to_search)
-
+        
         # Run the molecular formula search
         self.bulk_run_molecular_formula_search(mass_spectrum_list, ms_peaks)
-
+    
     def run_untargeted_worker_ms1(self):
         """Run untargeted molecular formula search on the ms1 mass spectrum."""
-        raise NotImplementedError(
-            "run_untargeted_worker_ms1 search is not implemented in CoreMS 3.0 and greater"
-        )
+        raise NotImplementedError("run_untargeted_worker_ms1 search is not implemented in CoreMS 3.0 and greater")
 
     def run_target_worker_ms1(self):
         """Run targeted molecular formula search on the ms1 mass spectrum."""
-        raise NotImplementedError(
-            "run_target_worker_ms1 formula search is not yet implemented in CoreMS 3.0 and greater"
-        )
+        raise NotImplementedError("run_target_worker_ms1 formula search is not yet implemented in CoreMS 3.0 and greater")

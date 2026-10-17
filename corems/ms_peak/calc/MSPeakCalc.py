@@ -20,7 +20,6 @@ from numpy import (
     sqrt,
     square,
 )
-
 try:
     from numpy import trapezoid
 except ImportError:  # numpy < 2.0
@@ -798,12 +797,10 @@ class MSPeakCalculation:
 
         candidates = list(
             filter(
-                lambda mf: (
-                    mf.get("O") > 0
-                    and mf.get("N") <= 3
-                    and mf.get("P") <= 2
-                    and (3 * mf.get("P")) <= mf.get("O")
-                ),
+                lambda mf: mf.get("O") > 0
+                and mf.get("N") <= 3
+                and mf.get("P") <= 2
+                and (3 * mf.get("P")) <= mf.get("O"),
                 self.molecular_formulas,
             )
         )
@@ -845,12 +842,10 @@ class MSPeakCalculation:
 
         candidates = list(
             filter(
-                lambda mf: (
-                    mf.get("O") > 0
-                    and mf.get("N") <= 3
-                    and mf.get("S") <= 2
-                    and mf.get("P") <= 2
-                ),
+                lambda mf: mf.get("O") > 0
+                and mf.get("N") <= 3
+                and mf.get("S") <= 2
+                and mf.get("P") <= 2,
                 self.molecular_formulas,
             )
         )
@@ -892,13 +887,11 @@ class MSPeakCalculation:
 
         candidates = list(
             filter(
-                lambda mf: (
-                    mf.get("O") > 0
-                    and mf.get("N") <= 2
-                    and mf.get("S") <= 1
-                    and mf.get("P") == 0
-                    and 3 * (mf.get("S") + mf.get("N")) <= mf.get("O")
-                ),
+                lambda mf: mf.get("O") > 0
+                and mf.get("N") <= 2
+                and mf.get("S") <= 1
+                and mf.get("P") == 0
+                and 3 * (mf.get("S") + mf.get("N")) <= mf.get("O"),
                 self.molecular_formulas,
             )
         )
@@ -988,9 +981,8 @@ class MSPeakCalculation:
 
             list_same_N_S_P = list(
                 filter(
-                    lambda mf: (
-                        mf.get("N") + mf.get("S") + mf.get("P") == lowest_N_S_P_count
-                    ),
+                    lambda mf: mf.get("N") + mf.get("S") + mf.get("P")
+                    == lowest_N_S_P_count,
                     self.molecular_formulas,
                 )
             )

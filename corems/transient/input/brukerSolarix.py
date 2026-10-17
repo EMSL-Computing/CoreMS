@@ -85,6 +85,7 @@ class ReadBrukerSolarix(object):
                     # get scan attributes
                     self.scan_attr = d_directory_location / "scan.xml"
                     self.imaging_info_attr = d_directory_location / "ImagingInfo.xml"
+    
 
         except:
             raise FileExistsError(
@@ -105,6 +106,7 @@ class ReadBrukerSolarix(object):
         """
 
         return get_scan_attributes(self.scan_attr, self.imaging_info_attr)
+
 
     def get_transient(self, scan_number=1):
         """Function to get the transient data and parameters from a Bruker Solarix .d folder.
@@ -186,7 +188,7 @@ class ReadBrukerSolarix(object):
 
             else:
                 databin = self.transient_data_path.open("rb")
-
+                
             databin.seek((scan - 1) * 4 * data_points)
             # read scan data and parse to 32int struct
             data = frombuffer(databin.read(4 * data_points), dtype=dt)
@@ -278,6 +280,7 @@ class ReadBrukerSolarix(object):
 
         """
 
+        from pathlib import Path
 
         # directory_location = folder.glob( '**/*apexAcquisition.method')
         directory_location = folder.glob("**/*" + type_file_name)

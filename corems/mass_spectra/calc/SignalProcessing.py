@@ -582,7 +582,7 @@ def smooth_signal(x, window_len, window, pol_order, implemented_smooth_method):
     # if window_len < 3:
     #    return x
 
-    if window not in implemented_smooth_method:
+    if not window in implemented_smooth_method:
         raise ValueError(
             "Window method should be 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
         )

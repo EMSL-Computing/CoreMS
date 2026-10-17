@@ -203,7 +203,7 @@ class TransientCalculations(object):
             H_function = kaiser(length, beta)
         elif apodi_method == "Half-Kaiser":
             H_function = kaiser(length * 2, beta)[length:]
-        elif apodi_method == "Rectangular" or apodi_method is None:
+        elif apodi_method == 'Rectangular' or apodi_method is None:
             H_function = 1
 
         S_x = transient * H_function

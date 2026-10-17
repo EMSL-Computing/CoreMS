@@ -701,14 +701,8 @@ class HeteroatomsClassification(Mapping):
             return ax
 
     def plot_van_krevelen(
-        self,
-        classe=None,
-        max_hc=2.5,
-        max_oc=2,
-        ticks_number=5,
-        color="viridis",
-        alpha=0.5,
-        log_abundance=False,
+        self, classe=None, max_hc=2.5, max_oc=2, ticks_number=5, color="viridis",
+        alpha=0.5, log_abundance=False
     ):
         """Plot Van Krevelen Diagram for a single class or all assigned classes
 
@@ -737,7 +731,6 @@ class HeteroatomsClassification(Mapping):
             Class percentile of the relative abundance (if classe specified)
         """
         import numpy as np
-
         ax = plt.gca()
 
         if classe is not None and classe != Labels.unassigned:
@@ -749,9 +742,9 @@ class HeteroatomsClassification(Mapping):
 
             if log_abundance:
                 abundance = [np.log10(a + 1e-10) for a in abundance]
-                colorbar_label = "log\u2081\u2080(Abundance)"
+                colorbar_label = 'log\u2081\u2080(Abundance)'
             else:
-                colorbar_label = "Abundance"
+                colorbar_label = 'Abundance'
 
             # Sort by abundance so higher values are plotted on top
             sorted_indices = sorted(range(len(abundance)), key=lambda i: abundance[i])
@@ -774,9 +767,9 @@ class HeteroatomsClassification(Mapping):
 
             if log_abundance:
                 abundance = [np.log10(a + 1e-10) for a in abundance]
-                colorbar_label = "log\u2081\u2080(Abundance)"
+                colorbar_label = 'log\u2081\u2080(Abundance)'
             else:
-                colorbar_label = "Abundance"
+                colorbar_label = 'Abundance'
 
             sorted_indices = sorted(range(len(abundance)), key=lambda i: abundance[i])
             hc = [hc[i] for i in sorted_indices]
@@ -795,20 +788,13 @@ class HeteroatomsClassification(Mapping):
         ax.tick_params(axis="both", which="major", labelsize=18)
         ax.set_xticks(linspace(0, max_oc, ticks_number, endpoint=True))
         ax.set_yticks(linspace(0, max_hc, ticks_number, endpoint=True))
-        ax.grid(alpha=0.3, linestyle="--")
+        ax.grid(alpha=0.3, linestyle='--')
 
         return return_val
 
     def plot_dbe_vs_carbon_number(
-        self,
-        classe=None,
-        max_c=50,
-        max_dbe=40,
-        dbe_incr=5,
-        c_incr=10,
-        color="viridis",
-        alpha=0.5,
-        log_abundance=False,
+        self, classe=None, max_c=50, max_dbe=40, dbe_incr=5, c_incr=10, color="viridis",
+        alpha=0.5, log_abundance=False
     ):
         """Plot DBE vs Carbon Number for a single class or all assigned classes
 
@@ -839,7 +825,6 @@ class HeteroatomsClassification(Mapping):
             Class percentile of the relative abundance (if classe specified)
         """
         import numpy as np
-
         ax = plt.gca()
 
         if classe is not None and classe != Labels.unassigned:
@@ -851,18 +836,16 @@ class HeteroatomsClassification(Mapping):
 
             if log_abundance:
                 abundance = [np.log10(a + 1e-10) for a in abundance]
-                colorbar_label = "log\u2081\u2080(Abundance)"
+                colorbar_label = 'log\u2081\u2080(Abundance)'
             else:
-                colorbar_label = "Abundance"
+                colorbar_label = 'Abundance'
 
             sorted_indices = sorted(range(len(abundance)), key=lambda i: abundance[i])
             carbon_number = [carbon_number[i] for i in sorted_indices]
             dbe = [dbe[i] for i in sorted_indices]
             abundance = [abundance[i] for i in sorted_indices]
 
-            scatter = ax.scatter(
-                carbon_number, dbe, c=abundance, alpha=alpha, cmap=color
-            )
+            scatter = ax.scatter(carbon_number, dbe, c=abundance, alpha=alpha, cmap=color)
             plt.colorbar(scatter, label=colorbar_label)
 
             title = "%s, %.2f %%" % (classe, abun_perc)
@@ -877,18 +860,16 @@ class HeteroatomsClassification(Mapping):
 
             if log_abundance:
                 abundance = [np.log10(a + 1e-10) for a in abundance]
-                colorbar_label = "log\u2081\u2080(Abundance)"
+                colorbar_label = 'log\u2081\u2080(Abundance)'
             else:
-                colorbar_label = "Abundance"
+                colorbar_label = 'Abundance'
 
             sorted_indices = sorted(range(len(abundance)), key=lambda i: abundance[i])
             carbon_number = [carbon_number[i] for i in sorted_indices]
             dbe = [dbe[i] for i in sorted_indices]
             abundance = [abundance[i] for i in sorted_indices]
 
-            scatter = ax.scatter(
-                carbon_number, dbe, c=abundance, alpha=alpha, cmap=color
-            )
+            scatter = ax.scatter(carbon_number, dbe, c=abundance, alpha=alpha, cmap=color)
             plt.colorbar(scatter, label=colorbar_label)
 
             ax.set_title("DBE vs Carbon Number - All Assigned Classes")
@@ -900,6 +881,6 @@ class HeteroatomsClassification(Mapping):
         ax.tick_params(axis="both", which="major", labelsize=18)
         ax.set_xticks(range(0, max_c, c_incr))
         ax.set_yticks(range(0, max_dbe, dbe_incr))
-        ax.grid(alpha=0.3, linestyle="--")
+        ax.grid(alpha=0.3, linestyle='--')
 
         return return_val

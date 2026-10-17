@@ -13,12 +13,7 @@ from corems.encapsulation.factory.processingSetting import (
     MassSpectrumSetting,
     DataInputSetting,
 )
-from corems.encapsulation.factory.processingSetting import (
-    MassSpecPeakSetting,
-    GasChromatographSetting,
-    CompoundSearchSettings,
-    LCMSCollectionSettings,
-)
+from corems.encapsulation.factory.processingSetting import MassSpecPeakSetting, GasChromatographSetting, CompoundSearchSettings, LCMSCollectionSettings
 
 
 def load_and_set_toml_parameters_ms(mass_spec_obj, parameters_path=False):
@@ -296,7 +291,9 @@ def _set_dict_data_lcms(data_loaded, lcms_obj):
             if item == "usedAtoms":
                 # Build a new dict. A tomlkit table turns an assigned tuple
                 # back into an array.
-                value = {atom: tuple(atom_value) for atom, atom_value in value.items()}
+                value = {
+                    atom: tuple(atom_value) for atom, atom_value in value.items()
+                }
             if item == "additional_similarities" and isinstance(value, list):
                 setattr(param_instance, item, list(value))
             elif item == "similarity_thresholds" and isinstance(value, dict):
@@ -366,6 +363,7 @@ def _set_dict_data_ms(data_loaded, mass_spec_obj):
         corems MassSpectrum object
     """
 
+    from copy import deepcopy
 
     classes = [
         MolecularFormulaSearchSettings(),
@@ -580,7 +578,7 @@ def load_and_set_toml_parameters_lcms_collection(lcms_collection, parameters_pat
 def _set_dict_data_lcms_collection(data_loaded, lcms_collection):
     """Set the parameters in the LCMS collection object from a dict
 
-    This function is called by load_and_set_json_parameters_lcms_collection and
+    This function is called by load_and_set_json_parameters_lcms_collection and 
     load_and_set_toml_parameters_lcms_collection and should not be called directly.
 
     Parameters
@@ -605,5 +603,5 @@ def _set_dict_data_lcms_collection(data_loaded, lcms_collection):
                 for attr, value in class_data.items():
                     if hasattr(classe, attr):
                         setattr(classe, attr, value)
-
+        
         lcms_collection.parameters.lcms_collection = classes[0]

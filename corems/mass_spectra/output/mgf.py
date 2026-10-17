@@ -111,7 +111,9 @@ def _ms1_precursor_peak(feature):
     """
     mz = getattr(feature, "mz", None)
     if mz is None:
-        raise ValueError("Mass feature is missing precursor m/z; cannot export MGF")
+        raise ValueError(
+            "Mass feature is missing precursor m/z; cannot export MGF"
+        )
     intensity = getattr(feature, "intensity", None)
     if intensity is None:
         intensity = 0.0
@@ -382,9 +384,7 @@ def iter_collection_mgf_records(collection, cluster_ids=None):
             sample_name = collection.samples[int(row["sample_id"])]
         mf_id = row["mf_id"]
         sample = lcms_map.get(sample_name)
-        mass_features = (
-            getattr(sample, "mass_features", {}) if sample is not None else {}
-        )
+        mass_features = getattr(sample, "mass_features", {}) if sample is not None else {}
         if mf_id not in mass_features:
             try:
                 mf_id = int(mf_id)

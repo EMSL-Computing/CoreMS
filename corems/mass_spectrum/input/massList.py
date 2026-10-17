@@ -256,7 +256,7 @@ class ReadCoremsMasslist(MassListBaseClass):
                     # Next, generate isotopologues from the parent
                     isos = list(
                         mono_mfobj.isotopologues(
-                            min_abundance=mass_spec_obj.abundance.min() * 0.01,
+                            min_abundance=mass_spec_obj.abundance.min()*0.01,
                             current_mono_abundance=mass_spec_obj[mono_index].abundance,
                             dynamic_range=mass_spec_obj.dynamic_range,
                         )
@@ -281,13 +281,11 @@ class ReadCoremsMasslist(MassListBaseClass):
                                     matched_isos.append(iso)
 
                     if len(matched_isos) == 0:
-                        # FIXME: This should not occur see https://code.emsl.pnl.gov/mass-spectrometry/corems/-/issues/190
-                        warnings.warn(
-                            f"No isotopologue matched the formula_dict: {formula_dict}"
-                        )
+                        #FIXME: This should not occur see https://code.emsl.pnl.gov/mass-spectrometry/corems/-/issues/190
+                        warnings.warn(f"No isotopologue matched the formula_dict: {formula_dict}")
                         bad_mf = True
                     else:
-                        bad_mf = False
+                        bad_mf = False                   
                         mfobj = matched_isos[0]
 
                         # Add the mono isotopic index, confidence score and isotopologue similarity

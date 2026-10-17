@@ -25,10 +25,7 @@ from corems.encapsulation.output.parameter_to_json import (
     dump_lcms_collection_settings_toml,
 )
 from corems.encapsulation.constant import DEFAULT_HDF5_COMPRESSION
-from corems.mass_spectrum.output.export import (
-    HighResMassSpecExport,
-    hdf5_dataset_kwargs,
-)
+from corems.mass_spectrum.output.export import HighResMassSpecExport, hdf5_dataset_kwargs
 from corems.molecular_formula.calc.MolecularFormulaCalc import MolecularFormulaCalc
 from corems.molecular_formula.factory.MolecularFormulaFactory import MolecularFormula
 from corems.molecular_id.calc.SpectralSimilarity import methods_name
@@ -1056,20 +1053,15 @@ class HighResMassSpectraExport(HighResMassSpecExport):
                 hdf_handle.attrs["original_file_location"] = (
                     self.mass_spectra.file_location._str
                 )
-
+                
                 # Save creation time from the cached parser when one is configured.
                 try:
-                    if (
-                        getattr(self.mass_spectra, "spectra_parser_class", None)
-                        is not None
-                    ):
+                    if getattr(self.mass_spectra, "spectra_parser_class", None) is not None:
                         parser = self.mass_spectra.spectra_parser
                         if parser is not None and hasattr(parser, "get_creation_time"):
                             creation_time = parser.get_creation_time()
                             if creation_time is not None:
-                                hdf_handle.attrs["creation_time"] = (
-                                    creation_time.isoformat()
-                                )
+                                hdf_handle.attrs["creation_time"] = creation_time.isoformat()
                 except Exception:
                     pass  # If creation time cannot be retrieved, skip it
 
@@ -1145,9 +1137,9 @@ class LCMSExport(HighResMassSpectraExport):
                     return None
                 try:
                     # Avoid treating array-likes as NA; only scalar NA checks
-                    if not isinstance(
-                        value, (list, tuple, dict, np.ndarray)
-                    ) and pd.isna(value):
+                    if not isinstance(value, (list, tuple, dict, np.ndarray)) and pd.isna(
+                        value
+                    ):
                         return None
                 except (TypeError, ValueError):
                     pass
@@ -1168,9 +1160,7 @@ class LCMSExport(HighResMassSpectraExport):
 
             has_bool = any(isinstance(v, bool) for v in non_null)
             # bool is a subclass of int; exclude bools from int detection
-            has_int = any(
-                isinstance(v, int) and not isinstance(v, bool) for v in non_null
-            )
+            has_int = any(isinstance(v, int) and not isinstance(v, bool) for v in non_null)
             has_float = any(isinstance(v, float) for v in non_null)
             has_str = any(isinstance(v, str) for v in non_null)
             has_other = any(
@@ -1357,9 +1347,7 @@ class LCMSExport(HighResMassSpectraExport):
         # Scan metadata (same source as the HDF5 scan_info group)
         scan_df = self.mass_spectra.scan_df
         if scan_df is not None and not scan_df.empty:
-            self._write_parquet(
-                scan_df.reset_index(drop=True), "scan_info", overwrite=overwrite
-            )
+            self._write_parquet(scan_df.reset_index(drop=True), "scan_info", overwrite=overwrite)
 
         # Mass features
         if len(self.mass_spectra.mass_features) > 0:
@@ -1406,10 +1394,7 @@ class LCMSExport(HighResMassSpectraExport):
 
     @staticmethod
     def _save_mass_features_dict_to_hdf5(
-        mass_features_dict,
-        mass_features_group,
-        overwrite=False,
-        compression=DEFAULT_HDF5_COMPRESSION,
+        mass_features_dict, mass_features_group, overwrite=False, compression=DEFAULT_HDF5_COMPRESSION
     ):
         """Save a dictionary of mass features to an HDF5 group.
 
@@ -1432,97 +1417,87 @@ class LCMSExport(HighResMassSpectraExport):
 
         # Create group for each mass feature, with key as the mass feature id
         for k, v in mass_features_dict.items():
-            if str(k) not in mass_features_group or overwrite:
-                if str(k) in mass_features_group and overwrite:
-                    del mass_features_group[str(k)]
-                mass_features_group.create_group(str(k))
-                # Loop through each of the mass feature attributes and add them as attributes (if single value) or datasets (if array)
-                for k2, v2 in v.__dict__.items():
-                    if v2 is not None:
-                        # Check if the attribute is an integer or float and set as an attribute in the mass feature group
-                        if k2 not in [
-                            "chromatogram_parent",
-                            "ms2_mass_spectra",
-                            "mass_spectrum",
-                            "_eic_data",
-                            "ms2_similarity_results",
-                        ]:
-                            if k2 == "ms2_scan_numbers":
-                                array = np.array(v2)
-                                # Convert int64 to int32
-                                if array.dtype == np.int64:
-                                    array = array.astype(np.int32)
-                                mass_features_group[str(k)].create_dataset(
-                                    str(k2),
-                                    data=array,
-                                    **hdf5_dataset_kwargs(
-                                        array.shape, compression=compression
-                                    ),
-                                )
-                            elif k2 == "_half_height_width":
-                                array = np.array(v2)
-                                # Convert float64 to float32
-                                if array.dtype == np.float64:
-                                    array = array.astype(np.float32)
-                                mass_features_group[str(k)].create_dataset(
-                                    str(k2),
-                                    data=array,
-                                    **hdf5_dataset_kwargs(
-                                        array.shape, compression=compression
-                                    ),
-                                )
-                            elif k2 == "_ms_deconvoluted_idx":
-                                array = np.array(v2)
-                                # Convert int64 to int32
-                                if array.dtype == np.int64:
-                                    array = array.astype(np.int32)
-                                mass_features_group[str(k)].create_dataset(
-                                    str(k2),
-                                    data=array,
-                                    **hdf5_dataset_kwargs(
-                                        array.shape, compression=compression
-                                    ),
-                                )
-                            elif k2 == "associated_mass_features_deconvoluted":
-                                array = np.array(v2)
-                                # Convert int64 to int32
-                                if array.dtype == np.int64:
-                                    array = array.astype(np.int32)
-                                mass_features_group[str(k)].create_dataset(
-                                    str(k2),
-                                    data=array,
-                                    **hdf5_dataset_kwargs(
-                                        array.shape, compression=compression
-                                    ),
-                                )
-                            elif k2 == "_noise_score":
-                                array = np.array(v2)
-                                # Convert float64 to float32
-                                if array.dtype == np.float64:
-                                    array = array.astype(np.float32)
-                                mass_features_group[str(k)].create_dataset(
-                                    str(k2),
-                                    data=array,
-                                    **hdf5_dataset_kwargs(
-                                        array.shape, compression=compression
-                                    ),
-                                )
-                            elif (
-                                isinstance(v2, int)
-                                or isinstance(v2, float)
-                                or isinstance(v2, str)
-                                or isinstance(v2, np.integer)
-                                or isinstance(v2, np.float32)
-                                or isinstance(v2, np.float64)
-                                or isinstance(v2, np.bool_)
-                            ):
-                                # Convert numpy types to smaller precision for storage
-                                if isinstance(v2, np.int64):
-                                    v2 = np.int32(v2)
-                                elif isinstance(v2, np.float64):
-                                    v2 = np.float32(v2)
-                                mass_features_group[str(k)].attrs[str(k2)] = v2
-
+                if str(k) not in mass_features_group or overwrite:
+                    if str(k) in mass_features_group and overwrite:
+                        del mass_features_group[str(k)]
+                    mass_features_group.create_group(str(k))
+                    # Loop through each of the mass feature attributes and add them as attributes (if single value) or datasets (if array)
+                    for k2, v2 in v.__dict__.items():
+                        if v2 is not None:
+                            # Check if the attribute is an integer or float and set as an attribute in the mass feature group
+                            if k2 not in [
+                                "chromatogram_parent",
+                                "ms2_mass_spectra",
+                                "mass_spectrum",
+                                "_eic_data",
+                                "ms2_similarity_results",
+                            ]:
+                                if k2 == "ms2_scan_numbers":
+                                    array = np.array(v2)
+                                    # Convert int64 to int32
+                                    if array.dtype == np.int64:
+                                        array = array.astype(np.int32)
+                                    mass_features_group[str(k)].create_dataset(
+                                        str(k2),
+                                        data=array,
+                                        **hdf5_dataset_kwargs(array.shape, compression=compression),
+                                    )
+                                elif k2 == "_half_height_width":
+                                    array = np.array(v2)
+                                    # Convert float64 to float32
+                                    if array.dtype == np.float64:
+                                        array = array.astype(np.float32)
+                                    mass_features_group[str(k)].create_dataset(
+                                        str(k2),
+                                        data=array,
+                                        **hdf5_dataset_kwargs(array.shape, compression=compression),
+                                    )
+                                elif k2 == "_ms_deconvoluted_idx":
+                                    array = np.array(v2)
+                                    # Convert int64 to int32
+                                    if array.dtype == np.int64:
+                                        array = array.astype(np.int32)
+                                    mass_features_group[str(k)].create_dataset(
+                                        str(k2),
+                                        data=array,
+                                        **hdf5_dataset_kwargs(array.shape, compression=compression),
+                                    )
+                                elif k2 == "associated_mass_features_deconvoluted":
+                                    array = np.array(v2)
+                                    # Convert int64 to int32
+                                    if array.dtype == np.int64:
+                                        array = array.astype(np.int32)
+                                    mass_features_group[str(k)].create_dataset(
+                                        str(k2),
+                                        data=array,
+                                        **hdf5_dataset_kwargs(array.shape, compression=compression),
+                                    )
+                                elif k2 == "_noise_score":
+                                    array = np.array(v2)
+                                    # Convert float64 to float32
+                                    if array.dtype == np.float64:
+                                        array = array.astype(np.float32)
+                                    mass_features_group[str(k)].create_dataset(
+                                        str(k2),
+                                        data=array,
+                                        **hdf5_dataset_kwargs(array.shape, compression=compression),
+                                    )
+                                elif (
+                                    isinstance(v2, int)
+                                    or isinstance(v2, float)
+                                    or isinstance(v2, str)
+                                    or isinstance(v2, np.integer)
+                                    or isinstance(v2, np.float32)
+                                    or isinstance(v2, np.float64)
+                                    or isinstance(v2, np.bool_)
+                                ):
+                                    # Convert numpy types to smaller precision for storage
+                                    if isinstance(v2, np.int64):
+                                        v2 = np.int32(v2)
+                                    elif isinstance(v2, np.float64):
+                                        v2 = np.float32(v2)
+                                    mass_features_group[str(k)].attrs[str(k2)] = v2
+    
     @staticmethod
     def _save_eics_dict_to_hdf5(
         eics_dict, eics_group, overwrite=False, compression=DEFAULT_HDF5_COMPRESSION
@@ -1553,7 +1528,7 @@ class LCMSExport(HighResMassSpectraExport):
                     del eics_group[mz_str]
                 eic_grp = eics_group.create_group(mz_str)
                 eic_grp.attrs["mz"] = mz
-
+                
                 # Save all EIC_Data attributes as datasets
                 for attr_name, attr_value in eic_data.__dict__.items():
                     if attr_value is not None:
@@ -1566,14 +1541,12 @@ class LCMSExport(HighResMassSpectraExport):
                         elif array.dtype.str[0:2] == "<U":
                             # Convert Unicode strings to UTF-8 encoded strings
                             string_data = [str(item) for item in array]
-                            string_dtype = h5py.string_dtype(encoding="utf-8")
+                            string_dtype = h5py.string_dtype(encoding='utf-8')
                             eic_grp.create_dataset(
                                 str(attr_name),
                                 data=string_data,
                                 dtype=string_dtype,
-                                **hdf5_dataset_kwargs(
-                                    array.shape, compression=compression, vlen_str=True
-                                ),
+                                **hdf5_dataset_kwargs(array.shape, compression=compression, vlen_str=True),
                             )
                             continue
                         eic_grp.create_dataset(
@@ -1581,11 +1554,11 @@ class LCMSExport(HighResMassSpectraExport):
                             data=array,
                             **hdf5_dataset_kwargs(array.shape, compression=compression),
                         )
-
+    
     def _save_mass_features_to_hdf5(
         self,
         hdf_handle,
-        group_name="mass_features",
+        group_name = "mass_features",
         overwrite=False,
         compression=DEFAULT_HDF5_COMPRESSION,
     ):
@@ -1620,7 +1593,7 @@ class LCMSExport(HighResMassSpectraExport):
             mass_features_group = hdf_handle.create_group(group_name)
         else:
             mass_features_group = hdf_handle.get(group_name)
-
+        
         # Use the static helper method to save the mass features
         self._save_mass_features_dict_to_hdf5(
             mass_features_dict, mass_features_group, overwrite, compression=compression
@@ -1682,9 +1655,7 @@ class LCMSExport(HighResMassSpectraExport):
                     if array.dtype.str[0:2] == "<U":
                         array = array.astype("S")
                     scan_info_group.create_dataset(
-                        k,
-                        data=array,
-                        **hdf5_dataset_kwargs(array.shape, compression=compression),
+                        k, data=array, **hdf5_dataset_kwargs(array.shape, compression=compression)
                     )
 
             # Add ms_unprocessed to hdf5 file
@@ -1703,30 +1674,18 @@ class LCMSExport(HighResMassSpectraExport):
                         if str(k) in ms_unprocessed_group and overwrite:
                             del ms_unprocessed_group[str(k)]
                         array = np.array(v)
-                        column_labels = (
-                            list(v.columns)
-                            if hasattr(v, "columns")
-                            else ["scan", "mz", "intensity"]
-                        )
+                        column_labels = list(v.columns) if hasattr(v, "columns") else ["scan", "mz", "intensity"]
                         ms_dset = ms_unprocessed_group.create_dataset(
-                            str(k),
-                            data=array,
-                            **hdf5_dataset_kwargs(array.shape, compression=compression),
+                            str(k), data=array, **hdf5_dataset_kwargs(array.shape, compression=compression)
                         )
                         ms_dset.attrs["column_labels"] = json.dumps(column_labels)
 
             # Add LCMS mass features to hdf5 file
             self._save_mass_features_to_hdf5(
-                hdf_handle,
-                group_name="mass_features",
-                overwrite=overwrite,
-                compression=compression,
+                hdf_handle, group_name="mass_features", overwrite=overwrite, compression=compression
             )
             self._save_mass_features_to_hdf5(
-                hdf_handle,
-                group_name="induced_mass_features",
-                overwrite=overwrite,
-                compression=compression,
+                hdf_handle, group_name="induced_mass_features", overwrite=overwrite, compression=compression
             )
 
             # Add EIC data to hdf5 file
@@ -1741,10 +1700,7 @@ class LCMSExport(HighResMassSpectraExport):
 
                 # Use the static helper method to save the EICs
                 self._save_eics_dict_to_hdf5(
-                    self.mass_spectra.eics,
-                    eic_group,
-                    overwrite,
-                    compression=compression,
+                    self.mass_spectra.eics, eic_group, overwrite, compression=compression
                 )
 
             # Add ms2_search results to hdf5 file (parameterized)
@@ -1759,7 +1715,7 @@ class LCMSExport(HighResMassSpectraExport):
                     spectral_search_results = hdf_handle.get("spectral_search_results")
                 # Create group for each search result by ms2_scan / precursor_mz
                 for k, v in self.mass_spectra.spectral_search_results.items():
-                    # TODO KRH: Fix to handle if export_only_relevant and k not in relevant_scan_numbers: continue!
+                    #TODO KRH: Fix to handle if export_only_relevant and k not in relevant_scan_numbers: continue!
                     if str(k) not in spectral_search_results or overwrite:
                         if str(k) in spectral_search_results and overwrite:
                             del spectral_search_results[str(k)]
@@ -1779,23 +1735,16 @@ class LCMSExport(HighResMassSpectraExport):
                                     "precursor_mz",
                                     "query_spectrum_id",
                                 ]:
-                                    if (
-                                        k3 == "query_frag_types"
-                                        or k3 == "ref_frag_types"
-                                    ):
+                                    if k3 == "query_frag_types" or k3 == "ref_frag_types":
                                         v3 = [", ".join(x) for x in v3]
                                     if all(v3 is not None for v3 in v3):
                                         array = np.array(v3)
                                     if array.dtype.str[0:2] == "<U":
                                         array = array.astype("S")
-                                    spectral_search_results[str(k)][
-                                        str(k2)
-                                    ].create_dataset(
+                                    spectral_search_results[str(k)][str(k2)].create_dataset(
                                         str(k3),
                                         data=array,
-                                        **hdf5_dataset_kwargs(
-                                            array.shape, compression=compression
-                                        ),
+                                        **hdf5_dataset_kwargs(array.shape, compression=compression),
                                     )
 
             # Save parameters as separate json
@@ -1814,7 +1763,6 @@ class LCMSExport(HighResMassSpectraExport):
                         filename=self.output_file.with_suffix(".toml"),
                         lcms_obj=self.mass_spectra,
                     )
-
 
 class LCMSMetabolomicsExport(LCMSExport):
     """A class to export LCMS metabolite data.
@@ -1914,7 +1862,7 @@ class LCMSMetabolomicsExport(LCMSExport):
             iso_class = None
 
         return iso_class
-
+    
     def report_to_csv(self, molecular_metadata=None):
         """Create a report of the mass features and their annotations and save it as a CSV file.
 
@@ -1998,7 +1946,7 @@ class LCMSMetabolomicsExport(LCMSExport):
         ms1_summary = ms1_summary.set_index("mf_id")
 
         return ms1_summary
-
+    
     def summarize_ms2_report(self, ms2_annot_report):
         """
         Summarize the MS2 report.
@@ -2007,14 +1955,14 @@ class LCMSMetabolomicsExport(LCMSExport):
         ----------
         ms2_annot_report : DataFrame
             The MS2 annotation DataFrame with all annotations, output of mass_features_ms2_annot_to_df.
-
+        
         Returns
         -------
         """
-
+    
     def summarize_metabolomics_report(self, ms2_annot_report):
         """Summarize the MS2 hits for a metabolomics report
-
+        
         Parameters
         ----------
         ms2_annot : DataFrame
@@ -2038,18 +1986,18 @@ class LCMSMetabolomicsExport(LCMSExport):
         ms2_annot = ms2_annot_report.drop(
             columns=[col for col in columns_to_drop if col in ms2_annot_report.columns]
         )
-
+        
         # Prepare information about the search results, pulling out the best hit for the single report
         # Group by mf_id,ref_mol_id grab row with highest entropy similarity
         ms2_annot = ms2_annot.reset_index()
         # Add column called "n_spectra_contributing" that is the number of unique values in query_spectrum_id per mf_id,ref_mol_id
-        ms2_annot["n_spectra_contributing"] = ms2_annot.groupby(
-            ["mf_id", "ref_mol_id"]
-        )["query_spectrum_id"].transform("nunique")
+        ms2_annot["n_spectra_contributing"] = (
+            ms2_annot.groupby(["mf_id", "ref_mol_id"])["query_spectrum_id"]
+            .transform("nunique")
+        )
         # Sort by entropy similarity
         ms2_annot = ms2_annot.sort_values(
-            by=["mf_id", "ref_mol_id", "entropy_similarity"],
-            ascending=[True, True, False],
+            by=["mf_id", "ref_mol_id", "entropy_similarity"], ascending=[True, True, False]
         )
         best_entropy = ms2_annot.drop_duplicates(
             subset=["mf_id", "ref_mol_id"], keep="first"
@@ -2074,9 +2022,7 @@ class LCMSMetabolomicsExport(LCMSExport):
         # Library (MS2 metadata) formulas — keep separate from MS1 search fields
         metabolite_summary["library_ion_formula"] = [
             self.get_ion_formula(f, a)
-            for f, a in zip(
-                metabolite_summary["formula"], metabolite_summary["ref_ion_type"]
-            )
+            for f, a in zip(metabolite_summary["formula"], metabolite_summary["ref_ion_type"])
         ]
         metabolite_summary = metabolite_summary.rename(
             columns={"formula": "library_formula"}
@@ -2116,7 +2062,7 @@ class LCMSMetabolomicsExport(LCMSExport):
         metabolite_summary = metabolite_summary.set_index("mf_id")
 
         return metabolite_summary
-
+    
     def combine_reports(self, mf_report, ms1_annot_report, ms2_annot_report):
         """Combine the mass feature report with the MS1 and MS2 reports.
 
@@ -2237,10 +2183,7 @@ class LCMSMetabolomicsExport(LCMSExport):
             mol_match = (
                 mf_report["Molecular Formula"].notna()
                 & mf_report["Library Molecular Formula"].notna()
-                & (
-                    mf_report["Molecular Formula"]
-                    == mf_report["Library Molecular Formula"]
-                )
+                & (mf_report["Molecular Formula"] == mf_report["Library Molecular Formula"])
             )
             mf_report.loc[mol_match, "Library Molecular Formula"] = pd.NA
             if "Library Ion Formula" in mf_report.columns:
@@ -2258,21 +2201,18 @@ class LCMSMetabolomicsExport(LCMSExport):
         ]
 
         # Reorder rows by "Mass Feature ID", then "Entropy Similarity" (descending), then "Confidence Score" (descending)
-        if (
-            "Entropy Similarity" in mf_report.columns
-            and "Confidence Score" in mf_report.columns
-        ):
+        if "Entropy Similarity" in mf_report.columns and "Confidence Score" in mf_report.columns:
             mf_report = mf_report.sort_values(
                 by=["Mass Feature ID", "Entropy Similarity", "Confidence Score"],
                 ascending=[True, False, False],
             )
         elif "Entropy Similarity" in mf_report.columns:
-            mf_report = mf_report.sort_values(
+             mf_report = mf_report.sort_values(
                 by=["Mass Feature ID", "Entropy Similarity"],
                 ascending=[True, False],
             )
         elif "Confidence Score" in mf_report.columns:
-            mf_report = mf_report.sort_values(
+             mf_report = mf_report.sort_values(
                 by=["Mass Feature ID", "Confidence Score"],
                 ascending=[True, False],
             )
@@ -2284,7 +2224,7 @@ class LCMSMetabolomicsExport(LCMSExport):
         mf_report = mf_report.reset_index(drop=True)
 
         return mf_report
-
+    
     def to_report(self, molecular_metadata=None, suppress_warnings=False):
         """Create a report of the mass features and their annotations.
 
@@ -2306,9 +2246,7 @@ class LCMSMetabolomicsExport(LCMSExport):
         mf_report = mf_report.reset_index(drop=False)
 
         # Get and clean ms1 annotation dataframe
-        ms1_annot_report = self.mass_spectra.mass_features_ms1_annot_to_df(
-            suppress_warnings=suppress_warnings
-        )
+        ms1_annot_report = self.mass_spectra.mass_features_ms1_annot_to_df(suppress_warnings=suppress_warnings)
         if ms1_annot_report is not None:
             ms1_annot_report = ms1_annot_report.copy()
             ms1_annot_report = self.clean_ms1_report(ms1_annot_report)
@@ -2318,7 +2256,8 @@ class LCMSMetabolomicsExport(LCMSExport):
 
         # Get, summarize, and clean ms2 annotation dataframe
         ms2_annot_report = self.mass_spectra.mass_features_ms2_annot_to_df(
-            molecular_metadata=molecular_metadata, suppress_warnings=suppress_warnings
+            molecular_metadata=molecular_metadata,
+            suppress_warnings=suppress_warnings
         )
         if ms2_annot_report is not None and molecular_metadata is not None:
             ms2_annot_report = self.summarize_metabolomics_report(ms2_annot_report)
@@ -2331,12 +2270,10 @@ class LCMSMetabolomicsExport(LCMSExport):
         report = self.combine_reports(
             mf_report=mf_report,
             ms1_annot_report=ms1_annot_report,
-            ms2_annot_report=ms2_annot_report,
+            ms2_annot_report=ms2_annot_report
         )
 
         return report
-
-
 class LipidomicsExport(LCMSMetabolomicsExport):
     """A class to export lipidomics data.
 
@@ -2408,9 +2345,7 @@ class LipidomicsExport(LCMSMetabolomicsExport):
         for mf_id in ms2_annot["mf_id"].unique():
             mlf_results_perid = []
             ms2_annot_mf = ms2_annot[ms2_annot["mf_id"] == mf_id].copy()
-            ms2_annot_mf["n_spectra_contributing"] = (
-                ms2_annot_mf.query_spectrum_id.nunique()
-            )
+            ms2_annot_mf["n_spectra_contributing"] = ms2_annot_mf.query_spectrum_id.nunique()
 
             for query_scan in ms2_annot["query_spectrum_id"].unique():
                 ms2_annot_sub = ms2_annot_mf[
@@ -2688,12 +2623,12 @@ class LipidomicsExport(LCMSMetabolomicsExport):
         report = self.combine_reports(
             mf_report=mf_report,
             ms1_annot_report=ms1_annot_report,
-            ms2_annot_report=ms2_annot_report,
+            ms2_annot_report=ms2_annot_report
         )
         return report
 
-
-class LCMSCollectionExport:
+        
+class LCMSCollectionExport():
     """A class to export an LCMS collection to HDF5 or Parquet format.
 
     This class provides methods to export collection-level data from multi-sample LC-MS
@@ -2754,30 +2689,28 @@ class LCMSCollectionExport:
     LCMSExport : Export individual LCMS objects to HDF5
     LCMSCollection : The collection object being exported
     """
-
     def __init__(self, out_file_path, mass_spectra_collection):
         self.out_file_path = Path(out_file_path)
         self.mass_spectra_collection = mass_spectra_collection
 
     def export_to_hdf5(
-        self,
-        overwrite=False,
-        save_parameters=True,
-        parameter_format="toml",
-        update_lcms_objects=True,
-    ):
+            self, 
+            overwrite = False, 
+            save_parameters=True, 
+            parameter_format="toml",
+            update_lcms_objects=True):
         """Export the LCMS collection to an HDF5 file.
-
+        
         This method saves the collection-level data to an HDF5 file, including:
         - Basic metadata (date, folder location, gap-filling status)
         - Sample manifest
         - Retention time alignments (if available)
         - Cluster assignments (if available)
         - Induced mass features for each LCMS object (if gap-filling was performed)
-
+        
         Individual LCMS objects in the collection are not exported by this method.
         Use LCMSExport for exporting individual LCMS objects.
-
+        
         Parameters
         ----------
         overwrite : bool, optional
@@ -2790,18 +2723,18 @@ class LCMSCollectionExport:
         parameter_format : str, optional
             The format for saving parameters, either "json" or "toml". Default is "toml".
         update_lcms_objects : bool, optional
-            If True, updates the individual LCMS object HDF5 files with new raw file locations and any additional
+            If True, updates the individual LCMS object HDF5 files with new raw file locations and any additional 
             information produced during the processing of the collection (e.g. cluster mass feature associations). Default is True.
-
+            
         Notes
         -----
         The HDF5 file structure includes:
         - Attributes: date_utc, lcms_objects_folder, missing_mass_features_searched, manifest
         - Groups: rt_alignments, cluster_assignments (if available)
-
+        
         Induced mass features are saved to the individual LCMS object HDF5 files
         within the .corems folder structure, not in the collection-level HDF5 file.
-
+        
         Examples
         --------
         >>> exporter = LCMSCollectionExporter("my_collection", lcms_collection)
@@ -2813,18 +2746,14 @@ class LCMSCollectionExport:
 
         with h5py.File(self.out_file_path.with_suffix(".hdf5"), "a") as hdf_handle:
             # Add basic attributes to the HDF5 file, always overwrite these
-            timenow = str(datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z"))
+            timenow = str(
+                    datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S %Z")
+                )
             hdf_handle.attrs["date_utc"] = timenow
-            hdf_handle.attrs["lcms_objects_folder"] = str(
-                self.mass_spectra_collection.collection_parser.folder_location
-            )
-            hdf_handle.attrs["missing_mass_features_searched"] = (
-                self.mass_spectra_collection.missing_mass_features_searched
-            )
+            hdf_handle.attrs["lcms_objects_folder"] = str(self.mass_spectra_collection.collection_parser.folder_location)
+            hdf_handle.attrs["missing_mass_features_searched"] = self.mass_spectra_collection.missing_mass_features_searched
             hdf_handle.attrs["rt_aligned"] = self.mass_spectra_collection.rt_aligned
-            hdf_handle.attrs["rt_alignment_attempted"] = (
-                self.mass_spectra_collection.rt_alignment_attempted
-            )
+            hdf_handle.attrs["rt_alignment_attempted"] = self.mass_spectra_collection.rt_alignment_attempted
 
             # Add the manifest to the HDF5 file, always overwrite this
             hdf_handle.attrs["manifest"] = self._convert_manifest_to_json()
@@ -2839,10 +2768,7 @@ class LCMSCollectionExport:
             self._save_feature_group_labels_to_hdf5(hdf_handle, overwrite)
 
         # Save new raw file locations to each LCMS object's HDF5 file if needed
-        if (
-            hasattr(self.mass_spectra_collection, "raw_files_relocated")
-            and self.mass_spectra_collection.raw_files_relocated
-        ):
+        if hasattr(self.mass_spectra_collection, 'raw_files_relocated') and self.mass_spectra_collection.raw_files_relocated:
             self._update_raw_file_locations_in_hdf5()
 
         # Save induced mass features to the collection with associations to each individual, only if lcms_collection.missing_mass_features_searched is True
@@ -2850,11 +2776,11 @@ class LCMSCollectionExport:
             self._save_induced_mass_features_to_hdf5(overwrite)
             # Save EICs for induced mass features at collection level
             self._save_induced_eics_to_hdf5(overwrite)
-
+        
         # Build cluster mass feature map to know which features to update
         # This uses the same logic as process_consensus_features to determine loaded features
         cluster_mf_map = self._build_cluster_mf_map()
-
+        
         # Save updated mass features for each LCMS object
         # This implements selective update: only loaded features are updated, non-cluster features are preserved
         if update_lcms_objects:
@@ -2877,9 +2803,7 @@ class LCMSCollectionExport:
                     lcms_collection=self.mass_spectra_collection,
                 )
 
-    def export_to_parquet(
-        self, overwrite=False, save_parameters=True, parameter_format="toml"
-    ):
+    def export_to_parquet(self, overwrite=False, save_parameters=True, parameter_format="toml"):
         """Export collection-level LC-MS datasets to Parquet files.
 
         Writes next to ``out_file_path`` (same stem as the HDF5 export):
@@ -2950,14 +2874,12 @@ class LCMSCollectionExport:
                 _write(cluster_df, "cluster_assignments")
 
         # RT alignments as long-format table
-        if getattr(self.mass_spectra_collection, "rt_aligned", False) and getattr(
-            self.mass_spectra_collection, "rt_alignments", None
+        if (
+            getattr(self.mass_spectra_collection, "rt_aligned", False)
+            and getattr(self.mass_spectra_collection, "rt_alignments", None)
         ):
             frames = []
-            for (
-                sample_idx,
-                alignment_data,
-            ) in self.mass_spectra_collection.rt_alignments.items():
+            for sample_idx, alignment_data in self.mass_spectra_collection.rt_alignments.items():
                 arr = np.asarray(alignment_data)
                 if arr.ndim == 1:
                     frames.append(
@@ -3010,7 +2932,7 @@ class LCMSCollectionExport:
         # If no rt_alignments, return early
         if not self.mass_spectra_collection.rt_aligned:
             return
-
+        
         # If rt_alignments exist, save them
         if self.mass_spectra_collection.rt_aligned:
             group_name = "rt_alignments"
@@ -3023,58 +2945,49 @@ class LCMSCollectionExport:
                 if not overwrite:
                     return
                 del hdf_handle[group_name]
-
+            
             grp = hdf_handle.create_group(group_name)
-
+            
             # Save each alignment as a dataset
             for sample_idx, alignment_data in rt_alignments.items():
                 grp.create_dataset(str(sample_idx), data=alignment_data)
-
+    
     def _convert_manifest_to_json(self):
         """Clean the manifest for export to HDF5."""
         manifest = self.mass_spectra_collection.collection_parser.manifest
-
+        
         # Process the manifest to convert numpy.bool_ or bool values for the 'use_rt_alignment' key
         def convert_bool_values(data):
             if isinstance(data, dict):
                 # Process each key-value pair recursively
-                return {
-                    k: (
-                        int(v)
-                        if k == "use_rt_alignment" and isinstance(v, (bool, np.bool_))
-                        else convert_bool_values(v)
-                    )
-                    for k, v in data.items()
-                }
+                return {k: (int(v) if k == 'use_rt_alignment' and isinstance(v, (bool, np.bool_)) else convert_bool_values(v)) for k, v in data.items()}
             elif isinstance(data, list):
                 # Recursively process lists
                 return [convert_bool_values(item) for item in data]
             else:
                 # Return non-dict/list types unchanged
                 return data
-
+        
         # Clean the whole manifest
         cleaned_manifest = convert_bool_values(manifest)
 
         # Serialize the cleaned manifest into JSON format
         json_manifest = json.dumps(cleaned_manifest)
         return json_manifest
-
+    
     def _save_cluster_assignments_to_hdf5(self, hdf_handle, overwrite):
         """Save cluster assignments to HDF5 file."""
         # Check if column "cluster" is present in self.mass_features_dataframe
         if "cluster" in self.mass_spectra_collection.mass_features_dataframe.columns:
             group_name = "cluster_assignments"
-            cluster_assignments = self.mass_spectra_collection.mass_features_dataframe[
-                ["cluster"]
-            ].copy()
+            cluster_assignments = self.mass_spectra_collection.mass_features_dataframe[["cluster"]].copy()
 
             # Check if group exists and handle overwrite logic
             if group_name in hdf_handle:
                 if not overwrite:
                     return
                 del hdf_handle[group_name]
-
+            
             grp = hdf_handle.create_group(group_name)
 
             # Save the index, converting strings to bytes.
@@ -3095,7 +3008,9 @@ class LCMSCollectionExport:
         """Save cluster-indexed feature-group labels to the collection HDF5."""
         from corems.mass_spectra.calc.feature_grouping import GROUP_COLUMNS
 
-        labels = getattr(self.mass_spectra_collection, "feature_group_dataframe", None)
+        labels = getattr(
+            self.mass_spectra_collection, "feature_group_dataframe", None
+        )
         if labels is None or len(labels) == 0:
             return
 
@@ -3139,271 +3054,243 @@ class LCMSCollectionExport:
 
     def _build_cluster_mf_map(self):
         """Build a mapping of which mass features should be saved for each sample.
-
+        
         This uses the same logic as process_consensus_features to determine which
         mass features were loaded and should be updated in HDF5 files.
-
+        
         Returns
         -------
         dict
             Dictionary mapping sample_id to list of tuples (mf_id, cluster_id).
             Only includes samples that have loaded representative features.
             Returns empty dict if no clusters exist.
-
+        
         Notes
         -----
         This follows the DRY principle by using the same get_sample_mf_map_for_representatives
         method used by process_consensus_features and ReadSavedLCMSCollection.
         """
         # Check if clusters exist
-        if (
-            "cluster"
-            not in self.mass_spectra_collection.mass_features_dataframe.columns
-        ):
+        if "cluster" not in self.mass_spectra_collection.mass_features_dataframe.columns:
             return {}
-
+        
         # Check if cluster_summary_dataframe exists (needed by get_sample_mf_map_for_representatives)
-        if (
-            not hasattr(self.mass_spectra_collection, "cluster_summary_dataframe")
-            or self.mass_spectra_collection.cluster_summary_dataframe is None
-        ):
+        if not hasattr(self.mass_spectra_collection, 'cluster_summary_dataframe') or \
+           self.mass_spectra_collection.cluster_summary_dataframe is None:
             return {}
-
+        
         # Use the same DRY helper method that process_consensus_features uses
         # This ensures consistency across the codebase
-        cluster_mf_map = (
-            self.mass_spectra_collection.get_sample_mf_map_for_representatives(
-                include_cluster_id=True
-            )
+        cluster_mf_map = self.mass_spectra_collection.get_sample_mf_map_for_representatives(
+            include_cluster_id=True
         )
-
+        
         return cluster_mf_map
-
+    
     def _update_raw_file_locations_in_hdf5(self):
         """Update raw file locations in each LCMS object's HDF5 file.
-
+        
         This method updates the 'original_file_location' attribute in each LCMS object's
         HDF5 file to reflect the new raw file location after files have been relocated.
         """
         for lcms_obj in self.mass_spectra_collection:
             # Get the HDF5 file path for this LCMS object
-            hdf5_path = lcms_obj.file_location.with_suffix(".hdf5")
-
+            hdf5_path = lcms_obj.file_location.with_suffix('.hdf5')
+            
             if hdf5_path.exists():
-                with h5py.File(hdf5_path, "a") as hdf_handle:
+                with h5py.File(hdf5_path, 'a') as hdf_handle:
                     # Update the original_file_location attribute
-                    if "original_file_location" in hdf_handle.attrs:
-                        hdf_handle.attrs["original_file_location"] = str(
-                            lcms_obj.raw_file_location
-                        )
+                    if 'original_file_location' in hdf_handle.attrs:
+                        hdf_handle.attrs['original_file_location'] = str(lcms_obj.raw_file_location)
                     # If the attribute does not exist, create it
                     else:
-                        hdf_handle.attrs.create(
-                            "original_file_location", str(lcms_obj.raw_file_location)
-                        )
-
+                        hdf_handle.attrs.create('original_file_location', str(lcms_obj.raw_file_location))
+    
     def _save_induced_mass_features_to_hdf5(self, overwrite):
         """Save induced mass features to the collection HDF5 file.
-
+        
         Induced mass features are gap-filled features that only exist at the collection level.
         They are saved with full detail (all attributes and datasets) in the collection HDF5 file
         and distributed to individual LCMS objects when the collection is loaded.
-
+        
         The induced mass features are stored in the collection's induced_mass_features_dataframe
         and are regenerated as LCMSMassFeature objects for saving.
-
+        
         Parameters
         ----------
         overwrite : bool
             If True, overwrites existing induced mass features group. If False, skips if group exists.
         """
         # Check if we have any induced mass features to save
-        if (
-            self.mass_spectra_collection.induced_mass_features_dataframe is None
-            or self.mass_spectra_collection.induced_mass_features_dataframe.empty
-        ):
+        if (self.mass_spectra_collection.induced_mass_features_dataframe is None or 
+            self.mass_spectra_collection.induced_mass_features_dataframe.empty):
             return
-
+        
         # Open the collection HDF5 file to save induced mass features
         with h5py.File(self.out_file_path.with_suffix(".hdf5"), "a") as hdf_handle:
             group_name = "induced_mass_features"
-
+            
             # Check if group exists and handle overwrite logic
             if group_name in hdf_handle:
                 if not overwrite:
                     return
                 del hdf_handle[group_name]
-
+            
             # Create top-level group for induced mass features
             imf_group = hdf_handle.create_group(group_name)
-
+            
             # Get the induced mass features dataframe
             induced_df = self.mass_spectra_collection.induced_mass_features_dataframe
-
+            
             # Get unique sample IDs from the dataframe
-            sample_ids = induced_df["sample_id"].unique()
-
+            sample_ids = induced_df['sample_id'].unique()
+            
             # Iterate through each sample and save its induced mass features
             for sample_id in sample_ids:
                 # Filter dataframe to this sample
-                sample_df = induced_df[induced_df["sample_id"] == sample_id].copy()
-
+                sample_df = induced_df[induced_df['sample_id'] == sample_id].copy()
+                
                 if sample_df.empty:
                     continue
-
+                
                 # Regenerate mass features from the dataframe
                 regenerated_features = self._regenerate_mass_features_from_sample_df(
                     sample_df, sample_id
                 )
-
+                
                 if not regenerated_features:
                     continue
-
+                
                 # Create a subgroup for this sample's induced mass features
                 sample_group = imf_group.create_group(str(sample_id))
-
+                
                 # Use the static helper method from LCMSExport to save the mass features
                 LCMSExport._save_mass_features_dict_to_hdf5(
-                    regenerated_features, sample_group, overwrite=overwrite
+                    regenerated_features, 
+                    sample_group, 
+                    overwrite=overwrite
                 )
-
+    
     def _save_induced_eics_to_hdf5(self, overwrite):
         """Save EICs for induced mass features to the collection HDF5 file.
-
+        
         Induced mass features are gap-filled features created during process_consensus_features.
         Their associated EICs need to be saved at the collection level so they can be reloaded.
-
+        
         The induced mass features are identified from the collection's induced_mass_features_dataframe,
         and their EICs are retrieved from the individual LCMS objects.
-
+        
         Parameters
         ----------
         overwrite : bool
             If True, overwrites existing induced EICs group. If False, skips if group exists.
         """
         # Check if we have any induced mass features to save
-        if (
-            self.mass_spectra_collection.induced_mass_features_dataframe is None
-            or self.mass_spectra_collection.induced_mass_features_dataframe.empty
-        ):
+        if (self.mass_spectra_collection.induced_mass_features_dataframe is None or 
+            self.mass_spectra_collection.induced_mass_features_dataframe.empty):
             return
-
+        
         # Open the collection HDF5 file to save induced EICs
         with h5py.File(self.out_file_path.with_suffix(".hdf5"), "a") as hdf_handle:
             group_name = "induced_eics"
-
+            
             # Check if group exists and handle overwrite logic
             if group_name in hdf_handle:
                 if not overwrite:
                     return
                 del hdf_handle[group_name]
-
+            
             # Create top-level group for induced EICs
             induced_eics_group = hdf_handle.create_group(group_name)
-
+            
             # Get the induced mass features dataframe
             induced_df = self.mass_spectra_collection.induced_mass_features_dataframe
-
+            
             # Get unique sample IDs from the dataframe
-            sample_ids = induced_df["sample_id"].unique()
-
+            sample_ids = induced_df['sample_id'].unique()
+            
             # Iterate through each sample and save EICs for its induced mass features
             for sample_id in sample_ids:
                 lcms_obj = self.mass_spectra_collection[sample_id]
-
+                
                 # Filter dataframe to this sample
-                sample_df = induced_df[induced_df["sample_id"] == sample_id].copy()
-
+                sample_df = induced_df[induced_df['sample_id'] == sample_id].copy()
+                
                 if sample_df.empty:
                     continue
-
+                
                 # Collect EICs for induced mass features using _eic_mz from dataframe
                 induced_eics = {}
                 for _, row in sample_df.iterrows():
                     # Get the EIC m/z from the dataframe
-                    eic_mz = row.get("_eic_mz")
-
+                    eic_mz = row.get('_eic_mz')
+                    
                     if eic_mz is not None and pd.notna(eic_mz):
                         # Try to get the EIC from the LCMS object
-                        if (
-                            hasattr(lcms_obj, "eics")
-                            and lcms_obj.eics
-                            and eic_mz in lcms_obj.eics
-                        ):
+                        if hasattr(lcms_obj, 'eics') and lcms_obj.eics and eic_mz in lcms_obj.eics:
                             induced_eics[eic_mz] = lcms_obj.eics[eic_mz]
-
+                
                 if not induced_eics:
                     continue
-
+                
                 # Create a subgroup for this sample's induced EICs
                 sample_group = induced_eics_group.create_group(str(sample_id))
-
+                
                 # Use the static helper method from LCMSExport to save the EICs
-                LCMSExport._save_eics_dict_to_hdf5(
-                    induced_eics, sample_group, overwrite
-                )
-
+                LCMSExport._save_eics_dict_to_hdf5(induced_eics, sample_group, overwrite)
+    
     def _regenerate_mass_features_from_sample_df(self, sample_df, sample_id):
         """Regenerate induced mass features from a sample-specific dataframe.
-
+        
         This method creates LCMSMassFeature objects from rows in the induced_mass_features_dataframe
         for a specific sample. The regenerated features are used for saving to HDF5.
-
+        
         Parameters
         ----------
         sample_df : pd.DataFrame
             DataFrame containing induced mass features for a specific sample.
         sample_id : int
             The sample ID (index in the collection).
-
+            
         Returns
         -------
         dict
             Dictionary of regenerated LCMSMassFeature objects keyed by feature ID.
         """
         from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
-
+        
         if sample_df.empty:
             return {}
-
+        
         # Get the corresponding LCMS object for proper parent reference
         lcms_obj = self.mass_spectra_collection[sample_id]
-
+        
         # Regenerate mass features from the dataframe
         regenerated_features = {}
-
+        
         for _, row in sample_df.iterrows():
             # Extract the original ID from mf_id (format: c{cluster}_{index}_i)
             # This is the ID used in lcms_obj.induced_mass_features dict
-            original_id = row["mf_id"]
-
+            original_id = row['mf_id']
+            
             # Create a new LCMSMassFeature with proper parent reference
             # Note: dataframe uses 'scan_time' but __init__ parameter is 'retention_time'
             mass_feature = LCMSMassFeature(
                 lcms_parent=lcms_obj,
-                mz=row["mz"],
-                retention_time=row["scan_time"],  # Column is 'scan_time' in dataframe
-                intensity=row["intensity"],
-                apex_scan=int(row["apex_scan"]),
-                persistence=row.get("persistence", None)
-                if "persistence" in row
-                else None,
-                id=original_id,  # Use the original string ID from gap-filling
+                mz=row['mz'],
+                retention_time=row['scan_time'],  # Column is 'scan_time' in dataframe
+                intensity=row['intensity'],
+                apex_scan=int(row['apex_scan']),
+                persistence=row.get('persistence', None) if 'persistence' in row else None,
+                id=original_id  # Use the original string ID from gap-filling
             )
-
+            
             # Set additional attributes dynamically from dataframe columns
             # Skip columns already handled in __init__ or structural metadata
             skip_cols = {
-                "sample_id",
-                "mf_id",
-                "mz",
-                "scan_time",
-                "scan_time_aligned",
-                "intensity",
-                "apex_scan",
-                "persistence",
-            }
-
+                'sample_id', 'mf_id', 'mz', 'scan_time', 'scan_time_aligned',
+                'intensity', 'apex_scan', 'persistence'}
+            
             # Iterate through all columns and set via property setters
             for col_name in row.index:
                 if col_name in skip_cols:
@@ -3414,7 +3301,7 @@ class LCMSCollectionExport:
                         continue
                 except (TypeError, ValueError):
                     pass  # value is array-like; not NA, proceed
-
+                
                 # Set via property (public interface handles private attributes)
                 # Don't save empty lists
                 if isinstance(value, list) and len(value) == 0:
@@ -3423,25 +3310,25 @@ class LCMSCollectionExport:
                     setattr(mass_feature, col_name, value)
                 except (AttributeError, TypeError):
                     pass  # Skip attributes that don't exist or can't be set
-
+            
             # Set cluster_index if present
-            if "cluster" in row and pd.notna(row["cluster"]):
-                mass_feature.cluster_index = int(row["cluster"])
-
+            if 'cluster' in row and pd.notna(row['cluster']):
+                mass_feature.cluster_index = int(row['cluster'])
+            
             regenerated_features[mass_feature.id] = mass_feature
-
+        
         return regenerated_features
-
+    
     def _save_lcms_objects_to_hdf5(self, cluster_mf_map, overwrite):
         """Save updated mass features for each LCMS object.
-
+        
         This method implements a "selective update" strategy for mass features:
         - For mass features specified in cluster_mf_map (loaded representatives), we selectively
           update them by deleting their old entries and re-saving with new attributes.
         - Non-cluster features (not loaded) are never touched/overwritten.
-
+        
         Note: EICs are NOT saved here. Induced feature EICs are saved at the collection level.
-
+        
         Parameters
         ----------
         cluster_mf_map : dict
@@ -3451,40 +3338,36 @@ class LCMSCollectionExport:
             If True, allows overwriting of existing data. If False, skips if data exists.
         """
         for sample_id, lcms_obj in enumerate(self.mass_spectra_collection):
-            hdf5_path = lcms_obj.file_location.with_suffix(".hdf5")
-
+            hdf5_path = lcms_obj.file_location.with_suffix('.hdf5')
+            
             if not hdf5_path.exists():
                 # If HDF5 doesn't exist, we can't do selective update, raise error
                 raise FileNotFoundError(
                     f"HDF5 file for LCMS object {lcms_obj.sample_name} not found at {hdf5_path}"
                 )
-
+            
             # Check if this sample has any loaded features in the map
             if sample_id not in cluster_mf_map or not cluster_mf_map[sample_id]:
                 # Nothing loaded for this sample, nothing to update
                 continue
-
+            
             # Extract mf_ids from the map (cluster_mf_map contains tuples of (mf_id, cluster_id))
-            mf_ids_to_update = [
-                mf_id for mf_id, cluster_id in cluster_mf_map[sample_id]
-            ]
-
+            mf_ids_to_update = [mf_id for mf_id, cluster_id in cluster_mf_map[sample_id]]
+            
             # Perform selective update of mass features
-            self._selective_update_mass_features(
-                lcms_obj, hdf5_path, mf_ids_to_update, overwrite
-            )
-
+            self._selective_update_mass_features(lcms_obj, hdf5_path, mf_ids_to_update, overwrite)
+            
             # Save any new mass spectra that were added during processing
             self._save_new_mass_spectra(lcms_obj, hdf5_path, overwrite)
-
+    
     def _save_new_mass_spectra(self, lcms_obj, hdf5_path, overwrite):
         """Save new mass spectra that were added during processing.
-
+        
         This method checks what mass spectra are in lcms_obj._ms and saves any
         that aren't already in the HDF5 file's mass_spectra group. Uses the
         existing add_mass_spectrum_to_hdf5 method for consistency with original
         export logic.
-
+        
         Parameters
         ----------
         lcms_obj : LCMSBase
@@ -3495,61 +3378,62 @@ class LCMSCollectionExport:
             If True, allows overwriting existing spectra.
         """
         # Check if there are any mass spectra to save
-        if not hasattr(lcms_obj, "_ms") or not lcms_obj._ms:
+        if not hasattr(lcms_obj, '_ms') or not lcms_obj._ms:
             return
-
+        
         # Create an LCMS exporter instance for this LCMS object
         # This gives us access to add_mass_spectrum_to_hdf5 method inherited from HighResMassSpecExport
         # Turn hdf5_path into str without suffix for LCMSExport
-        hdf5_path_str = str(hdf5_path.with_suffix(""))
-        exporter = LCMSExport(out_file_path=hdf5_path_str, mass_spectra=lcms_obj)
-
+        hdf5_path_str = str(hdf5_path.with_suffix(''))
+        exporter = LCMSExport(
+            out_file_path=hdf5_path_str,
+            mass_spectra=lcms_obj
+        )
+        
         # Open HDF5 file and check existing mass spectra
-        with h5py.File(hdf5_path, "a") as hdf_handle:
+        with h5py.File(hdf5_path, 'a') as hdf_handle:
             # Create mass_spectra group if it doesn't exist
-            if "mass_spectra" not in hdf_handle:
-                ms_group = hdf_handle.create_group("mass_spectra")
+            if 'mass_spectra' not in hdf_handle:
+                ms_group = hdf_handle.create_group('mass_spectra')
                 existing_scan_numbers = set()
             else:
-                ms_group = hdf_handle["mass_spectra"]
+                ms_group = hdf_handle['mass_spectra']
                 existing_scan_numbers = set(int(k) for k in ms_group.keys())
-
+            
             # Find new mass spectra (in _ms but not in HDF5)
             new_scan_numbers = set(lcms_obj._ms.keys()) - existing_scan_numbers
-
+                        
             if not new_scan_numbers:
                 return
-
+            
             # Save new mass spectra using existing add_mass_spectrum_to_hdf5 method
             export_profile = lcms_obj.parameters.lc_ms.export_profile_spectra
             for scan_number in new_scan_numbers:
                 mass_spec = lcms_obj._ms[scan_number]
                 scan_group_name = str(scan_number)
-
+                
                 # Delete existing group if overwrite is True
                 if scan_group_name in ms_group and overwrite:
                     del ms_group[scan_group_name]
                 elif scan_group_name in ms_group:
                     continue
-
+                
                 # Use the existing method from HighResMassSpecExport
                 exporter.add_mass_spectrum_to_hdf5(
                     hdf_handle=hdf_handle,
                     mass_spectrum=mass_spec,
                     group_key=scan_group_name,
                     mass_spectra_group=ms_group,
-                    export_raw=export_profile,
+                    export_raw=export_profile
                 )
-
-    def _selective_update_mass_features(
-        self, lcms_obj, hdf5_path, mf_ids_to_update, overwrite
-    ):
+    
+    def _selective_update_mass_features(self, lcms_obj, hdf5_path, mf_ids_to_update, overwrite):
         """Selectively update mass features in HDF5 file.
-
+        
         This method deletes only the mass features specified in mf_ids_to_update,
         then re-saves them with their potentially updated attributes. Non-cluster features
         in the HDF5 file are left untouched.
-
+        
         Parameters
         ----------
         lcms_obj : LCMSBase
@@ -3564,28 +3448,30 @@ class LCMSCollectionExport:
         """
         if not mf_ids_to_update:
             return
-
+        
         # Open HDF5 file and delete specified feature IDs, then re-save
-        with h5py.File(hdf5_path, "a") as hdf_handle:
-            if "mass_features" not in hdf_handle:
+        with h5py.File(hdf5_path, 'a') as hdf_handle:
+            if 'mass_features' not in hdf_handle:
                 return
-
-            mf_group = hdf_handle["mass_features"]
-
+            
+            mf_group = hdf_handle['mass_features']
+            
             # Delete features that are being updated
             for feature_id in mf_ids_to_update:
                 feature_id_str = str(feature_id)
                 if feature_id_str in mf_group:
                     del mf_group[feature_id_str]
-
+            
             # Re-save updated features (only those that exist in mass_features dict)
             updated_features = {
-                mf.id: mf
-                for mf in lcms_obj.mass_features.values()
+                mf.id: mf for mf in lcms_obj.mass_features.values()
                 if mf.id in mf_ids_to_update
             }
-
+            
             if updated_features:
                 LCMSExport._save_mass_features_dict_to_hdf5(
-                    updated_features, mf_group, overwrite=overwrite
+                    updated_features,
+                    mf_group,
+                    overwrite=overwrite
                 )
+    

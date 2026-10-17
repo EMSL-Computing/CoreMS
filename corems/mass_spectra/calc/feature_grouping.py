@@ -129,7 +129,9 @@ def filter_ion_types_for_polarity(
     pol = normalize_ms_polarity(polarity)
     if pol is None:
         return tuple(ion_types)
-    return tuple(it for it in ion_types if ION_TYPE_DICT[it]["polarity"] == pol)
+    return tuple(
+        it for it in ion_types if ION_TYPE_DICT[it]["polarity"] == pol
+    )
 
 
 def params_with_polarity_filtered_ion_types(
@@ -210,7 +212,9 @@ class FeatureGroupParams:
             rt_tol=float(settings.alignment_rt_tol),
             mz_tol_ppm=float(settings.alignment_mz_tol_ppm),
             isotope_atoms=tuple(settings.feature_group_isotope_atoms),
-            min_isotope_abundance=float(settings.feature_group_min_isotope_abundance),
+            min_isotope_abundance=float(
+                settings.feature_group_min_isotope_abundance
+            ),
             max_isotope_offset=int(settings.feature_group_max_isotope_offset),
             corr_threshold=float(settings.feature_group_corr_threshold),
             min_shared_sample_fraction=float(
@@ -234,11 +238,15 @@ def validate_feature_group_params(params: FeatureGroupParams) -> None:
             "(mono elements for natural-abundance feature-group isotope edges)"
         )
     if not (0.0 <= params.min_isotope_abundance <= 1.0):
-        raise ValueError("feature_group_min_isotope_abundance must be in [0, 1]")
+        raise ValueError(
+            "feature_group_min_isotope_abundance must be in [0, 1]"
+        )
     if params.max_isotope_offset < 1:
         raise ValueError("feature_group_max_isotope_offset must be >= 1")
     if not (0.0 < params.min_shared_sample_fraction <= 1.0):
-        raise ValueError("feature_group_min_shared_sample_fraction must be in (0, 1]")
+        raise ValueError(
+            "feature_group_min_shared_sample_fraction must be in (0, 1]"
+        )
     if params.corr_threshold < -1.0 or params.corr_threshold > 1.0:
         raise ValueError("feature_group_corr_threshold must be in [-1, 1]")
     if params.partition_size < 1:
@@ -247,7 +255,9 @@ def validate_feature_group_params(params: FeatureGroupParams) -> None:
     seen_it = set()
     for it in params.ion_types:
         if it in seen_it:
-            raise ValueError(f"Duplicate ion_type {it!r} in feature_group_ion_types")
+            raise ValueError(
+                f"Duplicate ion_type {it!r} in feature_group_ion_types"
+            )
         seen_it.add(it)
         _ion_type_mass_offset(it)
         if ion_type_charge(it) != 1:
@@ -332,7 +342,9 @@ def rare_isotope_entries(
     return tuple(out)
 
 
-def _heavy_isotope_label(mono_symbol: str, min_abundance: float = 0.01) -> str:
+def _heavy_isotope_label(
+    mono_symbol: str, min_abundance: float = 0.01
+) -> str:
     """Primary natural-abundance rare isotope label (highest abundance above the floor)."""
     return rare_isotope_entries(mono_symbol, min_abundance=min_abundance)[0][0]
 
@@ -346,9 +358,9 @@ def isotope_mass_delta(
     Primary rare = highest natural-abundance rare form meeting ``min_abundance``
     in ``Atoms``. May be negative (e.g. ⁵⁴Fe − ⁵⁶Fe). Never hard-coded.
     """
-    _rare, signed, _ab = rare_isotope_entries(mono_symbol, min_abundance=min_abundance)[
-        0
-    ]
+    _rare, signed, _ab = rare_isotope_entries(
+        mono_symbol, min_abundance=min_abundance
+    )[0]
     return signed / abs(int(charge))
 
 
@@ -491,8 +503,7 @@ def subset_hits_by_allowed_ion_types(result, allowed, ion_attr: str = "ref_ion_t
         return result
     keep_idx = np.asarray(keep, dtype=int)
     items = (
-        result.items()
-        if hasattr(result, "items") and not hasattr(result, "__dict__")
+        result.items() if hasattr(result, "items") and not hasattr(result, "__dict__")
         else vars(result).items()
     )
     for key, val in list(items):
@@ -645,7 +656,9 @@ def ion_type_mass_delta(
     m/z spacing depends on neutral mass ``M`` and is **not** a constant;
     use :func:`neutral_mass_from_mz` / adduct edge search instead.
     """
-    signed = _ion_type_mass_offset(ion_type_b) - _ion_type_mass_offset(ion_type_a)
+    signed = _ion_type_mass_offset(ion_type_b) - _ion_type_mass_offset(
+        ion_type_a
+    )
     return float(signed) / abs(int(charge))
 
 
@@ -957,9 +970,7 @@ def find_adduct_edges(
 def sort_adduct_edges(edges: pd.DataFrame) -> pd.DataFrame:
     """Order edges for merge: residual ↑, then cluster ids."""
     if edges is None or edges.empty:
-        return (
-            edges if edges is not None else pd.DataFrame(columns=_ADDUCT_EDGE_COLUMNS)
-        )
+        return edges if edges is not None else pd.DataFrame(columns=_ADDUCT_EDGE_COLUMNS)
     out = edges.copy()
     if "residual" not in out.columns:
         out["residual"] = 0.0
@@ -1109,7 +1120,9 @@ def assign_isotope_labels(
         next_group_id += 1
 
         # ion_type filled later from pairwise adduct edges (or single configured type)
-        single_ion_type = params.ion_types[0] if len(params.ion_types) == 1 else None
+        single_ion_type = (
+            params.ion_types[0] if len(params.ion_types) == 1 else None
+        )
         labels.loc[cluster_ids[mono_idx], "feature_group_id"] = gid
         labels.loc[cluster_ids[mono_idx], "ion_role"] = "mono"
         labels.loc[cluster_ids[mono_idx], "ion_type"] = single_ion_type
@@ -1185,9 +1198,7 @@ def _form_has_isotope(labels: pd.DataFrame, form_members: Sequence[int]) -> bool
     return False
 
 
-def _form_mono_id(
-    labels: pd.DataFrame, form_members: Sequence[int], endpoint: int
-) -> int:
+def _form_mono_id(labels: pd.DataFrame, form_members: Sequence[int], endpoint: int) -> int:
     monos = [
         c
         for c in form_members
@@ -1234,7 +1245,9 @@ def merge_adduct_edges_into_labels(
 
     labels = labels.copy()
     if "possible_ion_types" not in labels.columns:
-        labels["possible_ion_types"] = pd.Series(None, index=labels.index, dtype=object)
+        labels["possible_ion_types"] = pd.Series(
+            None, index=labels.index, dtype=object
+        )
 
     next_gid = 0
     if labels["feature_group_id"].notna().any():
@@ -1370,13 +1383,11 @@ def validate_feature_group_labels(
 
         # Unique (ion_type, isotope_state)
         if sub["ion_type"].notna().any():
-            key = sub.apply(lambda r: (r["ion_type"], r["isotope_state"]), axis=1)
+            key = sub.apply(
+                lambda r: (r["ion_type"], r["isotope_state"]), axis=1
+            )
             for k, cnt in key.value_counts().items():
-                if (
-                    cnt > 1
-                    and k[0] is not None
-                    and not (isinstance(k[0], float) and np.isnan(k[0]))
-                ):
+                if cnt > 1 and k[0] is not None and not (isinstance(k[0], float) and np.isnan(k[0])):
                     dups = sub.index[key == k].tolist()
                     # keep lowest cluster id
                     for cid in sorted(dups)[1:]:
@@ -1460,7 +1471,9 @@ def validate_feature_group_labels(
             if _isna(it):
                 continue
             poss = labels.loc[cid, "possible_ion_types"]
-            labels.loc[cid, "possible_ion_types"] = merge_possible_ion_types(it, poss)
+            labels.loc[cid, "possible_ion_types"] = merge_possible_ion_types(
+                it, poss
+            )
 
     return labels
 
@@ -1540,11 +1553,15 @@ def group_features_arrays(
         timings_out["n_isotope_edges"] = float(len(iso_edges))
 
     t0 = time.perf_counter()
-    labels = assign_isotope_labels(cluster_ids, mz, rt, heights, iso_edges, params)
+    labels = assign_isotope_labels(
+        cluster_ids, mz, rt, heights, iso_edges, params
+    )
     if timings_out is not None:
         timings_out["isotope_labels"] = time.perf_counter() - t0
 
-    mz_by_cluster = {int(cid): float(m) for cid, m in zip(cluster_ids, mz)}
+    mz_by_cluster = {
+        int(cid): float(m) for cid, m in zip(cluster_ids, mz)
+    }
     # Adduct stage: only mono or unlabeled endpoints (never ion_role=isotope)
     if len(params.ion_types) >= 2:
         eligible_mask = np.array(
@@ -1572,7 +1589,9 @@ def group_features_arrays(
             timings_out["n_adduct_endpoints"] = float(len(elig_ids))
 
         t0 = time.perf_counter()
-        add_edges = filter_edges_by_height_correlation(add_edges, elig_heights, params)
+        add_edges = filter_edges_by_height_correlation(
+            add_edges, elig_heights, params
+        )
         if timings_out is not None:
             timings_out["adduct_corr"] = time.perf_counter() - t0
             timings_out["n_adduct_edges"] = float(len(add_edges))

@@ -17,7 +17,7 @@ def get_rt_ri_pairs(gcms_ref_obj, sql_obj=None):
         if gcms_peak:
             compound_obj = gcms_peak.highest_ss_compound
 
-            if compound_obj.ri not in dict_ri_rt.keys():
+            if not compound_obj.ri in dict_ri_rt.keys():
                 dict_ri_rt[compound_obj.ri] = [
                     (gcms_peak.mass_spectrum.retention_time, compound_obj)
                 ]

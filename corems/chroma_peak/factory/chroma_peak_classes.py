@@ -123,7 +123,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         The scan number of the apex of the feature.
     persistence : float, optional
         The persistence of the feature. Default is None.
-
+        
     Attributes
     --------
     _mz_exp : float
@@ -198,7 +198,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         intensity: float,
         apex_scan: int,
         persistence: float = None,
-        id: int = None,
+        id: int = None
     ):
         super().__init__(
             chromatogram_parent=lcms_parent,
@@ -264,7 +264,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
 
     def _plot_ms1_spectrum(self, ax, deconvoluted=False, sample_name=None):
         """Internal method to plot MS1 spectrum on a given axis.
-
+        
         Parameters
         ----------
         ax : matplotlib.axes.Axes
@@ -276,13 +276,13 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         """
         if self.mass_spectrum is None:
             raise ValueError("MS1 spectrum is not available")
-
+        
         title_prefix = "MS1 (deconvoluted)" if deconvoluted else "MS1 (raw)"
         if sample_name:
             ax.set_title(f"{title_prefix} - {sample_name}", loc="left")
         else:
             ax.set_title(title_prefix, loc="left")
-
+        
         if deconvoluted and self._ms_deconvoluted_idx is not None:
             # Plot both raw and deconvoluted
             ax.vlines(
@@ -304,7 +304,9 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                 self.mass_spectrum_deconvoluted.mz_exp.min() * 0.8,
                 self.mass_spectrum_deconvoluted.mz_exp.max() * 1.1,
             )
-            ax.set_ylim(0, self.mass_spectrum_deconvoluted.abundance.max() * 1.1)
+            ax.set_ylim(
+                0, self.mass_spectrum_deconvoluted.abundance.max() * 1.1
+            )
         else:
             # Plot raw only
             ax.vlines(
@@ -319,7 +321,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                 self.mass_spectrum.mz_exp.max() * 1.1,
             )
             ax.set_ylim(bottom=0)
-
+        
         # Highlight the feature m/z if close enough
         if abs(self.ms1_peak.mz_exp - self.mz) < 0.01:
             ax.vlines(
@@ -335,17 +337,17 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                     f"The m/z of the mass feature {self.id} is different from the m/z of MS1 peak, "
                     "the MS1 peak will not be plotted"
                 )
-
+        
         ax.legend(loc="upper left")
         ax.set_ylabel("Intensity")
         ax.set_xlabel("m/z")
         # Combining tick_params(labelleft=False) with set_title(loc="left") makes
         # tight_layout() produce NaN axis positions on matplotlib 3.11/numpy 2.5.
         ax.set_yticklabels([])
-
+    
     def _plot_ms2_spectrum(self, ax, sample_name=None):
         """Internal method to plot MS2 spectrum on a given axis.
-
+        
         Parameters
         ----------
         ax : matplotlib.axes.Axes
@@ -355,26 +357,28 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         """
         if len(self.ms2_mass_spectra) == 0:
             raise ValueError("MS2 spectrum is not available")
-
+        
         if sample_name:
             ax.set_title(f"MS2 - {sample_name}", loc="left")
         else:
             ax.set_title("MS2", loc="left")
-
-        ax.vlines(self.best_ms2.mz_exp, 0, self.best_ms2.abundance, color="k")
+        
+        ax.vlines(
+            self.best_ms2.mz_exp, 0, self.best_ms2.abundance, color="k"
+        )
         ax.set_ylabel("Intensity")
         ax.set_xlabel("m/z")
         ax.set_ylim(bottom=0)
         ax.yaxis.get_major_formatter().set_scientific(False)
         ax.yaxis.get_major_formatter().set_useOffset(False)
-
+    
     def _plot_ms2_mirror(self, ax, molecular_metadata=None, spectral_library=None):
         """Internal method to plot MS2 mirror spectrum on a given axis.
-
+        
         Plots experimental MS2 on top (positive) and library MS2 on bottom (negative/mirrored)
         if MS2 similarity results are available. If no MS2 similarity results exist,
         falls back to regular MS2 plot.
-
+        
         Parameters
         ----------
         ax : matplotlib.axes.Axes
@@ -387,31 +391,24 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             FlashEntropy spectral library (or list of libraries) containing MS2 spectra.
             If provided, uses library to retrieve MS2 spectra by ref_ms_id.
             Default is None.
-
+            
         Raises
         ------
         ValueError
             If MS2 similarity results exist but molecular_metadata or spectral_library is None.
         """
         if len(self.ms2_mass_spectra) == 0:
-            ax.text(
-                0.5,
-                0.5,
-                "No MS2 data available",
-                ha="center",
-                va="center",
-                transform=ax.transAxes,
-                fontsize=12,
-            )
-            ax.set_xlabel("m/z", fontsize=10)
-            ax.set_ylabel("Relative Intensity (%)", fontsize=10)
+            ax.text(0.5, 0.5, 'No MS2 data available', 
+                   ha='center', va='center', transform=ax.transAxes, fontsize=12)
+            ax.set_xlabel('m/z', fontsize=10)
+            ax.set_ylabel('Relative Intensity (%)', fontsize=10)
             return
-
+        
         # Check if we have MS2 similarity results - if not, fall back to regular MS2 plot
         if len(self.ms2_similarity_results) == 0:
             self._plot_ms2_spectrum(ax)
             return
-
+        
         # If we have MS2 similarity results, we need both molecular_metadata and spectral_library
         if molecular_metadata is None or spectral_library is None:
             raise ValueError(
@@ -419,62 +416,48 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                 "parameters when MS2 similarity results are present. "
                 "Please provide both parameters to plot_cluster() or plot()."
             )
-
+        
         # Get experimental MS2
         sample_ms2 = self.best_ms2
         sample_mz = sample_ms2.mz_exp
         sample_int = sample_ms2.abundance
-
+        
         # Normalize sample MS2
         if len(sample_int) > 0 and max(sample_int) > 0:
             sample_int = sample_int / max(sample_int) * 100
-
+        
         # Plot sample MS2 on top (positive)
-        ax.vlines(
-            sample_mz,
-            0,
-            sample_int,
-            colors="blue",
-            alpha=0.7,
-            linewidths=1.5,
-            label="Sample MS2",
-        )
-
+        ax.vlines(sample_mz, 0, sample_int, colors='blue', alpha=0.7, linewidths=1.5, label='Sample MS2')
+        
         # Check if we have MS2 similarity results
         library_ms2_peaks = None
         entropy_similarity = None
         molecule_name = None
         mol_id = None
-
+        
         if len(self.ms2_similarity_results) > 0:
             # Get all results as dataframes and find the best match
             results_df = [x.to_dataframe() for x in self.ms2_similarity_results]
             results_df = pd.concat(results_df)
-            results_df = results_df.sort_values(
-                by="entropy_similarity", ascending=False
-            )
-
+            results_df = results_df.sort_values(by='entropy_similarity', ascending=False)
+            
             # Get the best match
             best_result = results_df.iloc[0]
-            entropy_similarity = best_result["entropy_similarity"]
-            mol_id = best_result.get("ref_mol_id", None)
-            ref_ms_id = best_result.get("ref_ms_id", None)
-
+            entropy_similarity = best_result['entropy_similarity']
+            mol_id = best_result.get('ref_mol_id', None)
+            ref_ms_id = best_result.get('ref_ms_id', None)
+            
             # Get library spectrum from spectral_library using ref_ms_id
             if spectral_library is not None and ref_ms_id is not None:
                 # Handle both single library and list of libraries
-                libraries = (
-                    spectral_library
-                    if isinstance(spectral_library, list)
-                    else [spectral_library]
-                )
+                libraries = spectral_library if isinstance(spectral_library, list) else [spectral_library]
 
                 # Search through all libraries to find the ref_ms_id
                 for library in libraries:
                     try:
                         # Get the IDs in the spectral library
                         fe_spec_index = [x["id"] for x in library].index(ref_ms_id)
-                        library_ms2_peaks = library[fe_spec_index]["peaks"]
+                        library_ms2_peaks = library[fe_spec_index]['peaks']
                         break  # Found the spectrum, exit the loop
                     except ValueError:
                         # ref_ms_id not found in this library, continue to next
@@ -486,16 +469,14 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                         f"Reference MS ID '{ref_ms_id}' not found in any of the provided spectral libraries. "
                         f"Please ensure the spectral library contains the matching reference spectrum."
                     )
-
+            
             # Get compound name from molecular_metadata using mol_id
             if molecular_metadata is not None and mol_id is not None:
                 if mol_id in molecular_metadata:
                     metadata = molecular_metadata[mol_id]
                     # Get compound name from metadata
-                    molecule_name = getattr(
-                        metadata, "common_name", getattr(metadata, "name", "Unknown")
-                    )
-
+                    molecule_name = getattr(metadata, 'common_name', getattr(metadata, 'name', 'Unknown'))
+        
         # Plot library MS2 on bottom (negative/mirrored)
         if library_ms2_peaks is not None and len(library_ms2_peaks) > 0:
             lib_mz = library_ms2_peaks[:, 0]
@@ -505,52 +486,35 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                 lib_int = lib_int / max(lib_int) * 100
             # Mirror to negative
             lib_int_mirror = -lib_int
-
+            
             # Create label with molecule name and molecular ID
-            lib_label = "Library MS2"
+            lib_label = f'Library MS2'
             if molecule_name:
-                lib_label += f" ({molecule_name})"
+                lib_label += f' ({molecule_name})'
             if mol_id:
-                lib_label += f" [ID: {mol_id}]"
-
-            ax.vlines(
-                lib_mz,
-                0,
-                lib_int_mirror,
-                colors="red",
-                alpha=0.7,
-                linewidths=1.5,
-                label=lib_label,
-            )
-
-        ax.axhline(0, color="black", linewidth=0.5)
-        ax.set_xlabel("m/z", fontsize=10)
-        ax.set_ylabel("Relative Intensity (%)", fontsize=10)
-        ax.legend(fontsize=8, loc="upper right")
+                lib_label += f' [ID: {mol_id}]'
+            
+            ax.vlines(lib_mz, 0, lib_int_mirror, colors='red', alpha=0.7, linewidths=1.5, label=lib_label)
+        
+        ax.axhline(0, color='black', linewidth=0.5)
+        ax.set_xlabel('m/z', fontsize=10)
+        ax.set_ylabel('Relative Intensity (%)', fontsize=10)
+        ax.legend(fontsize=8, loc='upper right')
         ax.grid(True, alpha=0.3)
-
+        
         # Set y-axis to symmetric range
         ax.set_ylim(-105, 105)
-
+        
         # Add entropy similarity to the title if available
         if entropy_similarity is not None:
-            ax.set_title(
-                f"MS2 Mirror Plot (Entropy Similarity: {entropy_similarity:.3f})",
-                loc="left",
-            )
+            ax.set_title(f'MS2 Mirror Plot (Entropy Similarity: {entropy_similarity:.3f})', loc='left')
         else:
-            ax.set_title("MS2 Mirror Plot", loc="left")
-
-    def _plot_single_eic(
-        self,
-        ax,
-        plot_smoothed=False,
-        plot_datapoints=False,
-        eic_buffer_time=None,
-        show_ms2_scan=True,
-    ):
+            ax.set_title('MS2 Mirror Plot', loc='left')
+    
+    def _plot_single_eic(self, ax, plot_smoothed=False, plot_datapoints=False, 
+                         eic_buffer_time=None, show_ms2_scan=True):
         """Internal method to plot a single EIC on a given axis.
-
+        
         Parameters
         ----------
         ax : matplotlib.axes.Axes
@@ -566,13 +530,15 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         """
         if self._eic_data is None:
             raise ValueError("EIC data is not available")
-
+        
         if eic_buffer_time is None:
             eic_buffer_time = self.chromatogram_parent.parameters.lc_ms.eic_buffer_time
-
+        
         ax.set_title("EIC", loc="left")
-        ax.plot(self._eic_data.time, self._eic_data.eic, c="tab:blue", label="EIC")
-
+        ax.plot(
+            self._eic_data.time, self._eic_data.eic, c="tab:blue", label="EIC"
+        )
+        
         if plot_datapoints:
             ax.scatter(
                 self._eic_data.time,
@@ -580,24 +546,26 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                 c="tab:blue",
                 label="EIC Data Points",
             )
-
-        if plot_smoothed and hasattr(self._eic_data, "eic_smoothed"):
+        
+        if plot_smoothed and hasattr(self._eic_data, 'eic_smoothed'):
             ax.plot(
                 self._eic_data.time,
                 self._eic_data.eic_smoothed,
                 c="tab:red",
                 label="Smoothed EIC",
             )
-
+        
         # Fill integrated area if available
         if self.start_scan is not None:
-            ax.fill_between(self.eic_rt_list, self.eic_list, color="b", alpha=0.2)
+            ax.fill_between(
+                self.eic_rt_list, self.eic_list, color="b", alpha=0.2
+            )
         else:
             if self.chromatogram_parent.parameters.lc_ms.verbose_processing:
                 print(
                     f"No start and final scan numbers were provided for mass feature {self.id}"
                 )
-
+        
         ax.set_ylabel("Intensity")
         ax.set_xlabel("Time (minutes)")
         ax.set_ylim(0, self.eic_list.max() * 1.1)
@@ -605,8 +573,10 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             self.retention_time - eic_buffer_time,
             self.retention_time + eic_buffer_time,
         )
-        ax.axvline(x=self.retention_time, color="k", label="MS1 scan time (apex)")
-
+        ax.axvline(
+            x=self.retention_time, color="k", label="MS1 scan time (apex)"
+        )
+        
         # Show MS2 scan time if available and requested
         if show_ms2_scan and len(self.ms2_scan_numbers) > 0:
             ax.axvline(
@@ -617,7 +587,7 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
                 linestyle="--",
                 label="MS2 scan time",
             )
-
+        
         ax.legend(loc="upper left")
         ax.yaxis.get_major_formatter().set_useOffset(False)
 
@@ -670,18 +640,16 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
             to_plot = [x for x in to_plot if x not in ["MS2", "MS2_mirror"]]
         if self._eic_data is None:
             to_plot = [x for x in to_plot if x != "EIC"]
-
+        
         # Check if MS2_mirror is requested without molecular_metadata
         if "MS2_mirror" in to_plot and molecular_metadata is None:
-            raise ValueError(
-                "molecular_metadata is required when 'MS2_mirror' is in to_plot"
-            )
-
+            raise ValueError("molecular_metadata is required when 'MS2_mirror' is in to_plot")
+        
         # Check if both MS2 and MS2_mirror are requested (not allowed)
         if "MS2" in to_plot and "MS2_mirror" in to_plot:
             # Remove regular MS2 if mirror is requested
             to_plot = [x for x in to_plot if x != "MS2"]
-
+        
         deconvoluted = self._ms_deconvoluted_idx is not None
 
         fig, axs = plt.subplots(
@@ -696,9 +664,9 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         # EIC plot
         if "EIC" in to_plot:
             self._plot_single_eic(
-                axs[i][0],
+                axs[i][0], 
                 plot_smoothed=plot_smoothed_eic,
-                plot_datapoints=plot_eic_datapoints,
+                plot_datapoints=plot_eic_datapoints
             )
             i += 1
 
@@ -711,14 +679,10 @@ class LCMSMassFeature(ChromaPeakBase, LCMSMassFeatureCalculation):
         if "MS2" in to_plot:
             self._plot_ms2_spectrum(axs[i][0])
             i += 1
-
+        
         # MS2 mirror plot
         if "MS2_mirror" in to_plot:
-            self._plot_ms2_mirror(
-                axs[i][0],
-                molecular_metadata=molecular_metadata,
-                spectral_library=spectral_library,
-            )
+            self._plot_ms2_mirror(axs[i][0], molecular_metadata=molecular_metadata, spectral_library=spectral_library)
             i += 1
 
         # Add space between subplots
