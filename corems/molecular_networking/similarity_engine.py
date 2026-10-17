@@ -299,7 +299,9 @@ class SimilarityEngine:
         else:
             self.ms2_tolerance_da = 0.01
         self.peak_sep_da = 2 * self.ms2_tolerance_da
-        self.ms1_tolerance_da = ms1_tolerance_da if ms1_tolerance_da is not None else 0.01
+        self.ms1_tolerance_da = (
+            ms1_tolerance_da if ms1_tolerance_da is not None else 0.01
+        )
 
         self.entropy_threshold_low = (
             entropy_threshold_low if entropy_threshold_low is not None else 0.1
@@ -327,9 +329,7 @@ class SimilarityEngine:
 
         precursor = float(precursor_mz)
         if not np.isfinite(precursor):
-            raise ValueError(
-                f"{context} has non-finite precursor_mz={precursor_mz!r}."
-            )
+            raise ValueError(f"{context} has non-finite precursor_mz={precursor_mz!r}.")
         return precursor
 
     def _transform_to_neutral_loss_space(
@@ -447,7 +447,7 @@ class SimilarityEngine:
             ms2_tolerance_in_da=self.ms2_tolerance_da,
             method={fe_method},
             precursor_ions_removal_da=None,
-            noise_threshold=0.0, #TODO: get this as an attribute from FE as well
+            noise_threshold=0.0,  # TODO: get this as an attribute from FE as well
             min_ms2_difference_in_da=self.peak_sep_da,
             target="cpu",
         )
@@ -497,7 +497,7 @@ class SimilarityEngine:
         query_peaks = self._peaks_array(query_spectrum)
         if query_peaks.shape[0] == 0:
             return {}
-        
+
         pmz = query_precursor_mz if query_precursor_mz is not None else 0.0
         cleaned_query = self.fe_lib.clean_spectrum_for_search(
             precursor_mz=pmz,
@@ -507,7 +507,7 @@ class SimilarityEngine:
             min_ms2_difference_in_da=self.peak_sep_da,
         )
         cleaned_query = np.asarray(cleaned_query, dtype=float)
-        
+
         if cleaned_query.shape[0] == 0:
             return {}
 
@@ -517,7 +517,7 @@ class SimilarityEngine:
                 query_precursor_mz,
                 "Query spectrum",
             )
-        
+
         # Sort query once; each library spectrum is sorted once before cosine
         query_mz_sorted, query_abun_sorted = _sort_peaks_by_mz(
             cleaned_query[:, 0], cleaned_query[:, 1]
@@ -570,7 +570,7 @@ class SimilarityEngine:
         Uses FlashEntropy's built-in search to efficiently compute pairwise
         similarities. Each spectrum is searched once against the library,
         and pairwise scores are extracted from the result vectors.
-        
+
         Streams results directly to sparse storage without building dense matrix.
 
         Parameters
@@ -593,21 +593,21 @@ class SimilarityEngine:
         """
         n = len(spectra)
         fe = fe_lib_override if fe_lib_override is not None else self.fe_lib
-        
+
         # Stream results directly to sparse storage (no dense intermediate)
         entropy_pairs: dict[tuple[str, str], float] = {}
         pairs_for_additional: list[tuple[int, int]] = []
-        
+
         for i, (spec, pmz) in enumerate(zip(spectra, precursor_mzs)):
             peaks = self._peaks_array(spec)
             if peaks.shape[0] == 0:
                 continue
             # Search against the FE library
             result_vec = self._clean_and_search(peaks, pmz, fe_lib_override=fe)
-            
+
             if result_vec is None or len(result_vec) == 0:
                 continue
-            
+
             # Extract all pairs from result_vec, but only store upper-triangle (j > i)
             # result_vec[j] contains the similarity score between spectrum i and library entry j
             # When searching within same library (all-vs-all), result_vec has n entries
@@ -627,7 +627,7 @@ class SimilarityEngine:
         self,
         pairs: list[tuple[int, int]],
         lib_indices: list[int | None],
-        fe_lib_override = None,
+        fe_lib_override=None,
     ) -> dict[tuple[int, int], float]:
         """Compute cosine similarity for a list of (i, j) index pairs.
 
@@ -784,9 +784,7 @@ class SimilarityEngine:
             lib_indices_for_query: list[int] = []
             for lib_idx, score in enumerate(result_vec):
                 if score > 0.0:
-                    entropy_pairs[
-                        (query_ids[qi], id_fmt(lib_idx))
-                    ] = float(score)
+                    entropy_pairs[(query_ids[qi], id_fmt(lib_idx))] = float(score)
                     if score >= self.entropy_threshold_low:
                         lib_indices_for_query.append(lib_idx)
 
@@ -858,7 +856,9 @@ class SimilarityEngine:
             "min_ms2_difference_in_da": self.peak_sep_da,  # Already 2x tolerance from extraction
             "max_ms2_tolerance_in_da": self.ms2_tolerance_da,
             "max_indexed_mz": getattr(self.fe_lib, "_build_max_indexed_mz", 3000),
-            "precursor_ions_removal_da": getattr(self.fe_lib, "_build_precursor_ions_removal_da", None),
+            "precursor_ions_removal_da": getattr(
+                self.fe_lib, "_build_precursor_ions_removal_da", None
+            ),
             "noise_threshold": getattr(self.fe_lib, "_build_noise_threshold", 0),
         }
         if fe_kwargs:
@@ -870,11 +870,13 @@ class SimilarityEngine:
             peaks = self._peaks_array(spec)
             if peaks.shape[0] == 0:
                 continue
-            spectral_library.append({
-                "id": i,
-                "precursor_mz": float(pmz) if pmz is not None else 0.0,
-                "peaks": peaks.tolist(),
-            })
+            spectral_library.append(
+                {
+                    "id": i,
+                    "precursor_mz": float(pmz) if pmz is not None else 0.0,
+                    "peaks": peaks.tolist(),
+                }
+            )
 
         # Match the FlashEntropy constructor/init and build_index signature
         fe_init_kws = [
@@ -967,9 +969,7 @@ class SimilarityEngine:
             try:
                 entry = self.fe_lib[idx]
             except (IndexError, KeyError, TypeError) as exc:
-                raise ValueError(
-                    f"Cannot read library entry at index {idx}."
-                ) from exc
+                raise ValueError(f"Cannot read library entry at index {idx}.") from exc
 
             if not isinstance(entry, dict):
                 raise TypeError(
@@ -988,9 +988,7 @@ class SimilarityEngine:
             if precursor_mzs is not None:
                 lib_precursor_mzs.append(precursor_mzs[i])
             else:
-                lib_precursor_mzs.append(
-                    float(entry.get("precursor_mz", 0.0) or 0.0)
-                )
+                lib_precursor_mzs.append(float(entry.get("precursor_mz", 0.0) or 0.0))
 
         if not lib_spectra:
             return {}

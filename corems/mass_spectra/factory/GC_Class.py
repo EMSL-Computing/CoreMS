@@ -2,7 +2,6 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Feb 13, 2020"
 
 
-from collections.abc import Mapping
 from pathlib import Path
 import json
 

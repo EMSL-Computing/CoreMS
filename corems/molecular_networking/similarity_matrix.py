@@ -57,7 +57,7 @@ class SimilarityMatrix:
 
     def _grow_matrix(self, new_size: int):
         """Grow the sparse matrix to accommodate *new_size* spectra.
-        
+
         Uses 1.5x growth factor to reduce reallocation frequency.
         """
         if self._matrix is None:

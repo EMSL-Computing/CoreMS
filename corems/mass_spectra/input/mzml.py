@@ -96,7 +96,13 @@ class MZMLSpectraParser(SpectraParserInterface):
         data = pymzml.run.Reader(self.file_location)
         return data
 
-    def get_scan_df(self, data=None, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
+    def get_scan_df(
+        self,
+        data=None,
+        time_range: Optional[
+            Union[Tuple[float, float], List[Tuple[float, float]]]
+        ] = None,
+    ):
         """
         Return scan data as a pandas DataFrame.
 
@@ -169,20 +175,32 @@ class MZMLSpectraParser(SpectraParserInterface):
         scan_df = pd.DataFrame(scan_dict)
 
         # Remove any non-mass spectra scans (e.g., MS level 0 or None)
-        scan_df = scan_df[scan_df.ms_level.notnull() & (scan_df.ms_level > 0)].reset_index(drop=True)
-        
+        scan_df = scan_df[
+            scan_df.ms_level.notnull() & (scan_df.ms_level > 0)
+        ].reset_index(drop=True)
+
         # Apply time range filtering if specified
         if time_range is not None:
             time_ranges = self._normalize_time_range(time_range)
             # Create a mask for scans within any of the time ranges
             mask = np.zeros(len(scan_df), dtype=bool)
             for start_time, end_time in time_ranges:
-                mask |= (scan_df["scan_time"] >= start_time) & (scan_df["scan_time"] <= end_time)
+                mask |= (scan_df["scan_time"] >= start_time) & (
+                    scan_df["scan_time"] <= end_time
+                )
             scan_df = scan_df[mask].reset_index(drop=True)
 
         return scan_df
 
-    def get_ms_raw(self, spectra, scan_df, data=None, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
+    def get_ms_raw(
+        self,
+        spectra,
+        scan_df,
+        data=None,
+        time_range: Optional[
+            Union[Tuple[float, float], List[Tuple[float, float]]]
+        ] = None,
+    ):
         """Return a dictionary of mass spectra data as a pandas DataFrame.
 
         Parameters
@@ -298,7 +316,14 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         return res
 
-    def run(self, spectra="all", scan_df=None, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
+    def run(
+        self,
+        spectra="all",
+        scan_df=None,
+        time_range: Optional[
+            Union[Tuple[float, float], List[Tuple[float, float]]]
+        ] = None,
+    ):
         """Parse the mzML file and return a dictionary of spectra dataframes and a scan metadata dataframe.
 
         Parameters
@@ -467,9 +492,7 @@ class MZMLSpectraParser(SpectraParserInterface):
         for scan_number in scan_list:
             entry = collected.get(scan_number)
             if entry is None:
-                raise ValueError(
-                    "Scan number %d not found in mzML file" % scan_number
-                )
+                raise ValueError("Scan number %d not found in mzML file" % scan_number)
 
             polarity = entry["polarity"]
             mz = entry["mz"]
@@ -504,7 +527,10 @@ class MZMLSpectraParser(SpectraParserInterface):
                     Labels.s2n: [np.nan] * len(abundance),
                 }
                 d_params = set_metadata(
-                    scan_number, polarity, self.file_location, label=Labels.corems_centroid
+                    scan_number,
+                    polarity,
+                    self.file_location,
+                    label=Labels.corems_centroid,
                 )
                 mass_spectrum_obj = MassSpecCentroid(
                     data_dict, d_params, auto_process=auto_process
@@ -519,7 +545,12 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         return mass_spectrum_objects
 
-    def get_mass_spectra_obj(self, time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
+    def get_mass_spectra_obj(
+        self,
+        time_range: Optional[
+            Union[Tuple[float, float], List[Tuple[float, float]]]
+        ] = None,
+    ):
         """Instatiate a MassSpectraBase object from the mzML file.
 
         Parameters
@@ -549,7 +580,13 @@ class MZMLSpectraParser(SpectraParserInterface):
 
         return mass_spectra_obj
 
-    def get_lcms_obj(self, spectra="all", time_range: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None):
+    def get_lcms_obj(
+        self,
+        spectra="all",
+        time_range: Optional[
+            Union[Tuple[float, float], List[Tuple[float, float]]]
+        ] = None,
+    ):
         """Instatiates a LCMSBase object from the mzML file.
 
         Parameters
@@ -569,7 +606,9 @@ class MZMLSpectraParser(SpectraParserInterface):
             The object is instatiated with the mzML file, analyzer, instrument, sample name, scan dataframe,
             and mz dataframe(s), as well as lists of scan numbers, retention times, and TICs.
         """
-        _, scan_df = self.run(spectra="none", time_range=time_range)  # first run it to just get scan info
+        _, scan_df = self.run(
+            spectra="none", time_range=time_range
+        )  # first run it to just get scan info
         if spectra != "none":
             res, scan_df = self.run(
                 scan_df=scan_df, spectra=spectra, time_range=time_range
@@ -585,7 +624,9 @@ class MZMLSpectraParser(SpectraParserInterface):
             for key in res:
                 key_int = int(key.replace("ms", ""))
                 res[key] = res[key][res[key].intensity > 0]
-                res[key] = res[key].sort_values(by=["scan", "mz"]).reset_index(drop=True)
+                res[key] = (
+                    res[key].sort_values(by=["scan", "mz"]).reset_index(drop=True)
+                )
                 lcms_obj._ms_unprocessed[key_int] = res[key]
         lcms_obj.scan_df = scan_df.set_index("scan", drop=False)
         # Check if polarity is mixed
@@ -601,17 +642,17 @@ class MZMLSpectraParser(SpectraParserInterface):
         return lcms_obj
 
     def get_scans_in_time_range(
-        self, 
+        self,
         time_range: Union[Tuple[float, float], List[Tuple[float, float]]],
-        ms_level: Optional[int] = None
+        ms_level: Optional[int] = None,
     ) -> List[int]:
         """
         Return scan numbers within specified retention time range(s).
-        
+
         This method provides efficient filtering of scans by retention time,
         which is particularly useful for targeted workflows where only specific
         time windows are of interest.
-        
+
         Parameters
         ----------
         time_range : tuple or list of tuples
@@ -621,29 +662,29 @@ class MZMLSpectraParser(SpectraParserInterface):
         ms_level : int, optional
             If specified, only return scans of this MS level (e.g., 1 for MS1, 2 for MS2).
             If None, returns scans of all MS levels.
-        
+
         Returns
         -------
         list of int
             List of scan numbers within the specified time range(s) and MS level.
-        
+
         Examples
         --------
         Get MS1 scans between 1.0 and 2.0 minutes:
-        
+
         >>> scans = parser.get_scans_in_time_range((1.0, 2.0), ms_level=1)
-        
+
         Get scans in multiple time windows:
-        
+
         >>> scans = parser.get_scans_in_time_range([(0.5, 1.5), (3.0, 4.0)])
         """
         # Get scan dataframe filtered by time range
         scan_df = self.get_scan_df(time_range=time_range)
-        
+
         # Further filter by MS level if specified
         if ms_level is not None:
             scan_df = scan_df[scan_df.ms_level == ms_level]
-        
+
         # Return list of scan numbers
         return scan_df.scan.tolist()
 
@@ -658,38 +699,35 @@ class MZMLSpectraParser(SpectraParserInterface):
         """
         # Load the pymzml data
         data = self.load()
-        instrument_info = data.info.get('referenceable_param_group_list_element')[0]
-        cv_params = instrument_info.findall('{http://psi.hupo.org/ms/mzml}cvParam')
+        instrument_info = data.info.get("referenceable_param_group_list_element")[0]
+        cv_params = instrument_info.findall("{http://psi.hupo.org/ms/mzml}cvParam")
 
         # Extract details from each cvParam
         params = []
         for param in cv_params:
-            accession = param.get('accession')  # Get 'accession' attribute
-            name = param.get('name')           # Get 'name' attribute
-            value = param.get('value')         # Get 'value' attribute
-            params.append({
-                'accession': accession,
-                'name': name,
-                'value': value
-            })
+            accession = param.get("accession")  # Get 'accession' attribute
+            name = param.get("name")  # Get 'name' attribute
+            value = param.get("value")  # Get 'value' attribute
+            params.append({"accession": accession, "name": name, "value": value})
 
         # Loop through params and try to find the relevant information
-        instrument_dict = {
-            'model': 'Unknown',
-            'serial_number': 'Unknown'
-        }
+        instrument_dict = {"model": "Unknown", "serial_number": "Unknown"}
 
         # Assuming there are only two paramters here - one is for the serial number (agnostic to the model) and the other is for the model
         # If there are more than two, we raise an error
         if len(params) < 2:
-            raise ValueError("Not enough parameters found in the instrument info, cannot parse.")
+            raise ValueError(
+                "Not enough parameters found in the instrument info, cannot parse."
+            )
         if len(params) > 2:
-            raise ValueError("Too many parameters found in the instrument info, cannot parse.")
+            raise ValueError(
+                "Too many parameters found in the instrument info, cannot parse."
+            )
         for param in params:
-            if param['accession'] == 'MS:1000529':
-                instrument_dict['serial_number'] = param['value']
+            if param["accession"] == "MS:1000529":
+                instrument_dict["serial_number"] = param["value"]
             else:
-                instrument_dict['model'] = data.OT[param['accession']]     
+                instrument_dict["model"] = data.OT[param["accession"]]
 
         return instrument_dict
 
@@ -698,10 +736,12 @@ class MZMLSpectraParser(SpectraParserInterface):
         Return the creation time of the mzML file.
         """
         data = self.load()
-        write_time = data.info.get('start_time')
+        write_time = data.info.get("start_time")
         if write_time:
             # Convert the write time to a datetime object
             return datetime.datetime.strptime(write_time, "%Y-%m-%dT%H:%M:%SZ")
         else:
-            raise ValueError("Creation time is not available in the mzML file. "
-                           "Please ensure the file contains the 'start_time' information.")
+            raise ValueError(
+                "Creation time is not available in the mzML file. "
+                "Please ensure the file contains the 'start_time' information."
+            )

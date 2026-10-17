@@ -229,10 +229,10 @@ class MetaboliteMetadata:
     iupac_name: str
     traditional_name: str
     common_name: str
-    name: Optional[str]=None
-    formula: Optional[str]=None
-    pubchem_id: Optional[str]=None
-    refmet_id: Optional[str]=None
+    name: Optional[str] = None
+    formula: Optional[str] = None
+    pubchem_id: Optional[str] = None
+    refmet_id: Optional[str] = None
 
 
 @dataclass

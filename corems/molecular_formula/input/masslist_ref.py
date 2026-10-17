@@ -148,7 +148,6 @@ class ImportMassListRef:  # Thread
             List of MolecularFormula objects from Bruker reference file
         """
 
-        import csv
 
         list_mf_obj = []
 
@@ -191,7 +190,6 @@ class ImportMassListRef:  # Thread
             List of MolecularFormula objects from CoreMS reference file
         """
         # not being used
-        import csv
 
         list_mf_obj = []
 

@@ -5,6 +5,7 @@ from lmfit.models import GaussianModel
 
 # from matplotlib import rcParamsDefault, rcParams
 from numpy import argmax, array, asarray, float64, histogram, searchsorted, where
+
 try:
     from numpy import trapezoid
 except ImportError:  # numpy < 2.0
@@ -883,7 +884,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         ).main()
         self.filter_by_index(indexes_to_remove)
 
-    def filter_by_min_resolving_power(self, B, T, apodization_method: str=None, tolerance: float=0):
+    def filter_by_min_resolving_power(
+        self, B, T, apodization_method: str = None, tolerance: float = 0
+    ):
         """Filter the mass spectrum by the calculated minimum theoretical resolving power.
 
         This is currently designed only for FTICR data, and accounts only for magnitude mode data
@@ -901,16 +904,16 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         """
         if self.analyzer != "ICR":
-            raise Exception(
-                "This method is only applicable to ICR mass spectra. "
-            )
+            raise Exception("This method is only applicable to ICR mass spectra. ")
 
         self.check_mspeaks_warning()
 
         indexes_to_remove = [
             index
             for index, mspeak in enumerate(self.mspeaks)
-            if mspeak.resolving_power < (1-tolerance) * mspeak.resolving_power_calc(B, T, apodization_method=apodization_method)
+            if mspeak.resolving_power
+            < (1 - tolerance)
+            * mspeak.resolving_power_calc(B, T, apodization_method=apodization_method)
         ]
         self.filter_by_index(indexes_to_remove)
 
@@ -1655,7 +1658,6 @@ class MassSpecCentroid(MassSpecBase):
 
     def process_mass_spec(self):
         """Process the mass spectrum."""
-        import tqdm
 
         # overwrite process_mass_spec
         # mspeak objs are usually added inside the PeaKPicking class
@@ -1970,7 +1972,7 @@ class MassSpecCentroidLowRes(MassSpecCentroid):
     @property
     def mz_abun_tuples(self):
         """Return the m/z and abundance values of the mass spectrum as a list of tuples."""
-        r = lambda x: (int(round(x[0], 0), int(round(x[1], 0))))
+        r = lambda x: int(round(x[0], 0), int(round(x[1], 0)))
 
         return [r(i) for i in self]
 

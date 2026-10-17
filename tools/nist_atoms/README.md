@@ -26,7 +26,7 @@ just nist-atoms   # download NIST dump; rewrite tables only if needed
 ```
 
 Do not hook this into `just patch|minor|major`. Release prep runs `just nist-atoms`
-**before** `just lint`.
+**before** `just lint`. `just lint` does not format `corems/encapsulation/nist_atoms.py`.
 
 If the pin changed, paste the **Breaking** and **Significant** sections of
 `CHANGES.md` into release notes (`RELEASE.md`). Significant lists **Deleted

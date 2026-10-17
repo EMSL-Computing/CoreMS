@@ -267,23 +267,23 @@ class LiquidChromatographSetting:
     mass_feature_attribute_filter_dict : dict, optional
         Dictionary specifying filtering criteria for mass feature attributes.
         Each key is an attribute name, and each value is a dict with 'value' and 'operator' keys.
-        
+
         Structure: {attribute_name: {'value': threshold, 'operator': comparison}}
-        
+
         Available operators:
         - '>' or 'greater': Keep features where attribute > threshold
-        - '<' or 'less': Keep features where attribute < threshold  
+        - '<' or 'less': Keep features where attribute < threshold
         - '>=' or 'greater_equal': Keep features where attribute >= threshold
         - '<=' or 'less_equal': Keep features where attribute <= threshold
-        
-        Examples: 
+
+        Examples:
         {
             'noise_score_max': {'value': 0.5, 'operator': '>'},  # Keep if noise_score_max > 0.5
             'dispersity_index': {'value': 0.1, 'operator': '<'},  # Keep if dispersity_index < 0.1
             'gaussian_similarity': {'value': 0.7, 'operator': '>='}  # Keep if gaussian_similarity >= 0.7
         }
-        
-        Available attributes include: 'noise_score', 'noise_score_min', 'noise_score_max', 
+
+        Available attributes include: 'noise_score', 'noise_score_min', 'noise_score_max',
         'gaussian_similarity', 'tailing_factor', 'dispersity_index', 'half_height_width', 'intensity'.
         Default is {"noise_score_max": {"value": 0.8, "operator": ">="},"noise_score_min": {"value": 0.5, "operator": ">="}},
     peak_picking_method : str, optional
@@ -476,7 +476,7 @@ class LiquidChromatographSetting:
                 "noise_score_max": {"value": 0.8, "operator": ">="},
                 "noise_score_min": {"value": 0.5, "operator": ">="},
             }
-        
+
         # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
@@ -1058,7 +1058,7 @@ class MolecularFormulaSearchSettings:
     url_database : str, optional
         URL for the database. Default is 'postgresql+psycopg://coremsappdb:coremsapppnnl@localhost:5432/coremsapp'.
     db_jobs : int, optional
-        Number of jobs to use for database queries. Default is 1. Can increase to 3 when python environment supports it. 
+        Number of jobs to use for database queries. Default is 1. Can increase to 3 when python environment supports it.
     db_chunk_size : int, optional
         Chunk size to use for database queries. Default is 300.
     ion_charge : int, optional
@@ -1348,6 +1348,8 @@ class MolecularFormulaSearchSettings:
                 "search, or disable isAdduct for multi-charge protonated/radical "
                 "search."
             )
+
+
 @dataclasses.dataclass
 class LCMSCollectionSettings:
     """Settings for LCMS collection class
@@ -1362,7 +1364,7 @@ class LCMSCollectionSettings:
         It will also keep mass features not identified as isotopologues or monoisotopes.
         Default is True.
     mass_feature_anchor_technique: list, optional
-        List of mass feature anchor techniques for retention time alignment. 
+        List of mass feature anchor techniques for retention time alignment.
         Default is ['absolute_intensity'].
     mass_feature_anchor_techniques_available: tuple, optional
         Tuple of available mass feature anchor techniques for retention time alignment.
@@ -1419,8 +1421,8 @@ class LCMSCollectionSettings:
         Metric used to determine the most representative sample for a consensus mass feature.
         Options:
         - 'intensity': Selects the mass feature with the highest intensity value
-        - 'intensity_prefer_ms2': Selects the mass feature with the highest intensity among 
-          those that have MS2 scan numbers assigned. If no features have MS2 scans, falls 
+        - 'intensity_prefer_ms2': Selects the mass feature with the highest intensity among
+          those that have MS2 scan numbers assigned. If no features have MS2 scans, falls
           back to selecting the highest intensity feature overall.
         Default is 'intensity_prefer_ms2'.
     consensus_representative_metrics_available : tuple, optional
@@ -1453,22 +1455,34 @@ class LCMSCollectionSettings:
         Reserved RT-partition size for future multicore grouping.
         Default 5000.
     """
+
     # Settings for general processing
     cores: int = 1
     drop_isotopologues: bool = False
 
     # Settings for doing mass feature alignment
-    _mass_feature_anchor_technique: list = dataclasses.field(default_factory=lambda: ["relative_intensity"])
-    mass_feature_anchor_techniques_available: tuple = ("deconvoluted_mass_spectra", "absolute_intensity", "relative_intensity")
+    _mass_feature_anchor_technique: list = dataclasses.field(
+        default_factory=lambda: ["relative_intensity"]
+    )
+    mass_feature_anchor_techniques_available: tuple = (
+        "deconvoluted_mass_spectra",
+        "absolute_intensity",
+        "relative_intensity",
+    )
     mass_feature_anchor_absolute_intensity_threshold: int = 10000
     mass_feature_anchor_relative_intensity_threshold: float = 0.6
     alignment_minimum_matches: int = 5
     alignment_hold_out_fraction: float = 0.3
-    _alignment_acceptance_technique: list = dataclasses.field(default_factory=lambda: ["fraction_improved", "mean_squared_error_improved"])
-    alignment_acceptance_techniques_available: tuple = ("fraction_improved", "mean_squared_error_improved")
+    _alignment_acceptance_technique: list = dataclasses.field(
+        default_factory=lambda: ["fraction_improved", "mean_squared_error_improved"]
+    )
+    alignment_acceptance_techniques_available: tuple = (
+        "fraction_improved",
+        "mean_squared_error_improved",
+    )
     alignment_acceptance_fraction_improved_threshold: float = 0.5
     alignment_mz_tol_ppm: int = 5
-    alignment_rt_tol: float = 0.4      
+    alignment_rt_tol: float = 0.4
 
     # Consensus mass feature settings
     consensus_mz_tol_ppm: int = alignment_mz_tol_ppm
@@ -1479,10 +1493,13 @@ class LCMSCollectionSettings:
 
     # Gap-filling settings
     gap_fill_expand_on_miss: bool = True
-    
+
     # Consensus mass feature visualization parameters
-    consensus_representative_metric: str = 'intensity_prefer_ms2'
-    consensus_representative_metrics_available: tuple = ('intensity', 'intensity_prefer_ms2')
+    consensus_representative_metric: str = "intensity_prefer_ms2"
+    consensus_representative_metrics_available: tuple = (
+        "intensity",
+        "intensity_prefer_ms2",
+    )
 
     # Feature grouping (isotopes + z=1 adducts); RT/m/z use alignment_* tols
     feature_group_isotope_atoms: tuple = ("C",)
@@ -1491,28 +1508,36 @@ class LCMSCollectionSettings:
     feature_group_corr_threshold: float = 0.80
     feature_group_min_shared_sample_fraction: float = 0.15
     feature_group_ion_types: tuple = dataclasses.field(
-        default_factory=lambda: __import__(
-            "corems.mass_spectra.calc.feature_grouping",
-            fromlist=["DEFAULT_ION_TYPES"],
-        ).DEFAULT_ION_TYPES
+        default_factory=lambda: (
+            __import__(
+                "corems.mass_spectra.calc.feature_grouping",
+                fromlist=["DEFAULT_ION_TYPES"],
+            ).DEFAULT_ION_TYPES
+        )
     )
     feature_group_constrain_annotation: bool = True
     feature_group_partition_size: int = 5000
 
     def __post_init__(self):
         self.consensus_mz_tol_ppm = self.alignment_mz_tol_ppm
-        self._validate_alignment_acceptance_technique(self.alignment_acceptance_technique)
+        self._validate_alignment_acceptance_technique(
+            self.alignment_acceptance_technique
+        )
         self._validate_mass_feature_anchor_technique(self.mass_feature_anchor_technique)
 
     def _validate_alignment_acceptance_technique(self, techniques):
         for technique in techniques:
             if technique not in self.alignment_acceptance_techniques_available:
-                raise ValueError(f"Alignment acceptance technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.alignment_acceptance_techniques_available}")
+                raise ValueError(
+                    f"Alignment acceptance technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.alignment_acceptance_techniques_available}"
+                )
 
     def _validate_mass_feature_anchor_technique(self, techniques):
         for technique in techniques:
             if technique not in self.mass_feature_anchor_techniques_available:
-                raise ValueError(f"Mass feature anchor technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.mass_feature_anchor_techniques_available}")
+                raise ValueError(
+                    f"Mass feature anchor technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.mass_feature_anchor_techniques_available}"
+                )
 
     @property
     def alignment_acceptance_technique(self):
@@ -1531,4 +1556,3 @@ class LCMSCollectionSettings:
     def mass_feature_anchor_technique(self, value):
         self._validate_mass_feature_anchor_technique(value)
         self._mass_feature_anchor_technique = value
-

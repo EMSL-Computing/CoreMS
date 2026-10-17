@@ -1,4 +1,3 @@
-import sys
 
 import json
 import os
@@ -599,11 +598,14 @@ class MolForm_SQL:
 
                 elif ion_type == Labels.adduct_ion and adduct_atom:
                     return int(formula_obj._adduct_mz(ion_charge, adduct_atom))
-            for formula_obj, ch_obj, classe_obj in tqdm.tqdm(formulas, desc="Loading molecular formula database", disable = not verbose):
+
+            for formula_obj, ch_obj, classe_obj in tqdm.tqdm(
+                formulas, desc="Loading molecular formula database", disable=not verbose
+            ):
                 nominal_mz = nominal_mass_by_ion_type(formula_obj)
 
                 if self.type != "normal":
-                    if not nominal_mz in nominal_mzs:
+                    if nominal_mz not in nominal_mzs:
                         continue
                 classe = classe_obj.name
 

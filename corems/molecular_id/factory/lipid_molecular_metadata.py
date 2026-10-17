@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from .EI_SQL import MetaboliteMetadata
 
 _no_default = object()
+
+
 @dataclass
 class LipidMetadata(MetaboliteMetadata):
     """Dataclass for the Lipid Metadata
@@ -45,6 +47,4 @@ class LipidMetadata(MetaboliteMetadata):
     def __post_init__(self):
         for field in self.__dataclass_fields__:
             if getattr(self, field) is _no_default:
-                raise TypeError(
-                    f"__init__ missing 1 required argument: '{field}'"
-                )
+                raise TypeError(f"__init__ missing 1 required argument: '{field}'")

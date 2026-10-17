@@ -107,7 +107,9 @@ def read(cache_path) -> pd.DataFrame:
     return unpack_peaks_from_parquet(df)
 
 
-def write(cache_path, df: pd.DataFrame, source_path, extra_meta: dict | None = None) -> None:
+def write(
+    cache_path, df: pd.DataFrame, source_path, extra_meta: dict | None = None
+) -> None:
     """Write standardized library DataFrame as a parquet sidecar."""
     import pyarrow as pa
     import pyarrow.parquet as pq

@@ -37,7 +37,7 @@ def timeit(print_time=True):
     def decorator(method):
         def timed(*args, **kw):
             # Extract print_time from kwargs if provided
-            local_print_time = kw.pop('print_time', print_time)
+            local_print_time = kw.pop("print_time", print_time)
             ts = time.time()
             result = method(*args, **kw)
             te = time.time()
@@ -47,7 +47,9 @@ def timeit(print_time=True):
             elif local_print_time:
                 print("%r  %2.2f ms" % (method.__name__, (te - ts) * 1000))
             return result
+
         return timed
+
     return decorator
 
 

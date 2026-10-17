@@ -50,7 +50,9 @@ def reset_lcms_parameters():
     }
 
 
-def settings_from_lcms(lcms_obj, profile: str = "ms2") -> SpectralSimilaritySearchSettings:
+def settings_from_lcms(
+    lcms_obj, profile: str = "ms2"
+) -> SpectralSimilaritySearchSettings:
     """Return spectral similarity search settings for an LCMS object profile key.
 
     Parameters
@@ -68,7 +70,9 @@ def settings_from_lcms(lcms_obj, profile: str = "ms2") -> SpectralSimilaritySear
     return lcms_obj.parameters.mass_spectrum[profile].spectral_similarity_search
 
 
-def settings_from_lcms_collection(lcms_collection, profile: str = "ms2") -> SpectralSimilaritySearchSettings:
+def settings_from_lcms_collection(
+    lcms_collection, profile: str = "ms2"
+) -> SpectralSimilaritySearchSettings:
     """Return spectral similarity settings from the **first** sample in a collection.
 
     This is a read convenience for library build when all samples already share
@@ -171,7 +175,9 @@ class MSParameters:
             self.mass_spectrum = dataclasses.replace(MSParameters.mass_spectrum)
             self.ms_peak = dataclasses.replace(MSParameters.ms_peak)
             self.data_input = dataclasses.replace(MSParameters.data_input)
-            self.spectral_similarity_search = MSParameters.spectral_similarity_search.copy()
+            self.spectral_similarity_search = (
+                MSParameters.spectral_similarity_search.copy()
+            )
         else:
             self.molecular_search = MolecularFormulaSearchSettings()
             self.transient = TransientSetting()
@@ -188,7 +194,9 @@ class MSParameters:
         new_ms_parameters.mass_spectrum = dataclasses.replace(self.mass_spectrum)
         new_ms_parameters.ms_peak = dataclasses.replace(self.ms_peak)
         new_ms_parameters.data_input = dataclasses.replace(self.data_input)
-        new_ms_parameters.spectral_similarity_search = self.spectral_similarity_search.copy()
+        new_ms_parameters.spectral_similarity_search = (
+            self.spectral_similarity_search.copy()
+        )
 
         return new_ms_parameters
 
@@ -210,7 +218,9 @@ class MSParameters:
         equality_check.append(self.mass_spectrum == value.mass_spectrum)
         equality_check.append(self.ms_peak == value.ms_peak)
         equality_check.append(self.data_input == value.data_input)
-        equality_check.append(self.spectral_similarity_search == value.spectral_similarity_search)
+        equality_check.append(
+            self.spectral_similarity_search == value.spectral_similarity_search
+        )
 
         return all(equality_check)
 
@@ -407,13 +417,13 @@ class LCMSParameters:
 class LCMSCollectionParameters:
     """LCMSCollectionParameters class is used to store the parameters used for the processing of the LCMS collection
 
-    Each attribute is a class that contains the parameters for the processing of the LCMS collection, 
+    Each attribute is a class that contains the parameters for the processing of the LCMS collection,
     see the corems.encapsulation.factory.processingSetting module for more details.
 
     Parameters
     ----------
     use_defaults: bool, optional
-        if True, the class will be instantiated with the default values, otherwise the current values will be used. 
+        if True, the class will be instantiated with the default values, otherwise the current values will be used.
         Default is False.
 
     Attributes
@@ -426,19 +436,23 @@ class LCMSCollectionParameters:
     One can use the use_defaults parameter to reset the parameters to the default values.
     Alternatively, to use the current values - modify the class's contents before instantiating the class.
     """
-    
+
     lcms_collection = LCMSCollectionSettings()
 
     def __init__(self, use_defaults=False) -> None:
         if not use_defaults:
-            self.lcms_collection = dataclasses.replace(LCMSCollectionParameters.lcms_collection)
+            self.lcms_collection = dataclasses.replace(
+                LCMSCollectionParameters.lcms_collection
+            )
         else:
             self.lcms_collection = LCMSCollectionSettings()
 
     def copy(self):
         """Create a copy of the LCMSCollectionParameters object"""
         new_lcms_collection_parameters = LCMSCollectionParameters()
-        new_lcms_collection_parameters.lcms_collection = dataclasses.replace(self.lcms_collection)
+        new_lcms_collection_parameters.lcms_collection = dataclasses.replace(
+            self.lcms_collection
+        )
         return new_lcms_collection_parameters
 
     def __eq__(self, value: object) -> bool:
@@ -446,6 +460,7 @@ class LCMSCollectionParameters:
         if not isinstance(value, LCMSCollectionParameters):
             return False
         return self.lcms_collection == value.lcms_collection
+
 
 def default_parameters(file_location):  # pragma: no cover
     """Generate parameters dictionary with the default parameters for data processing

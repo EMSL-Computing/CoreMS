@@ -308,7 +308,7 @@ class MolecularCombinations:
 
                 str_data = "C:{},H:{}".format(C, H)
 
-                if not str_data in carbon_hydrogen_objs_database.keys():
+                if str_data not in carbon_hydrogen_objs_database.keys():
                     label = "even" if comb[1] % 2 == 0 else "odd"
                     data["mass"] = (C * Atoms.atomic_masses.get("C")) + (
                         H * Atoms.atomic_masses.get("H")
@@ -422,7 +422,7 @@ class MolecularCombinations:
             self.even_ch_dbe = [obj.dbe for obj in even_ch_obj]
 
             all_results = list()
-            for class_tuple in tqdm(class_to_create, disable = not verbose):
+            for class_tuple in tqdm(class_to_create, disable=not verbose):
                 results = self.populate_combinations(class_tuple, settings)
                 all_results.extend(results)
                 if settings.db_jobs == 1:
@@ -449,8 +449,9 @@ class MolecularCombinations:
                 ]
                 with spawn_pool(settings.db_jobs) as p:
                     for class_list in tqdm(
-                            p.imap_unordered(insert_database_worker, worker_args), disable= not verbose
-                            ):
+                        p.imap_unordered(insert_database_worker, worker_args),
+                        disable=not verbose,
+                    ):
                         pass
 
         return classes_list
