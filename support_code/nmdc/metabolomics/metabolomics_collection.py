@@ -2,13 +2,13 @@ from pathlib import Path
 import time
 import pandas as pd
 import numpy as np
-from multiprocessing import Pool
 import shutil
 
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollection
 from corems.mass_spectra.output.export import LCMSMetabolomicsExport
 from corems.mass_spectra.input.rawFileReader import ImportMassSpectraThermoMSFileReader
 from corems.encapsulation.factory.parameters import LCMSParameters
+from corems.encapsulation.spawn_pool import spawn_pool
 from corems.molecular_id.search.database_interfaces import MSPInterface
 from corems.encapsulation.factory.parameters import hush_output
 from corems.mass_spectra.output.export import LCMSCollectionExport
@@ -309,7 +309,7 @@ def preprocess_raw_samples(raw_data_path, processed_folder, ncores=1, reprocess=
     process_args = [(raw_file, processed_folder, params) for raw_file in raw_files]
     
     # Process samples in parallel
-    with Pool(processes=ncores) as pool:
+    with spawn_pool(ncores) as pool:
         processed_files = pool.map(process_single_sample, process_args)
     
     print(f"Preprocessing complete: {time.time() - start_time:.1f} seconds using {ncores} cores")

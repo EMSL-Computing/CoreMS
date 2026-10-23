@@ -39,13 +39,13 @@ The lipidomics workflow test uses a local sqlite library file:
 Download it from the project root with:
 
 ```bash
-make download-lipidomics-db
+just download-lipidomics-db
 ```
 
-You can override the output path when needed:
+You can override the output path when needed (env var, mirroring the old `make VAR=val` UX):
 
 ```bash
-make download-lipidomics-db LIPIDOMICS_SQLITE_PATH=/path/to/202412_lipid_ref.sqlite
+LIPIDOMICS_SQLITE_PATH=/path/to/202412_lipid_ref.sqlite just download-lipidomics-db
 ```
 
 - Default local path used by tests:

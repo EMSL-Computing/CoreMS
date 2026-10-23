@@ -37,7 +37,7 @@ def test_andi_netcdf_gcms():
 def test_import_booster_mass_spectrum_hdf():
     file_path = (
         Path.cwd()
-        / "tests/tests_data/ftms/"
+        / "tests/tests_data/ftms/esfa_booster_hdf5/"
         / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
     )
 
@@ -56,7 +56,7 @@ def test_import_booster_mass_spectrum_hdf():
 def test_import_booster_mass_spectra_hdf():
     file_path = (
         Path.cwd()
-        / "tests/tests_data/ftms/"
+        / "tests/tests_data/ftms/esfa_booster_hdf5/"
         / "ESFA_100k_9767-13548_chB.A_re_pc_CoAddAll_mFT.h5"
     )
 
@@ -71,7 +71,11 @@ def test_import_booster_mass_spectra_hdf():
 
 
 def test_import_lcms_from_transient():
-    file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_Auto.d"
+    file_location = (
+        Path.cwd()
+        / "tests/tests_data/ftms/srfa_bruker_solarix_autosampler/"
+        / "NEG_ESI_SRFA_Auto.d"
+    )
 
     MSParameters.mass_spectrum.noise_threshold_method = "log"
     MSParameters.mass_spectrum.noise_threshold_log_nsigma = 20
@@ -101,7 +105,11 @@ def test_import_transient(mass_spectrum_ftms):
 
 
 def test_import_corems_hdf5():
-    file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_CoreMS.hdf5"
+    file_location = (
+        Path.cwd()
+        / "tests/tests_data/ftms/srfa_bruker_solarix_autosampler/"
+        / "NEG_ESI_SRFA_CoreMS.hdf5"
+    )
     
     #load any type of mass list file, change the delimeter to read another type of file, i.e : "," for csv, "\t" for tabulated mass list, etc
     mass_list_reader = ReadCoreMSHDF_MassSpectrum(file_location)
@@ -112,7 +120,8 @@ def test_import_corems_hdf5():
     assert round(mass_spectrum[0].mz_exp,3) == 576.075
     assert mass_spectrum[0][0].string == 'C25 H20 O16'
     assert mass_spectrum.to_dataframe().shape == (20, 26)
-    assert mass_spectrum.settings.noise_threshold_method == 'log'
+    # Saved under the legacy field name. The current noise_threshold_method is not in this file.
+    assert mass_spectrum.settings.threshold_method == "signal_noise"
     assert len(mass_spectrum) == 20
 
     # Import unprocessed mass spectrum, check that the mass spectrum is loaded correctly
@@ -128,7 +137,8 @@ def test_import_corems_hdf5():
  
 def test_import_corems_mass_list():
     file_location = (
-        Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_COREMS_withdupes.csv"
+        Path.cwd()
+        / "tests/tests_data/ftms/srfa_bruker_solarix_direct_infusion/ESI_NEG_SRFA_COREMS_withdupes.csv"
     )
 
     MSParameters.mass_spectrum.noise_threshold_method = "relative_abundance"
@@ -163,7 +173,11 @@ def test_import_corems_mass_list():
     assert len(mass_spectrum_delayed) == len(mass_spectrum)
     assert round(mass_spectrum_delayed[0].mz_exp, 0) == 576
 
-    file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_CoreMS.corems"
+    file_location = (
+        Path.cwd()
+        / "tests/tests_data/ftms/srfa_bruker_solarix_autosampler/"
+        / "NEG_ESI_SRFA_CoreMS.corems"
+    )
 
     read_lc_ms = ReadCoremsMassSpectraText(file_location)
 
@@ -181,7 +195,9 @@ def test_import_corems_mass_list():
 
 def test_import_thermo_profile_mass_list():
     file_location = (
-        Path.cwd() / "tests/tests_data/ftms/" / "Thermo_Profile_MassList.txt"
+        Path.cwd()
+        / "tests/tests_data/ftms/thermo_profile_masslist/"
+        / "Thermo_Profile_MassList.txt"
     )
 
     mass_list_reader = ReadMassList(
@@ -220,7 +236,9 @@ def test_import_numpy_array_profile(mass_spectrum_ftms):
 
 
 def test_import_maglab_pks():
-    file_location = Path.cwd() / "tests/tests_data/ftms/" / "SRFA.pks"
+    file_location = (
+        Path.cwd() / "tests/tests_data/ftms/srfa_maglab_pks/" / "SRFA.pks"
+    )
 
     mass_list_reader = ReadMassList(file_location)
 
@@ -240,27 +258,11 @@ def test_import_maglab_pks():
 
 def test_import_xml_mass_list():
 
-    file_location = Path.cwd() / "tests/tests_data/ftms/" / "srfa_neg_xml_example.xml"
-
-    mass_list_reader = ReadMassList(file_location, isCentroid=True, isThermoProfile=False)
-    polarity = -1
-
-    MSParameters.mass_spectrum.noise_threshold_method = 'absolute_abundance' 
-    MSParameters.mass_spectrum.noise_threshold_absolute_abundance = 1000 
-
-    mass_spectrum = mass_list_reader.get_mass_spectrum(polarity, auto_process=True, loadSettings=False)
-    # check there are lots of peaks (should be ~36k)
-    assert len(mass_spectrum)>30_000
-    # check the 100th peak is as expected 
-    assert round(mass_spectrum.mz_exp[100],3) == 118.049
-    
-    # Return the MSParameters to the default values
-    reset_ms_parameters()
-
-
-def test_import_xml_mass_list():
-
-    file_location = Path.cwd() / "tests/tests_data/ftms/" / "srfa_neg_xml_example.xml"
+    file_location = (
+        Path.cwd()
+        / "tests/tests_data/ftms/srfa_xml_masslist/"
+        / "srfa_neg_xml_example.xml"
+    )
 
     mass_list_reader = ReadMassList(file_location, isCentroid=True, isThermoProfile=False)
     polarity = -1
@@ -279,11 +281,19 @@ def test_import_xml_mass_list():
 
 
 def test_import_mass_list():
-    file_location = Path.cwd() / "tests/tests_data/ftms/" / "NEG_ESI_SRFA_CoreMS.xlsx"
+    file_location = (
+        Path.cwd()
+        / "tests/tests_data/ftms/srfa_bruker_solarix_autosampler/"
+        / "NEG_ESI_SRFA_CoreMS.xlsx"
+    )
 
     mass_list_reader = ReadMassList(file_location)
 
-    file_location = Path.cwd() / "tests/tests_data/ftms/" / "ESI_NEG_ESFA.ascii"
+    file_location = (
+        Path.cwd()
+        / "tests/tests_data/ftms/esfa_ascii_masslist/"
+        / "ESI_NEG_ESFA.ascii"
+    )
 
     mass_list_reader = ReadMassList(file_location)
 
@@ -313,7 +323,11 @@ def test_import_mass_list():
 
 
 def test_import_thermo_average():
-    file_location = Path.cwd() / "tests/tests_data/ftms/" / "SRFA_NEG_ESI_ORB.raw"
+    file_location = (
+        Path.cwd()
+        / "tests/tests_data/ftms/srfa_thermo_orbitrap/"
+        / "SRFA_NEG_ESI_ORB.raw"
+    )
 
     # creates the parser obj
     parser = rawFileReader.ImportMassSpectraThermoMSFileReader(file_location)
@@ -392,7 +406,9 @@ def test_import_thermo_parse_metadata():
     sampleinfo = parser.get_sample_information()
     assert sampleinfo['BarcodeStatus'] == 'NotRead'
 
-    # Close the file
+    # Close the file. A second call must not touch the disposed handles.
     parser.close_file()
-    assert parser.iRawDataPlus.get_IsOpen() == False
+    assert parser.iRawDataPlus is None
+    assert parser.iFileHeader is None
+    parser.close_file()
 

@@ -7,7 +7,7 @@ from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 ## Note that the default noise_threshold_method is 'log'
 MSParameters.mass_spectrum.noise_threshold_method = 'relative_abundance'
 
-parser = ReadBrukerSolarix("tests/tests_data/ftms/ESI_NEG_SRFA.d")
+parser = ReadBrukerSolarix("tests/tests_data/ftms/srfa_bruker_solarix_direct_infusion/ESI_NEG_SRFA.d")
 bruker_transient = parser.get_transient()
 mass_spectrum_i = bruker_transient.get_mass_spectrum(plot_result=False, auto_process=False)
 print(mass_spectrum_i.parameters.mass_spectrum.noise_threshold_method) # relative_abundance

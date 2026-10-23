@@ -19,8 +19,6 @@ class BayesNoiseCalc(NoiseThresholdCalc):
 
         import pymc3 as pm
         import numpy as np
-        import theano.tensor as tt
-        from theano import as_op
         from scipy.stats import gaussian_kde
 
         smin, smax = np.min(samples), np.max(samples)

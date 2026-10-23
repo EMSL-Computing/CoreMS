@@ -75,7 +75,7 @@ class HighResRecalibration:
         # TODO rework this.
 
         if self.docker:
-            self.mass_spectrum.molecular_search_settings.url_database = "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
+            self.mass_spectrum.molecular_search_settings.url_database = "postgresql+psycopg://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
         else:
             self.mass_spectrum.molecular_search_settings.url_database = None
         self.mass_spectrum.molecular_search_settings.error_method = None

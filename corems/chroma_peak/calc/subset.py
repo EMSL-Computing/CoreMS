@@ -1,14 +1,16 @@
 # This file contains functions for subsetting dataframes that contain mass feature data.
 # This is based on the deimos package, found here: https://github.com/pnnl/deimos/blob/master/deimos/subset.py with some modifications.
 
-import multiprocessing as mp
 from functools import partial
 
 import numpy as np
 import pandas as pd
 
+from corems.encapsulation.spawn_pool import spawn_pool
+
+
 class MultiSamplePartitions:
-    '''
+    """
     Generator object that will lazily build and return each partition constructed
     from multiple samples.
 
@@ -25,15 +27,17 @@ class MultiSamplePartitions:
     n_partitions : int
         Number of partitions in the data.
 
-    '''
+    """
 
-    def __init__(self,
-                 features, 
-                 split_on: str = 'mz', 
-                 size: int = 500, 
-                 tol: float = 25E-6, 
-                 relative: bool = False):
-        '''
+    def __init__(
+        self,
+        features,
+        split_on: str = "mz",
+        size: int = 500,
+        tol: float = 25e-6,
+        relative: bool = False,
+    ):
+        """
         Initialize :obj:`~deimos.subset.Partitions` instance.
 
         Parameters
@@ -47,15 +51,21 @@ class MultiSamplePartitions:
         tol : float
             Largest allowed distance between unique `split_on` observations.
 
-        '''
+        """
         if not isinstance(split_on, str):
-            raise TypeError(f"Expected 'split_on' to be a string, got {type(split_on).__name__}")
+            raise TypeError(
+                f"Expected 'split_on' to be a string, got {type(split_on).__name__}"
+            )
         if not isinstance(size, int):
-            raise TypeError(f"Expected 'size' to be an integer, got {type(size).__name__}")
+            raise TypeError(
+                f"Expected 'size' to be an integer, got {type(size).__name__}"
+            )
         if not isinstance(tol, float):
             raise TypeError(f"Expected 'tol' to be a float, got {type(tol).__name__}")
         if not isinstance(relative, bool):
-            raise TypeError(f"Expected 'relative' to be a boolean, got {type(relative).__name__}")
+            raise TypeError(
+                f"Expected 'relative' to be a boolean, got {type(relative).__name__}"
+            )
 
         self.features = features
         self.split_on = split_on
@@ -66,10 +76,10 @@ class MultiSamplePartitions:
         self._compute_splits()
 
     def _compute_splits(self):
-        '''
+        """
         Determines data splits for partitioning.
 
-        '''
+        """
 
         self.counter = 0
 
@@ -115,10 +125,12 @@ class MultiSamplePartitions:
 
     def __next__(self):
         if self.counter < len(self.bounds):
-            q = '({} >= {}) & ({} <= {})'.format(self.split_on,
-                                                 self.bounds[self.counter][0],
-                                                 self.split_on,
-                                                 self.bounds[self.counter][1])
+            q = "({} >= {}) & ({} <= {})".format(
+                self.split_on,
+                self.bounds[self.counter][0],
+                self.split_on,
+                self.bounds[self.counter][1],
+            )
 
             subset = self.features.query(q)
 
@@ -131,7 +143,7 @@ class MultiSamplePartitions:
         raise StopIteration
 
     def map(self, func, processes=1, **kwargs):
-        '''
+        """
         Maps `func` to each partition, then returns the combined result.
 
         Parameters
@@ -149,7 +161,7 @@ class MultiSamplePartitions:
         :obj:`~pandas.DataFrame`
             Combined result of `func` applied to partitions.
 
-        '''
+        """
 
         # Serial
         if processes < 2:
@@ -157,19 +169,20 @@ class MultiSamplePartitions:
 
         # Parallel
         else:
-            with mp.Pool(processes=processes) as p:
+            with spawn_pool(processes) as p:
                 result = list(p.imap(partial(func, **kwargs), self))
 
         # Add partition index
         for i in range(len(result)):
             if result[i] is not None:
-                result[i]['partition_idx'] = i
+                result[i]["partition_idx"] = i
 
         # Combine partitions
         return pd.concat(result, ignore_index=True)
 
-def multi_sample_partition(features, split_on='mz', size=500, tol=25E-6, relative=True):
-    '''
+
+def multi_sample_partition(features, split_on="mz", size=500, tol=25e-6, relative=True):
+    """
     Partitions data along a given dimension. For use with features across
     multiple samples, e.g. in alignment.
 
@@ -191,6 +204,6 @@ def multi_sample_partition(features, split_on='mz', size=500, tol=25E-6, relativ
     :obj:`~deimos.subset.Partitions`
         A generator object that will lazily build and return each partition.
 
-    '''
+    """
 
     return MultiSamplePartitions(features, split_on, size, tol, relative)

@@ -4,7 +4,8 @@ import numpy as np
 from lmfit.models import GaussianModel
 
 # from matplotlib import rcParamsDefault, rcParams
-from numpy import array, float64, histogram, where
+from numpy import argmax, array, asarray, float64, histogram, searchsorted, where
+
 try:
     from numpy import trapezoid
 except ImportError:  # numpy < 2.0
@@ -34,6 +35,22 @@ def overrides(interface_class):
         return method
 
     return overrider
+
+
+def _nearest_index_either_order(profile, value):
+    """Index into ``profile`` nearest ``value``; ``profile`` may run either
+    ascending or descending (e.g. a frequency-derived spectrum's m/z = A/f
+    runs high to low).
+
+    Clipped to ``[1, len(profile) - 2]`` so the result is always safe to
+    pass to ``find_minima()``, which looks at the neighbor on each side.
+    """
+    n = len(profile)
+    if profile[0] <= profile[-1]:
+        idx = int(searchsorted(profile, value))
+    else:
+        idx = n - 1 - int(searchsorted(profile[::-1], value))
+    return min(max(idx, 1), n - 2)
 
 
 class MassSpecBase(MassSpecCalc, KendrickGrouping):
@@ -180,7 +197,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
     def add_mspeak(
         self,
-        ion_charge,
+        polarity,
         mz_exp,
         abundance,
         resolving_power,
@@ -188,13 +205,16 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         massspec_indexes,
         exp_freq=None,
         ms_parent=None,
+        **kwargs,
     ):
         """Add a new MSPeak object to the MassSpectrum object.
 
         Parameters
         ----------
-        ion_charge : int
-            The ion charge of the MSPeak.
+        polarity : int
+            Acquisition polarity of the MSPeak (``+1`` or ``-1``).
+            Do **not** pass ``ion_charge``; peaks store polarity only.
+            Assignment charge lives on ``MolecularFormula.ion_charge``.
         mz_exp : float
             The experimental m/z value of the MSPeak.
         abundance : float
@@ -209,9 +229,27 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             The experimental frequency of the MSPeak. Defaults to None.
         ms_parent : MSParent, optional
             The MSParent object associated with the MSPeak. Defaults to None.
+
+        Raises
+        ------
+        TypeError
+            If ``ion_charge`` is passed (removed; use ``polarity``), or if any
+            other unexpected keyword argument is given.
         """
+        if "ion_charge" in kwargs:
+            raise TypeError(
+                "add_mspeak() no longer accepts ion_charge=...; pass polarity "
+                "(±1) instead. Peaks store acquisition polarity only. Assignment "
+                "charge belongs on MolecularFormula.ion_charge after formula matching."
+            )
+        if kwargs:
+            unexpected = ", ".join(sorted(kwargs))
+            raise TypeError(
+                f"add_mspeak() got unexpected keyword argument(s): {unexpected}"
+            )
+
         mspeak = MSPeak(
-            ion_charge,
+            polarity,
             mz_exp,
             abundance,
             resolving_power,
@@ -356,8 +394,30 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
             self._abundance *= 0
             self._mz_exp *= 0
 
+    def _resolve_noise_threshold_method(self):
+        """Resolve ``by_format`` and store the concrete noise-threshold method.
+
+        Profile spectra use ``log``. Centroid spectra use
+        ``relative_abundance``. An explicit method is left unchanged.
+        ``by_format`` is replaced on this spectrum's settings so saved
+        parameters record what was used.
+
+        Returns
+        -------
+        str
+            Concrete noise-threshold method.
+        """
+        method = self.settings.noise_threshold_method
+        if method != "by_format":
+            return method
+        resolved = "relative_abundance" if self.is_centroid else "log"
+        self.settings.noise_threshold_method = resolved
+        return resolved
+
     def cal_noise_threshold(self):
         """Calculate the noise threshold of the mass spectrum."""
+
+        self._resolve_noise_threshold_method()
 
         if self.label == Labels.simulated_profile:
             self._baseline_noise, self._baseline_noise_std = 0.1, 1
@@ -799,7 +859,7 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         indexes_to_remove = [
             index
             for index, mspeak in enumerate(self.mspeaks)
-            if mspeak.resolving_power >= rpe(mspeak.mz_exp, mspeak.ion_charge)
+            if mspeak.resolving_power >= rpe(mspeak.mz_exp, mspeak.polarity)
         ]
         self.filter_by_index(indexes_to_remove)
 
@@ -824,7 +884,9 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         ).main()
         self.filter_by_index(indexes_to_remove)
 
-    def filter_by_min_resolving_power(self, B, T, apodization_method: str=None, tolerance: float=0):
+    def filter_by_min_resolving_power(
+        self, B, T, apodization_method: str = None, tolerance: float = 0
+    ):
         """Filter the mass spectrum by the calculated minimum theoretical resolving power.
 
         This is currently designed only for FTICR data, and accounts only for magnitude mode data
@@ -842,16 +904,16 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
 
         """
         if self.analyzer != "ICR":
-            raise Exception(
-                "This method is only applicable to ICR mass spectra. "
-            )
+            raise Exception("This method is only applicable to ICR mass spectra. ")
 
         self.check_mspeaks_warning()
 
         indexes_to_remove = [
             index
             for index, mspeak in enumerate(self.mspeaks)
-            if mspeak.resolving_power < (1-tolerance) * mspeak.resolving_power_calc(B, T, apodization_method=apodization_method)
+            if mspeak.resolving_power
+            < (1 - tolerance)
+            * mspeak.resolving_power_calc(B, T, apodization_method=apodization_method)
         ]
         self.filter_by_index(indexes_to_remove)
 
@@ -1225,6 +1287,25 @@ class MassSpecBase(MassSpecCalc, KendrickGrouping):
         exportMS = HighResMassSpecExport(out_file_path, self)
         exportMS.to_pandas(write_metadata=write_metadata)
 
+    def to_parquet(self, out_file_path, write_metadata=True):
+        """Export the mass spectrum to a Parquet file.
+
+        Parameters
+        ----------
+        out_file_path : str
+            The path to the Parquet file to export to.
+        write_metadata : bool, optional
+            Whether to write the metadata to a JSON file. Defaults to True.
+
+        Notes
+        -----
+        Requires ``pyarrow`` (or ``fastparquet``) for pandas Parquet I/O.
+        """
+        from corems.mass_spectrum.output.export import HighResMassSpecExport
+
+        exportMS = HighResMassSpecExport(out_file_path, self)
+        exportMS.to_parquet(write_metadata=write_metadata)
+
     def to_dataframe(self, additional_columns=None):
         """Return the mass spectrum as a Pandas dataframe.
 
@@ -1577,13 +1658,13 @@ class MassSpecCentroid(MassSpecBase):
 
     def process_mass_spec(self):
         """Process the mass spectrum."""
-        import tqdm
 
         # overwrite process_mass_spec
         # mspeak objs are usually added inside the PeaKPicking class
         # for profile and freq based data
         data_dict = self.data_dict
-        ion_charge = self.polarity
+        # Peak polarity only (±1); formula assignment charge is separate.
+        peak_polarity = self.polarity
 
         # Check if resolving power is present
         rp_present = True
@@ -1640,7 +1721,7 @@ class MassSpecCentroid(MassSpecBase):
                 and abun[index] / factor >= abundance_threshold
             ):
                 self.add_mspeak(
-                    ion_charge,
+                    peak_polarity,
                     mz,
                     abun[index],
                     rp_i,
@@ -1653,7 +1734,7 @@ class MassSpecCentroid(MassSpecBase):
                 and s2n_i >= self.parameters.mass_spectrum.noise_threshold_min_s2n
             ):
                 self.add_mspeak(
-                    ion_charge,
+                    peak_polarity,
                     mz,
                     abun[index],
                     rp_i,
@@ -1677,6 +1758,156 @@ class MassSpecCentroid(MassSpecBase):
                 )
 
         del self.data_dict
+
+    def to_profile(
+        self,
+        mz_profile,
+        abundance_profile,
+        mz_cal_profile=None,
+        peak_profile_indices=None,
+        is_calibrated=False,
+    ):
+        """Return a :class:`MassSpecProfile` sharing this spectrum's peaks.
+
+        Reuses the already-picked peaks (and any molecular formula
+        assignments on them) instead of re-picking from the profile data, and
+        re-points each peak's parent reference to the returned object. This
+        transfers ownership of the peaks: ``self.mspeaks``/``self._mspeaks``
+        are cleared once the new object holds them, so this spectrum and the
+        returned one never end up sharing (and independently mutating) the
+        same peak list. Used to rehydrate a profile mass spectrum from a
+        CoreMS HDF5 file that stored both a profile and a peak table,
+        without re-running peak picking.
+
+        Parameters
+        ----------
+        mz_profile : array_like
+            Experimental (uncalibrated) m/z profile.
+        abundance_profile : array_like
+            Abundance profile, same length as ``mz_profile``.
+        mz_cal_profile : array_like, optional
+            Calibrated m/z profile, same length as ``mz_profile``. Applied
+            whenever given, independently of ``is_calibrated``. Default is
+            None.
+        peak_profile_indices : array_like of shape (n_peaks, 3), optional
+            Per-peak ``(left, apex, right)`` indices into
+            ``mz_profile``/``abundance_profile``, in the same order as
+            ``self.mspeaks``. Ignored entirely if its length doesn't match
+            ``self.mspeaks``. Otherwise checked per peak -- a stored triple
+            is only trusted when ``0 <= left <= apex <= right < len(mz_profile)``
+            -- since a file can carry indices from before a later
+            reprocessing changed the profile length (the writer skips
+            storing new ones when that happens, but an older file may still
+            have a stale set from before this check existed). When omitted,
+            or for any one peak whose stored triple fails that check, that
+            peak's bounds are estimated instead: the apex starts at the
+            nearest profile index to the peak's own m/z (its calibrated m/z
+            against ``mz_cal_profile`` if the peak is calibrated, else its
+            experimental m/z against ``mz_profile`` -- either array may run
+            ascending or descending), the left/right bounds are then the
+            neighboring local minima from that starting point, and the apex
+            is finally set to the actual local maximum between those two
+            bounds -- not the initial nearest-index estimate, which can be
+            off by a few points from the quadratic-fit interpolation the
+            original picking used.
+        is_calibrated : bool, optional
+            Whether the stored m/z is calibrated. Sets ``is_calibrated`` on
+            the returned spectrum directly; ``mz_cal_profile`` is applied
+            independently of this flag whenever it is given. Default is
+            False.
+
+        Returns
+        -------
+        MassSpecProfile
+        """
+        d_params = {
+            "Aterm": self.Aterm,
+            "Bterm": self.Bterm,
+            "Cterm": self.Cterm,
+            Labels.label: self.label,
+            "analyzer": self.analyzer,
+            "acquisition_time": self.acquisition_time,
+            "instrument_label": self.instrument_label,
+            "polarity": self.polarity,
+            "scan_number": self.scan_number,
+            "rt": self.retention_time,
+            "mobility_rt": self.mobility_rt,
+            "mobility_scan": self.mobility_scan,
+            "filename_path": self._filename,
+            "dir_location": self._dir_location,
+            "baseline_noise": self._baseline_noise,
+            "baseline_noise_std": self._baseline_noise_std,
+            "sample_name": self.sample_name,
+        }
+
+        new_obj = MassSpecProfile(
+            {Labels.mz: mz_profile, Labels.abundance: abundance_profile},
+            d_params,
+            auto_process=False,
+        )
+
+        new_obj._mspeaks = self._mspeaks
+        new_obj.mspeaks = self.mspeaks
+        new_obj._dict_nominal_masses_indexes = self._dict_nominal_masses_indexes
+        new_obj._dynamic_range = self._dynamic_range
+        # MassSpecBase.__init__ gave new_obj a fresh, default MSParameters;
+        # replace it with this spectrum's (e.g. settings restored by a
+        # reader's load_settings()) so processing settings survive the
+        # conversion.
+        new_obj.parameters = self.parameters
+
+        # Transfer ownership: this spectrum no longer holds these peaks.
+        self._mspeaks = []
+        self.mspeaks = []
+
+        if is_calibrated:
+            new_obj.is_calibrated = True
+        if mz_cal_profile is not None:
+            new_obj.mz_cal_profile = mz_cal_profile
+
+        abundance_arr = asarray(new_obj.abundance_profile)
+        mz_arr = asarray(mz_profile)
+        mz_cal_arr = asarray(mz_cal_profile) if mz_cal_profile is not None else None
+        n = len(abundance_arr)
+
+        if peak_profile_indices is not None and len(peak_profile_indices) != len(
+            new_obj.mspeaks
+        ):
+            peak_profile_indices = None
+
+        for i, mspeak in enumerate(new_obj.mspeaks):
+            mspeak._ms_parent = new_obj
+
+            stored = None
+            if peak_profile_indices is not None:
+                left, apex, right = (int(v) for v in peak_profile_indices[i])
+                # Stored indices can predate a later reprocessing with a
+                # different-length profile (the writer skips storing them
+                # when that happens, but an older file may still have a
+                # stale set); only trust them if they're a sane bound into
+                # *this* profile, else fall back to the search below.
+                if 0 <= left <= apex <= right < n:
+                    stored = (left, apex, right)
+
+            if stored is not None:
+                left, apex, right = stored
+            else:
+                if mspeak.mz_cal is not None and mz_cal_arr is not None:
+                    search_profile, search_value = mz_cal_arr, mspeak.mz_cal
+                else:
+                    search_profile, search_value = mz_arr, mspeak._mz_exp
+
+                apex = _nearest_index_either_order(search_profile, search_value)
+                right = new_obj.find_minima(apex, abundance_arr, n, right=True)
+                left = new_obj.find_minima(apex, abundance_arr, n, right=False)
+                # Re-anchor the apex to the tallest sample within the now-known
+                # bounds, rather than trusting the nearest-index estimate above.
+                apex = left + int(argmax(abundance_arr[left : right + 1]))
+            mspeak.peak_left_index = left
+            mspeak.peak_apex_index = apex
+            mspeak.peak_right_index = right
+
+        return new_obj
 
 
 class MassSpecCentroidLowRes(MassSpecCentroid):
@@ -1741,7 +1972,7 @@ class MassSpecCentroidLowRes(MassSpecCentroid):
     @property
     def mz_abun_tuples(self):
         """Return the m/z and abundance values of the mass spectrum as a list of tuples."""
-        r = lambda x: (int(round(x[0], 0), int(round(x[1], 0))))
+        r = lambda x: int(round(x[0], 0), int(round(x[1], 0)))
 
         return [r(i) for i in self]
 

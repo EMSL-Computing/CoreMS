@@ -1,15 +1,20 @@
 # %% Import libs
 import shutil
-import warnings
+from unittest.mock import MagicMock
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from corems.mass_spectra.output.export import LCMSMetabolomicsExport
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
 from corems.molecular_id.search.database_interfaces import MSPInterface
 from corems.encapsulation.factory.parameters import LCMSParameters, reset_lcms_parameters, reset_ms_parameters
+from corems.encapsulation.factory.processingSetting import LiquidChromatographSetting
+from corems.mass_spectra.calc.lc_calc import LCCalculations
 from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectra
+
+from test_lcms_mgf_export import assert_sirius_feature_export
 
 
 @pytest.mark.molecular_db
@@ -24,7 +29,7 @@ def test_lcms_metabolomics(tmp_path, postgres_database, lcms_obj, msp_file_locat
     lcms_obj.parameters.lc_ms.ph_inten_min_rel = 0.0005
     lcms_obj.parameters.lc_ms.ph_persis_min_rel = 0.05
     lcms_obj.parameters.lc_ms.ph_smooth_it = 0
-    lcms_obj.parameters.lc_ms.ms2_min_fe_score = 0.3
+    lcms_obj.parameters.mass_spectrum["ms2"].spectral_similarity_search.ms2_min_fe_score = 0.3
     lcms_obj.parameters.lc_ms.ms1_scans_to_average = 5
 
     ## MSParameters for ms1 mass spectra
@@ -83,16 +88,13 @@ def test_lcms_metabolomics(tmp_path, postgres_database, lcms_obj, msp_file_locat
     lcms_obj.add_associated_ms2_dda(spectrum_mode="centroid", scan_filter="hcd")
     assert len(lcms_obj._ms) > og_ms_len
 
-    # Re-adding the same MS2 scans should warn and be a no-op (no duplicate reprocessing)
+    # Re-adding the same MS2 scans is a no-op (no duplicate reprocessing)
     ms_len_after_first_add = len(lcms_obj._ms)
     existing_scan = next(iter(lcms_obj._ms))
     existing_ms_obj = lcms_obj._ms[existing_scan]
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
-        lcms_obj.add_associated_ms2_dda(spectrum_mode="centroid", scan_filter="hcd")
+    lcms_obj.add_associated_ms2_dda(spectrum_mode="centroid", scan_filter="hcd")
     assert len(lcms_obj._ms) == ms_len_after_first_add
     assert lcms_obj._ms[existing_scan] is existing_ms_obj
-    assert any("already present in _ms" in str(w.message) for w in caught)
 
     # Query the lipidomics database to prepare a small search library for the mass features
     my_msp = MSPInterface(file_path=msp_file_location)
@@ -124,15 +126,51 @@ def test_lcms_metabolomics(tmp_path, postgres_database, lcms_obj, msp_file_locat
         scan_list=ms2_scans_oi_hr, fe_lib=msp_negative, peak_sep_da=0.01
     )
 
+    mgf_path = tmp_path / "lcms_metabolomics.mgf"
+    written_mgf = lcms_obj.to_mgf(mgf_path, overwrite=True)
+    assert written_mgf.exists()
+    exported_ids = assert_sirius_feature_export(
+        written_mgf.read_text(),
+        {str(mf_id): mf for mf_id, mf in lcms_obj.mass_features.items()},
+        lcms_obj.polarity,
+    )
+    skipped = {
+        str(mf_id)
+        for mf_id, mf in lcms_obj.mass_features.items()
+        if not mf.ms2_mass_spectra
+    }
+    assert skipped
+    assert skipped.isdisjoint(exported_ids)
+
     # Export the lcms object to an hdf5 file using the LipidomicsExport class
     export_stem = tmp_path / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab"
     export_dir = tmp_path / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab.corems"
     exporter = LCMSMetabolomicsExport(str(export_stem), lcms_obj)
     exporter.to_hdf(overwrite=True)
+    exporter.to_parquet(overwrite=True, export_spectra=True)
     exporter.report_to_csv(molecular_metadata=metabolite_metadata_negative)
+    exporter.report_to_parquet(molecular_metadata=metabolite_metadata_negative)
     report = exporter.to_report(molecular_metadata=metabolite_metadata_negative)
-    assert report['Ion Formula'][1] == 'C24 H47 O2'
+    # MS2 spectral library formula must not fill MS1 "Molecular Formula" / "Ion Formula";
+    # library values live under Library * columns.
+    assert report["Library Ion Formula"][1] == "C24 H47 O2"
+    assert "Library Molecular Formula" in report.columns
+    if "Ion Formula" in report.columns:
+        # No MS1 formula search in this test — MS1 ion formula should be empty
+        assert pd.isna(report["Ion Formula"][1]) or report["Ion Formula"][1] is None
+    if "Molecular Formula" in report.columns:
+        assert pd.isna(report["Molecular Formula"][1]) or report["Molecular Formula"][1] is None
     assert report['chebi'][1] == 28866
+    parquet_path = export_dir / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801_metab.parquet"
+    assert parquet_path.exists()
+    parquet_report = pd.read_parquet(parquet_path)
+    assert parquet_report.shape[0] == report.shape[0]
+    assert 'Ion Formula' in parquet_report.columns
+    # HDF5-parallel tabular parquet datasets
+    assert (export_dir / "scan_info.parquet").exists()
+    assert (export_dir / "mass_features.parquet").exists()
+    mass_features_pq = pd.read_parquet(export_dir / "mass_features.parquet")
+    assert mass_features_pq.shape[0] > 0
 
     # Test plotting mass feature with MS2 mirror plot
     # Get mass feature ID from the second row of the report
@@ -295,3 +333,80 @@ def test_lcms_metabolomics_targeted_search(tmp_path, lcms_obj):
     # Reset the parameters to the original values
     reset_lcms_parameters()
     reset_ms_parameters()
+
+
+class _PeakPickHost(LCCalculations):
+    """Minimal LCCalculations host; real pickers are mocked."""
+
+    def __init__(self, ms_formats, method="by_format", ms_level=1):
+        self.parameters = LCMSParameters(use_defaults=True)
+        self.parameters.lc_ms.peak_picking_method = method
+        self.scan_df = pd.DataFrame(
+            {
+                "ms_level": [ms_level] * len(ms_formats),
+                "ms_format": list(ms_formats),
+            }
+        )
+        self.find_mass_features_ph = MagicMock()
+        self.find_mass_features_ph_centroid = MagicMock()
+        self.cluster_mass_features = MagicMock()
+
+
+def test_lcms_peak_picking_by_format_resolve():
+    assert LiquidChromatographSetting().peak_picking_method == "by_format"
+    assert LCMSParameters(use_defaults=True).lc_ms.peak_picking_method == "by_format"
+    assert "by_format" in LiquidChromatographSetting().implemented_peak_picking_methods
+
+    ok = [
+        ("by_format", ["profile", "profile"], "persistent homology"),
+        ("by_format", ["centroid"], "centroided_persistent_homology"),
+        ("persistent homology", ["profile"], "persistent homology"),
+        ("centroided_persistent_homology", ["centroid"], "centroided_persistent_homology"),
+    ]
+    for method, formats, expected in ok:
+        host = _PeakPickHost(formats, method=method)
+        assert host._resolve_lcms_peak_picking_method() == expected
+
+    errors = [
+        ("by_format", [], "by_format"),
+        ("by_format", ["profile", "centroid"], "by_format"),
+        ("by_format", ["profile", None], "by_format"),
+        ("by_format", [None], "by_format"),
+        ("by_format", ["unknown"], "by_format"),
+        ("not-a-method", ["profile"], "not implemented"),
+        ("persistent homology", ["centroid"], "not profile mode"),
+        ("centroided_persistent_homology", ["profile"], "not centroid mode"),
+    ]
+    for method, formats, match in errors:
+        host = _PeakPickHost(formats, method=method)
+        with pytest.raises(ValueError, match=match):
+            host._resolve_lcms_peak_picking_method()
+
+
+def test_lcms_peak_picking_by_format_lock():
+    profile = _PeakPickHost(["profile"], method="by_format")
+    profile.find_mass_features()
+    profile.find_mass_features_ph.assert_called_once()
+    profile.find_mass_features_ph_centroid.assert_not_called()
+    assert profile.parameters.lc_ms.peak_picking_method == "persistent homology"
+
+    centroid = _PeakPickHost(["centroid"], method="by_format")
+    centroid.find_mass_features()
+    centroid.find_mass_features_ph_centroid.assert_called_once()
+    centroid.find_mass_features_ph.assert_not_called()
+    assert (
+        centroid.parameters.lc_ms.peak_picking_method
+        == "centroided_persistent_homology"
+    )
+
+    mixed = _PeakPickHost(["profile", "centroid"], method="by_format")
+    with pytest.raises(ValueError, match="by_format"):
+        mixed.find_mass_features()
+    mixed.find_mass_features_ph.assert_not_called()
+    mixed.find_mass_features_ph_centroid.assert_not_called()
+    assert mixed.parameters.lc_ms.peak_picking_method == "by_format"
+
+    mismatch = _PeakPickHost(["centroid"], method="persistent homology")
+    with pytest.raises(ValueError, match="not profile mode"):
+        mismatch.find_mass_features()
+    assert mismatch.parameters.lc_ms.peak_picking_method == "persistent homology"

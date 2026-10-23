@@ -2,7 +2,10 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import shutil
+import warnings
+
 import numpy as np
+import pandas as pd
 import pytest
 
 from corems.encapsulation.constant import Labels
@@ -46,9 +49,39 @@ def test_import_lcmsobj_mzml():
     myLCMSobj.add_associated_ms1(
         auto_process=True, use_parser=True, spectrum_mode="centroid"
     )
-    mass_features_df = myLCMSobj.mass_features_to_df()
+    # One feature has an int monoisotopic id and a float width. The other
+    # leaves both empty. The id column must stay object; the width stays float.
+    unlabeled_id, labeled_id = list(myLCMSobj.mass_features)[:2]
+    unlabeled = myLCMSobj.mass_features[unlabeled_id]
+    labeled = myLCMSobj.mass_features[labeled_id]
+    labeled.monoisotopic_mf_id = int(labeled.id)
+    labeled.tailing_factor = 1.2
+    labeled._half_height_width = np.array([0.1, 0.3])
+    unlabeled._half_height_width = None
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        mass_features_df = myLCMSobj.mass_features_to_df()
+    assert not any(
+        issubclass(item.category, FutureWarning) and "all-NA" in str(item.message)
+        for item in caught
+    )
     assert mass_features_df.shape[0] == 1183
     assert mass_features_df.shape[1] > 15
+    mono = mass_features_df["monoisotopic_mf_id"]
+    assert mono.dtype == object
+    assert pd.isna(mono.loc[unlabeled.id])
+    labeled_mono = mono.loc[labeled.id]
+    assert isinstance(labeled_mono, (int, np.integer))
+    assert not isinstance(labeled_mono, (float, np.floating))
+    assert int(labeled_mono) == int(labeled.id)
+    assert mass_features_df["half_height_width"].dtype == np.dtype("float64")
+    assert mass_features_df.loc[labeled.id, "half_height_width"] == pytest.approx(0.2)
+    assert pd.isna(mass_features_df.loc[unlabeled.id, "half_height_width"])
+    assert mass_features_df["isotopologue_type"].isna().all()
+    assert mass_features_df["tailing_factor"].dtype == np.dtype("float64")
+    dropped = myLCMSobj.mass_features_to_df(drop_na_cols=True)
+    assert "isotopologue_type" not in dropped.columns
+    assert "monoisotopic_mf_id" in dropped.columns
     
     # Reset the MSParameters to the original values
     reset_lcms_parameters()
@@ -113,7 +146,7 @@ def test_lipidomics_workflow(tmp_path, postgres_database, lcms_obj, lipidomics_s
     lcms_obj.parameters.lc_ms.ph_inten_min_rel = 0.0005
     lcms_obj.parameters.lc_ms.ph_persis_min_rel = 0.05
     lcms_obj.parameters.lc_ms.ph_smooth_it = 0
-    lcms_obj.parameters.lc_ms.ms2_min_fe_score = 0.3
+    lcms_obj.parameters.mass_spectrum["ms2"].spectral_similarity_search.ms2_min_fe_score = 0.3
     lcms_obj.parameters.lc_ms.ms1_scans_to_average = 5
 
     ## MSParameters for ms1 mass spectra
@@ -145,8 +178,8 @@ def test_lipidomics_workflow(tmp_path, postgres_database, lcms_obj, lipidomics_s
     lcms_obj.parameters.mass_spectrum['ms2_cid'] = ms2_params_cid
 
     ## reporting settings
-    lcms_obj.parameters.lc_ms.search_as_lipids = True
-    lcms_obj.parameters.lc_ms.include_fragment_types = True
+    lcms_obj.parameters.mass_spectrum["ms2"].spectral_similarity_search.search_as_lipids = True
+    lcms_obj.parameters.mass_spectrum["ms2"].spectral_similarity_search.include_fragment_types = True
     lcms_obj.parameters.lc_ms.export_eics = True
     lcms_obj.parameters.lc_ms.export_profile_spectra = True
 
@@ -236,10 +269,22 @@ def test_lipidomics_workflow(tmp_path, postgres_database, lcms_obj, lipidomics_s
     export_dir = tmp_path / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.corems"
     exporter = LipidomicsExport(str(export_stem), lcms_obj)
     exporter.to_hdf(overwrite=True)
+    exporter.to_parquet(overwrite=True, export_spectra=True)
     exporter.report_to_csv(molecular_metadata=lipid_metadata)
+    exporter.report_to_parquet(molecular_metadata=lipid_metadata)
     report = exporter.to_report(molecular_metadata=lipid_metadata)
+    # This workflow runs MS1 formula search + MS2 library match. When ion formulas
+    # agree, Library Ion Formula is cleared and the value lives in Ion Formula.
     assert report['Ion Formula'][1] == 'C24 H47 O2'
+    assert pd.isna(report['Library Ion Formula'][1])
     assert report['Lipid Molecular Species'][0] == 'FA 20:5'
+    parquet_path = export_dir / "Blanch_Nat_Lip_C_12_AB_M_17_NEG_25Jan18_Brandi-WCSH5801.parquet"
+    assert parquet_path.exists()
+    parquet_report = pd.read_parquet(parquet_path)
+    assert parquet_report.shape[0] == report.shape[0]
+    assert 'Ion Formula' in parquet_report.columns
+    assert (export_dir / "scan_info.parquet").exists()
+    assert (export_dir / "mass_features.parquet").exists()
 
     # Import the hdf5 file, assert that its df is same as above and that we can plot a mass feature
     parser = ReadCoreMSHDFMassSpectra(

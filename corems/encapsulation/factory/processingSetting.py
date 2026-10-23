@@ -7,6 +7,78 @@ from typing import List, Dict
 
 from corems.encapsulation.constant import Atoms, Labels
 
+# Field metadata: omit from JSON/TOML parameter export (in-memory back-compat only).
+LEGACY_PARAMETER = "legacy"
+
+
+def legacy_field(default, **kwargs):
+    """``dataclasses.field`` that marks a setting as legacy (not exported).
+
+    Use for in-memory / back-compat aliases that must not appear in
+    parameter JSON/TOML when settings are dumped. Export paths should use
+    :func:`settings_to_export_dict` (or equivalent) so this metadata is honored.
+    """
+    metadata = dict(kwargs.pop("metadata", {}) or {})
+    metadata[LEGACY_PARAMETER] = True
+    return dataclasses.field(default=default, metadata=metadata, **kwargs)
+
+
+def settings_to_export_dict(settings_obj) -> dict:
+    """Serialize settings for parameter export; skip fields marked legacy.
+
+    Fields defined with :func:`legacy_field` (metadata
+    ``LEGACY_PARAMETER=True``) are omitted. Used by LCMS parameter dump so
+    old annotation knobs on ``LiquidChromatographSetting`` are not rewritten
+    into TOML/JSON after migration to ``spectral_similarity_search``.
+    """
+    if not dataclasses.is_dataclass(settings_obj) or isinstance(settings_obj, type):
+        return dict(getattr(settings_obj, "__dict__", {}))
+    out = {}
+    for f in dataclasses.fields(settings_obj):
+        if f.metadata.get(LEGACY_PARAMETER, False):
+            continue
+        out[f.name] = getattr(settings_obj, f.name)
+    return out
+
+
+def validate_used_atoms_keys(used_atoms):
+    """Validate that usedAtoms keys are element symbols, not rare isotopes.
+
+    Molecular formula search treats each usedAtoms key as a monoisotopic
+    (most-abundant) element. Heavy isotopologues (e.g. 13C, 54Fe, 37Cl) are
+    produced later by isotopologue expansion of mono formulas, not by listing
+    rare-isotope labels in usedAtoms. Membership in ``Atoms.isotopes`` does
+    not mean the element is ready to search: each key still needs a valence
+    in ``used_atom_valences`` (typically copied from ``Atoms.atoms_covalence``),
+    or DBE calculation can fail.
+
+    Parameters
+    ----------
+    used_atoms : dict
+        Mapping of atom symbol to (min, max) count range.
+
+    Raises
+    ------
+    ValueError
+        If any key is not a mono element symbol (key of Atoms.isotopes).
+    TypeError
+        If used_atoms is not a mapping.
+    """
+    if used_atoms is None:
+        return
+    if not hasattr(used_atoms, "keys"):
+        raise TypeError(
+            "usedAtoms must be a dict of element symbols to (min, max) ranges"
+        )
+    invalid = [k for k in used_atoms.keys() if k not in Atoms.isotopes]
+    if invalid:
+        raise ValueError(
+            "usedAtoms keys must be element symbols (e.g. Fe, C, Cl), "
+            "not specific isotope labels (e.g. 54Fe, 13C, 37Cl). "
+            f"Invalid key(s): {invalid}. "
+            "Heavy isotopologues are generated from mono formulas during search."
+        )
+
 
 @dataclasses.dataclass
 class TransientSetting:
@@ -195,31 +267,34 @@ class LiquidChromatographSetting:
     mass_feature_attribute_filter_dict : dict, optional
         Dictionary specifying filtering criteria for mass feature attributes.
         Each key is an attribute name, and each value is a dict with 'value' and 'operator' keys.
-        
+
         Structure: {attribute_name: {'value': threshold, 'operator': comparison}}
-        
+
         Available operators:
         - '>' or 'greater': Keep features where attribute > threshold
-        - '<' or 'less': Keep features where attribute < threshold  
+        - '<' or 'less': Keep features where attribute < threshold
         - '>=' or 'greater_equal': Keep features where attribute >= threshold
         - '<=' or 'less_equal': Keep features where attribute <= threshold
-        
-        Examples: 
+
+        Examples:
         {
             'noise_score_max': {'value': 0.5, 'operator': '>'},  # Keep if noise_score_max > 0.5
             'dispersity_index': {'value': 0.1, 'operator': '<'},  # Keep if dispersity_index < 0.1
             'gaussian_similarity': {'value': 0.7, 'operator': '>='}  # Keep if gaussian_similarity >= 0.7
         }
-        
-        Available attributes include: 'noise_score', 'noise_score_min', 'noise_score_max', 
+
+        Available attributes include: 'noise_score', 'noise_score_min', 'noise_score_max',
         'gaussian_similarity', 'tailing_factor', 'dispersity_index', 'half_height_width', 'intensity'.
         Default is {"noise_score_max": {"value": 0.8, "operator": ">="},"noise_score_min": {"value": 0.5, "operator": ">="}},
     peak_picking_method : str, optional
         Peak picking method to use. See implemented_peak_picking_methods for options.
-        Default is 'persistent homology'.
+        Default is 'by_format', which selects persistent homology when all scans
+        at the requested MS level are profile and centroided persistent
+        homology when all are centroid, then stores the concrete method on
+        this setting so saved parameters record what was used.
     implemented_peak_picking_methods : tuple, optional
         Peak picking methods that can be implemented.
-        Default is ('persistent homology', 'centroided_persistent_homology').
+        Default is ('by_format', 'persistent homology', 'centroided_persistent_homology').
     ph_smooth_it : int, optional
         Number of iterations to use for smoothing prior to finding mass features.
         Used only for "persistent homology" peak picking method.
@@ -248,6 +323,11 @@ class LiquidChromatographSetting:
         Should be greater to or equal to ph_inten_min_rel.
         Called within the PH_Calculations.find_mass_features() method.
         Default is 0.001.
+    ph_inten_min_abs : float, optional
+        Absolute minimum intensity for points that enter persistent homology.
+        Applied with ph_inten_min_rel on profile and centroided data.
+        The relative floor is still a fraction of the unfiltered maximum.
+        0 disables the absolute floor. Default is 0.0.
     mass_feature_cluster_mz_tolerance_rel : float, optional
         Relative m/z tolerance to use for clustering mass features.
         Used for both "persistent homology" and "centroided_persistent_homology"
@@ -280,15 +360,13 @@ class LiquidChromatographSetting:
         Default is 0.05.
     ms2_min_fe_score : float, optional
         Minimum flash entropy for retaining MS2 annotations.
-        Called within the LCMSSpectralSearch.fe_search() method.
+        Legacy; prefer ``mass_spectrum["ms2"].spectral_similarity_search.ms2_min_fe_score``.
         Default is 0.2.
     search_as_lipids : bool, optional
-        If True, prepare the database for lipid searching.
-        Called within the LCMSSpectralSearch.fe_prep_search_db() method.
+        Legacy lipid-search flag; prefer ``mass_spectrum["ms2"].spectral_similarity_search``.
         Default is False.
     include_fragment_types : bool, optional
-        If True, include fragment types in the database.
-        Called within the LCMSSpectralSearch.fe_search() and related methods.
+        Legacy fragment-type flag; prefer ``mass_spectrum["ms2"].spectral_similarity_search``.
         Default is False.
     export_profile_spectra : bool, optional
         If True, export profile spectra data.
@@ -352,8 +430,9 @@ class LiquidChromatographSetting:
     mass_feature_attribute_filter_dict: Dict = dataclasses.field(default_factory=dict)
 
     # Parameters used for 2D peak picking
-    peak_picking_method: str = "persistent homology"
+    peak_picking_method: str = "by_format"
     implemented_peak_picking_methods: tuple = (
+        "by_format",
         "persistent homology",
         "centroided_persistent_homology",
     )
@@ -364,6 +443,7 @@ class LiquidChromatographSetting:
     ph_smooth_radius_scan = 1
     ph_inten_min_rel = 0.001
     ph_persis_min_rel = 0.001
+    ph_inten_min_abs: float = 0.0
 
     # Parameters used to cluster mass features
     mass_feature_cluster_mz_tolerance_rel: float = 5e-6
@@ -375,10 +455,10 @@ class LiquidChromatographSetting:
     ms2_dda_rt_tolerance: float = 0.15
     ms2_dda_mz_tolerance: float = 0.05
 
-    # Parameters used for flash entropy searching and database preparation
-    ms2_min_fe_score: float = 0.2
-    search_as_lipids: bool = False
-    include_fragment_types: bool = False
+    # Legacy MS2 spectral annotation aliases (not exported; prefer MSParameters.spectral_similarity_search)
+    ms2_min_fe_score: float = legacy_field(0.2)
+    search_as_lipids: bool = legacy_field(False)
+    include_fragment_types: bool = legacy_field(False)
 
     # Parameters used for saving the data
     export_profile_spectra: bool = False
@@ -396,7 +476,7 @@ class LiquidChromatographSetting:
                 "noise_score_max": {"value": 0.8, "operator": ">="},
                 "noise_score_min": {"value": 0.5, "operator": ">="},
             }
-        
+
         # enforce datatype
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
@@ -406,15 +486,90 @@ class LiquidChromatographSetting:
 
 
 @dataclasses.dataclass
+class SpectralSimilaritySearchSettings:
+    """Parameters for using spectral similarity to search spectra against a library of reference spectra (including within molecular networking).
+
+    Lives on :class:`~corems.encapsulation.factory.parameters.MSParameters`
+    as ``spectral_similarity_search`` (e.g. ``lcms.parameters.mass_spectrum["ms2"].spectral_similarity_search``).
+
+    Not used for MS2 *molecular formula* search
+    (``mass_spectrum[key].molecular_search``).
+    """
+
+    # --- FlashEntropy library build (intensity normalize always on) ---
+    max_ms2_tolerance_in_da: float = 0.01
+    max_indexed_mz: float = 3000.0
+    precursor_ions_removal_da: float | None = None
+    noise_threshold: float = 0.0
+
+    # --- Annotation ---
+    ms2_min_fe_score: float = 0.2
+    include_fragment_types: bool = False
+    search_as_lipids: bool = False
+    peak_sep_da: float | None = None
+
+    # --- Molecular networking ---
+    search_type: str = "open"
+    additional_similarities: list = dataclasses.field(
+        default_factory=lambda: ["cosine"]
+    )
+    similarity_thresholds: dict = dataclasses.field(default_factory=dict)
+    ms1_tolerance_da: float | None = None
+    ms2_tolerance_da: float | None = None
+    entropy_threshold_low: float | None = None
+    library_similarity_threshold: float = 0.3
+    hydrate_library_similarities: bool = False
+
+    def __post_init__(self):
+        if self.additional_similarities is not None:
+            self.additional_similarities = list(self.additional_similarities)
+        if self.similarity_thresholds is not None:
+            self.similarity_thresholds = dict(self.similarity_thresholds)
+
+    @property
+    def min_ms2_difference_in_da(self) -> float:
+        """Minimum peak separation (Da); always ``2 * max_ms2_tolerance_in_da``."""
+        return 2.0 * float(self.max_ms2_tolerance_in_da)
+
+    def copy(self) -> "SpectralSimilaritySearchSettings":
+        """Return a copy with mutable list/dict fields isolated."""
+        return dataclasses.replace(
+            self,
+            additional_similarities=list(self.additional_similarities),
+            similarity_thresholds=dict(self.similarity_thresholds),
+        )
+
+    def as_fe_kwargs(self) -> dict:
+        """FlashEntropy library-build kwargs (historical ``fe_kwargs`` shape)."""
+        return {
+            "min_ms2_difference_in_da": self.min_ms2_difference_in_da,
+            "max_ms2_tolerance_in_da": self.max_ms2_tolerance_in_da,
+            "max_indexed_mz": self.max_indexed_mz,
+            "precursor_ions_removal_da": self.precursor_ions_removal_da,
+            "noise_threshold": self.noise_threshold,
+        }
+
+    @property
+    def resolved_peak_sep_da(self) -> float:
+        """Peak separation (Da) for annotation search."""
+        if self.peak_sep_da is not None:
+            return float(self.peak_sep_da)
+        return float(self.min_ms2_difference_in_da)
+
+
+@dataclasses.dataclass
 class MassSpectrumSetting:
     """Mass spectrum processing settings class
 
     Attributes
     ----------
     noise_threshold_method : str, optional
-        Method for detecting noise threshold. Default is 'log'.
+        Method for detecting noise threshold. Default is 'by_format', which
+        selects 'log' for a profile spectrum and 'relative_abundance' for
+        a centroid spectrum, then stores that concrete method on this
+        setting so saved parameters record what was used.
     noise_threshold_methods_implemented : tuple, optional
-        Methods for detected noise threshold that can be implemented. Default is ('minima', 'signal_noise', 'relative_abundance', 'absolute_abundance', 'log').
+        Methods for detected noise threshold that can be implemented. Default is ('by_format', 'minima', 'signal_noise', 'relative_abundance', 'absolute_abundance', 'log').
     noise_threshold_min_std : int, optional
         Minumum value for noise thresholding when using 'minima' noise threshold method. Default is 6.
     noise_threshold_min_s2n : float, optional
@@ -439,7 +594,7 @@ class MassSpectrumSetting:
         Maximum m/z to use for peak picking. Default is 1200.0.
     picking_point_extrapolate : int, optional
         How many data points (in each direction) to extrapolate the mz axis and 0 pad the abundance axis. Default is 3.
-        Recommend 3 for reduced profile data or if peak picking faults
+        Recommend not changing this value unless necessary.
     calib_minimize_method : str, optional
         Minimization method to use for calibration. Default is 'Powell'.
     calib_pol_order : int, optional
@@ -460,9 +615,10 @@ class MassSpectrumSetting:
         If True, print verbose processing information. Default is True.
     """
 
-    noise_threshold_method: str = "log"
+    noise_threshold_method: str = "by_format"
 
     noise_threshold_methods_implemented: tuple = (
+        "by_format",
         "minima",
         "signal_noise",
         "relative_abundance",
@@ -726,7 +882,7 @@ class CompoundSearchSettings:
 
     """
 
-    url_database: str = "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/lowres"  # 'postgresql://postgres:labthomson0102@172.22.113.27:5432/GCMS' # 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite'
+    url_database: str = "postgresql+psycopg://coremsappdb:coremsapppnnl@localhost:5432/lowres"  # 'postgresql+psycopg://postgres:labthomson0102@172.22.113.27:5432/GCMS' # 'sqlite:///db/pnnl_lowres_gcms_compounds.sqlite'
 
     ri_search_range: float = 35
 
@@ -787,7 +943,14 @@ class MolecularLookupDictSettings:
     Attributes
     ----------
     usedAtoms : dict, optional
-        Dictionary of atoms and ranges. Default is {'C': (1, 90), 'H': (4, 200), 'O': (0, 12), 'N': (0, 0), 'S': (0, 0), 'P': (0, 0), 'Cl': (0, 0)}.
+        Dictionary of **element symbols** (most-abundant mono codes) to
+        (min, max) count ranges. Keys must be element symbols present in
+        ``Atoms.isotopes`` (e.g. ``C``, ``Fe``, ``Cl``), **not** specific
+        isotope labels (e.g. ``13C``, ``54Fe``, ``37Cl``). Rare isotopes are
+        produced by isotopologue expansion of mono formulas after assignment.
+        Each key also needs a valence in ``used_atom_valences``.
+        Default is {'C': (1, 90), 'H': (4, 200), 'O': (0, 12), 'N': (0, 0),
+        'S': (0, 0), 'P': (0, 0), 'Cl': (0, 0)}.
     min_mz : float, optional
         Minimum m/z to use for searching. Default is 50.0.
     max_mz : float, optional
@@ -819,7 +982,8 @@ class MolecularLookupDictSettings:
 
     ### C, H, N, O, S and P atoms are ALWAYS needed at usedAtoms
     ### if you don't want to include one of those atoms set the max and min at 0
-    ### you can include any atom listed at Atoms class inside encapsulation.settings.constants module
+    ### Keys must be element symbols (Atoms.isotopes), not rare-isotope labels
+    ### you can include any mono element in Atoms.isotopes
     ### make sure to include the selected covalence at the used_atoms_valences when adding new atoms
     ### NOTE : Adducts atoms have zero covalence
     ### NOTE : Not using static variable because this class is distributed using multiprocessing
@@ -833,6 +997,7 @@ class MolecularLookupDictSettings:
             "P": (0, 0),
             "Cl": (0, 0),
         }
+        validate_used_atoms_keys(self.usedAtoms)
 
         self.min_mz = 50
 
@@ -891,13 +1056,32 @@ class MolecularFormulaSearchSettings:
     min_peaks_per_class : int, optional
         Minimum number of peaks per class. Default is 15.
     url_database : str, optional
-        URL for the database. Default is 'postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp'.
+        URL for the database. Default is 'postgresql+psycopg://coremsappdb:coremsapppnnl@localhost:5432/coremsapp'.
     db_jobs : int, optional
-        Number of jobs to use for database queries. Default is 1. Can increase to 3 when python environment supports it. 
+        Number of jobs to use for database queries. Default is 1. Can increase to 3 when python environment supports it.
     db_chunk_size : int, optional
         Chunk size to use for database queries. Default is 300.
     ion_charge : int, optional
-        Ion charge. Default is -1.
+        **Legacy / unused for formula search.** Kept so older YAML/JSON/TOML
+        and ``MolecularFormulaSearchSettings(ion_charge=...)`` keep loading
+        without error. Default is -1. Search polarity comes from the mass
+        spectrum or LCMS object (DI often -1 from data; LC has no default).
+        Absolute multi-charge range uses ``min_ion_charge`` / ``max_ion_charge``
+        only. Do not use this field for new workflows.
+    min_ion_charge : int, optional
+        Minimum **absolute** ion charge for molecular formula search. Default is 1.
+        With ``max_ion_charge``, defines the inclusive absolute charge range searched
+        at polarity-signed values (e.g. positive polarity and max 2 → z = +1, +2).
+        No 13C-based charge determination is performed; every selected peak is
+        searched at each charge and candidates are ranked by existing formula
+        scores (isotopologue similarity, confidence). Peak ``polarity`` remains
+        ±1 (legacy alias ``peak.ion_charge``); assignment charge lives on
+        ``MolecularFormula.ion_charge``.
+    max_ion_charge : int, optional
+        Maximum **absolute** ion charge for molecular formula search. Default is 1
+        (legacy single-charge behavior). Must be >= ``min_ion_charge``.
+        Incompatible with ``isAdduct=True`` when greater than 1 (adduct search is
+        single-charge only; multi-charge adducts are not modeled).
     min_hc_filter : float, optional
         Minimum hydrogen to carbon ratio. Default is 0.3.
     max_hc_filter : float, optional
@@ -915,9 +1099,15 @@ class MolecularFormulaSearchSettings:
     max_dbe : float, optional
         Maximum double bond equivalent to use for searching. Default is 40.
     mz_error_score_weight : float, optional
-        Weight for m/z error score to contribute to composite score. Default is 0.6.
+        Weight ``w_err`` for the formula-level mass-error term
+        (``MolecularFormula.average_mz_error_score``) in the composite
+        ``confidence_score``. Default is 0.6. See the
+        ``corems.molecular_formula`` package documentation.
     isotopologue_score_weight : float, optional
-        Weight for isotopologue score to contribute to composite score. Default is 0.4.
+        Weight ``w_iso`` for the isotopologue similarity term
+        (``MolecularFormula.isotopologue_similarity``) in the composite
+        ``confidence_score``. Default is 0.4. Some literature examples use
+        equal weights (0.5 / 0.5).
     adduct_atoms_neg : tuple, optional
         Tuple of atoms to use in negative polarity. Default is ('Cl', 'Br').
     adduct_atoms_pos : tuple, optional
@@ -937,8 +1127,21 @@ class MolecularFormulaSearchSettings:
         If True, search for protonated ions. Default is True.
     isAdduct : bool, optional
         If True, search for adduct ions. Default is False.
+        Requires ``max_ion_charge == 1`` (and typically ``min_ion_charge == 1``);
+        multi-charge formula search does not include adduct ion types.
     usedAtoms : dict, optional
-        Dictionary of atoms and ranges. Default is {'C': (1, 90), 'H': (4, 200), 'O': (0, 12), 'N': (0, 0), 'S': (0, 0), 'P': (0, 0), 'Cl': (0, 0)}.
+        Dictionary of **element symbols** (most-abundant mono codes) to
+        (min, max) count ranges for molecular formula search. Keys must be
+        element symbols present in ``Atoms.isotopes`` (e.g. ``C``, ``Fe``,
+        ``Cl``), **not** specific isotope labels (e.g. ``13C``, ``54Fe``,
+        ``37Cl``). Rare / heavy isotopes are generated by isotopologue
+        expansion of mono formulas after assignment (when
+        ``find_isotopologues`` is enabled), not by listing them here.
+        Invalid keys raise ``ValueError`` at settings construction, assignment,
+        or search entry. Each key also needs a valence in
+        ``used_atom_valences`` (usually from ``Atoms.atoms_covalence``).
+        Default empty dict is filled with C and H ranges in
+        ``__post_init__``.
     ion_types_excluded : list, optional
         List of ion types to exclude from molecular id search, commonly ['[M+CH3COO]-]'] or ['[M+COOH]-'] depending on mobile phase content. Default is [].
     ionization_type : str, optional
@@ -978,7 +1181,7 @@ class MolecularFormulaSearchSettings:
     min_peaks_per_class: int = 15
 
     url_database: str = (
-        "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
+        "postgresql+psycopg://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
     )
 
     db_jobs: int = 1
@@ -986,7 +1189,14 @@ class MolecularFormulaSearchSettings:
     db_chunk_size: int = 300
 
     # query setting========
+    # Legacy BC only (parameter files / constructor). Not used for search.
+    # Polarity: spectrum/LCMS data. Multi-z absolute range: min/max_ion_charge.
     ion_charge: int = -1
+
+    # Absolute charge range for formula search (polarity supplies sign).
+    # Defaults 1..1 preserve single-charge behavior.
+    min_ion_charge: int = 1
+    max_ion_charge: int = 1
 
     min_hc_filter: float = 0.3
 
@@ -1070,6 +1280,13 @@ class MolecularFormulaSearchSettings:
     # used_atom_valences: {'C': 4, 'H':1, etc} = dataclasses.field(default_factory=dict)
     used_atom_valences: dict = dataclasses.field(default_factory=dict)
 
+    def __setattr__(self, name, value):
+        # Catch full reassignment of usedAtoms after construction (common API).
+        # In-place mutation (usedAtoms[key] = ...) is validated at search entry.
+        if name == "usedAtoms" and value is not None:
+            validate_used_atoms_keys(value)
+        super().__setattr__(name, value)
+
     def __post_init__(self):
         if not self.url_database or self.url_database == "":
             self.url_database = os.getenv(
@@ -1088,6 +1305,8 @@ class MolecularFormulaSearchSettings:
         if "H" not in self.usedAtoms.keys():
             self.usedAtoms["H"] = (1, 200)
 
+        validate_used_atoms_keys(self.usedAtoms)
+
         # add cummon values
         current_used_atoms = self.used_atom_valences.keys()
 
@@ -1101,6 +1320,36 @@ class MolecularFormulaSearchSettings:
                 else:
                     # will get the first number of all possible covalances, which should be the most commum
                     self.used_atom_valences[atom] = covalence[0]
+
+        self.validate_ion_charge_settings()
+
+    def validate_ion_charge_settings(self):
+        """Validate absolute charge range and adduct compatibility.
+
+        Raises
+        ------
+        ValueError
+            If ``min_ion_charge`` / ``max_ion_charge`` are invalid, or if
+            ``isAdduct`` is enabled with multi-charge search
+            (``max_ion_charge > 1``).
+        """
+        min_z = int(self.min_ion_charge)
+        max_z = int(self.max_ion_charge)
+        if min_z < 1:
+            raise ValueError("min_ion_charge must be >= 1")
+        if max_z < min_z:
+            raise ValueError("max_ion_charge must be >= min_ion_charge")
+        # Multi-charge adducts ([M+Na+H]2+, [M+2Na]2+, etc.) are not modeled;
+        # adduct search is single-charge only.
+        if self.isAdduct and max_z > 1:
+            raise ValueError(
+                "isAdduct=True is incompatible with multi-charge formula search "
+                f"(max_ion_charge={max_z}). Set max_ion_charge=1 for adduct "
+                "search, or disable isAdduct for multi-charge protonated/radical "
+                "search."
+            )
+
+
 @dataclasses.dataclass
 class LCMSCollectionSettings:
     """Settings for LCMS collection class
@@ -1115,7 +1364,7 @@ class LCMSCollectionSettings:
         It will also keep mass features not identified as isotopologues or monoisotopes.
         Default is True.
     mass_feature_anchor_technique: list, optional
-        List of mass feature anchor techniques for retention time alignment. 
+        List of mass feature anchor techniques for retention time alignment.
         Default is ['absolute_intensity'].
     mass_feature_anchor_techniques_available: tuple, optional
         Tuple of available mass feature anchor techniques for retention time alignment.
@@ -1148,9 +1397,11 @@ class LCMSCollectionSettings:
         Threshold for the improved fraction of the hold out mass features for accepting retention time alignment.
         Default is 0.5.
     alignment_mz_tol_ppm: int, optional
-        m/z tolerance in ppm for retention time alignment, in ppm. Default is 5.
+        m/z tolerance in ppm for retention time alignment and for consensus feature
+        grouping isotope (and later adduct) mass deltas. Default is 5.
     alignment_rt_tol: float, optional
-        Retention time tolerance for retention time alignment, in minutes. Default is 0.3.
+        Retention time tolerance in minutes for retention time alignment and for
+        consensus feature grouping coelution windows. Default is 0.3.
     consensus_mz_tol_ppm: int, optional
         m/z tolerance in ppm for consensus mass feature alignment. Default is 5.
         The recommendation is that this value should be the same as alignment_mz_tol_ppm.
@@ -1163,37 +1414,75 @@ class LCMSCollectionSettings:
         Used for filtering consensus features and for gap-filling threshold.
         Default is 0.5 (50%). Higher values focus on more prevalent features.
     gap_fill_expand_on_miss : bool, optional
-        If True, expands search window using consensus_mz_tol_ppm and consensus_rt_tol
-        when no peak is found in the initial cluster boundaries during gap-filling.
-        Default is False.
+        If True, expands the search window when no peak is found inside the
+        cluster bounds. m/z widens by consensus_mz_tol_ppm. Retention time
+        widens by consensus_rt_tol minutes. Default is True.
     consensus_representative_metric : str, optional
         Metric used to determine the most representative sample for a consensus mass feature.
         Options:
         - 'intensity': Selects the mass feature with the highest intensity value
-        - 'intensity_prefer_ms2': Selects the mass feature with the highest intensity among 
-          those that have MS2 scan numbers assigned. If no features have MS2 scans, falls 
+        - 'intensity_prefer_ms2': Selects the mass feature with the highest intensity among
+          those that have MS2 scan numbers assigned. If no features have MS2 scans, falls
           back to selecting the highest intensity feature overall.
         Default is 'intensity_prefer_ms2'.
     consensus_representative_metrics_available : tuple, optional
         Tuple of available metrics for determining the most representative sample.
         Default is ('intensity', 'intensity_prefer_ms2').
+    feature_group_isotope_atoms : tuple of str, optional
+        Mono elements for natural-abundance isotope Δm edges via ``Atoms``
+        (e.g. ``("C",)``). Default ``("C",)``. Not for tracer labeling.
+    feature_group_min_isotope_abundance : float, optional
+        Min natural abundance (0–1) for rare forms in isotope spacing.
+        Default 0.01.
+    feature_group_max_isotope_offset : int, optional
+        Max M+n roll-up depth for one rare form (e.g. ¹³Cₙ). Default 4.
+    feature_group_corr_threshold : float, optional
+        Min Pearson correlation of apex ``intensity`` vectors for an edge
+        (pairwise-complete; zeros dropped). Default 0.80.
+    feature_group_min_shared_sample_fraction : float, optional
+        Min fraction of samples with both heights > 0 before correlation
+        is trusted (``ceil(fraction * n_samples)``). Default 0.15.
+    feature_group_ion_types : tuple of str, optional
+        Allow-list of ``ION_TYPE_DICT`` keys for adduct linking (``|z| = 1``).
+        Empty/one type → isotopes only. Default is a curated common set
+        (``DEFAULT_ION_TYPES``); narrow further to reduce false adduct links.
+        Filtered by collection polarity at ``group_consensus_features()``.
+    feature_group_constrain_annotation : bool, optional
+        If True and labels exist, skip consensus isotopes in collection
+        MS1/MS2/annotation and keep IDs only if ion type is in
+        ``possible_ion_types``. Default True.
+    feature_group_partition_size : int, optional
+        Reserved RT-partition size for future multicore grouping.
+        Default 5000.
     """
+
     # Settings for general processing
     cores: int = 1
     drop_isotopologues: bool = False
 
     # Settings for doing mass feature alignment
-    _mass_feature_anchor_technique: list = dataclasses.field(default_factory=lambda: ["relative_intensity"])
-    mass_feature_anchor_techniques_available: tuple = ("deconvoluted_mass_spectra", "absolute_intensity", "relative_intensity")
+    _mass_feature_anchor_technique: list = dataclasses.field(
+        default_factory=lambda: ["relative_intensity"]
+    )
+    mass_feature_anchor_techniques_available: tuple = (
+        "deconvoluted_mass_spectra",
+        "absolute_intensity",
+        "relative_intensity",
+    )
     mass_feature_anchor_absolute_intensity_threshold: int = 10000
     mass_feature_anchor_relative_intensity_threshold: float = 0.6
     alignment_minimum_matches: int = 5
     alignment_hold_out_fraction: float = 0.3
-    _alignment_acceptance_technique: list = dataclasses.field(default_factory=lambda: ["fraction_improved", "mean_squared_error_improved"])
-    alignment_acceptance_techniques_available: tuple = ("fraction_improved", "mean_squared_error_improved")
+    _alignment_acceptance_technique: list = dataclasses.field(
+        default_factory=lambda: ["fraction_improved", "mean_squared_error_improved"]
+    )
+    alignment_acceptance_techniques_available: tuple = (
+        "fraction_improved",
+        "mean_squared_error_improved",
+    )
     alignment_acceptance_fraction_improved_threshold: float = 0.5
     alignment_mz_tol_ppm: int = 5
-    alignment_rt_tol: float = 0.4      
+    alignment_rt_tol: float = 0.4
 
     # Consensus mass feature settings
     consensus_mz_tol_ppm: int = alignment_mz_tol_ppm
@@ -1204,25 +1493,51 @@ class LCMSCollectionSettings:
 
     # Gap-filling settings
     gap_fill_expand_on_miss: bool = True
-    
+
     # Consensus mass feature visualization parameters
-    consensus_representative_metric: str = 'intensity_prefer_ms2'
-    consensus_representative_metrics_available: tuple = ('intensity', 'intensity_prefer_ms2')
+    consensus_representative_metric: str = "intensity_prefer_ms2"
+    consensus_representative_metrics_available: tuple = (
+        "intensity",
+        "intensity_prefer_ms2",
+    )
+
+    # Feature grouping (isotopes + z=1 adducts); RT/m/z use alignment_* tols
+    feature_group_isotope_atoms: tuple = ("C",)
+    feature_group_min_isotope_abundance: float = 0.01
+    feature_group_max_isotope_offset: int = 4
+    feature_group_corr_threshold: float = 0.80
+    feature_group_min_shared_sample_fraction: float = 0.15
+    feature_group_ion_types: tuple = dataclasses.field(
+        default_factory=lambda: (
+            __import__(
+                "corems.mass_spectra.calc.feature_grouping",
+                fromlist=["DEFAULT_ION_TYPES"],
+            ).DEFAULT_ION_TYPES
+        )
+    )
+    feature_group_constrain_annotation: bool = True
+    feature_group_partition_size: int = 5000
 
     def __post_init__(self):
         self.consensus_mz_tol_ppm = self.alignment_mz_tol_ppm
-        self._validate_alignment_acceptance_technique(self.alignment_acceptance_technique)
+        self._validate_alignment_acceptance_technique(
+            self.alignment_acceptance_technique
+        )
         self._validate_mass_feature_anchor_technique(self.mass_feature_anchor_technique)
 
     def _validate_alignment_acceptance_technique(self, techniques):
         for technique in techniques:
             if technique not in self.alignment_acceptance_techniques_available:
-                raise ValueError(f"Alignment acceptance technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.alignment_acceptance_techniques_available}")
+                raise ValueError(
+                    f"Alignment acceptance technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.alignment_acceptance_techniques_available}"
+                )
 
     def _validate_mass_feature_anchor_technique(self, techniques):
         for technique in techniques:
             if technique not in self.mass_feature_anchor_techniques_available:
-                raise ValueError(f"Mass feature anchor technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.mass_feature_anchor_techniques_available}")
+                raise ValueError(
+                    f"Mass feature anchor technique '{technique}' is not available. Alignment acceptance technique must be passed as a list. Available techniques: {self.mass_feature_anchor_techniques_available}"
+                )
 
     @property
     def alignment_acceptance_technique(self):
@@ -1241,4 +1556,3 @@ class LCMSCollectionSettings:
     def mass_feature_anchor_technique(self, value):
         self._validate_mass_feature_anchor_technique(value)
         self._mass_feature_anchor_technique = value
-

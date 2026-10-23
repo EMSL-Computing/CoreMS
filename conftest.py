@@ -84,13 +84,13 @@ def mass_spectrum_ftms(bruker_transient):
 @pytest.fixture
 def ref_file_location():
     """Returns the location of the reference file for calibration for the tests"""
-    return Path.cwd() / "tests/tests_data/ftms/SRFA.ref"
+    return Path.cwd() / "tests/tests_data/ftms/srfa_bruker_solarix_direct_infusion/SRFA.ref"
 
 
 @pytest.fixture
 def ftms_file_location():
     """Returns the location of the FTMS file for the tests"""
-    return Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA.d/"
+    return Path.cwd() / "tests/tests_data/ftms/srfa_bruker_solarix_direct_infusion/ESI_NEG_SRFA.d/"
 
 
 @pytest.fixture
@@ -137,7 +137,7 @@ def postgres_database():
     try:
         # Test if postgres hostname is reachable
         socket.gethostbyname('postgres')
-        return "postgresql://coremsdb:coremsmolform@postgres:5432/molformula"  ## Git CI/CD Build Pipeline
+        return "postgresql+psycopg://coremsdb:coremsmolform@postgres:5432/molformula"  ## Git CI/CD Build Pipeline
     except socket.gaierror:
         # Fall back to sqlite3 for local testing when postgres is not available
         return "" ## sqlite3 database (local)

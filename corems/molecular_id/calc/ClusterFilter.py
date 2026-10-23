@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from sklearn.cluster import DBSCAN
 from sklearn.preprocessing import StandardScaler
@@ -76,7 +77,8 @@ class ClusteringFilter:
 
         kendrick_dict = {"mass": mass_list, "error": error_list}
         df = pd.DataFrame(kendrick_dict)
-        matrix_data = df.values.astype("float32", copy=False)
+        # to_numpy + explicit dtype avoids CoW read-only .values views (pandas 3)
+        matrix_data = df.to_numpy(dtype=np.float32, copy=True)
         return matrix_data, list_indexes_mass_spec
 
     def get_kendrick_matrix_data(self, mass_spectrum):
@@ -96,7 +98,8 @@ class ClusteringFilter:
         kmd = mass_spectrum.kmd
         kendrick_dict = {"km": km, "kmd": kmd}
         df = pd.DataFrame(kendrick_dict)
-        matrix_data = df.values.astype("float32", copy=False)
+        # to_numpy + explicit dtype avoids CoW read-only .values views (pandas 3)
+        matrix_data = df.to_numpy(dtype=np.float32, copy=True)
         return matrix_data
 
     def filter_kendrick(self, mass_spectrum):
@@ -165,7 +168,8 @@ class ClusteringFilter:
         # check min data points otherwise StandardScaler().fit(0 will fail
 
         df = pd.DataFrame(kendrick_dict)
-        matrix_data = df.values.astype("float32", copy=False)
+        # to_numpy + explicit dtype avoids CoW read-only .values views (pandas 3)
+        matrix_data = df.to_numpy(dtype=np.float32, copy=True)
 
         stdscaler = StandardScaler().fit(matrix_data)
         matrix_data_scaled = stdscaler.transform(matrix_data)

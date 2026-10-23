@@ -20,7 +20,6 @@ from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
 
 from corems.mass_spectrum.input.massList import ReadMassList
 from corems.molecular_id.factory.classification import HeteroatomsClassification, Labels
-from corems.molecular_id.search.priorityAssignment import OxygenPriorityAssignment
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems import SuppressPrints
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
@@ -139,7 +138,7 @@ def set_parameters(mass_spectrum, field_strength=12, pos=False):
         mass_spectrum.molecular_search_settings.min_ppm_error = -0.5
         mass_spectrum.molecular_search_settings.max_ppm_error = 0.5
 
-    mass_spectrum.molecular_search_settings.url_database = "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
+    mass_spectrum.molecular_search_settings.url_database = "postgresql+psycopg://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
     mass_spectrum.molecular_search_settings.min_dbe = 0
     mass_spectrum.molecular_search_settings.max_dbe = 40
 

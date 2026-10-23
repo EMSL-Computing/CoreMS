@@ -64,7 +64,14 @@ class ReadCoremsMasslist(MassListBaseClass):
 
         dataframe.rename(columns=self.parameters.header_translate, inplace=True)
 
-        polarity = dataframe["Ion Charge"].values[0]
+        # "Ion Charge" is dual-purpose in CoreMS tables: spectrum/peak polarity
+        # for unassigned rows (±1), formula assignment charge when assigned
+        # (may be |z|>1). Spectrum polarity is only the sign.
+        # Use iloc for pandas 3 / CoW-safe indexing.
+        raw_charge = int(dataframe["Ion Charge"].iloc[0])
+        if raw_charge == 0:
+            raise ValueError("Ion Charge column must be non-zero to derive polarity")
+        polarity = 1 if raw_charge > 0 else -1
 
         output_parameters = self.get_output_parameters(polarity)
 
@@ -78,9 +85,65 @@ class ReadCoremsMasslist(MassListBaseClass):
             self.load_settings(mass_spec_obj, output_parameters)
 
         if auto_process:
+            # Formulas first. add_molecular_formula matches the uncalibrated
+            # "m/z" column against mz_exp, which returns mz_cal once restored.
             self.add_molecular_formula(mass_spec_obj, dataframe)
+            self.restore_peak_calibration(mass_spec_obj, dataframe)
 
         return mass_spec_obj
+
+    def restore_peak_calibration(self, mass_spec_obj, dataframe):
+        """Restore each peak's ``mz_cal`` from the stored "Calibrated m/z" column.
+
+        The peak table always stores both the uncalibrated "m/z" and the
+        (possibly calibrated) "Calibrated m/z", but ``MassSpecCentroid`` is
+        built only from "m/z" -- so without this, a reloaded peak loses its
+        own calibration even when the spectrum it came from had been
+        calibrated. Only peaks whose "Calibrated m/z" actually differs from
+        "m/z" are touched; an unmatched or never-calibrated peak's ``mz_cal``
+        is left as ``None``, same as before this method existed.
+
+        Parameters
+        ----------
+        mass_spec_obj : MassSpecCentroid
+            The mass spectrum object whose peaks' ``mz_cal`` to restore.
+        dataframe : pandas.DataFrame
+            The processed mass list data, with column names already
+            translated via ``header_translate`` (same dataframe passed to
+            ``add_molecular_formula``).
+        """
+        if "Calibrated m/z" not in dataframe.columns:
+            return
+
+        mz_exp_col = dataframe[Labels.mz].astype(float)
+        mz_cal_col = dataframe["Calibrated m/z"]
+
+        # A missing "Calibrated m/z" cell is NaN (pandas' representation of
+        # missing data), not None -- and NaN is truthy in Python, so letting
+        # it through would set mz_cal to NaN, and MSPeak.mz_exp
+        # (`self.mz_cal if self.mz_cal else self._mz_exp`) would then return
+        # NaN instead of correctly falling back to the uncalibrated value.
+        # pd.isna() catches it; `is None` would not.
+        present = ~pd.isna(mz_cal_col)
+        mz_cal_col = mz_cal_col.astype(float)
+        differs = present & (mz_cal_col != mz_exp_col)
+        if not differs.any():
+            return
+
+        # Built once -- O(n_peaks) -- and only applied to the rows that
+        # actually differ, instead of a per-row list.index() lookup inside
+        # the loop (quadratic in peak count for a large peak list). Matches
+        # peaks by m/z value rather than row position, same approach
+        # add_molecular_formula uses -- safe against any reordering between
+        # the dataframe and mass_spec_obj.mspeaks. Exact-match only, same as
+        # before.
+        mz_to_index = {mz: i for i, mz in enumerate(mass_spec_obj.mz_exp)}
+
+        for mz_exp, mz_cal in zip(mz_exp_col[differs], mz_cal_col[differs]):
+            ms_peak_index = mz_to_index.get(mz_exp)
+            if ms_peak_index is None:
+                continue
+            mass_spec_obj[ms_peak_index].mz_cal = mz_cal
 
     def add_molecular_formula(self, mass_spec_obj, dataframe):
         """
@@ -109,6 +172,7 @@ class ReadCoremsMasslist(MassListBaseClass):
             formula_df = formula_df.apply(pd.to_numeric, errors="coerce").fillna(0)
 
             ion_type_df = dataframe["Ion Type"]
+            # Formula assignment charge from export (not peak polarity)
             ion_charge_df = dataframe["Ion Charge"]
             is_isotopologue_df = dataframe["Is Isotopologue"]
             if "Adduct" in dataframe:
@@ -138,26 +202,29 @@ class ReadCoremsMasslist(MassListBaseClass):
                 }
 
             if sum(counts) > 0:
-                ion_type = str(Labels.ion_type_translate.get(ion_type_df[df_index]))
+                # Prefer iloc for positional access (pandas 3 Series[] is label-based)
+                ion_type = str(
+                    Labels.ion_type_translate.get(ion_type_df.iloc[df_index])
+                )
                 if adduct_df is not None:
-                    adduct_atom = str(adduct_df[df_index])
+                    adduct_atom = str(adduct_df.iloc[df_index])
                     if adduct_atom == "None":
                         adduct_atom = None
                 else:
                     adduct_atom = None
 
                 # If not isotopologue, cast as MolecularFormula
-                if not bool(int(is_isotopologue_df[df_index])):
+                if not bool(int(is_isotopologue_df.iloc[df_index])):
                     mfobj = MolecularFormula(
                         formula_dict,
-                        int(ion_charge_df[df_index]),
+                        int(ion_charge_df.iloc[df_index]),
                         mspeak_parent=mass_spec_obj[ms_peak_index],
                         ion_type=ion_type,
                         adduct_atom=adduct_atom,
                     )
 
                 # if is isotopologue, recast as MolecularFormulaIsotopologue
-                if bool(int(is_isotopologue_df[df_index])):
+                if bool(int(is_isotopologue_df.iloc[df_index])):
                     # First make a MolecularFormula object for the parent so we can get probabilities etc
                     formula_list_parent = {}
                     for atom in formula_dict:
@@ -180,7 +247,7 @@ class ReadCoremsMasslist(MassListBaseClass):
                     mono_index = int(dataframe.iloc[df_index]["Mono Isotopic Index"])
                     mono_mfobj = MolecularFormula(
                         formula_list_parent,
-                        int(ion_charge_df[df_index]),
+                        int(ion_charge_df.iloc[df_index]),
                         mspeak_parent=mass_spec_obj[mono_index],
                         ion_type=ion_type,
                         adduct_atom=adduct_atom,
@@ -189,7 +256,7 @@ class ReadCoremsMasslist(MassListBaseClass):
                     # Next, generate isotopologues from the parent
                     isos = list(
                         mono_mfobj.isotopologues(
-                            min_abundance=mass_spec_obj.abundance.min()*0.01,
+                            min_abundance=mass_spec_obj.abundance.min() * 0.01,
                             current_mono_abundance=mass_spec_obj[mono_index].abundance,
                             dynamic_range=mass_spec_obj.dynamic_range,
                         )
@@ -214,11 +281,13 @@ class ReadCoremsMasslist(MassListBaseClass):
                                     matched_isos.append(iso)
 
                     if len(matched_isos) == 0:
-                        #FIXME: This should not occur see https://code.emsl.pnl.gov/mass-spectrometry/corems/-/issues/190
-                        warnings.warn(f"No isotopologue matched the formula_dict: {formula_dict}")
+                        # FIXME: This should not occur see https://code.emsl.pnl.gov/mass-spectrometry/corems/-/issues/190
+                        warnings.warn(
+                            f"No isotopologue matched the formula_dict: {formula_dict}"
+                        )
                         bad_mf = True
                     else:
-                        bad_mf = False                   
+                        bad_mf = False
                         mfobj = matched_isos[0]
 
                         # Add the mono isotopic index, confidence score and isotopologue similarity

@@ -26,9 +26,9 @@ jobs:
       matrix:
         include:
           - name: Source tests
-            make_target: ci-test-source
+            just_recipe: ci-test-source
           - name: Notebook tests
-            make_target: ci-test-notebooks
+            just_recipe: ci-test-notebooks
     env:
       DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: '1'
     steps:
@@ -47,5 +47,8 @@ jobs:
         with:
           dotnet-version: '8.0'
 
+      - name: Install just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3  # v4
+
       - name: Run tests
-        run: make ${{ matrix.make_target }} SKIP_LIPIDOMICS_DB=1 SKIP_MOLECULAR_DB=1
+        run: SKIP_LIPIDOMICS_DB=1 SKIP_MOLECULAR_DB=1 just ${{ matrix.just_recipe }}

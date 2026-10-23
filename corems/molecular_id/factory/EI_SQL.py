@@ -20,6 +20,8 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.pool import QueuePool
 
+from corems.molecular_id.factory.molecularSQL import psycopg3_url
+
 Base = declarative_base()
 
 
@@ -227,10 +229,10 @@ class MetaboliteMetadata:
     iupac_name: str
     traditional_name: str
     common_name: str
-    name: Optional[str]=None
-    formula: Optional[str]=None
-    pubchem_id: Optional[str]=None
-    refmet_id: Optional[str]=None
+    name: Optional[str] = None
+    formula: Optional[str] = None
+    pubchem_id: Optional[str] = None
+    refmet_id: Optional[str] = None
 
 
 @dataclass
@@ -416,6 +418,7 @@ class EI_LowRes_SQLite:
             url = "sqlite:///{DB}/db/pnnl_lowres_gcms_compounds.sqlite".format(
                 DB=directory
             )
+        url = psycopg3_url(url)
         return create_engine(url, poolclass=QueuePool)
 
     def __enter__(self):

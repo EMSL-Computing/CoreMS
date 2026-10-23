@@ -1,10 +1,42 @@
 import json
 
-import toml
+import tomlkit
 from pathlib import Path
 
 from corems.encapsulation.output import parameter_to_dict
 from corems.encapsulation.output.parameter_to_dict import get_dict_data_lcms
+
+
+def _toml_array_item(item):
+    """Prepare one array element for TOML.
+
+    The previous encoder wrote a null array element as the string ``None``.
+    """
+    if item is None:
+        return "None"
+    return _toml_value(item)
+
+
+def _toml_value(value):
+    """Prepare ``value`` for TOML.
+
+    TOML has no null. Table entries whose value is ``None`` are omitted, which
+    matches the encoder previously used for settings files.
+    """
+    if isinstance(value, dict):
+        return {
+            key: _toml_value(item) for key, item in value.items() if item is not None
+        }
+    if isinstance(value, tuple):
+        return tuple(_toml_array_item(item) for item in value)
+    if isinstance(value, list):
+        return [_toml_array_item(item) for item in value]
+    return value
+
+
+def _dumps_toml(data):
+    """Serialize ``data`` to a TOML string."""
+    return tomlkit.dumps(_toml_value(data))
 
 
 def dump_all_settings_json(filename="SettingsCoreMS.json", file_path=None):
@@ -132,9 +164,8 @@ def dump_all_settings_toml(filename="SettingsCoreMS.toml", file_path=None):
         "w",
         encoding="utf8",
     ) as outfile:
-        import re
 
-        output = toml.dumps(data_dict_all)
+        output = _dumps_toml(data_dict_all)
         outfile.write(output)
 
 
@@ -160,10 +191,9 @@ def dump_ms_settings_toml(filename="SettingsCoreMS.toml", file_path=None):
         "w",
         encoding="utf8",
     ) as outfile:
-        import re
 
         # pretty print
-        output = toml.dumps(data_dict)
+        output = _dumps_toml(data_dict)
         outfile.write(output)
 
 
@@ -190,7 +220,7 @@ def dump_gcms_settings_toml(filename="SettingsCoreMS.toml", file_path=None):
         "w",
         encoding="utf8",
     ) as outfile:
-        output = toml.dumps(data_dict)
+        output = _dumps_toml(data_dict)
         outfile.write(output)
 
 
@@ -257,7 +287,7 @@ def dump_lcms_settings_toml(
         "w",
         encoding="utf8",
     ) as outfile:
-        output = toml.dumps(data_dict)
+        output = _dumps_toml(data_dict)
         outfile.write(output)
 
 
@@ -328,5 +358,5 @@ def dump_lcms_collection_settings_toml(
         "w",
         encoding="utf8",
     ) as outfile:
-        output = toml.dumps(data_dict)
+        output = _dumps_toml(data_dict)
         outfile.write(output)

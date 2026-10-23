@@ -2,6 +2,7 @@ __author__ = "Yuri E. Corilo"
 __date__ = "Jun 24, 2019"
 
 
+import re
 import warnings
 
 import IsoSpecPy
@@ -11,7 +12,12 @@ from numpy import array, exp, isnan, nextafter, power
 # TODO in a future release remove support for legacy isospecpy
 from packaging import version
 
-from corems.encapsulation.constant import Atoms, Labels
+from corems.encapsulation.constant import (
+    ADDUCT_ALIASES as _ADDUCT_ALIASES,
+    Atoms,
+    ION_TYPE_DICT,
+    Labels,
+)
 from corems.encapsulation.factory.parameters import MSParameters
 from corems.molecular_id.calc.SpectralSimilarity import SpectralSimilarity
 
@@ -32,7 +38,7 @@ if legacy_isospec:
 class MolecularFormulaCalc:
     """Class of calculations related to molecular formula
 
-    This class is not intended to be used directly, but rather to be inherited by other classes in the molecular_formula/factory module like MolecularFormula, MolecularFormulaIsotopologue, and LCMSLibRefMolecularFormula
+    This class is not intended to be used directly, but rather to be inherited by other classes in the molecular_formula/factory module like MolecularFormula and MolecularFormulaIsotopologue
 
     Attributes
     ----------
@@ -63,6 +69,14 @@ class MolecularFormulaCalc:
         Get the m/z value of a protonated or deprotonated ion version of the molecular formula.
     * _radical_mz(ion_charge)
         Get the m/z value of a radical ion version of the molecular formula.
+    * normalize_ion_type(ion_type)
+        Map alternate LCMS adduct labels onto ``ion_type_dict`` keys.
+    * charge_from_adduct(adduct)
+        Parse integer charge from an LCMS adduct string.
+    * get_ion_formula(neutral_formula, ion_type)
+        Build ion formula string from neutral formula and LCMS adduct / ion type.
+    * precursor_mz_from_formula(neutral_formula, ion_type, charge=None)
+        Calculate precursor m/z from neutral formula and LCMS adduct / ion type.
     * _neutral_mass()
         Get the neutral mass of the molecular formula.
     * _calc_mz()
@@ -79,7 +93,18 @@ class MolecularFormulaCalc:
         Subtract a formula from the current formula object.
     * _calc_average_mz_score()
         Calculate the average m/z error score of the molecular formula identification, including the isotopologues.
+
+    Notes
+    -----
+    LCMS adduct helpers use :data:`~corems.encapsulation.constant.ION_TYPE_DICT`
+    (``[M+H]+`` / ``[M-H]-``, etc.). Distinct from FTMS assignment labels in
+    :class:`~corems.encapsulation.constant.Labels` (``DE_OR_PROTONATED``,
+    ``RADICAL``, ``ADDUCT``) used by ``_calc_mz``.
     """
+
+    # Back-compat aliases → corems.encapsulation.constant source of truth
+    ion_type_dict = ION_TYPE_DICT
+    ADDUCT_ALIASES = _ADDUCT_ALIASES
 
     def _calc_resolving_power_low_pressure(self, B, T):
         """
@@ -150,6 +175,141 @@ class MolecularFormulaCalc:
         """
         return (self.neutral_mass + (ion_charge * -1 * Atoms.electron_mass)) / abs(
             ion_charge
+        )
+
+    @staticmethod
+    def normalize_ion_type(ion_type: str) -> str:
+        """Map alternate LCMS adduct labels onto ``ion_type_dict`` keys."""
+        return MolecularFormulaCalc.ADDUCT_ALIASES.get(ion_type, ion_type)
+
+    @staticmethod
+    def charge_from_adduct(adduct: str) -> int:
+        """Parse integer charge from an adduct string (e.g. ``[M+H]+``, ``[M+2H]2+``)."""
+        a = (adduct or "").strip()
+        m = re.search(r"(\d+)([+-])$", a)
+        if m:
+            return int(m.group(1)) * (1 if m.group(2) == "+" else -1)
+        if a.endswith("+"):
+            return 1
+        if a.endswith("-"):
+            return -1
+        raise ValueError(f"cannot parse charge from adduct {adduct!r}")
+
+    @staticmethod
+    def get_ion_formula(neutral_formula, ion_type):
+        """From a neutral formula and an ion type, return the formula of the ion.
+
+        Parameters
+        ----------
+        neutral_formula : str
+            Neutral formula as MolecularFormula-style (``'C2 H4 O2'``) or compact
+            (``'C2H4O2'``; isotopes only handled in the spaced form).
+        ion_type : str
+            Ion type / adduct key (see ``ion_type_dict``), or a known alias.
+            LCMS adduct notation (e.g. ``[M+H]+``), not FTMS ``Labels`` ion types.
+
+        Returns
+        -------
+        str or None
+            Ion formula string (e.g. ``'C2 H5 O2'``), or None if
+            ``neutral_formula`` is not a string.
+        """
+        # Lazy import avoids circular dependency: factory inherits this class.
+        from corems.molecular_formula.factory.MolecularFormulaFactory import (
+            MolecularFormula,
+        )
+
+        if not isinstance(neutral_formula, str):
+            return None
+
+        ion_type = MolecularFormulaCalc.normalize_ion_type(ion_type)
+        if ion_type not in MolecularFormulaCalc.ion_type_dict:
+            raise KeyError(f"unsupported ion type {ion_type!r}")
+
+        if re.search(r"\s", neutral_formula):
+            formula_obj = MolecularFormula(neutral_formula, ion_charge=0)
+        else:
+            form_pre = re.sub(r"([A-Z])", r" \1", neutral_formula)[1:]
+            elements = [re.findall(r"[A-Z][a-z]*", x) for x in form_pre.split()]
+            counts = [re.findall(r"\d+", x) for x in form_pre.split()]
+            formula_obj = MolecularFormula(
+                dict(
+                    zip(
+                        [x[0] for x in elements],
+                        [int(x[0]) if x else 1 for x in counts],
+                    )
+                ),
+                ion_charge=0,
+            )
+        neutral_formula_dict = formula_obj.to_dict().copy()
+
+        entry = MolecularFormulaCalc.ion_type_dict[ion_type]
+        adduct_add_dict = entry["add"]
+        for key in adduct_add_dict:
+            if key in neutral_formula_dict:
+                neutral_formula_dict[key] += adduct_add_dict[key]
+            else:
+                neutral_formula_dict[key] = adduct_add_dict[key]
+
+        adduct_subtract = entry["sub"]
+        for key in adduct_subtract:
+            neutral_formula_dict[key] -= adduct_subtract[key]
+
+        return MolecularFormula(neutral_formula_dict, ion_charge=0).string
+
+    @staticmethod
+    def polarity_from_ion_type(ion_type: str) -> str:
+        """Return ``'positive'`` or ``'negative'`` from ``ION_TYPE_DICT``."""
+        ion_type = MolecularFormulaCalc.normalize_ion_type(ion_type)
+        if ion_type not in ION_TYPE_DICT:
+            raise KeyError(f"unsupported ion type {ion_type!r}")
+        return ION_TYPE_DICT[ion_type]["polarity"]
+
+    @staticmethod
+    def precursor_mz_from_formula(neutral_formula, ion_type, charge=None):
+        """Calculated precursor m/z from neutral formula and adduct / ion type.
+
+        Parameters
+        ----------
+        neutral_formula : str
+            Neutral molecular formula.
+        ion_type : str
+            Adduct or ion type (``ion_type_dict`` key or alias).
+            LCMS adduct notation (e.g. ``[M-H]-``), not FTMS ``Labels`` ion types.
+        charge : int, optional
+            Ion charge. If omitted, inferred from ``ion_type``.
+
+        Returns
+        -------
+        float
+            Precursor m/z of the ion.
+
+        Raises
+        ------
+        KeyError
+            If ``ion_type`` is not supported.
+        ValueError
+            If the ion formula cannot be built or charge cannot be inferred.
+        """
+        # Lazy import avoids circular dependency: factory inherits this class.
+        from corems.molecular_formula.factory.MolecularFormulaFactory import (
+            MolecularFormula,
+        )
+
+        ion_form = MolecularFormulaCalc.get_ion_formula(neutral_formula, ion_type)
+        if ion_form is None:
+            raise ValueError(
+                f"could not build ion formula for {neutral_formula!r} {ion_type!r}"
+            )
+        if charge is None:
+            charge = MolecularFormulaCalc.charge_from_adduct(
+                MolecularFormulaCalc.normalize_ion_type(ion_type)
+            )
+        if charge == 0:
+            raise ValueError("charge must be non-zero for precursor m/z")
+        mf = MolecularFormula(ion_form, ion_charge=0)
+        return float(
+            (mf.neutral_mass + (charge * -1 * Atoms.electron_mass)) / abs(charge)
         )
 
     def _neutral_mass(self):
@@ -240,20 +400,23 @@ class MolecularFormulaCalc:
             )
 
     def _calc_mz_confidence(self, mean=0):
-        """Calculate the m/z confidence of the molecular formula, based on the experimental m/z and the calculated m/z.
+        """Calculate the monoisotopic peak Gaussian mass-accuracy score.
+
+        Implementation for the public :attr:`mz_error_score` property.
+        See that property and the ``corems.molecular_formula`` package
+        documentation for the equation, ``predicted_std`` / 1.66 ppm
+        fallback, and interpretation.
 
         Parameters
         ----------
-        mean : int, optional
-            The mean of the m/z error, by default 0
-
+        mean : float, optional
+            Mean mass error (ppm) for the Gaussian; default 0 (calibrated
+            spectrum with near-zero mean error).
         """
 
-        # predicted std not set, using 0.3
+        # predicted_std not set: fallback width (ppm) for the Gaussian score
         if not self._mspeak_parent.predicted_std:
             self._mspeak_parent.predicted_std = 1.66
-
-        # print( self._mspeak_parent.predicted_std)
 
         return exp(
             -1
@@ -264,12 +427,17 @@ class MolecularFormulaCalc:
         )
 
     def _calc_isotopologue_confidence(self):
-        """Calculate the isotopologue confidence of the molecular formula, based on the isotopologue similarity.
+        """Calculate isotopologue abundance pattern similarity.
+
+        Implementation for the public :attr:`isotopologue_similarity`
+        property. See that property and the ``corems.molecular_formula``
+        package documentation for interpretation.
 
         Returns
         -------
         float
-            The isotopologue confidence of the molecular formula.
+            Similarity in about [0, 1], or 0.0 when no isotopologues are
+            expected.
         """
 
         if self.is_isotopologue:
@@ -278,8 +446,19 @@ class MolecularFormulaCalc:
 
             mformula_index = self.mono_isotopic_formula_index
             mspeak_index = self.mspeak_index_mono_isotopic
-
-            mspeak = self._mspeak_parent._ms_parent[mspeak_index]
+            parent_ms = self._mspeak_parent._ms_parent
+            if (
+                mformula_index is None
+                or mspeak_index is None
+                or mspeak_index < 0
+                or mspeak_index >= len(parent_ms)
+            ):
+                return 0.0
+            mspeak = parent_ms[mspeak_index]
+            if mformula_index < 0 or mformula_index >= len(mspeak):
+                # Parent formula list was filtered (e.g. ion-type constrain);
+                # stale isotopologue indexes should not fail export.
+                return 0.0
 
             expected_isotopologues = mspeak[mformula_index].expected_isotopologues
 
@@ -321,10 +500,7 @@ class MolecularFormulaCalc:
             # correlation = dwt_correlation(dict_mz_abund_exp, dict_mz_abund_ref)
             # correlation = cosine_correlation(dict_mz_abund_exp, dict_mz_abund_ref)
 
-            if correlation == 1:
-                print(dict_mz_abund_exp, dict_mz_abund_ref)
             if isnan(correlation):
-                # print(dict_mz_abund_exp, dict_mz_abund_ref)
                 correlation = 0.00001
 
         else:
@@ -390,7 +566,12 @@ class MolecularFormulaCalc:
         return formula_srt
 
     def _calc_average_mz_score(self):
-        """Calculate the average m/z error score of the molecular formula identification, including the isotopologues."""
+        """Average mass-accuracy score over mono and expected isotopologues.
+
+        Implementation for the public :attr:`average_mz_error_score`
+        property. See that property and the ``corems.molecular_formula``
+        package documentation for interpretation.
+        """
         if self.is_isotopologue:
             # confidence of isotopologue is pure mz error
             # TODO add more features here
@@ -426,31 +607,26 @@ class MolecularFormulaCalc:
         return average_mz_score
 
     def _calc_confidence_score(self):
-        """Calculate the confidence score of the molecular formula identification, including the isotopologues."""
+        """Composite confidence score from mass error and isotopologues.
 
-        ### Assumes random mass error, i.e, spectrum has to be calibrated and with zero mean
-        #### TODO: Add spectral similarity
+        Implementation for the public :attr:`confidence_score` property:
 
-        ## Parameters
-        # ----------
-        #### mz_exp:
-        ####    Experimental m/z
-        #### predicted_std:
-        ####    Standart deviation calculated from Resolving power optimization or constant set by User
+        ```
+        CS = (w_err * average_mz_error_score) + (w_iso * isotopologue_similarity)
+        ```
+
+        with weights from the parent spectrum's molecular search settings.
+        Assumes a calibrated spectrum with near-zero mean mass error.
+        See the public property and the ``corems.molecular_formula`` package
+        documentation for the full formulation and literature reference.
+        """
 
         isotopologue_correlation = self.isotopologue_similarity
         average_mz_score = self.average_mz_error_score
-        # add monoisotopic peak mz error score
-
-        # calculate score with higher weight for mass error
-        # score = power(((isotopologue_correlation) * (power(average_mz_score,3))),1/4)
         a = self._mspeak_parent._ms_parent.molecular_search_settings.mz_error_score_weight
         b = self._mspeak_parent._ms_parent.molecular_search_settings.isotopologue_score_weight
 
         score = (isotopologue_correlation * b) + (average_mz_score * a)
-
-        # if round(average_mz_score,2) == 0.00:
-        #    print(a,b, average_mz_score, isotopologue_correlation, score, isotopologue_correlation*b)
 
         return score
 

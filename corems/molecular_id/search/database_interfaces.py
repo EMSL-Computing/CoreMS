@@ -18,6 +18,15 @@ from corems.molecular_id.factory.EI_SQL import (
 )
 from corems.molecular_id.factory.lipid_molecular_metadata import LipidMetadata
 from corems.mass_spectra.calc.lc_calc import find_closest
+from corems.molecular_id.search import spectral_library_cache
+
+
+def _resolve_fe_kwargs(settings=None, fe_kwargs=None) -> dict:
+    """Merge SpectralSimilaritySearchSettings.as_fe_kwargs() with optional fe_kwargs overrides."""
+    base = settings.as_fe_kwargs() if settings is not None else {}
+    if fe_kwargs:
+        base = {**base, **dict(fe_kwargs)}
+    return base
 
 
 class SpectralDatabaseInterface(ABC):
@@ -354,6 +363,11 @@ class SpectralDatabaseInterface(ABC):
         fe_index_kws = {k: v for k, v in fe_kwargs.items() if k in fe_index_kws}
         fes.build_index(fe_lib, **fe_index_kws, clean_spectra=clean_spectra)
 
+        # Store build_index parameters as custom attributes for later retrieval
+        # (FlashEntropy doesn't store these natively)
+        for key, value in fe_index_kws.items():
+            setattr(fes, f"_build_{key}", value)
+
         return fes
 
 
@@ -382,7 +396,7 @@ class MetabRefInterface(SpectralDatabaseInterface):
 class GCMSLibraryInterface(SpectralDatabaseInterface):
     """
     Interface to bundled GCMS spectral libraries in MSP format.
-    
+
     Loads GCMS compound library and FAMES calibration library from local MSP files.
     Default files are bundled with CoreMS, but can be overridden via environment variables.
     """
@@ -392,19 +406,17 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
         Initialize instance.
         """
         super().__init__(key=None)
-        
+
         # Local data file paths
         from pathlib import Path
-        
+
         # Default to bundled data files
         data_dir = Path(__file__).parent.parent / "data"
         self.gcms_library_file = os.getenv(
-            "GCMS_LIBRARY_PATH", 
-            str(data_dir / "PNNLMetV20191015.msp")
+            "GCMS_LIBRARY_PATH", str(data_dir / "PNNLMetV20191015.msp")
         )
         self.fames_library_file = os.getenv(
-            "FAMES_LIBRARY_PATH",
-            str(data_dir / "FAMES_REF.msp")
+            "FAMES_LIBRARY_PATH", str(data_dir / "FAMES_REF.msp")
         )
 
         self.__init_format_map__()
@@ -418,13 +430,13 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
         # Define format workflows
         self.format_map = {
             "json": lambda x, normalize, fe_kwargs: x,
-            "dict": lambda x,
-            normalize,
-            fe_kwargs: self._to_LowResolutionEICompound_dict(x, normalize),
-            "sql": lambda x,
-            normalize,
-            fe_kwargs: self._LowResolutionEICompound_dict_to_sqlite(
+            "dict": lambda x, normalize, fe_kwargs: (
                 self._to_LowResolutionEICompound_dict(x, normalize)
+            ),
+            "sql": lambda x, normalize, fe_kwargs: (
+                self._LowResolutionEICompound_dict_to_sqlite(
+                    self._to_LowResolutionEICompound_dict(x, normalize)
+                )
             ),
         }
 
@@ -468,10 +480,10 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
         """
         # Load from local MSP file
         library_data = self._load_msp_file(self.gcms_library_file, normalize)
-        
+
         # Init format function
         format_func = self._get_format_func(format)
-        
+
         # Apply format conversion
         return format_func(library_data, normalize, {})
 
@@ -494,72 +506,74 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
         """
         # Load from local MSP file
         library_data = self._load_msp_file(self.fames_library_file, normalize)
-        
+
         # Init format function
         format_func = self._get_format_func(format)
-        
+
         # Apply format conversion
         return format_func(library_data, normalize, {})
-    
+
     def _load_msp_file(self, file_path, normalize=False):
         """
         Load and parse MSP file into format compatible with existing pipeline.
-        
+
         Parameters
         ----------
         file_path : str
             Path to MSP file
         normalize : bool
             Normalize spectra
-            
+
         Returns
         -------
         list of dict
             Library data in format compatible with _to_LowResolutionEICompound_dict
         """
         from pathlib import Path
-        
+
         file_path = Path(file_path)
         if not file_path.exists():
             raise FileNotFoundError(
                 f"Library file not found: {file_path}. "
                 f"Set GCMS_LIBRARY_PATH or FAMES_LIBRARY_PATH environment variable to specify location."
             )
-        
+
         # Parse MSP file
         spectra = []
         spectrum = {}
         peaks = []
-        
-        with open(file_path, 'r') as f:
+
+        with open(file_path, "r") as f:
             for line in f:
                 line = line.strip()
-                
+
                 # Empty line marks end of spectrum
                 if not line:
                     if spectrum and peaks:
                         # Convert peaks to the format expected by downstream code
                         # Format: "(mz,abundance)(mz,abundance)..."
-                        peak_str = "".join([f"({int(mz)},{int(abun)})" for mz, abun in peaks])
-                        spectrum['mz'] = peak_str
+                        peak_str = "".join(
+                            [f"({int(mz)},{int(abun)})" for mz, abun in peaks]
+                        )
+                        spectrum["mz"] = peak_str
                         spectra.append(spectrum)
                     spectrum = {}
                     peaks = []
                     continue
-                
+
                 # Check if line contains peak data (starts with digit)
                 if line and line[0].isdigit():
                     parts = line.split()
                     if len(parts) >= 2:
                         peaks.append((float(parts[0]), float(parts[1])))
                     continue
-                
+
                 # Handle metadata fields
                 if ":" in line:
                     key, value = line.split(":", 1)
                     key = key.strip().lower()
                     value = value.strip()
-                    
+
                     # Map MSP fields to expected format
                     field_mapping = {
                         "name": "molecule_name",
@@ -569,9 +583,9 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
                         "ri": "ri",
                         "comment": "comments",
                         "num peaks": "peak_count",
-                        "derivative": "derivative"
+                        "derivative": "derivative",
                     }
-                    
+
                     # Metadata fields that go into the metadata dict
                     metadata_fields = {
                         "inchikey": "inchikey",
@@ -581,9 +595,9 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
                         "chebi": "chebi",
                         "kegg": "kegg",
                         "refmet": "refmet",
-                        "iupac_name": "iupac_name"
+                        "iupac_name": "iupac_name",
                     }
-                    
+
                     if key in field_mapping:
                         mapped_key = field_mapping[key]
                         # Convert numeric fields
@@ -606,13 +620,13 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
                     else:
                         # Keep unmapped fields
                         spectrum[key] = value
-        
+
         # Add last spectrum if file doesn't end with blank line
         if spectrum and peaks:
             peak_str = "".join([f"({int(mz)},{int(abun)})" for mz, abun in peaks])
-            spectrum['mz'] = peak_str
+            spectrum["mz"] = peak_str
             spectra.append(spectrum)
-        
+
         return spectra
 
     def _to_LowResolutionEICompound_dict(self, metabref_lib, normalize=False):
@@ -778,11 +792,19 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
                 # Only create metadata entry if we have required fields and valid data
                 # Filter to only include fields that Metadatar model supports
                 supported_metadata_fields = [
-                    'cas', 'inchikey', 'inchi', 'chebi', 'smiles', 
-                    'kegg', 'iupac_name', 'traditional_name', 'common_name'
+                    "cas",
+                    "inchikey",
+                    "inchi",
+                    "chebi",
+                    "smiles",
+                    "kegg",
+                    "iupac_name",
+                    "traditional_name",
+                    "common_name",
                 ]
                 filtered_metadata = {
-                    k: v for k, v in metadata.items() 
+                    k: v
+                    for k, v in metadata.items()
                     if k in supported_metadata_fields and v
                 }
                 # Inchikey is required by the database model
@@ -801,7 +823,7 @@ class GCMSLibraryInterface(SpectralDatabaseInterface):
 class MetabRefGCInterface(GCMSLibraryInterface):
     """
     DEPRECATED: Use GCMSLibraryInterface instead.
-    
+
     This interface is maintained for backward compatibility only.
     MetabRef API has been discontinued as of 2026.
     """
@@ -814,7 +836,7 @@ class MetabRefGCInterface(GCMSLibraryInterface):
             "MetabRefGCInterface is deprecated. Use GCMSLibraryInterface instead. "
             "MetabRef API has been discontinued; all data now loads from bundled local MSP files.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         super().__init__()
 
@@ -1004,12 +1026,19 @@ class LCLipidLibraryInterface(SpectralDatabaseInterface):
         mz_tol_da_api=None,
         format="json",
         normalize=True,
-        fe_kwargs={},
+        fe_kwargs=None,
+        settings=None,
         api_delay=5,
         api_attempts=10,
     ):
         """
         Retrieve lipid spectra and metadata from a local sqlite library.
+
+        FlashEntropy build knobs should come from
+        :class:`~corems.encapsulation.factory.processingSetting.SpectralSimilaritySearchSettings`
+        so library generation matches later
+        :meth:`~corems.molecular_id.search.lcms_spectral_search.LCMSSpectralSearch.fe_search`
+        / molecular networking on the same LC-MS sample or collection.
 
         Parameters
         ----------
@@ -1024,9 +1053,41 @@ class LCLipidLibraryInterface(SpectralDatabaseInterface):
         format : str, optional
             Format of requested library, e.g. "json" or "flashentropy".
         normalize : bool, optional
-            Normalize spectrum intensities.
+            Normalize spectrum intensities (default True; always recommended).
         fe_kwargs : dict, optional
-            Keyword arguments for FlashEntropy search.
+            Keyword arguments for FlashEntropy search. Override keys from
+            *settings* when both are provided. Prefer *settings* for new code.
+        settings : SpectralSimilaritySearchSettings, optional
+            Encapsulated FE build settings. For an :class:`~corems.mass_spectra.factory.lc_class.LCMSBase`
+            object, pass the profile bag used for MS2 association/search, typically::
+
+                from corems.encapsulation.factory.parameters import settings_from_lcms
+                settings=settings_from_lcms(lcms_obj)  # mass_spectrum["ms2"]
+
+            or explicitly
+            ``lcms_obj.parameters.mass_spectrum["ms2"].spectral_similarity_search``.
+            For an :class:`~corems.mass_spectra.factory.lc_class.LCMSCollection`,
+            configure settings once, broadcast to every sample, then pass
+            collection settings into the library build::
+
+                from corems.encapsulation.factory.parameters import (
+                    apply_spectral_similarity_search_to_collection,
+                    settings_from_lcms_collection,
+                )
+                from corems.encapsulation.factory.processingSetting import (
+                    SpectralSimilaritySearchSettings,
+                )
+
+                ss = SpectralSimilaritySearchSettings()
+                ss.max_ms2_tolerance_in_da = 0.01
+                ss.ms2_min_fe_score = 0.3
+                apply_spectral_similarity_search_to_collection(
+                    lcms_collection, ss, profile="ms2"
+                )
+                settings=settings_from_lcms_collection(lcms_collection)
+
+            Mutating ``settings_from_lcms_collection(...)`` in place only changes
+            the first sample. Multi-MS2 profiles use ``profile="ms2_cid"`` (etc.).
         api_delay : int, optional
             Unused, kept for backward compatibility.
         api_attempts : int, optional
@@ -1036,7 +1097,52 @@ class LCLipidLibraryInterface(SpectralDatabaseInterface):
         -------
         tuple
             Library in requested format and lipid metadata dictionary.
+
+        Notes
+        -----
+        *settings* only drives FlashEntropy index construction. Annotation
+        thresholds such as ``ms2_min_fe_score`` are applied later by
+        ``fe_search`` on the LCMS object (from the same
+        ``spectral_similarity_search`` instance when configured consistently).
+
+        Examples
+        --------
+        Build a FlashEntropy library from an LCMSBase object's MS2 profile, then search::
+
+            from corems.encapsulation.factory.parameters import settings_from_lcms
+
+            settings = settings_from_lcms(lcms_obj, profile="ms2")
+            fe_lib, lipid_meta = lipid_interface.get_lipid_library(
+                mz_list=precursor_mzs,
+                polarity=lcms_obj.polarity,
+                mz_tol_ppm=5,
+                format="flashentropy",
+                settings=settings,
+            )
+            lcms_obj.fe_search(scan_list=ms2_scans, fe_lib=fe_lib)
+
+        Collection — configure, broadcast to all samples, then build library::
+
+            from corems.encapsulation.factory.parameters import (
+                apply_spectral_similarity_search_to_collection,
+                settings_from_lcms_collection,
+            )
+            from corems.encapsulation.factory.processingSetting import (
+                SpectralSimilaritySearchSettings,
+            )
+
+            ss = SpectralSimilaritySearchSettings()
+            ss.max_ms2_tolerance_in_da = 0.01
+            apply_spectral_similarity_search_to_collection(lcms_collection, ss)
+            fe_lib, lipid_meta = lipid_interface.get_lipid_library(
+                mz_list=precursor_mzs,
+                polarity="positive",
+                mz_tol_ppm=5,
+                format="flashentropy",
+                settings=settings_from_lcms_collection(lcms_collection),
+            )
         """
+        fe_kwargs = _resolve_fe_kwargs(settings=settings, fe_kwargs=fe_kwargs)
 
         if not isinstance(mz_list, (list, np.ndarray)):
             raise ValueError("mz_list must be a list or numpy array")
@@ -1090,7 +1196,7 @@ class MSPInterface(SpectralDatabaseInterface):
     Interface to parse NIST MSP files
     """
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, cache=True, cache_path=None, rebuild_cache=False):
         """
         Initialize instance.
 
@@ -1098,13 +1204,22 @@ class MSPInterface(SpectralDatabaseInterface):
         ----------
         file_path : str
             Path to a local MSP file.
+        cache : bool or str, optional
+            If True, use a parquet sidecar when valid, otherwise parse and write
+            it. If False, always parse. If ``"read"``, require a valid cache.
+            Default is True. Sidecar path defaults to
+            ``<file_path>.corems-lib.parquet``.
+        cache_path : str or Path, optional
+            Override the default cache path.
+        rebuild_cache : bool, optional
+            Force re-parse and rewrite the cache. Default is False.
 
         Attributes
         ----------
         file_path : str
             Path to the MSP file.
         _file_content : str
-            Content of the MSP file.
+            Content of the MSP file (only set when parsing text).
         _data_frame : :obj:`~pandas.DataFrame`
             DataFrame of spectra from the MSP file with unaltered content.
         """
@@ -1115,11 +1230,45 @@ class MSPInterface(SpectralDatabaseInterface):
             raise FileNotFoundError(
                 f"File {self.file_path} does not exist. Please check the file path."
             )
+        self._file_content = None
+        self._cache_path = (
+            Path(cache_path)
+            if cache_path is not None
+            else spectral_library_cache.default_cache_path(self.file_path)
+        )
+        self._data_frame = self._load_msp_dataframe(
+            cache=cache, rebuild_cache=rebuild_cache
+        )
+        self.__init_format_map__()
+
+    def _load_msp_dataframe(self, cache=True, rebuild_cache=False):
+        """Load from parquet cache or parse the MSP file."""
+        use_cache = cache not in (False, None)
+        require_cache = cache == "read"
+        extra = {"source_kind": "msp"}
+
+        if (
+            use_cache
+            and not rebuild_cache
+            and spectral_library_cache.is_valid(
+                self._cache_path, self.file_path, extra_meta=extra
+            )
+        ):
+            return spectral_library_cache.read(self._cache_path)
+
+        if require_cache:
+            raise FileNotFoundError(
+                f"Valid library cache required at {self._cache_path}"
+            )
+
         with open(self.file_path, "r") as f:
             self._file_content = f.read()
-
-        self._data_frame = self._read_msp_file()
-        self.__init_format_map__()
+        df = self._read_msp_file()
+        if use_cache:
+            spectral_library_cache.write(
+                self._cache_path, df, self.file_path, extra_meta=extra
+            )
+        return df
 
     def __init_format_map__(self):
         """
@@ -1193,36 +1342,36 @@ class MSPInterface(SpectralDatabaseInterface):
                     df[column] = pd.to_numeric(df[column], errors="raise")
                 except:
                     pass
-        
+
         # Standardize spectra ID column name
         # Check for common variations and create a standard 'spectra_id' column
-        spectra_id_variants = ['spectrum_id', 'gnps_spectra_id']
+        spectra_id_variants = ["spectrum_id", "gnps_spectra_id"]
         for variant in spectra_id_variants:
-            if variant in df.columns and 'spectra_id' not in df.columns:
-                df['spectra_id'] = df[variant]
+            if variant in df.columns and "spectra_id" not in df.columns:
+                df["spectra_id"] = df[variant]
                 break
-        
+
         # If no spectra_id column exists after checking variants, create one with sequential IDs
-        if 'spectra_id' not in df.columns:
-            df['spectra_id'] = [f"spectrum_{i:06d}" for i in range(len(df))]
-        
+        if "spectra_id" not in df.columns:
+            df["spectra_id"] = [f"spectrum_{i:06d}" for i in range(len(df))]
+
         # Standardize compound name column
         # Ensure 'compound_name' column exists, using 'name' field
-        if 'name' in df.columns and 'compound_name' not in df.columns:
-            df['compound_name'] = df['name']
-        elif 'compound_name' not in df.columns:
+        if "name" in df.columns and "compound_name" not in df.columns:
+            df["compound_name"] = df["name"]
+        elif "compound_name" not in df.columns:
             warnings.warn(
                 "MSP file does not contain 'name' or 'compound_name' field. "
                 "Compound names will be set to 'Unknown'. This may affect plot labels and annotations.",
-                UserWarning
+                UserWarning,
             )
-            df['compound_name'] = 'Unknown'
-        
+            df["compound_name"] = "Unknown"
+
         return df
 
     def _to_df(self, input_dataframe, normalize=True):
         """
-        Convert MSP-derived library to FlashEntropy library. 
+        Convert MSP-derived library to FlashEntropy library.
 
         Parameters
         ----------
@@ -1266,11 +1415,11 @@ class MSPInterface(SpectralDatabaseInterface):
 
                 # Add spectrum to library
                 lib.append(spectrum)
-            
+
             # Convert to DataFrame
             df = pd.DataFrame(lib)
             return df
-    
+
     def _to_flashentropy(self, input_dataframe, normalize=True, fe_kwargs={}):
         """
         Convert MSP-derived library to FlashEntropy library.
@@ -1345,7 +1494,7 @@ class MSPInterface(SpectralDatabaseInterface):
         fe_search = self._build_flash_entropy_index(fe_lib, fe_kwargs=fe_kwargs)
 
         return fe_search
-    
+
     def _check_msp_compatibility(self):
         """
         Check if the MSP file is compatible with the get_metabolomics_spectra_library method and provide feedback if it is not.
@@ -1370,7 +1519,7 @@ class MSPInterface(SpectralDatabaseInterface):
 
         # Check if the MSP file contains the required columns for metabolite metadata
         # either formula or molecular_formula, not null
-        
+
         if (
             "formula" not in self._data_frame.columns
             and "molecular_formula" not in self._data_frame.columns
@@ -1392,11 +1541,18 @@ class MSPInterface(SpectralDatabaseInterface):
         metabolite_metadata_mapping={},
         format="fe",
         normalize=True,
-        fe_kwargs={},
+        fe_kwargs=None,
+        settings=None,
         molecular_id_field="inchikey",
     ):
         """
-        Prepare metabolomics spectra library and associated metabolite metadata
+        Prepare metabolomics spectra library and associated metabolite metadata.
+
+        FlashEntropy build knobs should come from
+        :class:`~corems.encapsulation.factory.processingSetting.SpectralSimilaritySearchSettings`
+        so library generation matches later
+        :meth:`~corems.molecular_id.search.lcms_spectral_search.LCMSSpectralSearch.fe_search`
+        / molecular networking on the same LC-MS sample or collection.
 
         Parameters
         ----------
@@ -1409,9 +1565,44 @@ class MSPInterface(SpectralDatabaseInterface):
             Output format for the spectral library. Options: 'fe', 'flashentropy', 'msp', 'df'.
             Default is 'fe' (FlashEntropy).
         normalize : bool, optional
-            Whether to normalize spectra. Default is True.
+            Whether to normalize spectra. Default is True (always recommended).
         fe_kwargs : dict, optional
             Additional keyword arguments for FlashEntropy library creation.
+            Override keys from *settings* when both are provided. Prefer *settings*
+            for new code.
+        settings : SpectralSimilaritySearchSettings, optional
+            Encapsulated FE build settings. For an
+            :class:`~corems.mass_spectra.factory.lc_class.LCMSBase` object, pass
+            the MS2 parameter profile used for association/search, typically::
+
+                from corems.encapsulation.factory.parameters import settings_from_lcms
+                settings=settings_from_lcms(lcms_obj)  # mass_spectrum["ms2"]
+
+            or explicitly
+            ``lcms_obj.parameters.mass_spectrum["ms2"].spectral_similarity_search``.
+            For an :class:`~corems.mass_spectra.factory.lc_class.LCMSCollection`,
+            configure settings once, broadcast to every sample, then pass the
+            collection's (first-sample) settings into the library build::
+
+                from corems.encapsulation.factory.parameters import (
+                    apply_spectral_similarity_search_to_collection,
+                    settings_from_lcms_collection,
+                )
+                from corems.encapsulation.factory.processingSetting import (
+                    SpectralSimilaritySearchSettings,
+                )
+
+                ss = SpectralSimilaritySearchSettings()
+                ss.max_ms2_tolerance_in_da = 0.01
+                apply_spectral_similarity_search_to_collection(
+                    lcms_collection, ss, profile="ms2"
+                )
+                settings=settings_from_lcms_collection(lcms_collection)
+
+            Mutating ``settings_from_lcms_collection(...)`` in place only changes
+            the first sample — use :func:`apply_spectral_similarity_search_to_collection`
+            to keep all members equal. Multi-MS2 profiles use ``profile="ms2_cid"``
+            (or the matching ``mass_spectrum`` key).
         molecular_id_field : str, optional
             Field name to use as the unique molecular identifier for linking spectra to metadata.
             Default is 'inchikey'. The specified field must exist in the MSP file and contain
@@ -1426,10 +1617,48 @@ class MSPInterface(SpectralDatabaseInterface):
         Notes
         -----
         The molecular_id_field parameter allows flexibility for different MSP file formats:
+
         - Use 'inchikey' for standard metabolite databases (default)
         - Use 'name' or 'spectra_id' for custom or isotope-labeled standards
         - The specified field must exist and contain non-null values for all entries
 
+        *settings* only drives FlashEntropy index construction. Annotation
+        thresholds such as ``ms2_min_fe_score`` are applied later by
+        ``fe_search`` on the LCMS object when it reads the same
+        ``spectral_similarity_search`` instance.
+
+        Examples
+        --------
+        Single LCMSBase file::
+
+            from corems.encapsulation.factory.parameters import settings_from_lcms
+
+            settings = settings_from_lcms(lcms_obj, profile="ms2")
+            fe_lib, mol_meta = msp_interface.get_metabolomics_spectra_library(
+                polarity="positive",
+                format="flashentropy",
+                settings=settings,
+            )
+            lcms_obj.fe_search(scan_list=ms2_scans, fe_lib=fe_lib)
+
+        Collection — configure, broadcast to all samples, then build library::
+
+            from corems.encapsulation.factory.parameters import (
+                apply_spectral_similarity_search_to_collection,
+                settings_from_lcms_collection,
+            )
+            from corems.encapsulation.factory.processingSetting import (
+                SpectralSimilaritySearchSettings,
+            )
+
+            ss = SpectralSimilaritySearchSettings()
+            ss.max_ms2_tolerance_in_da = 0.01
+            apply_spectral_similarity_search_to_collection(lcms_collection, ss)
+            fe_lib, mol_meta = msp_interface.get_metabolomics_spectra_library(
+                polarity="negative",
+                format="flashentropy",
+                settings=settings_from_lcms_collection(lcms_collection),
+            )
         """
         # Check if the MSP file is compatible with the get_metabolomics_spectra_library method
         self._check_msp_compatibility()
@@ -1452,28 +1681,30 @@ class MSPInterface(SpectralDatabaseInterface):
                 "kegg_id": "kegg",
                 "refmet_name": "common_name",
                 "molecular_formula": "formula",
-                "gnps_spectra_id":"id",
+                "gnps_spectra_id": "id",
                 "precursormz": "precursor_mz",
-                "precursortype":"ion_type"
+                "precursortype": "ion_type",
             }
         db_df.rename(columns=metabolite_metadata_mapping, inplace=True)
-        
+
         # Create molecular_data_id from the specified field
         if molecular_id_field not in db_df.columns:
             raise ValueError(
                 f"Specified molecular_id_field '{molecular_id_field}' not found in MSP data. "
                 f"Available columns: {', '.join(db_df.columns)}"
             )
-        
+
+        fe_kwargs = _resolve_fe_kwargs(settings=settings, fe_kwargs=fe_kwargs)
+
         if not db_df[molecular_id_field].notnull().all():
             raise ValueError(
                 f"Specified molecular_id_field '{molecular_id_field}' contains null values. "
                 f"All entries must have non-null values for the molecular ID field."
             )
-        
+
         # Use the specified field as the molecular ID
         db_df["molecular_data_id"] = db_df[molecular_id_field].astype(str)
-        
+
         # Ensure 'id' field exists for spectra identification
         # If not present, create from spectra_id or use a sequential index
         if "id" not in db_df.columns:
@@ -1503,13 +1734,13 @@ class MSPInterface(SpectralDatabaseInterface):
         ].copy()
 
         # Make unique and recast the id column for metabolite metadata
-        metabolite_metadata_df.drop_duplicates(subset=["molecular_data_id"], inplace=True)
+        metabolite_metadata_df.drop_duplicates(
+            subset=["molecular_data_id"], inplace=True
+        )
         metabolite_metadata_df["id"] = metabolite_metadata_df["molecular_data_id"]
 
         # Convert to a dictionary using the molecular_data_id as the key
-        metabolite_metadata_dict = metabolite_metadata_df.to_dict(
-            orient="records"
-        )
+        metabolite_metadata_dict = metabolite_metadata_df.to_dict(orient="records")
         metabolite_metadata_dict = {
             v["id"]: self._dict_to_dataclass(v, MetaboliteMetadata)
             for v in metabolite_metadata_dict
@@ -1522,6 +1753,374 @@ class MSPInterface(SpectralDatabaseInterface):
                     db_df.drop(columns=key, inplace=True)
 
         # Format the spectral library
+        format_func = self._get_format_func(format)
+        lib = format_func(db_df, normalize=normalize, fe_kwargs=fe_kwargs)
+        return (lib, metabolite_metadata_dict)
+
+
+class SpectraverseMS2Interface(SpectralDatabaseInterface):
+    """Interface to Spectraverse MS/MS (MS2) libraries (MGF).
+
+    Loads MS2 spectra only for metabolomics spectral search (Flash Entropy or
+    DataFrame). Precursor m/z used for search is calculated from formula + adduct
+    via CoreMS ion-type machinery, not the library experimental PRECURSOR_MZ.
+
+    Download the release MGF from Zenodo, e.g.
+    https://zenodo.org/records/19927403 (``spectraverse-1.0.2.mgf``).
+
+    References
+    ----------
+    Gupta, V., Qiang, H., Chung, H.-H., Herbst, E., & Skinnider, M. (2026).
+    Comprehensive curation and harmonization of small molecule MS/MS libraries
+    in Spectraverse [Data set]. Zenodo.
+    https://doi.org/10.5281/zenodo.17252772
+
+    See also: https://github.com/skinniderlab/spectraverse-analysis
+    """
+
+    def __init__(self, file_path, cache=True, cache_path=None, rebuild_cache=False):
+        """
+        Parameters
+        ----------
+        file_path : str or Path
+            Path to a Spectraverse MGF file.
+        cache : bool or str, optional
+            If True, use a parquet sidecar when valid, otherwise parse and write
+            it. If False, always parse. If ``"read"``, require a valid cache.
+            Default is True.
+        cache_path : str or Path, optional
+            Override default ``<file_path>.corems-lib.parquet``.
+        rebuild_cache : bool, optional
+            Force re-parse and rewrite the cache. Default is False.
+        """
+        super().__init__(key=None)
+        self.file_path = str(file_path)
+        if not os.path.exists(self.file_path):
+            raise FileNotFoundError(
+                f"File {self.file_path} does not exist. Please check the file path."
+            )
+        self._cache_path = (
+            Path(cache_path)
+            if cache_path is not None
+            else spectral_library_cache.default_cache_path(self.file_path)
+        )
+        self._precursor_cache = {}
+        self._data_frame = self._load_dataframe(
+            cache=cache, rebuild_cache=rebuild_cache
+        )
+        self.__init_format_map__()
+
+    def __init_format_map__(self):
+        self.format_map = {
+            "flashentropy": lambda x, normalize, fe_kwargs: self._to_flashentropy(
+                x, normalize, fe_kwargs
+            ),
+            "df": lambda x, normalize, fe_kwargs: self._to_df(x, normalize),
+        }
+        self.format_map["fe"] = self.format_map["flashentropy"]
+        self.format_map["flash-entropy"] = self.format_map["flashentropy"]
+        self.format_map["dataframe"] = self.format_map["df"]
+        self.format_map["data-frame"] = self.format_map["df"]
+
+    def _load_dataframe(self, cache=True, rebuild_cache=False):
+        use_cache = cache not in (False, None)
+        require_cache = cache == "read"
+        extra = {
+            "source_kind": "spectraverse_mgf",
+            "precursor_policy": "formula+adduct",
+        }
+
+        if (
+            use_cache
+            and not rebuild_cache
+            and spectral_library_cache.is_valid(
+                self._cache_path, self.file_path, extra_meta=extra
+            )
+        ):
+            return spectral_library_cache.read(self._cache_path)
+
+        if require_cache:
+            raise FileNotFoundError(
+                f"Valid library cache required at {self._cache_path}"
+            )
+
+        df = self._read_mgf_file()
+        if use_cache:
+            spectral_library_cache.write(
+                self._cache_path, df, self.file_path, extra_meta=extra
+            )
+        return df
+
+    def _precursor_mz_from_formula(self, formula: str, adduct: str) -> float:
+        """Calculate precursor m/z from neutral formula and adduct."""
+        from corems.molecular_formula.calc.MolecularFormulaCalc import (
+            MolecularFormulaCalc,
+        )
+
+        key = (formula, adduct)
+        if key in self._precursor_cache:
+            return self._precursor_cache[key]
+        mz = MolecularFormulaCalc.precursor_mz_from_formula(formula, adduct)
+        self._precursor_cache[key] = mz
+        return mz
+
+    def _read_mgf_file(self) -> pd.DataFrame:
+        """Stream-parse Spectraverse MGF; keep MS2 spectra only."""
+        spectra = []
+        headers = {}
+        peaks = []
+        in_block = False
+        n_skipped = 0
+
+        with open(self.file_path, "r", encoding="utf-8", errors="replace") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                if line == "BEGIN IONS":
+                    in_block = True
+                    headers = {}
+                    peaks = []
+                    continue
+                if line == "END IONS":
+                    if in_block:
+                        row = self._finalize_mgf_block(headers, peaks)
+                        if row is None:
+                            n_skipped += 1
+                        else:
+                            spectra.append(row)
+                    in_block = False
+                    headers = {}
+                    peaks = []
+                    continue
+                if not in_block:
+                    continue
+                if "=" in line and not line[0].isdigit():
+                    key, value = line.split("=", 1)
+                    headers[key.strip().upper()] = value.strip()
+                elif line[0].isdigit() or (
+                    line[0] == "-" and len(line) > 1 and line[1].isdigit()
+                ):
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        peaks.append([float(parts[0]), float(parts[1])])
+
+        if not spectra:
+            raise ValueError(
+                f"No MS2 spectra loaded from {self.file_path}"
+                + (f" ({n_skipped} blocks skipped)" if n_skipped else "")
+            )
+        if n_skipped:
+            warnings.warn(
+                f"Skipped {n_skipped} Spectraverse MGF blocks (non-MS2, empty, or "
+                f"unsupported formula/adduct).",
+                UserWarning,
+            )
+        return pd.DataFrame(spectra)
+
+    def _finalize_mgf_block(self, headers: dict, peaks: list):
+        ms_level = str(headers.get("MS_LEVEL", "")).strip().upper()
+        if ms_level not in ("MS2", "2"):
+            return None
+        if not peaks:
+            return None
+
+        formula = headers.get("FORMULA", "").strip()
+        adduct = headers.get("ADDUCT", "").strip()
+        if not formula or not adduct:
+            return None
+
+        try:
+            precursor_mz = self._precursor_mz_from_formula(formula, adduct)
+        except Exception:
+            return None
+
+        ionmode = headers.get("IONMODE", "").strip().lower()
+        title = headers.get("TITLE", "").strip()
+        compound_name = headers.get("COMPOUND_NAME", "").strip() or "Unknown"
+        peaks_arr = np.asarray(peaks, dtype=np.float64)
+
+        lib_precursor = headers.get("PRECURSOR_MZ", "").strip()
+        try:
+            precursor_mz_library = float(lib_precursor) if lib_precursor else None
+        except ValueError:
+            precursor_mz_library = None
+
+        return {
+            "id": title or None,
+            "spectra_id": title or None,
+            "name": compound_name,
+            "compound_name": compound_name,
+            "formula": formula,
+            "inchikey": headers.get("INCHIKEY", "").strip() or None,
+            "inchi": headers.get("INCHI", "").strip() or None,
+            "smiles": headers.get("SMILES", "").strip() or None,
+            "ionmode": ionmode,
+            "polarity": ionmode,
+            "ion_type": adduct,
+            "adduct": adduct,
+            "precursor_mz": precursor_mz,
+            "precursor_mz_library": precursor_mz_library,
+            "charge": headers.get("CHARGE", "").strip() or None,
+            "source": headers.get("SOURCE", "").strip() or None,
+            "instrument_type": headers.get("INSTRUMENT_TYPE", "").strip() or None,
+            "ms_level": ms_level,
+            "peaks": peaks_arr,
+            "num peaks": len(peaks_arr),
+        }
+
+    def _to_df(self, input_dataframe, normalize=True):
+        if not normalize:
+            return input_dataframe
+        db_dict = input_dataframe.to_dict(orient="records")
+        lib = []
+        for spectrum in db_dict:
+            if "peaks" not in spectrum:
+                raise KeyError("peaks key not found in spectrum")
+            if not isinstance(spectrum["peaks"], np.ndarray):
+                spectrum["peaks"] = np.array(spectrum["peaks"])
+            spectrum["peaks"] = self.normalize_peaks(spectrum["peaks"])
+            spectrum["num peaks"] = len(spectrum["peaks"])
+            lib.append(spectrum)
+        return pd.DataFrame(lib)
+
+    def _to_flashentropy(self, input_dataframe, normalize=True, fe_kwargs={}):
+        self._check_flash_entropy_kwargs(fe_kwargs)
+        fe_lib = []
+        for source in input_dataframe.to_dict(orient="records"):
+            spectrum = source
+            if "precursor_mz" not in spectrum:
+                raise KeyError("precursor_mz required for FlashEntropy format")
+            if "peaks" not in spectrum:
+                raise KeyError("peaks key not found in spectrum")
+            if not isinstance(spectrum["peaks"], np.ndarray):
+                spectrum["peaks"] = np.array(spectrum["peaks"])
+            if normalize:
+                spectrum["peaks"] = self.normalize_peaks(spectrum["peaks"])
+            fe_lib.append(spectrum)
+        return self._build_flash_entropy_index(fe_lib, fe_kwargs=fe_kwargs)
+
+    def _check_spectraverse_compatibility(self):
+        if (
+            "polarity" not in self._data_frame.columns
+            and "ionmode" not in self._data_frame.columns
+        ):
+            raise ValueError(
+                "Neither 'polarity' nor 'ionmode' columns found in Spectraverse data."
+            )
+        polarity_column = (
+            "polarity" if "polarity" in self._data_frame.columns else "ionmode"
+        )
+        if not all(self._data_frame[polarity_column].isin(["positive", "negative"])):
+            raise ValueError(
+                f"'{polarity_column}' must contain only 'positive' or 'negative' values."
+            )
+        if "formula" not in self._data_frame.columns:
+            raise ValueError("Spectraverse data must contain a 'formula' column.")
+        if not all(self._data_frame["formula"].notnull()):
+            raise ValueError("'formula' must contain only non-null values.")
+
+    def get_metabolomics_spectra_library(
+        self,
+        polarity,
+        metabolite_metadata_mapping=None,
+        format="fe",
+        normalize=True,
+        fe_kwargs=None,
+        settings=None,
+        molecular_id_field="inchikey",
+    ):
+        """
+        Prepare metabolomics MS2 spectra library and metabolite metadata.
+
+        Parameters
+        ----------
+        polarity : str
+            ``'positive'`` or ``'negative'``.
+        metabolite_metadata_mapping : dict, optional
+            Optional column renames into MetaboliteMetadata fields.
+        format : str, optional
+            ``'fe'`` / ``'flashentropy'`` or ``'df'`` / ``'dataframe'``.
+        normalize : bool, optional
+            Normalize peak intensities. Default True.
+        fe_kwargs : dict, optional
+            FlashEntropy build options. Override keys from *settings* when both
+            are provided. Prefer *settings* for new code.
+        settings : SpectralSimilaritySearchSettings, optional
+            Encapsulated FE build settings (same object used by
+            ``MSPInterface.get_metabolomics_spectra_library``). Constructor
+            kwargs ``cache`` / ``cache_path`` / ``rebuild_cache`` stay on
+            :meth:`__init__`; do not pass *settings* there.
+        molecular_id_field : str, optional
+            Field used as molecular metadata key. Default ``'inchikey'``.
+
+        Returns
+        -------
+        tuple
+            ``(spectral_library, metabolite_metadata_dict)``.
+        """
+        if metabolite_metadata_mapping is None:
+            metabolite_metadata_mapping = {}
+        fe_kwargs = _resolve_fe_kwargs(settings=settings, fe_kwargs=fe_kwargs)
+
+        self._check_spectraverse_compatibility()
+
+        if polarity not in ["positive", "negative"]:
+            raise ValueError("Polarity must be 'positive' or 'negative'")
+        polarity_column = (
+            "polarity" if "polarity" in self._data_frame.columns else "ionmode"
+        )
+        db_df = self._data_frame[self._data_frame[polarity_column] == polarity].copy()
+        if db_df.empty:
+            raise ValueError(f"No Spectraverse spectra for polarity={polarity!r}")
+
+        if metabolite_metadata_mapping:
+            db_df.rename(columns=metabolite_metadata_mapping, inplace=True)
+
+        if molecular_id_field not in db_df.columns:
+            raise ValueError(
+                f"Specified molecular_id_field '{molecular_id_field}' not found. "
+                f"Available columns: {', '.join(map(str, db_df.columns))}"
+            )
+        if not db_df[molecular_id_field].notnull().all():
+            raise ValueError(
+                f"Specified molecular_id_field '{molecular_id_field}' contains null values."
+            )
+
+        db_df["molecular_data_id"] = db_df[molecular_id_field].astype(str)
+        if "id" not in db_df.columns or db_df["id"].isnull().any():
+            if "spectra_id" in db_df.columns:
+                db_df["id"] = db_df["spectra_id"].astype(str)
+            else:
+                db_df["id"] = [f"spectrum_{i:06d}" for i in range(len(db_df))]
+
+        required_columns = ["molecular_data_id", "precursor_mz", "ion_type", "id"]
+        for col in required_columns:
+            if col not in db_df.columns:
+                raise ValueError(
+                    f"Spectraverse data must contain '{col}' for FlashEntropy search."
+                )
+
+        metabolite_metadata_keys = list(MetaboliteMetadata.__annotations__.keys())
+        metabolite_metadata_keys = [
+            "molecular_data_id" if x == "id" else x for x in metabolite_metadata_keys
+        ]
+        metabolite_metadata_df = db_df[
+            db_df.columns[db_df.columns.isin(metabolite_metadata_keys)]
+        ].copy()
+        metabolite_metadata_df.drop_duplicates(
+            subset=["molecular_data_id"], inplace=True
+        )
+        metabolite_metadata_df["id"] = metabolite_metadata_df["molecular_data_id"]
+        metabolite_metadata_dict = {
+            v["id"]: self._dict_to_dataclass(v, MetaboliteMetadata)
+            for v in metabolite_metadata_df.to_dict(orient="records")
+        }
+
+        for key in metabolite_metadata_keys:
+            if key != "molecular_data_id" and key in db_df.columns:
+                db_df.drop(columns=key, inplace=True)
+
         format_func = self._get_format_func(format)
         lib = format_func(db_df, normalize=normalize, fe_kwargs=fe_kwargs)
         return (lib, metabolite_metadata_dict)

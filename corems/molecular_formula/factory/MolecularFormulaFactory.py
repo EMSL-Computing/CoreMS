@@ -59,13 +59,24 @@ class MolecularFormulaBase(MolecularFormulaCalc):
     atoms : list
         The atoms in the molecular formula.
     confidence_score : float
-        The confidence score of the molecular formula identification.
+        Composite assignment confidence score in about [0, 1] (higher is
+        better). Weighted sum of ``average_mz_error_score`` and
+        ``isotopologue_similarity`` using
+        ``mz_error_score_weight`` / ``isotopologue_score_weight`` from the
+        parent spectrum's molecular search settings. See the
+        ``corems.molecular_formula`` package documentation for the full
+        formulation and literature reference.
     isotopologue_similarity : float
-        The isotopologue similarity score of the molecular formula identification.
+        Similarity between expected and observed isotopologue abundance
+        patterns (about [0, 1]). Zero when no isotopologues are expected or
+        none were computed during search.
     average_mz_error_score : float
-        The average m/z error score of the molecular formula identification, including the isotopologues.
+        Mean Gaussian mass-accuracy score over the monoisotopic peak and
+        expected isotopologue peaks. Missing expected isotopologues
+        contribute 0.
     mz_error_score : float
-        The m/z error score of the molecular formula identification.
+        Gaussian mass-accuracy score for this formula on its parent peak
+        only (ppm error vs ``predicted_std`` or a 1.66 ppm fallback).
     kmd : float
         The Kendrick mass defect (KMD).
     kendrick_mass : float
@@ -433,6 +444,36 @@ class MolecularFormulaBase(MolecularFormulaCalc):
 
     @property
     def confidence_score(self):
+        """Composite molecular formula assignment confidence score.
+
+        Combines formula-level mass accuracy and isotopologue pattern
+        agreement:
+
+        ```
+        CS = (w_err * m_err) + (w_iso * m_iso)
+        ```
+
+        where ``m_err`` is :attr:`average_mz_error_score`, ``m_iso`` is
+        :attr:`isotopologue_similarity`, and the weights are
+        ``molecular_search_settings.mz_error_score_weight`` (default 0.6)
+        and ``isotopologue_score_weight`` (default 0.4).
+
+        Returns
+        -------
+        float
+            Score typically in about [0, 1]; higher values indicate better
+            agreement with mass error and (when available) isotopologue
+            evidence. Used for ranking when ``score_method`` is
+            ``\"prob_score\"``.
+
+        Notes
+        -----
+        Requires an associated parent mass spectral peak. Isotopologue
+        terms are only informative when search was run with isotopologue
+        detection enabled. See the ``corems.molecular_formula`` package
+        documentation and Dewey et al., *Anal. Chem.* 2025, 97, 13031–13039
+        (https://doi.org/10.1021/acs.analchem.4c06826).
+        """
         if not self._confidence_score:
             self._confidence_score = self._calc_confidence_score()
 
@@ -440,6 +481,25 @@ class MolecularFormulaBase(MolecularFormulaCalc):
 
     @property
     def isotopologue_similarity(self):
+        """Isotopologue abundance pattern similarity for this formula.
+
+        Compares expected natural-abundance isotopologue intensities
+        (from dynamic-range-limited expansion) to abundances of peaks
+        assigned as those partners. Implemented as a normalized Manhattan
+        distance mapped to a similarity in about [0, 1]
+        (higher is better).
+
+        Returns
+        -------
+        float
+            Similarity score. Returns 0.0 when no isotopologues are
+            expected for this monoisotopic formula (or none were computed).
+
+        Notes
+        -----
+        This is the ``m_iso`` term in :attr:`confidence_score`. See the
+        ``corems.molecular_formula`` package documentation for details.
+        """
         if not self._isotopologue_similarity:
             self._isotopologue_similarity = self._calc_isotopologue_confidence()
 
@@ -447,6 +507,21 @@ class MolecularFormulaBase(MolecularFormulaCalc):
 
     @property
     def average_mz_error_score(self):
+        """Mean mass-accuracy score over mono and expected isotopologues.
+
+        Averages :attr:`mz_error_score` for the monoisotopic assignment and
+        for each expected isotopologue formula that has a parent peak.
+        Expected isotopologues without a matched peak contribute 0.
+
+        Returns
+        -------
+        float
+            Mean Gaussian mass-error score in about [0, 1].
+
+        Notes
+        -----
+        This is the ``m_err`` term in :attr:`confidence_score`.
+        """
         # includes the isotopologues
 
         if not self._mass_error_average_score:
@@ -456,6 +531,30 @@ class MolecularFormulaBase(MolecularFormulaCalc):
 
     @property
     def mz_error_score(self):
+        """Gaussian mass-accuracy score for this formula on its parent peak.
+
+        Uses the assignment mass error ``delta`` (ppm) and a width ``sigma``
+        equal to the parent peak's ``predicted_std`` when set, otherwise a
+        fallback of 1.66 ppm:
+
+        ```
+        m = exp( -((delta - mu) ** 2) / (2 * (sigma ** 2)) )
+        ```
+
+        with mean ``mu = 0`` (calibrated spectrum with near-zero mean error
+        assumed).
+
+        Returns
+        -------
+        float
+            Score typically in about 0 to 1; exact mass match is 1,
+            and larger ppm error yields values closer to 0.
+
+        Notes
+        -----
+        Formula-level ranking uses :attr:`average_mz_error_score`, which
+        folds in expected isotopologue peaks as well.
+        """
         if not self._mz_error_score:
             self._mz_error_score = self._calc_mz_confidence()
 
@@ -773,88 +872,28 @@ class MolecularFormulaIsotopologue(MolecularFormulaBase):
         return self._calc_abundance_error()
 
 
-class LCMSLibRefMolecularFormula(MolecularFormulaBase):
-    """Class for representing a molecular formula associated with a molecule in a LCMS library reference.
+class LCMSLibRefMolecularFormula:
+    """Removed LC-MS library reference molecular formula type.
+
+    This class is no longer supported. Canonical LC-MS MS1 formula assignment
+    uses :class:`MolecularFormula` via combinatorial / SQL search. Construction
+    raises :class:`NotImplementedError`. The name is retained as a stub until
+    the next major release.
 
     Parameters
     ----------
-    molecular_formula : dict, list, str
-        The molecular formula.
-    ion_charge : int
-        The ion charge.
-    ion_type : str, optional
-        The ion type. Defaults to None.
-    adduct_atom : str, optional
-        The adduct atom. Defaults to None.
-    mspeak_parent : object, optional
-        The parent mass spectrum peak object instance. Defaults to None.
-    name : str, optional
-        The name of the reference molecule. Defaults to None.
-    kegg_id : str, optional
-        The KEGG ID of the reference molecule. Defaults to None.
-    cas : str, optional
-        The CAS number of the reference molecule. Defaults to None.
-
+    *args
+        Ignored; retained only for call-site compatibility.
+    **kwargs
+        Ignored; retained only for call-site compatibility.
     """
 
-    def __init__(
-        self,
-        molecular_formula,
-        ion_charge,
-        ion_type=None,
-        adduct_atom=None,
-        mspeak_parent=None,
-        name=None,
-        kegg_id=None,
-        cas=None,
-    ) -> None:
-        super().__init__(
-            molecular_formula,
-            ion_charge,
-            ion_type=ion_type,
-            adduct_atom=adduct_atom,
-            mspeak_parent=mspeak_parent,
+    def __init__(self, *args, **kwargs) -> None:
+        raise NotImplementedError(
+            "LCMSLibRefMolecularFormula is no longer supported. "
+            "Use MolecularFormula for formula objects. "
+            "This stub will be removed in the next major release."
         )
-
-        self._name = name
-        self._kegg_id = kegg_id
-        self._cas = cas
-
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, name):
-        if isinstance(name, str):
-            self._name = name
-        else:
-            raise TypeError("name: {} should be type string")
-
-    @property
-    def kegg_id(self):
-        return self._kegg_id
-
-    @kegg_id.setter
-    def kegg_id(self, kegg_id):
-        self._kegg_id = kegg_id
-        # if isinstance(kegg_id, str):
-        #    self._kegg_id = kegg_id
-        # else:
-        #    print(kegg_id)
-        #    raise TypeError('name: {} should be type string')
-
-    @property
-    def cas(self):
-        return self._cas
-
-    @cas.setter
-    def cas(self, cas):
-        self._cas = cas
-        # if isinstance(cas, str):
-        #    self._cas = cas
-        # else:
-        #    raise TypeError('name: {} should be type string')
 
 
 class MolecularFormula(MolecularFormulaBase):

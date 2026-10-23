@@ -6,7 +6,6 @@ import cProfile
 import io
 import itertools
 import json
-import multiprocessing
 import pstats
 from copy import deepcopy
 from typing import Dict
@@ -17,13 +16,18 @@ from tqdm import tqdm
 
 from corems import chunks, timeit
 from corems.encapsulation.constant import Atoms
+from corems.encapsulation.spawn_pool import spawn_pool
 from corems.encapsulation.factory.parameters import MSParameters
-from corems.encapsulation.factory.processingSetting import MolecularLookupDictSettings
+from corems.encapsulation.factory.processingSetting import (
+    MolecularLookupDictSettings,
+    validate_used_atoms_keys,
+)
 from corems.molecular_id.factory.molecularSQL import (
     CarbonHydrogen,
     HeteroAtoms,
     MolecularFormulaLink,
     MolForm_SQL,
+    psycopg3_url,
 )
 
 
@@ -48,6 +52,8 @@ def insert_database_worker(args):
 
     if not url:
         url = "sqlite:///db/molformulas.sqlite"
+
+    url = psycopg3_url(url)
 
     if url[0:6] == "sqlite":
         engine = create_engine(url, echo=False)
@@ -302,7 +308,7 @@ class MolecularCombinations:
 
                 str_data = "C:{},H:{}".format(C, H)
 
-                if not str_data in carbon_hydrogen_objs_database.keys():
+                if str_data not in carbon_hydrogen_objs_database.keys():
                     label = "even" if comb[1] % 2 == 0 else "odd"
                     data["mass"] = (C * Atoms.atomic_masses.get("C")) + (
                         H * Atoms.atomic_masses.get("H")
@@ -416,7 +422,7 @@ class MolecularCombinations:
             self.even_ch_dbe = [obj.dbe for obj in even_ch_obj]
 
             all_results = list()
-            for class_tuple in tqdm(class_to_create, disable = not verbose):
+            for class_tuple in tqdm(class_to_create, disable=not verbose):
                 results = self.populate_combinations(class_tuple, settings)
                 all_results.extend(results)
                 if settings.db_jobs == 1:
@@ -441,13 +447,12 @@ class MolecularCombinations:
                 worker_args = [
                     (chunk, settings.url_database) for chunk in list_insert_chunks
                 ]
-                p = multiprocessing.Pool(settings.db_jobs)
-                for class_list in tqdm(
-                        p.imap_unordered(insert_database_worker, worker_args), disable= not verbose
-                        ):
-                    pass
-                p.close()
-                p.join()
+                with spawn_pool(settings.db_jobs) as p:
+                    for class_list in tqdm(
+                        p.imap_unordered(insert_database_worker, worker_args),
+                        disable=not verbose,
+                    ):
+                        pass
 
         return classes_list
 
@@ -465,6 +470,7 @@ class MolecularCombinations:
             A dictionary of classes in order.
             structure is  ('HC', {'HC': 1})
         """
+        validate_used_atoms_keys(molecular_search_settings.usedAtoms)
 
         usedAtoms = deepcopy(molecular_search_settings.usedAtoms)
 
@@ -656,8 +662,6 @@ class MolecularCombinations:
         list
             A list of molecular formula data dictionaries.
         """
-        ion_charge = 0
-
         class_dict = classe_tuple[1]
         odd_or_even = self.get_h_odd_or_even(class_dict)
 

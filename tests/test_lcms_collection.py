@@ -1,4 +1,6 @@
 # %% Import libs
+from pathlib import Path
+
 import numpy as np
 import pytest
 import pandas as pd
@@ -8,6 +10,9 @@ from corems.mass_spectra.input.corems_hdf5 import ReadCoreMSHDFMassSpectraCollec
 from corems.mass_spectra.output.export import LCMSMetabolomicsExport, LCMSCollectionExport
 from corems.encapsulation.factory.parameters import LCMSParameters, LCMSCollectionParameters
 from corems.molecular_id.search.database_interfaces import MSPInterface
+from corems.mass_spectra.output.mgf import iter_collection_mgf_records
+
+from test_lcms_mgf_export import assert_sirius_feature_export
 
 
 @pytest.fixture(scope="module")
@@ -231,6 +236,68 @@ def test_lcms_collection_rt_alignment(lcms_collection):
         pytest.fail(f"plot_alignments raised an exception: {e}")
 
 
+def test_lcms_collection_plot_finalize_return_fig_and_path(lcms_collection, tmp_path):
+    """Shared plot finalize contract: open return_fig, path save without show."""
+    import io
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.figure import Figure
+
+    lcms_collection = copy.deepcopy(lcms_collection)
+
+    def _assert_open_and_saveable(fig, label):
+        assert fig is not None, f"{label} should return a figure"
+        assert isinstance(fig, Figure), f"{label} should return a matplotlib Figure"
+        assert plt.fignum_exists(fig.number), (
+            f"{label}: figure was closed before return"
+        )
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        assert buf.tell() > 0, f"{label}: savefig produced empty output"
+        out_path = tmp_path / f"{label}.png"
+        fig.savefig(out_path)
+        assert out_path.stat().st_size > 0, f"{label}: on-disk savefig is empty"
+        plt.close(fig)
+
+    # plot_tics: return_fig leaves figure open
+    fig = lcms_collection.plot_tics(
+        ms_level=1, type="raw", plot_legend=False, return_fig=True
+    )
+    _assert_open_and_saveable(fig, "plot_tics")
+
+    # Default path still returns None
+    assert lcms_collection.plot_tics(ms_level=1, type="raw") is None
+
+    # Headless batch save via path= (no return_fig)
+    path_tics = tmp_path / "tics_batch.png"
+    assert (
+        lcms_collection.plot_tics(ms_level=1, type="raw", path=path_tics) is None
+    )
+    assert path_tics.is_file() and path_tics.stat().st_size > 0
+
+    # return_fig + path: save and return open figure
+    path_tics2 = tmp_path / "tics_return.png"
+    fig = lcms_collection.plot_tics(
+        ms_level=1, type="raw", return_fig=True, path=path_tics2
+    )
+    assert path_tics2.is_file() and path_tics2.stat().st_size > 0
+    _assert_open_and_saveable(fig, "plot_tics_path_return")
+
+    # plot_alignments needs scan_time_aligned
+    if not lcms_collection.rt_alignment_attempted:
+        lcms_collection.align_lcms_objects()
+
+    fig = lcms_collection.plot_alignments(plot_legend=False, return_fig=True)
+    _assert_open_and_saveable(fig, "plot_alignments")
+    assert lcms_collection.plot_alignments() is None
+
+    path_align = tmp_path / "align_batch.png"
+    assert lcms_collection.plot_alignments(path=path_align) is None
+    assert path_align.is_file() and path_align.stat().st_size > 0
+
+
 def test_lcms_collection_consensus_features(lcms_collection):
     """Test generation of consensus mass features (clustering)."""
     # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
@@ -260,6 +327,40 @@ def test_lcms_collection_consensus_features(lcms_collection):
     # Verify that all clusters in summary are in the dictionary
     for cluster_id in cluster_summary.index:
         assert cluster_id in cluster_dict
+
+    # Missing-sample lists keep sample-id order and include samples with no features.
+    from corems.mass_spectra.calc.lc_calc_operations import GapFillOperation
+
+    runtime = lcms_collection._prepare_pipeline_runtime_params(
+        [GapFillOperation(name="gap")]
+    )
+    missingdf = runtime["missingdf"]
+    assert len(missingdf) > 0
+    mfdf = lcms_collection.mass_features_dataframe
+    all_sample_ids = list(range(len(lcms_collection)))
+    for cluster_id, missing_ids in zip(
+        missingdf.cluster.to_numpy(), missingdf["missing_samples"]
+    ):
+        present = set(mfdf.loc[mfdf.cluster == cluster_id, "sample_id"].unique())
+        expected = [i for i in all_sample_ids if i not in present]
+        assert list(missing_ids) == expected
+        assert 2 in missing_ids
+    # A missed window widens by consensus_rt_tol minutes, and m/z by ppm.
+    rt_tol = lcms_collection.parameters.lcms_collection.consensus_rt_tol
+    mz_tol = lcms_collection.parameters.lcms_collection.consensus_mz_tol_ppm * 1e-6
+    assert np.allclose(
+        missingdf["sta_max_allowed"], missingdf["scan_time_aligned_max"] + rt_tol
+    )
+    assert np.allclose(
+        missingdf["sta_min_allowed"], missingdf["scan_time_aligned_min"] - rt_tol
+    )
+    assert np.allclose(
+        missingdf["mz_max_allowed"], missingdf["mz_max"] + mz_tol * missingdf["mz_max"]
+    )
+    assert np.allclose(
+        missingdf["mz_min_allowed"], missingdf["mz_min"] - mz_tol * missingdf["mz_min"]
+    )
+    assert lcms_collection.parameters.lcms_collection.gap_fill_expand_on_miss is True
 
 
 def test_lcms_collection_gap_filling(lcms_collection):
@@ -301,18 +402,89 @@ def test_lcms_collection_gap_filling(lcms_collection):
     assert 'cluster' in induced_df.columns
     assert 'sample_name' in induced_df.columns
     assert 'mf_id' in induced_df.columns
+    assert '_eic_mz' in induced_df.columns
+    assert induced_df['_eic_mz'].notna().all(), (
+        "induced_mass_features_dataframe should have non-null _eic_mz for all rows"
+    )
+
+    # Regular collection mass_features_dataframe should also expose _eic_mz
+    mf_df = lcms_collection.mass_features_dataframe
+    assert '_eic_mz' in mf_df.columns
+    assert mf_df['_eic_mz'].notna().all(), (
+        "mass_features_dataframe should have non-null _eic_mz for all regular features"
+    )
     
     # Check induced features per sample in the dataframe (not individual objects)
     sample_3_induced = len(induced_df[induced_df['sample_id'] == 2])
     
     # Sample 3 should have induced features (started with 0, all 50 clusters are missing)
     assert sample_3_induced == 50, "Sample 3 should have 50 induced mass features (one for each cluster)"
-    
-    # By design, individual sample objects should have empty induced_mass_features dict
-    # because they are collected into the induced_mass_features_dataframe
-    assert len(lcms_collection[0].induced_mass_features) == 0
-    assert len(lcms_collection[1].induced_mass_features) == 0
-    assert len(lcms_collection[2].induced_mass_features) == 0
+
+    # Gap-filled rows are not representative candidates. Selection reads
+    # mass_features_dataframe only, which is why gap fill does not process an
+    # MS1 spectrum for each induced apex.
+    reps = lcms_collection.get_representative_mass_features_for_all_clusters()
+    induced_ids = set(induced_df.index.astype(str))
+    regular_ids = set(lcms_collection.mass_features_dataframe.index.astype(str))
+    assert induced_ids.isdisjoint(regular_ids)
+    assert set(reps["coll_mf_id"].astype(str)).issubset(regular_ids)
+
+    # Induced feature *objects* are always cleared after gap-fill (memory).
+    for i in range(len(lcms_collection)):
+        assert len(lcms_collection[i].induced_mass_features) == 0, (
+            f"Sample {i} should clear induced_mass_features after gap-fill"
+        )
+
+    # EICs are separate: gap-fill + gather_eics leaves chromatograms on sample.eics
+    # keyed by m/z (including induced feature m/z).
+    sample3 = lcms_collection[2]
+    assert sample3.eics is not None and len(sample3.eics) > 0, (
+        "Sample 3 should retain EICs on sample.eics after gap-fill with gather_eics=True"
+    )
+    if "_eic_mz" in induced_df.columns:
+        induced_mzs = induced_df.loc[induced_df["sample_id"] == 2, "_eic_mz"].dropna()
+        assert len(induced_mzs) > 0
+        # At least some induced m/z values should resolve in sample.eics
+        from corems.mass_spectra.factory.lc_class import LCMSBase
+        matched = 0
+        for mz in induced_mzs:
+            if mz in sample3.eics:
+                matched += 1
+            elif hasattr(sample3, "get_eic_mz_for_mass_feature"):
+                key = sample3.get_eic_mz_for_mass_feature(float(mz))
+                if key is not None:
+                    matched += 1
+        assert matched > 0, (
+            "Induced feature m/z values should be present in sample.eics after gap-fill"
+        )
+
+
+def test_lcms_collection_gap_fill_clears_induced_without_gather_eics(lcms_collection):
+    """Without gather_eics, induced objects are still cleared after gap-fill."""
+    lcms_collection = copy.deepcopy(lcms_collection)
+    if not lcms_collection.rt_alignment_attempted:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
+
+    lcms_collection.process_consensus_features(
+        load_representatives=False,
+        perform_gap_filling=True,
+        add_ms1=False,
+        add_ms2=False,
+        molecular_formula_search=False,
+        ms2_spectral_search=False,
+        spectral_lib=False,
+        molecular_metadata=None,
+        gather_eics=False,
+        keep_raw_data=False,
+    )
+
+    assert lcms_collection.induced_mass_features_dataframe is not None
+    assert len(lcms_collection.induced_mass_features_dataframe) > 0
+    for i in range(len(lcms_collection)):
+        assert len(lcms_collection[i].induced_mass_features) == 0, (
+            f"Sample {i} should clear induced_mass_features after gap-fill"
+        )
 
 
 def test_lcms_collection_pivot_table(lcms_collection):
@@ -416,10 +588,15 @@ def test_lcms_collection_export_import_hdf5(lcms_collection, tmp_path):
         mass_spectra_collection=lcms_collection
     )
     exporter.export_to_hdf5(overwrite=True, save_parameters=True)
-    
+    exporter.export_to_parquet(overwrite=True, save_parameters=False)
+
     # Check that HDF5 file was created
     hdf5_path = export_path.with_suffix('.hdf5')
     assert hdf5_path.exists()
+    # Collection-level parquet companions
+    assert Path(str(export_path) + "_mass_features.parquet").exists() or Path(
+        str(export_path) + "_manifest.parquet"
+    ).exists()
     
     # Re-import the collection
     from corems.mass_spectra.input.corems_hdf5 import ReadSavedLCMSCollection
@@ -445,6 +622,104 @@ def test_lcms_collection_export_import_hdf5(lcms_collection, tmp_path):
         cluster_count_1 = len(lcms_collection.cluster_summary_dataframe)
         cluster_count_2 = len(collection2.cluster_summary_dataframe)
         assert cluster_count_1 == cluster_count_2
+
+
+def test_feature_group_labels_hdf5_round_trip(lcms_collection, tmp_path):
+    """feature_group_dataframe survives collection HDF5 export/import."""
+    import h5py
+    from corems.mass_spectra.calc.feature_grouping import empty_group_labels
+    from corems.mass_spectra.input.corems_hdf5 import ReadSavedLCMSCollection
+
+    lcms_collection = copy.deepcopy(lcms_collection)
+    if not lcms_collection.rt_alignment_attempted:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
+
+    summary = lcms_collection.cluster_summary_dataframe
+    assert summary is not None and len(summary) > 0
+    clusters = summary.index.to_numpy()[: min(5, len(summary))]
+    labels = empty_group_labels(clusters)
+    for i, cid in enumerate(clusters):
+        labels.loc[cid, "feature_group_id"] = 0
+        labels.loc[cid, "ion_role"] = "mono" if i == 0 else "isotope"
+        labels.loc[cid, "ion_type"] = "[M+H]+"
+        labels.loc[cid, "possible_ion_types"] = "[M+H]+;[M+Na]+"
+        labels.loc[cid, "isotope_state"] = "M+0" if i == 0 else "13C1"
+        labels.loc[cid, "mono_cluster_id"] = int(clusters[0])
+    lcms_collection.feature_group_dataframe = labels
+
+    export_path = tmp_path / "fg_roundtrip"
+    exporter = LCMSCollectionExport(
+        out_file_path=str(export_path),
+        mass_spectra_collection=lcms_collection,
+    )
+    exporter.export_to_hdf5(overwrite=True, save_parameters=False, update_lcms_objects=False)
+    hdf5_path = export_path.with_suffix(".hdf5")
+    assert hdf5_path.exists()
+    with h5py.File(hdf5_path, "r") as f:
+        assert "feature_group_labels" in f
+
+    reader = ReadSavedLCMSCollection(collection_hdf5_path=str(hdf5_path), cores=1)
+    collection2 = reader.get_lcms_collection(load_raw=False, load_light=True)
+    assert collection2.feature_group_dataframe is not None
+    got = collection2.feature_group_dataframe
+    for cid in clusters:
+        assert int(got.loc[cid, "feature_group_id"]) == 0
+        assert got.loc[cid, "ion_type"] == "[M+H]+"
+        assert "[M+Na]+" in str(got.loc[cid, "possible_ion_types"])
+    # Older files without the group still load
+    with h5py.File(hdf5_path, "a") as f:
+        del f["feature_group_labels"]
+    collection3 = ReadSavedLCMSCollection(
+        collection_hdf5_path=str(hdf5_path), cores=1
+    ).get_lcms_collection(load_raw=False, load_light=True)
+    assert collection3.feature_group_dataframe is None
+
+
+def test_feature_annotations_table_includes_grouping_drops_empty(lcms_collection):
+    """Grouping columns join onto annotations; all-NA columns are dropped."""
+    from corems.mass_spectra.calc.feature_grouping import GROUP_COLUMNS, empty_group_labels
+
+    lcms_collection = copy.deepcopy(lcms_collection)
+    if not lcms_collection.rt_alignment_attempted:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
+    lcms_collection.process_consensus_features(
+        load_representatives=True,
+        perform_gap_filling=False,
+        add_ms1=False,
+        add_ms2=False,
+        group_features=False,
+        keep_raw_data=False,
+        show_progress=False,
+    )
+    summary = lcms_collection.cluster_summary_dataframe
+    labels = empty_group_labels(summary.index)
+    cid = int(summary.index[0])
+    labels.loc[cid, "feature_group_id"] = 0
+    labels.loc[cid, "ion_role"] = "mono"
+    labels.loc[cid, "ion_type"] = "[M-H]-"
+    labels.loc[cid, "possible_ion_types"] = "[M-H]-"
+    labels.loc[cid, "isotope_state"] = "M+0"
+    labels.loc[cid, "mono_cluster_id"] = cid
+    lcms_collection.feature_group_dataframe = labels
+
+    table = lcms_collection.feature_annotations_table()
+    for col in (
+        "feature_group_id",
+        "ion_role",
+        "possible_ion_types",
+        "isotope_state",
+        "mono_cluster_id",
+    ):
+        assert col in table.columns
+    assert "ion_type" not in table.columns
+    hit = table[table["cluster"] == cid]
+    assert len(hit) >= 1
+    assert int(hit.iloc[0]["feature_group_id"]) == 0
+    assert hit.iloc[0]["ion_role"] == "mono"
+    assert "[M-H]-" in str(hit.iloc[0]["possible_ion_types"])
+    assert table.notna().any().all()
 
 
 def test_lcms_collection_drop_isotopologues(lcms_collection):
@@ -495,7 +770,7 @@ def test_lcms_collection_feature_annotations_table(lcms_collection, msp_file_loc
     
     # Set MS2 score threshold to match test_lcms_metabolomics
     for lcms_obj in lcms_collection:
-        lcms_obj.parameters.lc_ms.ms2_min_fe_score = 0.3
+        lcms_obj.parameters.mass_spectrum["ms2"].spectral_similarity_search.ms2_min_fe_score = 0.3
     
     # Process consensus features with MS1, MS2, and spectral search
     # This should add molecular annotations before creating the annotations table
@@ -530,6 +805,16 @@ def test_lcms_collection_feature_annotations_table(lcms_collection, msp_file_loc
     if 'Entropy Similarity' in annotations_table.columns:
         matched_features = annotations_table[annotations_table['Entropy Similarity'].notna()]
         assert len(matched_features) > 0, "Should have at least some MS2 spectral matches after search"
+        # Library formula must not be written as MS1 Molecular Formula
+        assert 'Library Molecular Formula' in annotations_table.columns
+        lib_hits = matched_features[
+            matched_features['Library Molecular Formula'].notna()
+        ] if 'Library Molecular Formula' in matched_features.columns else matched_features.iloc[0:0]
+        if len(lib_hits) > 0 and 'Molecular Formula' in annotations_table.columns:
+            # Rows with library formula only (no MS1 search here) should leave MS1 Molecular Formula empty
+            assert lib_hits['Molecular Formula'].isna().all() or (
+                lib_hits['Molecular Formula'].fillna('').eq('').all()
+            )
     else:
         # If column doesn't exist, the test should fail
         raise AssertionError("Expected 'Entropy Similarity' column in annotations table after MS2 spectral search")
@@ -566,7 +851,7 @@ def test_lcms_collection_plot_cluster_with_ms2_mirror(lcms_collection, msp_file_
     
     # Set MS2 score threshold
     for lcms_obj in lcms_collection:
-        lcms_obj.parameters.lc_ms.ms2_min_fe_score = 0.3
+        lcms_obj.parameters.mass_spectrum["ms2"].spectral_similarity_search.ms2_min_fe_score = 0.3
     
     # Process consensus features with MS2 spectral search and gather EICs
     pipeline_results = lcms_collection.process_consensus_features(
@@ -723,7 +1008,7 @@ def test_lcms_collection_update_raw_file_locations(lcms_collection, tmp_path):
     assert lcms_collection.raw_files_relocated
 
 
-def test_lcms_collection_minimal_workflow(lcms_collection):
+def test_lcms_collection_minimal_workflow(lcms_collection, tmp_path):
     """
     Test a minimal end-to-end workflow with the collection.
     
@@ -732,7 +1017,8 @@ def test_lcms_collection_minimal_workflow(lcms_collection):
     2. Align retention times
     3. Generate consensus features
     4. Perform gap filling
-    5. Create reports
+    5. Export consensus features to MGF
+    6. Create reports
     """
     # Make a test-wide deep copy of the collection for use in multiple tests without modifying the original
     lcms_collection = copy.deepcopy(lcms_collection)
@@ -754,7 +1040,7 @@ def test_lcms_collection_minimal_workflow(lcms_collection):
         load_representatives=True,
         perform_gap_filling=True,
         add_ms1=True,
-        add_ms2=False,
+        add_ms2=True,
         molecular_formula_search=False,
         ms2_spectral_search=False,
         spectral_lib=False,
@@ -762,8 +1048,27 @@ def test_lcms_collection_minimal_workflow(lcms_collection):
         gather_eics=True,
         keep_raw_data=False
     )
+
+    # Step 5: Export consensus representatives to MGF
+    mgf_path = tmp_path / "lcms_collection.mgf"
+    written_mgf = lcms_collection.to_mgf(mgf_path, overwrite=True)
+    assert written_mgf.exists()
+    records = iter_collection_mgf_records(lcms_collection)
+    exported_ids = assert_sirius_feature_export(
+        written_mgf.read_text(),
+        {f"{cluster}": feat for cluster, feat, _name in records},
+        {
+            f"{cluster}": lcms_collection._lcms[name].polarity
+            for cluster, _feat, name in records
+        },
+    )
+    skipped = {
+        f"{cluster}" for cluster, feat, _name in records if not feat.ms2_mass_spectra
+    }
+    assert skipped
+    assert skipped.isdisjoint(exported_ids)
     
-    # Step 5: Create reports
+    # Step 6: Create reports
     pivot_table = lcms_collection.collection_pivot_table(verbose=False)
     assert pivot_table is not None
     
@@ -851,3 +1156,283 @@ def test_lcms_collection_plotting_methods(lcms_collection):
         lcms_collection.plot_cluster(cluster_id, to_plot=["EIC"], label_samples=True)
     except Exception as e:
         pytest.fail(f"plot_cluster after gap filling raised exception: {e}")
+
+
+def test_lcms_collection_plot_cluster_finalize_return_fig(lcms_collection, tmp_path):
+    """return_fig=True leaves figures open; path= saves for collection plot helpers."""
+    import io
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.figure import Figure
+
+    lcms_collection = copy.deepcopy(lcms_collection)
+    if not lcms_collection.rt_alignment_attempted:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
+
+    cluster_summary = lcms_collection.cluster_summary_dataframe
+    assert len(cluster_summary) > 0, "Should have clusters for plotting tests"
+    cluster_id = cluster_summary.index[0]
+
+    def _assert_open_and_saveable(fig, label):
+        assert fig is not None, f"{label} should return a figure"
+        assert isinstance(fig, Figure), f"{label} should return a matplotlib Figure"
+        assert plt.fignum_exists(fig.number), (
+            f"{label}: figure was closed before return"
+        )
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        assert buf.tell() > 0, f"{label}: savefig produced empty output"
+        out_path = tmp_path / f"{label}.png"
+        fig.savefig(out_path)
+        assert out_path.stat().st_size > 0, f"{label}: on-disk savefig is empty"
+        plt.close(fig)
+
+    fig = lcms_collection.plot_cluster(cluster_id, to_plot=["EIC"], return_fig=True)
+    _assert_open_and_saveable(fig, "plot_cluster")
+
+    path_cluster = tmp_path / "cluster_batch.png"
+    assert (
+        lcms_collection.plot_cluster(
+            cluster_id, to_plot=["EIC"], path=path_cluster
+        )
+        is None
+    )
+    assert path_cluster.is_file() and path_cluster.stat().st_size > 0
+
+    fig = lcms_collection.plot_consensus_mz_features(return_fig=True)
+    _assert_open_and_saveable(fig, "plot_consensus_mz_features")
+
+    fig = lcms_collection.plot_mz_features_across_samples(return_fig=True)
+    _assert_open_and_saveable(fig, "plot_mz_features_across_samples")
+
+    fig = lcms_collection.plot_mz_features_per_cluster(return_fig=True)
+    _assert_open_and_saveable(fig, "plot_mz_features_per_cluster")
+
+    # Mass-feature plot uses the same finalize contract (prefer MS1 to avoid
+    # EIC paths that require optional MS2 associations)
+    sample = lcms_collection[0]
+    if sample.mass_features:
+        mf = next(
+            (
+                m
+                for m in sample.mass_features.values()
+                if m.mass_spectrum is not None
+            ),
+            None,
+        )
+        if mf is not None:
+            fig = mf.plot(to_plot=["MS1"], return_fig=True)
+            _assert_open_and_saveable(fig, "mass_feature_plot")
+            path_mf = tmp_path / "mass_feature_batch.png"
+            assert mf.plot(to_plot=["MS1"], return_fig=False, path=path_mf) is None
+            assert path_mf.is_file() and path_mf.stat().st_size > 0
+
+
+def test_cluster_mz_dict_uses_dataframe_not_only_loaded_features(lcms_collection):
+    """
+    After load_representatives, sample.mass_features is sparse; cluster_mz_dict
+    must still list every clustered feature m/z from the collection dataframe
+    so gather_eics loads multi-sample EICs for plotting.
+    """
+    lcms_collection = copy.deepcopy(lcms_collection)
+    if not lcms_collection.rt_alignment_attempted:
+        lcms_collection.align_lcms_objects()
+    lcms_collection.add_consensus_mass_features()
+
+    mfdf = lcms_collection.mass_features_dataframe
+    assert 'cluster' in mfdf.columns
+    clustered = mfdf[mfdf['cluster'].notna()]
+    assert len(clustered) > 0
+
+    # Simulate sparse load: clear all in-memory mass features on every sample
+    for sample in lcms_collection:
+        sample.mass_features = {}
+        sample.eics = {}
+
+    cluster_mz_dict = lcms_collection._build_cluster_mz_dict_for_eic_loading()
+
+    # Every sample with clustered dataframe rows must have m/z targets
+    for sample_id, sample_df in clustered.groupby('sample_id'):
+        sid = int(sample_id)
+        assert sid in cluster_mz_dict, f"sample {sid} missing from cluster_mz_dict"
+        assert len(cluster_mz_dict[sid]) > 0, f"sample {sid} has empty m/z list"
+        # Object-only logic would yield empty lists when mass_features is {}
+        assert len(lcms_collection[sid].mass_features) == 0
+
+    # Full gather after load_representatives should put EICs on non-rep samples
+    lcms_collection.process_consensus_features(
+        load_representatives=True,
+        perform_gap_filling=False,
+        add_ms1=False,
+        add_ms2=False,
+        molecular_formula_search=False,
+        ms2_spectral_search=False,
+        gather_eics=True,
+        keep_raw_data=False,
+    )
+
+    # Pick a cluster with members in >1 sample; each should have a resolvable EIC
+    from corems.mass_spectra.calc.lc_calc import LCMSCollectionCalculations
+
+    multi = (
+        clustered.groupby('cluster')['sample_id']
+        .nunique()
+        .loc[lambda s: s >= 2]
+    )
+    assert len(multi) > 0, "Need a multi-sample cluster for this assertion"
+    cid = multi.index[0]
+    rows = mfdf[mfdf['cluster'] == cid]
+    for _, row in rows.iterrows():
+        sample = lcms_collection[int(row['sample_id'])]
+        query = LCMSCollectionCalculations._resolve_eic_query_mz(row)
+        eic = LCMSCollectionCalculations._get_eic_data_for_mz(sample, query)
+        assert eic is not None, (
+            f"Missing EIC for cluster {cid} sample {row['sample_id']} "
+            f"mf {row['mf_id']} query_mz={query} n_eics={len(sample.eics or {})}"
+        )
+
+
+def test_get_eic_data_for_mz_tolerance_lookup():
+    """
+    EIC lookup must fall back to m/z tolerance when the exact dict key does not
+    match (float noise between feature _eic_mz and HDF5 EIC keys).
+
+    Also: regular mass_features_dataframe rows often have NaN ``_eic_mz`` while
+    induced rows are populated — plotting must fall back to feature ``mz``.
+    """
+    from types import SimpleNamespace
+
+    import pandas as pd
+
+    from corems.mass_spectra.calc.lc_calc import LCMSCollectionCalculations
+
+    class _FakeEIC:
+        def __init__(self, label):
+            self.label = label
+
+    # Keys differ from query by ~5e-5 Da (within default 1e-4 tolerance)
+    stored_mz = 100.00005
+    query_mz = 100.00000
+    eic = _FakeEIC("matched")
+
+    # Sample with real helper method path
+    sample = SimpleNamespace(eics={stored_mz: eic})
+    # Attach the real method from LCMSBase via binding
+    from corems.mass_spectra.factory.lc_class import LCMSBase
+    sample.get_eic_mz_for_mass_feature = LCMSBase.get_eic_mz_for_mass_feature.__get__(
+        sample, type(sample)
+    )
+
+    # Exact miss, tolerance hit
+    assert sample.eics.get(query_mz) is None
+    found = LCMSCollectionCalculations._get_eic_data_for_mz(sample, query_mz)
+    assert found is eic
+
+    # Exact hit still preferred
+    found_exact = LCMSCollectionCalculations._get_eic_data_for_mz(sample, stored_mz)
+    assert found_exact is eic
+
+    # Outside tolerance → None
+    far = LCMSCollectionCalculations._get_eic_data_for_mz(
+        sample, query_mz, tolerance=1e-6
+    )
+    assert far is None
+
+    # Empty / missing eics
+    empty = SimpleNamespace(eics={})
+    assert LCMSCollectionCalculations._get_eic_data_for_mz(empty, query_mz) is None
+    assert LCMSCollectionCalculations._get_eic_data_for_mz(sample, None) is None
+    assert LCMSCollectionCalculations._get_eic_data_for_mz(sample, float("nan")) is None
+
+    # Dataframe row: NaN _eic_mz (typical for regular features) → fall back to mz
+    row_nan_eic = pd.Series({"_eic_mz": float("nan"), "mz": stored_mz})
+    assert LCMSCollectionCalculations._resolve_eic_query_mz(row_nan_eic) == stored_mz
+    assert (
+        LCMSCollectionCalculations._get_eic_data_for_mz(
+            sample, LCMSCollectionCalculations._resolve_eic_query_mz(row_nan_eic)
+        )
+        is eic
+    )
+    # Prefer non-null _eic_mz over mz
+    row_with_eic = pd.Series({"_eic_mz": query_mz, "mz": 999.0})
+    assert LCMSCollectionCalculations._resolve_eic_query_mz(row_with_eic) == query_mz
+
+
+def test_combine_induced_features_keeps_float_area():
+    """A miss sample's all-NA area must not change a measured area's dtype."""
+    import warnings
+    from pathlib import Path
+
+    from corems.chroma_peak.factory.chroma_peak_classes import LCMSMassFeature
+    from corems.mass_spectra.factory.lc_class import LCMSBase, LCMSCollection
+
+    file_location = Path(__file__).resolve().parents[1] / "pyproject.toml"
+
+    def _sample(name, specs):
+        obj = LCMSBase(file_location, sample_name=name)
+        for spec in specs:
+            feat = LCMSMassFeature(
+                obj,
+                mz=spec.get("mz", np.nan),
+                retention_time=spec.get("rt", np.nan),
+                intensity=spec.get("intensity", np.nan),
+                apex_scan=spec.get("apex", -99),
+                persistence=np.nan,
+                id=spec["id"],
+            )
+            if "area" in spec:
+                feat._area = spec["area"]
+            if "start" in spec:
+                feat.start_scan = spec["start"]
+                feat.final_scan = spec["final"]
+            if "mono" in spec:
+                feat.monoisotopic_mf_id = spec["mono"]
+            obj.induced_mass_features[spec["id"]] = feat
+        return obj
+
+    hit = _sample(
+        "hit",
+        [{"id": "c1_0_i", "mz": 200.0, "rt": 1.2, "intensity": 10.0, "apex": 5,
+          "area": 5.0, "start": 4, "final": 6, "mono": 7}],
+    )
+    miss = _sample(
+        "miss",
+        [
+            {"id": "c1_0_i"},
+            {"id": "c2_0_i"},
+        ],
+    )
+    collection = LCMSCollection(
+        collection_location=".",
+        manifest={
+            "hit": {"batch": 1, "order": 1, "collection_id": 0},
+            "miss": {"batch": 1, "order": 2, "collection_id": 1},
+        },
+    )
+    collection._lcms["hit"] = hit
+    collection._lcms["miss"] = miss
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        collection._combine_mass_features(induced_features=True)
+
+    assert not any(
+        issubclass(item.category, FutureWarning) and "all-NA" in str(item.message)
+        for item in caught
+    )
+    combined = collection.induced_mass_features_dataframe
+    assert combined["area"].dtype == np.dtype("float64")
+    assert combined.loc["0_c1_0_i", "area"] == pytest.approx(5.0)
+    assert pd.isna(combined.loc["1_c1_0_i", "area"])
+    assert pd.isna(combined.loc["1_c2_0_i", "area"])
+    mono = combined["monoisotopic_mf_id"]
+    assert mono.dtype == object
+    hit_mono = mono.loc["0_c1_0_i"]
+    assert isinstance(hit_mono, (int, np.integer))
+    assert not isinstance(hit_mono, (float, np.floating))
+    assert int(hit_mono) == 7
+    assert pd.isna(mono.loc["1_c1_0_i"])
+    assert combined.loc["0_c1_0_i", "start_scan"] == 4

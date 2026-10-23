@@ -51,7 +51,7 @@ CoreMS aims to provide
 
 ## Current Version
 
- `4.0.1`
+ `4.1.0`
 
 ***
 
@@ -64,15 +64,19 @@ CoreMS aims to provide
 
 ## Documentation
 
-API documentation can be found [here](https://emsl-computing.github.io/CoreMS/corems.html).
+- **Docs site (pdoc):** [corems.html](https://emsl-computing.github.io/CoreMS/corems.html) — package landing page includes the README and the full [installation guide](https://emsl-computing.github.io/CoreMS/corems.html#installing-corems)
+- **Installation source:** [docs/user/installation.md](./docs/user/installation.md) (also rendered into the pdoc landing page via `corems.__doc__`)
+- **Overview slides:** [CoreMS-Overview.pdf](https://github.com/EMSL-Computing/CoreMS/blob/master/examples/CoreMS-Overview.pdf)
 
-Overview slides can be found [here](https://github.com/EMSL-Computing/CoreMS/blob/master/examples/CoreMS-Overview.pdf).
+Build local docs: `just docu`, then open `docs/corems.html`.
 
 ***
 
 ## Contributing
 
-As an open source project, CoreMS welcomes contributions of all forms. Before contributing, please see our [Dev Guide](./CONTRIBUTING.md)
+As an open source project, CoreMS welcomes contributions of all forms. See the [contributing guide](./CONTRIBUTING.md) for external (GitHub) and internal (GitLab) workflows. Maintainers: see the [release guide](./RELEASE.md).
+
+**Branches:** `master` is the stable release line (PyPI and tags). `dev` is the integration branch for ongoing work. Open PRs and MRs against `dev` only; maintainers merge `dev` into `master` when cutting a release.
 
 ***
 
@@ -97,6 +101,7 @@ As an open source project, CoreMS welcomes contributions of all forms. Before co
 - Pandas data frame (can be saved using pickle, h5, etc)
 - Text Files (.csv, tab separated .txt, etc)
 - Microsoft Excel (xlsx)
+- Apache Parquet (.parquet)
 - Automatic JSON for metadata storage and reuse
 - Self-containing Hierarchical Data Format (.hdf5) including raw data and time-series data-point for processed data-sets with all associated metadata stored as json attributes
 
@@ -164,44 +169,27 @@ See walkthrough in [this notebook](examples/notebooks/LCMS_Tutorial.ipynb)
 
 ***
 
-## Installation 
-    
+## Installation
+
 ```bash
+python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -U pip
 pip install corems
+python -c "import corems; print(corems.__version__)"
 ```
 
-Corems requires **Python 3.9 or later** (including Python 3.13) and is compatible with **NumPy 2.x**, **pandas 2.x**, and **SQLAlchemy 2.x**.
-
-To install with development and testing extras:
+CoreMS **4.0+** requires **Python 3.11+** (including 3.14). Dependencies (including **pythonnet**) come from `pyproject.toml` with the package.
 
 ```bash
-pip install "corems[dev]"
+pip install "corems[dev]"   # tests / docs tooling
 ```
 
-By default the molecular formula database will be generated using SQLite.
+**Full guide** (venv, extras, SQLite vs PostgreSQL, Thermo `.raw` / .NET 8, troubleshooting):
 
-To use PostgreSQL the easiest way is to build a docker container:
+→ **[docs/user/installation.md](./docs/user/installation.md)** (source)  
+→ On the docs site: [Installing CoreMS](https://emsl-computing.github.io/CoreMS/corems.html#installing-corems) (same page as the API landing docs)
 
-```bash
-docker-compose up -d
-```
-
-- Change the url_database on `MSParameters.molecular_search.url_database` to: `"postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"`
-- Set the env variable `COREMS_DATABASE_URL` to: `"postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"`
-
-### Thermo Raw File Access:
-
-To be able to open thermo file a installation of pythonnet is needed:
-- Windows: 
-    ```bash
-    pip install pythonnet
-    ```
-
-- Mac and Linux:
-    ```bash
-    brew install mono
-    pip install pythonnet   
-    ```  
+Thermo RAW needs a host **.NET 8** runtime and `PYTHONNET_RUNTIME=coreclr` (details in the install guide). The CoreMS Docker image already includes .NET 8; see [Docker image](#docker-image).
 
 ***
 
@@ -216,16 +204,16 @@ CoreMS provides a Dockerfile that packages the entire application (including .NE
 
 ### Building the Docker Image
 
-The Makefile provides convenience targets for building the image. The image is tagged with the current version from `.bumpversion.cfg`.
+The [justfile](./justfile) provides convenience recipes for building the image (install `just` first — see <https://just.systems>). The image is tagged with the current version from `.bumpversion.cfg`.
 
 **On Linux/Windows (standard build):**
 ```bash
-make build-image-local
+just build-image-local
 ```
 
 **On macOS (cross-platform build for linux/amd64):**
 ```bash
-make build-image-mac-local
+just build-image-mac-local
 ```
 
 This runs `docker build` with the `--platform linux/amd64` flag, which is necessary when building on Apple Silicon (M1/M2/M3) Macs to ensure compatibility.
@@ -234,7 +222,7 @@ Alternatively, you can build manually with:
 ```bash
 docker build -t corems:<version> .
 ```
-Replace `<version>` with your desired tag (e.g., `4.0.1`).
+Replace `<version>` with your desired tag (e.g., `4.1.0`).
 
 ### What the Dockerfile Does
 
@@ -250,12 +238,12 @@ The Dockerfile performs the following steps:
 
 **On Linux/Windows:**
 ```bash
-make image-run-local
+just image-run-local
 ```
 
 **On macOS:**
 ```bash
-make image-run-mac-local
+just image-run-mac-local
 ```
 
 This launches an interactive bash shell inside the container:
@@ -278,21 +266,21 @@ Your files will then be accessible at `/data` inside the container.
 
 ### Managing the PostgreSQL Database with Docker Compose
 
-The `docker-compose.yml` file defines a PostgreSQL database service for CoreMS. The Makefile provides targets to manage it:
+The `docker-compose.yml` file defines a PostgreSQL database service for CoreMS. The [justfile](./justfile) provides recipes to manage it:
 
 **Start the database:**
 ```bash
-make db-up
+just db-up
 ```
 
 **Stop the database:**
 ```bash
-make db-down
+just db-down
 ```
 
 **View database logs:**
 ```bash
-make db-logs
+just db-logs
 ```
 
 These are equivalent to running `docker-compose up -d`, `docker-compose down`, and `docker-compose logs -f` respectively.
@@ -311,7 +299,7 @@ from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFor
 from corems.mass_spectrum.output.export import HighResMassSpecExport
 from matplotlib import pyplot
 
-file_path= 'tests/tests_data/ftms/ESI_NEG_SRFA.d'
+file_path= 'tests/tests_data/ftms/srfa_bruker_solarix_direct_infusion/ESI_NEG_SRFA.d'
 
 # Instatiate the Bruker Solarix reader with the filepath
 bruker_reader = ReadBrukerSolarix(file_path)
@@ -366,6 +354,8 @@ mass_spectrum_obj.to_csv("filename")
 mass_spectrum_obj.to_hdf("filename")
 # to pandas Datarame pickle
 mass_spectrum_obj.to_pandas("filename")
+# to parquet
+mass_spectrum_obj.to_parquet("filename")
 
 # Extract data as a pandas Dataframe
 df = mass_spectrum_obj.to_dataframe()
@@ -375,7 +365,11 @@ df = mass_spectrum_obj.to_dataframe()
 
 ## UML Diagrams
 
-UML (unified modeling language) diagrams for Direct Infusion FT-MS and GC-MS classes can be found [here](docs/uml).
+Class diagrams for the main data-model stacks live in [`docs/uml`](docs/uml):
+
+- Direct Infusion FT-MS (`Direct_Infusion_FTMS_Data_Model.svg`)
+- GC-MS (`GC_MS_Data_Model.svg`)
+- LC-MS (`LC_MS_Data_Model.svg`)
 
 ***
 

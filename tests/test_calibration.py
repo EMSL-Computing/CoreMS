@@ -14,7 +14,10 @@ from corems.encapsulation.factory.parameters import MSParameters, reset_ms_param
 @pytest.fixture
 def mass_spectrum_centroid():
 
-    file_location = Path.cwd() / "tests/tests_data/ftms/ESI_NEG_SRFA_UnCal_Unassign.csv"
+    file_location = (
+        Path.cwd()
+        / "tests/tests_data/ftms/srfa_bruker_solarix_direct_infusion/ESI_NEG_SRFA_UnCal_Unassign.csv"
+    )
     MSParameters.mass_spectrum.noise_threshold_method = "relative_abundance"
     MSParameters.mass_spectrum.noise_threshold_min_relative_abundance = 0.1
 

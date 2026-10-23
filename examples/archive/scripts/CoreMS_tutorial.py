@@ -6,7 +6,7 @@ from corems.encapsulation.factory.parameters import MSParameters
 from corems.transient.input.brukerSolarix import ReadBrukerSolarix
 from corems.mass_spectrum.calc.Calibration import MzDomainCalibration
 
-file_location =  "tests/tests_data/ftms/ESI_NEG_SRFA.d"
+file_location =  "tests/tests_data/ftms/srfa_bruker_solarix_direct_infusion/ESI_NEG_SRFA.d"
 
 MSParameters.transient.apodization_method = "Hanning"
 MSParameters.transient.number_of_truncations = 0
@@ -45,14 +45,14 @@ MSParameters.mass_spectrum.max_calib_ppm_error = 5
 
 mass_spectrum = import_transient()
 
-ref_file_location = 'tests/tests_data/ftms/SRFA.ref'
+ref_file_location = 'tests/tests_data/ftms/srfa_bruker_solarix_direct_infusion/SRFA.ref'
 
 MzDomainCalibration(mass_spectrum, ref_file_location).run()
 
 from corems.molecular_id.search.molecularFormulaSearch import SearchMolecularFormulas
 from corems.molecular_id.factory.classification import HeteroatomsClassification
 
-mass_spectrum.molecular_search_settings.url_database = "postgresql+psycopg2://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
+mass_spectrum.molecular_search_settings.url_database = "postgresql+psycopg://coremsappdb:coremsapppnnl@localhost:5432/coremsapp"
 
 mass_spectrum.molecular_search_settings.error_method = 'None'
 mass_spectrum.molecular_search_settings.min_ppm_error  = -1
